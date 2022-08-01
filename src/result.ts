@@ -92,6 +92,7 @@ export const monoid = <T, E>(error: E): Monoid<Result<T, E>> => ({
 
 export const monad: Monad2<ResultHktKey> = {
     pure: ok,
+    map: (f) => (res) => map(res)(f),
     flatMap: (f) => (res) => flatten(map(res)(f)),
     apply: (fnRes) => (tRes) => andThen(fnRes)((fn) => map(tRes)((t) => fn(t))),
 };

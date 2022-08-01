@@ -189,6 +189,7 @@ export const monoid = <T>(): Monoid<Option<T>> => ({
 
 export const monad: Monad1<OptionHktKey> = {
     pure: some,
+    map: (f) => (opt) => map(opt)(f),
     flatMap: (f) => (opt) => flatMap(opt)(f),
     apply: (fnOpt) => (tOpt) => flatMap(fnOpt)((fn) => map(tOpt)((t) => fn(t))),
 };
