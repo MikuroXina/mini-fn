@@ -1,4 +1,5 @@
 import type {
+    Hkt,
     HktA1,
     HktA2,
     HktA3,
@@ -8,6 +9,10 @@ import type {
     HktDictA3,
     HktDictA4,
 } from "../hkt";
+
+export interface Pure<Symbol extends symbol> {
+    pure<T>(t: T): Hkt<Symbol, T>;
+}
 
 export interface Pure1<A extends HktA1> {
     pure<T1>(a: T1): HktDictA1<T1>[A];
