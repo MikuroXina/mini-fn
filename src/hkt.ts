@@ -1,3 +1,8 @@
+export interface Hkt<Symbol extends symbol, A> {
+    _symbol: Symbol;
+    _args: A;
+}
+
 export interface HktDictA1<A1> {}
 export interface HktDictA2<A1, A2> extends HktDictA1<A1> {}
 export interface HktDictA3<A1, A2, A3> extends HktDictA2<A1, A2> {}
