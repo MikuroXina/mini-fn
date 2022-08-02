@@ -29,7 +29,7 @@ export const map =
     <R>(r: Reader<R, T>): Reader<R, U> =>
     (req) =>
         f(r(req));
-export const applyDouble =
+export const applyWeak =
     <A, B, R>(r: Reader<R, (a: A) => B>) =>
     <S>(s: Reader<S, A>): Reader<R & S, B> =>
     (rs) =>
@@ -37,12 +37,12 @@ export const applyDouble =
 export const apply =
     <A, B, R>(r: Reader<R, (a: A) => B>) =>
     (s: Reader<R, A>): Reader<R, B> =>
-        applyDouble(r)(s);
+        applyWeak(r)(s);
 export const pure =
     <R, A>(a: A): Reader<R, A> =>
     () =>
         a;
-export const flatMapDouble =
+export const flatMapWeak =
     <A, B, R>(f: (a: A) => Reader<R, B>) =>
     <S>(r: Reader<S, A>): Reader<R & S, B> =>
     (req) =>
@@ -50,23 +50,23 @@ export const flatMapDouble =
 export const flatMap =
     <A, B, R>(f: (a: A) => Reader<R, B>) =>
     (r: Reader<R, A>): Reader<R, B> =>
-        flatMapDouble(f)(r);
-export const flattenDouble =
+        flatMapWeak(f)(r);
+export const flattenWeak =
     <A, R, S>(r: Reader<S, Reader<R, A>>): Reader<R & S, A> =>
     (rs: R & S) =>
         r(rs)(rs);
-export const flatten = <R, A>(r: Reader<R, Reader<R, A>>): Reader<R, A> => flattenDouble(r);
+export const flatten = <R, A>(r: Reader<R, Reader<R, A>>): Reader<R, A> => flattenWeak(r);
 
-export const applyFirstDouble =
+export const applyFirstWeak =
     <R, A>(r: Reader<R, A>) =>
     <S, B>(_s: Reader<S, B>): Reader<R & S, A> =>
     (rs) =>
         r(rs);
-export const applySecondDouble =
+export const applySecondWeak =
     <R, A>(_r: Reader<R, A>) =>
     <S, B>(s: Reader<S, B>): Reader<R & S, B> =>
         s;
-export const flatMapFirstDouble =
+export const flatMapFirstWeak =
     <R, A>(r: Reader<R, A>) =>
     <S, B>(_f: (a: A) => Reader<S, B>): Reader<R & S, A> =>
     (rs) =>
