@@ -1,13 +1,13 @@
 import type {
     Hkt,
-    HktA1,
-    HktA2,
-    HktA3,
-    HktA4,
-    HktDictA1,
-    HktDictA2,
-    HktDictA3,
-    HktDictA4,
+    HktKeyA1,
+    HktKeyA2,
+    HktKeyA3,
+    HktKeyA4,
+    GetHktA1,
+    GetHktA2,
+    GetHktA3,
+    GetHktA4,
 } from "../hkt";
 import type { Functor, Functor1, Functor2, Functor3, Functor4 } from "./functor";
 import type { SemiGroup } from "./semi-group";
@@ -16,23 +16,23 @@ export interface Apply<Symbol extends symbol> extends Functor<Symbol> {
     apply<T, U>(fn: Hkt<Symbol, (t: T) => U>): (t: Hkt<Symbol, T>) => Hkt<Symbol, U>;
 }
 
-export interface Apply1<A extends HktA1> extends Functor1<A> {
-    apply<T1, U1>(fn: HktDictA1<(t: T1) => U1>[A]): (t: HktDictA1<T1>[A]) => HktDictA1<U1>[A];
+export interface Apply1<S extends HktKeyA1> extends Functor1<S> {
+    apply<T1, U1>(fn: GetHktA1<S, (t: T1) => U1>): (t: GetHktA1<S, T1>) => GetHktA1<S, U1>;
 }
-export interface Apply2<A extends HktA2> extends Functor2<A> {
-    apply<T1, T2, U1>(
-        fn: HktDictA2<(t: T1) => U1, T2>[A],
-    ): (t: HktDictA2<T1, T2>[A]) => HktDictA2<U1, T2>[A];
+export interface Apply2<S extends HktKeyA2> extends Functor2<S> {
+    apply<T1, T2, U2>(
+        fn: GetHktA2<S, T1, (t: T2) => U2>,
+    ): (t: GetHktA2<S, T1, T2>) => GetHktA2<S, T1, U2>;
 }
-export interface Apply3<A extends HktA3> extends Functor3<A> {
-    apply<T1, T2, T3, U1>(
-        fn: HktDictA3<(t: T1) => U1, T2, T3>[A],
-    ): (t: HktDictA3<T1, T2, T3>[A]) => HktDictA3<U1, T2, T3>[A];
+export interface Apply3<S extends HktKeyA3> extends Functor3<S> {
+    apply<T1, T2, T3, U3>(
+        fn: GetHktA3<S, T1, T2, (t: T3) => U3>,
+    ): (t: GetHktA3<S, T1, T2, T3>) => GetHktA3<S, T1, T2, U3>;
 }
-export interface Apply4<A extends HktA4> extends Functor4<A> {
-    apply<T1, T2, T3, T4, U1>(
-        fn: HktDictA4<(t: T1) => U1, T2, T3, T4>[A],
-    ): (t: HktDictA4<T1, T2, T3, T4>[A]) => HktDictA4<U1, T2, T3, T4>[A];
+export interface Apply4<S extends HktKeyA4> extends Functor4<S> {
+    apply<T1, T2, T3, T4, U4>(
+        fn: GetHktA4<S, T1, T2, T3, (t: T4) => U4>,
+    ): (t: GetHktA4<S, T1, T2, T3, T4>) => GetHktA4<S, T1, T2, T3, U4>;
 }
 
 export const ap =

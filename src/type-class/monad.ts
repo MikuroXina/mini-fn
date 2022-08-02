@@ -1,8 +1,8 @@
-import type { HktA1, HktA2, HktA3, HktA4 } from "../hkt";
+import type { HktKeyA1, HktKeyA2, HktKeyA3, HktKeyA4 } from "../hkt";
 import type { Applicative1, Applicative2, Applicative3, Applicative4 } from "./applicative";
 import type { FlatMap1, FlatMap2, FlatMap3, FlatMap4 } from "./flat-map";
 
-export interface Monad1<A extends HktA1> extends Applicative1<A>, FlatMap1<A> {}
-export interface Monad2<A extends HktA2> extends Applicative2<A>, FlatMap2<A> {}
-export interface Monad3<A extends HktA3> extends Applicative3<A>, FlatMap3<A> {}
-export interface Monad4<A extends HktA4> extends Applicative4<A>, FlatMap4<A> {}
+export interface Monad1<S extends HktKeyA1> extends Applicative1<S>, FlatMap1<S> {}
+export interface Monad2<S extends HktKeyA2> extends Applicative2<S>, FlatMap2<S> {}
+export interface Monad3<S extends HktKeyA3> extends Applicative3<S>, FlatMap3<S> {}
+export interface Monad4<S extends HktKeyA4> extends Applicative4<S>, FlatMap4<S> {}

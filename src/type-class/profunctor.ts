@@ -1,25 +1,25 @@
-import type { Hkt2, HktA2, HktA3, HktA4, HktDictA2, HktDictA3, HktDictA4 } from "../hkt";
+import type { Hkt2, HktKeyA2, HktKeyA3, HktKeyA4, GetHktA2, GetHktA3, GetHktA4 } from "../hkt";
 
 export interface Profunctor<Symbol extends symbol> {
     diMap<A, B>(
         f: (a: A) => B,
-    ): <C, D>(g: (c: C) => D) => (m: Hkt2<Symbol, B, C>) => Hkt2<Symbol, A, D>;
+    ): <C, D>(g: (c: C) => D) => (m: Hkt2<Symbol, D, A>) => Hkt2<Symbol, C, B>;
 }
 
-export interface Profunctor2<S extends HktA2> {
+export interface Profunctor2<S extends HktKeyA2> {
     diMap<A, B>(
         f: (a: A) => B,
-    ): <C, D>(g: (c: C) => D) => (m: HktDictA2<B, C>[S]) => HktDictA2<A, D>[S];
+    ): <C, D>(g: (c: C) => D) => (m: GetHktA2<S, D, A>) => GetHktA2<S, C, B>;
 }
-export interface Profunctor3<S extends HktA3> {
+export interface Profunctor3<S extends HktKeyA3> {
     diMap<A, B>(
         f: (a: A) => B,
-    ): <C, D>(g: (c: C) => D) => <T>(m: HktDictA3<B, C, T>[S]) => HktDictA3<A, D, T>[S];
+    ): <C, D>(g: (c: C) => D) => <T>(m: GetHktA3<S, T, D, A>) => GetHktA3<S, T, C, B>;
 }
-export interface Profunctor4<S extends HktA4> {
+export interface Profunctor4<S extends HktKeyA4> {
     diMap<A, B>(
         f: (a: A) => B,
-    ): <C, D>(g: (c: C) => D) => <T, U>(m: HktDictA4<B, C, T, U>[S]) => HktDictA4<A, D, T, U>[S];
+    ): <C, D>(g: (c: C) => D) => <T, U>(m: GetHktA4<S, T, U, D, A>) => GetHktA4<S, T, U, C, B>;
 }
 
 export const leftMap =

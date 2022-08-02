@@ -5,25 +5,25 @@ import type { Monad2 } from "./type-class/monad";
 declare const stateNominal: unique symbol;
 export type StateHktKey = typeof stateNominal;
 
-export interface State<out A, in out S> {
+export interface State<in out S, out A> {
     (state: S): readonly [A, S];
 }
 
 export const run =
-    <A, S>(s: State<A, S>) =>
+    <S, A>(s: State<S, A>) =>
     (state: S) =>
         s(state);
 export const evaluate =
-    <A, S>(s: State<A, S>) =>
+    <S, A>(s: State<S, A>) =>
     (state: S): S =>
         s(state)[1];
 export const execute =
-    <A, S>(s: State<A, S>) =>
+    <S, A>(s: State<S, A>) =>
     (state: S): A =>
         s(state)[0];
 export const withState =
-    <A, S>(s: State<A, S>) =>
-    (fn: (state: S) => S): State<A, S> =>
+    <S, A>(s: State<S, A>) =>
+    (fn: (state: S) => S): State<S, A> =>
     (state) =>
         s(fn(state));
 export const get =
@@ -31,38 +31,38 @@ export const get =
     (state: S) =>
         [state, state];
 export const put =
-    <S>(state: S): State<[], S> =>
+    <S>(state: S): State<S, []> =>
     () =>
         [[], state];
 
 export const map =
-    <A, B, S>(fn: (a: A) => B) =>
-    (s: State<A, S>): State<B, S> =>
+    <S, A, B>(fn: (a: A) => B) =>
+    (s: State<S, A>): State<S, B> =>
     (state) => {
         const [answer, nextState] = s(state);
         return [fn(answer), nextState];
     };
 export const apply =
-    <A, B, S>(sMap: State<(a: A) => B, S>) =>
-    (s: State<A, S>): State<B, S> =>
+    <S, A, B>(sMap: State<S, (a: A) => B>) =>
+    (s: State<S, A>): State<S, B> =>
     (state: S) => {
         const [ans1, state1] = sMap(state);
         const [ans2, state2] = s(state1);
         return [ans1(ans2), state2];
     };
 export const pure =
-    <A, S>(a: A): State<A, S> =>
+    <S, A>(a: A): State<S, A> =>
     (s: S) =>
         [a, s];
 export const flatMap =
-    <A, B, S>(fn: (a: A) => State<B, S>) =>
-    (s: State<A, S>): State<B, S> =>
+    <S, A, B>(fn: (a: A) => State<S, B>) =>
+    (s: State<S, A>): State<S, B> =>
     (state) => {
         const [ans, nextState] = s(state);
         return fn(ans)(nextState);
     };
-export const flatten = <A, S>(ss: State<State<A, S>, S>): State<A, S> =>
-    flatMap((s: State<A, S>) => s)(ss);
+export const flatten = <S, A>(ss: State<S, State<S, A>>): State<S, A> =>
+    flatMap((s: State<S, A>) => s)(ss);
 
 declare module "./hkt" {
     interface HktDictA2<A1, A2> {
