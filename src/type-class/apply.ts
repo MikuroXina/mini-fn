@@ -24,6 +24,9 @@ export interface Apply2<S extends HktKeyA2> extends Functor2<S> {
         fn: GetHktA2<S, T1, (t: T2) => U2>,
     ): (t: GetHktA2<S, T1, T2>) => GetHktA2<S, T1, U2>;
 }
+export interface Apply2Monoid<S extends HktKeyA2, M> extends Functor2<S> {
+    apply<T2, U2>(fn: GetHktA2<S, M, (t: T2) => U2>): (t: GetHktA2<S, M, T2>) => GetHktA2<S, M, U2>;
+}
 export interface Apply3<S extends HktKeyA3> extends Functor3<S> {
     apply<T1, T2, T3, U3>(
         fn: GetHktA3<S, T1, T2, (t: T3) => U3>,

@@ -17,6 +17,11 @@ export interface FlatMap2<S extends HktKeyA2> {
         a: (t: T2) => GetHktA2<S, T1, U2>,
     ): (t: GetHktA2<S, T1, T2>) => GetHktA2<S, T1, U2>;
 }
+export interface FlatMap2Monoid<S extends HktKeyA2, M> {
+    flatMap<T2, U2>(
+        a: (t: T2) => GetHktA2<S, M, U2>,
+    ): (t: GetHktA2<S, M, T2>) => GetHktA2<S, M, U2>;
+}
 export interface FlatMap3<S extends HktKeyA3> {
     flatMap<T1, T2, T3, U3>(
         a: (t: T3) => GetHktA3<S, T1, T2, U3>,

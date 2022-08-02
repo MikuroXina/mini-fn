@@ -20,6 +20,9 @@ export interface Pure1<S extends HktKeyA1> {
 export interface Pure2<S extends HktKeyA2> {
     pure<T1, T2>(a: T2): GetHktA2<S, T1, T2>;
 }
+export interface Pure2Monoid<S extends HktKeyA2, M> {
+    pure<T2>(a: T2): GetHktA2<S, M, T2>;
+}
 export interface Pure3<S extends HktKeyA3> {
     pure<T1, T2, T3>(a: T3): GetHktA3<S, T1, T2, T3>;
 }
