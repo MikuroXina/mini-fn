@@ -11,6 +11,11 @@ export interface Reader<in R, out A> {
     (request: R): A;
 }
 
+export const withReader = <R, A>(reader: (a: R) => A): Reader<R, A> => {
+    const askApplied = ask<R>();
+    return (req: R) => reader(askApplied(req));
+};
+
 export const run =
     <R, A>(r: Reader<R, A>) =>
     (req: R) =>
@@ -19,10 +24,11 @@ export const run =
 export const askM = <R, S extends HktKeyA1>(m: Monad1<S>): GetHktA1<S, Reader<R, R>> =>
     m.pure((x) => x);
 export const ask = <R>(): Reader<R, R> => askM<R, Identity.IdentityHktKey>(Identity.monad);
-export const withReader = <R, A>(reader: (a: R) => A): Reader<R, A> => {
-    const askApplied = ask<R>();
-    return (req: R) => reader(askApplied(req));
-};
+export const local =
+    <T, U>(f: (t: T) => U) =>
+    <A>(ma: Reader<U, A>): Reader<T, A> =>
+    (t) =>
+        ma(f(t));
 
 export const map =
     <T, U>(f: (t: T) => U) =>
