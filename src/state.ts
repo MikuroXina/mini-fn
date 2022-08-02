@@ -5,7 +5,7 @@ import type { Monad2 } from "./type-class/monad";
 declare const stateNominal: unique symbol;
 export type StateHktKey = typeof stateNominal;
 
-export interface State<A, S> {
+export interface State<out A, in out S> {
     (state: S): readonly [A, S];
 }
 
