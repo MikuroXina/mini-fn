@@ -1,6 +1,6 @@
 import type { GetHktA1, HktKeyA1 } from "./hkt";
 import type { Functor2 } from "./type-class/functor";
-import * as Identity from "./identity";
+import { Identity } from "./lib";
 import type { Monad1, Monad2 } from "./type-class/monad";
 import type { Profunctor2 } from "./type-class/profunctor";
 
