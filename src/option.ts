@@ -164,7 +164,7 @@ export const mapOrElse =
         return fn();
     };
 
-export const optResToResOpt = <T, E>(optRes: Option<Result<T, E>>): Result<Option<T>, E> =>
+export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Option<T>> =>
     isSome(optRes) ? (isOk(optRes[1]) ? ok(some(optRes[1][1])) : err(optRes[1][1])) : ok(none());
 
 export const flatMap =
