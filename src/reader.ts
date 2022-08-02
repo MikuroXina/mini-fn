@@ -1,5 +1,7 @@
+import type { GetHktA1, HktKeyA1 } from "./hkt";
 import type { Functor2 } from "./type-class/functor";
-import type { Monad2 } from "./type-class/monad";
+import * as Identity from "./identity";
+import type { Monad1, Monad2 } from "./type-class/monad";
 import type { Profunctor2 } from "./type-class/profunctor";
 
 declare const readerNominal: unique symbol;
@@ -9,19 +11,18 @@ export interface Reader<in R, out A> {
     (request: R): A;
 }
 
-export const ask =
-    <R>(): Reader<R, R> =>
-    (x: R) =>
-        x;
 export const run =
     <R, A>(r: Reader<R, A>) =>
     (req: R) =>
         r(req);
-export const withReader =
-    <R, S>(map: (r: R) => S) =>
-    <A>(r: Reader<S, A>): Reader<R, A> =>
-    (req: R) =>
-        r(map(req));
+
+export const askM = <R, S extends HktKeyA1>(m: Monad1<S>): GetHktA1<S, Reader<R, R>> =>
+    m.pure((x) => x);
+export const ask = <R>(): Reader<R, R> => askM<R, Identity.IdentityHktKey>(Identity.monad);
+export const withReader = <R, A>(reader: (a: R) => A): Reader<R, A> => {
+    const askApplied = ask<R>();
+    return (req: R) => reader(askApplied(req));
+};
 
 export const map =
     <T, U>(f: (t: T) => U) =>
