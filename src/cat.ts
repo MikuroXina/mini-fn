@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import type { Monad1 } from "./type-class/monad";
 
 declare const catNominal: unique symbol;
