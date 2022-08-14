@@ -20,7 +20,7 @@ export const fromPartialCmp = <Lhs, Rhs>(
     partialCmp: (lhs: Lhs, rhs: Rhs) => Option<Ordering>,
 ): PartialOrd<Lhs, Rhs> => ({
     partialCmp,
-    eq: (l, r) => mapOr(false)(partialCmp(l, r))((order: Ordering) => isEq(order)),
+    eq: (l, r) => mapOr(false)((order: Ordering) => isEq(order))(partialCmp(l, r)),
 });
 
 export const tuple = <T extends unknown[]>(ord: {
