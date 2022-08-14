@@ -111,9 +111,9 @@ export const unzip = <T, U>(opt: Option<[T, U]>): [Option<T>, Option<U>] => {
     return [none(), none()];
 };
 export const zipWith =
-    <T>(optA: Option<T>) =>
-    <U>(optB: Option<U>) =>
-    <R, F extends (t: T, u: U) => R>(fn: F): Option<R> => {
+    <T, U, R>(fn: (t: T, u: U) => R) =>
+    (optA: Option<T>) =>
+    (optB: Option<U>): Option<R> => {
         if (isSome(optA) && isSome(optB)) {
             return some(fn(optA[1], optB[1]));
         }
@@ -178,6 +178,11 @@ export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Op
     }
     return err(optRes[1][1]);
 };
+
+/*
+okOr
+okOrElse
+*/
 
 export const flatMap = andThen;
 
