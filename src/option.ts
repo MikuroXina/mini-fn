@@ -165,6 +165,11 @@ export const mapOrElse =
         return fn();
     };
 
+export const contains =
+    <T>(x: T) =>
+    (opt: Option<T>) =>
+        mapOr(false)((t) => t === x)(opt);
+
 export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Option<T>> => {
     if (isNone(optRes)) {
         return ok(none());
