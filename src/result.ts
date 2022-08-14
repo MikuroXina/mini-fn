@@ -1,4 +1,5 @@
-import { Option, none, some, toArray as optionToArray, isSome } from "./option";
+import { Option, isSome, none, toArray as optionToArray, some } from "./option";
+
 import type { Monad2 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
 
@@ -23,20 +24,20 @@ export const flatten = <E, T>(resRes: Result<E, Result<E, T>>): Result<E, T> =>
 export const mergeOkErr = <T>(res: Result<T, T>) => res[1];
 
 export const and =
-    <E, T>(resA: Result<E, T>) =>
-    <U>(resB: Result<U, E>) =>
+    <U, E>(resB: Result<E, U>) =>
+    <T>(resA: Result<E, T>) =>
         isOk(resA) ? resB : resA;
 export const andThen =
-    <E, T>(resA: Result<E, T>) =>
-    <U>(fn: (t: T) => Result<U, E>) =>
+    <T, U, E>(fn: (t: T) => Result<E, U>) =>
+    (resA: Result<E, T>) =>
         isOk(resA) ? fn(resA[1]) : resA;
 export const or =
-    <E, T>(resA: Result<E, T>) =>
-    (resB: Result<E, T>) =>
+    <E, T>(resB: Result<E, T>) =>
+    (resA: Result<E, T>) =>
         isErr(resA) ? resB : resA;
 export const orElse =
-    <E, T>(resA: Result<E, T>) =>
-    <F>(fn: (err: E) => Result<T, F>) =>
+    <E, T, F>(fn: (err: E) => Result<F, T>) =>
+    (resA: Result<E, T>) =>
         isErr(resA) ? fn(resA[1]) : resA;
 
 export const toString = <E, T>(res: Result<E, T>) =>
@@ -48,23 +49,23 @@ export const optionErr = <E, T>(res: Result<E, T>): Option<E> =>
     isErr(res) ? some(res[1]) : none();
 
 export const map =
-    <E, T>(res: Result<E, T>) =>
-    <U>(fn: (t: T) => U): Result<E, U> =>
+    <T, U>(fn: (t: T) => U) =>
+    <E>(res: Result<E, T>): Result<E, U> =>
         isOk(res) ? ok(fn(res[1])) : res;
 export const mapOr =
     <U>(init: U) =>
-    <E, T>(res: Result<E, T>) =>
-    (fn: (t: T) => U): U =>
+    <T>(fn: (t: T) => U) =>
+    <E>(res: Result<E, T>): U =>
         isOk(res) ? fn(res[1]) : init;
 export const mapOrElse =
     <U>(init: () => U) =>
-    <E, T>(res: Result<E, T>) =>
-    (fn: (t: T) => U): U =>
+    <T>(fn: (t: T) => U) =>
+    <E>(res: Result<E, T>): U =>
         isOk(res) ? fn(res[1]) : init();
 
 export const mapErr =
-    <E, T>(res: Result<E, T>) =>
-    <F>(fn: (t: E) => F): Result<F, T> =>
+    <E, F>(fn: (t: E) => F) =>
+    <T>(res: Result<E, T>): Result<F, T> =>
         isErr(res) ? err(fn(res[1])) : res;
 
 export const unwrapOr =
@@ -92,7 +93,10 @@ export const monoid = <E, T>(error: E): Monoid<Result<E, T>> => ({
 
 export const monad: Monad2<ResultHktKey> = {
     pure: ok,
-    map: (f) => (res) => map(res)(f),
-    flatMap: (f) => (res) => flatten(map(res)(f)),
-    apply: (fnRes) => (tRes) => isErr(tRes) ? tRes : map(fnRes)((fn) => fn(tRes[1])),
+    map,
+    flatMap: andThen,
+    apply:
+        <T1, T2, U2>(fnRes: Result<T1, (t: T2) => U2>) =>
+        (tRes: Result<T1, T2>): Result<T1, U2> =>
+            andThen((fn: (t: T2) => U2) => map(fn)(tRes))(fnRes),
 };
