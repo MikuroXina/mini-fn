@@ -1,6 +1,7 @@
+import { Result, err, isOk, ok } from "./result";
+
 import type { Monad1 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
-import { err, isOk, ok, Result } from "./result";
 
 const someSymbol = Symbol("OptionSome");
 const noneSymbol = Symbol("OptionNone");
@@ -42,40 +43,40 @@ export const flatten = <T>(opt: Option<Option<T>>): Option<T> => {
 };
 
 export const and =
-    <T>(optA: Option<T>) =>
-    <U>(optB: Option<U>) => {
+    <U>(optB: Option<U>) =>
+    <T>(optA: Option<T>) => {
         if (isSome(optA)) {
             return optB;
         }
         return optA;
     };
 export const andThen =
-    <T>(optA: Option<T>) =>
-    <U>(optB: () => Option<U>) => {
+    <U>(optB: () => Option<U>) =>
+    <T>(optA: Option<T>) => {
         if (isSome(optA)) {
             return optB();
         }
         return optA;
     };
 export const or =
-    <T>(optA: Option<T>) =>
-    (optB: Option<T>) => {
+    <T>(optB: Option<T>) =>
+    (optA: Option<T>) => {
         if (isSome(optA)) {
             return optA;
         }
         return optB;
     };
 export const orElse =
-    <T>(optA: Option<T>) =>
-    (optB: () => Option<T>) => {
+    <T>(optB: () => Option<T>) =>
+    (optA: Option<T>) => {
         if (isSome(optA)) {
             return optA;
         }
         return optB();
     };
 export const xor =
-    <T>(optA: Option<T>) =>
-    (optB: Option<T>) => {
+    <T>(optB: Option<T>) =>
+    (optA: Option<T>) => {
         if (isSome(optA) && isNone(optB)) {
             return optA;
         }
@@ -138,8 +139,8 @@ export const unwrapOrElse =
     };
 
 export const map =
-    <T>(opt: Option<T>) =>
-    <U>(f: (t: T) => U): Option<U> => {
+    <T, U>(f: (t: T) => U) =>
+    (opt: Option<T>): Option<U> => {
         if (opt[0] === someSymbol) {
             return some(f(opt[1]));
         }
@@ -168,8 +169,8 @@ export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Op
     isSome(optRes) ? (isOk(optRes[1]) ? ok(some(optRes[1][1])) : err(optRes[1][1])) : ok(none());
 
 export const flatMap =
-    <T>(opt: Option<T>) =>
-    <U>(f: (t: T) => Option<U>): Option<U> => {
+    <T, U>(f: (t: T) => Option<U>) =>
+    (opt: Option<T>): Option<U> => {
         if (opt[0] === someSymbol) {
             return f(opt[1]);
         }
@@ -189,7 +190,10 @@ export const monoid = <T>(): Monoid<Option<T>> => ({
 
 export const monad: Monad1<OptionHktKey> = {
     pure: some,
-    map: (f) => (opt) => map(opt)(f),
-    flatMap: (f) => (opt) => flatMap(opt)(f),
-    apply: (fnOpt) => (tOpt) => flatMap(fnOpt)((fn) => map(tOpt)((t) => fn(t))),
+    map,
+    flatMap,
+    apply:
+        <T1, U1>(fnOpt: Option<(t: T1) => U1>) =>
+        (tOpt: Option<T1>) =>
+            flatMap((fn: (t: T1) => U1) => map(fn)(tOpt))(fnOpt),
 };
