@@ -1,6 +1,12 @@
+export * as Cat from "./cat";
+export * as Curry from "./curry";
+export * as Hkt from "./hkt";
 export * as Identity from "./identity";
 export * as Option from "./option";
+export * as Ordering from "./ordering";
+export * as Promise from "./promise";
 export * as Reader from "./reader";
 export * as Result from "./result";
 export * as State from "./state";
+export * as TypeClass from "./type-class";
 export * as Writer from "./writer";
