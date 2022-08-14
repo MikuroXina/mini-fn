@@ -1,8 +1,8 @@
 import type { GetHktA1, HktKeyA1 } from "./hkt";
-import { Identity } from "./lib";
+import type { Monad1, Monad2Monoid } from "./type-class/monad";
 import type { Functor2 } from "./type-class/functor";
-import type { Monad1, Monad2, Monad2Monoid } from "./type-class/monad";
-import { Monoid } from "./type-class/monoid";
+import { Identity } from "./lib";
+import type { Monoid } from "./type-class/monoid";
 
 declare const writerNominal: unique symbol;
 export type WriterHktKey = typeof writerNominal;
