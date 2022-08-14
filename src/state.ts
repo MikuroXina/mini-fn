@@ -72,4 +72,9 @@ declare module "./hkt" {
 
 export const functor: Functor2<StateHktKey> = { map };
 export const applicative: Applicative2<StateHktKey> = { map, apply, pure };
-export const monad: Monad2<StateHktKey> = { map, apply, pure, flatMap };
+export const monad: Monad2<StateHktKey> = {
+    map,
+    apply,
+    pure,
+    flatMap,
+};

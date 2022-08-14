@@ -97,5 +97,10 @@ declare module "./hkt" {
 }
 
 export const functor: Functor2<ReaderHktKey> = { map };
-export const monad: Monad2<ReaderHktKey> = { pure, map, flatMap, apply };
+export const monad: Monad2<ReaderHktKey> = {
+    pure,
+    map,
+    flatMap,
+    apply,
+};
 export const profunctor: Profunctor2<ReaderHktKey> = { diMap };

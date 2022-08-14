@@ -25,7 +25,7 @@ export const fromPredicate =
         return none();
     };
 
-export const toString = <T>(opt: Option<T>) => (isSome(opt) ? `some(${opt[1]})` : `none`);
+export const toString = <T>(opt: Option<T>) => (isSome(opt) ? `some(${opt[1]})` : "none");
 export const toArray = <T>(opt: Option<T>): T[] => {
     const arr = [...opt] as unknown[];
     arr.shift();

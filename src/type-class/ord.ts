@@ -61,7 +61,7 @@ export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
             ),
         eq: (l, r) => x.eq(l, r) && y.eq(l, r),
     }),
-    identity: identity,
+    identity,
 });
 
 /**
@@ -76,9 +76,7 @@ export interface Ord<in Lhs, in Rhs> extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> 
 
 export const reversed = <Lhs, Rhs>(ord: Ord<Lhs, Rhs>): Ord<Lhs, Rhs> => ({
     ...ord,
-    cmp: (lhs, rhs) => {
-        return -ord.cmp(lhs, rhs) as Ordering;
-    },
+    cmp: (lhs, rhs) => -ord.cmp(lhs, rhs) as Ordering,
     partialCmp(lhs, rhs) {
         return some(-ord.cmp(lhs, rhs) as Ordering);
     },

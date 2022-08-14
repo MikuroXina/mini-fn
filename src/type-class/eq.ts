@@ -26,7 +26,7 @@ export const contravariant: Contravariant<PartialEqHktKey> = {
 
 export const monoid = <Lhs, Rhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
     combine: (x, y) => ({ eq: (l, r) => x.eq(l, r) && y.eq(l, r) }),
-    identity: identity,
+    identity,
 });
 
 export const fromCmp = <Lhs, Rhs>(cmp: (l: Lhs, r: Rhs) => boolean): PartialEq<Lhs, Rhs> => ({
