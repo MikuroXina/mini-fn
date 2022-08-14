@@ -1,8 +1,8 @@
-import type { Hkt2, HktKeyA2, HktKeyA3, HktKeyA4, GetHktA2, GetHktA3, GetHktA4 } from "../hkt";
+import type { GetHktA2, GetHktA3, GetHktA4, Hkt2, HktKeyA2, HktKeyA3, HktKeyA4 } from "../hkt";
 import type { SemiGroupoid, SemiGroupoid2, SemiGroupoid3, SemiGroupoid4 } from "./semi-groupoid";
 
-export interface Category<Symbol extends symbol> extends SemiGroupoid<Symbol> {
-    identity<A>(): Hkt2<Symbol, A, A>;
+export interface Category<Sym extends symbol> extends SemiGroupoid<Sym> {
+    identity<A>(): Hkt2<Sym, A, A>;
 }
 
 export interface Category2<S extends HktKeyA2> extends SemiGroupoid2<S> {

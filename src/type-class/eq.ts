@@ -24,11 +24,6 @@ export const contravariant: Contravariant<PartialEqHktKey> = {
         (p: PartialEq<T2, T2>): PartialEq<T1, T1> => ({ eq: (l, r) => p.eq(f(l), f(r)) }),
 };
 
-export const monoid = <Lhs, Rhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
-    combine: (x, y) => ({ eq: (l, r) => x.eq(l, r) && y.eq(l, r) }),
-    identity,
-});
-
 export const fromCmp = <Lhs, Rhs>(cmp: (l: Lhs, r: Rhs) => boolean): PartialEq<Lhs, Rhs> => ({
     eq: cmp,
 });
@@ -37,21 +32,22 @@ export const structural = <S>(cmp: { readonly [K in keyof S]: PartialEq<S[K], S[
     Readonly<S>,
     Readonly<S>
 > =>
-    fromCmp((l, r) => {
-        for (const key in cmp) {
-            if (!cmp[key].eq(l[key], r[key])) {
-                return false;
+    fromCmp((l, r) =>
+        Object.keys(cmp).every((key) => {
+            if (Object.hasOwn(cmp, key)) {
+                const castKey = key as keyof S;
+                return cmp[castKey].eq(l[castKey], r[castKey]);
             }
-        }
-        return true;
-    });
+            return true;
+        }),
+    );
 
 export const tuple = <S extends unknown[]>(cmp: {
     readonly [K in keyof S]: PartialEq<S[K], S[K]>;
 }): PartialEq<Readonly<S>, Readonly<S>> =>
     fromCmp((l, r) => {
         const len = Math.min(l.length, r.length);
-        for (let i = 0; i < len; ++i) {
+        for (let i = 0; i < len; i += 1) {
             if (!cmp[i].eq(l[i], r[i])) {
                 return false;
             }
@@ -62,6 +58,11 @@ export const tuple = <S extends unknown[]>(cmp: {
 export const strict = <T>() => fromCmp<T, T>((l, r) => l === r);
 
 export const identity = fromCmp(() => true);
+
+export const monoid = <Lhs, Rhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
+    combine: (x, y) => ({ eq: (l, r) => x.eq(l, r) && y.eq(l, r) }),
+    identity,
+});
 
 export const eqSymbol = Symbol("ImplEq");
 

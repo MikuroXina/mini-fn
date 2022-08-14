@@ -7,12 +7,6 @@ import { Contravariant } from "./variance";
 declare const partialOrdNominal: unique symbol;
 export type PartialOrdHktKey = typeof partialOrdNominal;
 
-declare module "../hkt" {
-    interface HktDictA1<A1> {
-        [partialOrdNominal]: PartialOrd<A1, A1>;
-    }
-}
-
 /**
  * All instances of `PartialOrd` must satisfy following conditions:
  * - Transitivity: If `f` is `PartialOrd`, for all `a`, `b` and `c`; `f(a, b) == f(b, c) == f(a, c)`.
@@ -35,17 +29,23 @@ export const tuple = <T extends unknown[]>(ord: {
     partialCmp: (lhs, rhs) => {
         const len = Math.min(lhs.length, rhs.length);
         let result: Ordering = equal;
-        for (let i = 0; i < len; ++i) {
+        for (let i = 0; i < len; i += 1) {
             const order = ord[i].partialCmp(lhs[i], rhs[i]);
             if (isNone(order)) {
                 return none();
             }
-            result = then(result, order[1]);
+            result = then(order[1])(result);
         }
         return some(result);
     },
     eq: tupleEq(ord).eq,
 });
+
+declare module "../hkt" {
+    interface HktDictA1<A1> {
+        [partialOrdNominal]: PartialOrd<A1, A1>;
+    }
+}
 
 export const contravariant: Contravariant<PartialOrdHktKey> = {
     contraMap: (f) => (ord) => fromPartialCmp((l, r) => ord.partialCmp(f(l), f(r))),
@@ -56,9 +56,9 @@ export const identity: PartialOrd<unknown, unknown> = fromPartialCmp(() => some(
 export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
     combine: (x, y) => ({
         partialCmp: (l, r) =>
-            flatMap(x.partialCmp(l, r))((first) =>
-                map(y.partialCmp(l, r))((second) => then(first, second)),
-            ),
+            flatMap((first: Ordering) =>
+                map((second: Ordering) => then(second)(first))(y.partialCmp(l, r)),
+            )(x.partialCmp(l, r)),
         eq: (l, r) => x.eq(l, r) && y.eq(l, r),
     }),
     identity,

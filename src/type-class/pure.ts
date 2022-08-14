@@ -1,17 +1,17 @@
 import type {
+    GetHktA1,
+    GetHktA2,
+    GetHktA3,
+    GetHktA4,
     Hkt,
     HktKeyA1,
     HktKeyA2,
     HktKeyA3,
     HktKeyA4,
-    GetHktA1,
-    GetHktA2,
-    GetHktA3,
-    GetHktA4,
 } from "../hkt";
 
-export interface Pure<Symbol extends symbol> {
-    pure<T>(t: T): Hkt<Symbol, T>;
+export interface Pure<Sym extends symbol> {
+    pure<T>(t: T): Hkt<Sym, T>;
 }
 
 export interface Pure1<S extends HktKeyA1> {

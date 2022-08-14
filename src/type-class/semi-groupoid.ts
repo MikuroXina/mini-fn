@@ -1,7 +1,7 @@
-import type { Hkt2, HktKeyA2, HktKeyA3, HktKeyA4, HktDictA2, HktDictA3, HktDictA4 } from "../hkt";
+import type { Hkt2, HktDictA2, HktDictA3, HktDictA4, HktKeyA2, HktKeyA3, HktKeyA4 } from "../hkt";
 
-export interface SemiGroupoid<Symbol extends symbol> {
-    compose<A, B, C>(funcA: Hkt2<Symbol, A, B>): (funcB: Hkt2<Symbol, B, C>) => Hkt2<Symbol, A, C>;
+export interface SemiGroupoid<Sym extends symbol> {
+    compose<A, B, C>(funcA: Hkt2<Sym, A, B>): (funcB: Hkt2<Sym, B, C>) => Hkt2<Sym, A, C>;
 }
 
 export interface SemiGroupoid2<S extends HktKeyA2> {

@@ -1,13 +1,13 @@
 import type {
+    GetHktA1,
+    GetHktA2,
+    GetHktA3,
+    GetHktA4,
     Hkt,
     HktKeyA1,
     HktKeyA2,
     HktKeyA3,
     HktKeyA4,
-    GetHktA1,
-    GetHktA2,
-    GetHktA3,
-    GetHktA4,
 } from "../hkt";
 
 export interface Functor<F extends symbol> {
@@ -38,11 +38,11 @@ export const map =
         funcA.map(funcB.map(f))(funcT);
 
 export const flap =
-    <Symbol extends symbol>(func: Functor<Symbol>) =>
+    <Sym extends symbol>(func: Functor<Sym>) =>
     <T, U>(t: T) =>
-        func.map((f: (t: T) => U) => f(t));
+        func.map((f: (argT: T) => U) => f(t));
 
 export const bindTo =
-    <Symbol extends symbol>(func: Functor<Symbol>) =>
-    <N extends keyof any>(name: N) =>
+    <Sym extends symbol>(func: Functor<Sym>) =>
+    <N extends PropertyKey>(name: N) =>
         func.map(<T>(a: T) => ({ [name]: a } as Record<N, T>));

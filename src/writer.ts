@@ -27,7 +27,7 @@ export const listenM =
 export const listen = <W, A>(): ((w: Writer<W, A>) => [A, W]) =>
     listenM<Identity.IdentityHktKey>(Identity.monad);
 export const pass =
-    <W, A>(w: Writer<W, [A, (w: W) => W]>): Writer<W, A> =>
+    <W, A>(w: Writer<W, [A, (write: W) => W]>): Writer<W, A> =>
     () => {
         const [[ans, fn], write] = w();
         return [ans, fn(write)];
@@ -66,14 +66,14 @@ export const functor: Functor2<WriterHktKey> = { map };
 export const makeMonad = <W>(monoid: Monoid<W>): Monad2Monoid<WriterHktKey, W> => ({
     pure: (a) => () => [a, monoid.identity],
     map,
-    flatMap: (map) => (t) => () => {
+    flatMap: (fn) => (t) => () => {
         const [ansT, writeT] = t();
-        const [ansU, writeU] = map(ansT)();
+        const [ansU, writeU] = fn(ansT)();
         return [ansU, monoid.combine(writeT, writeU)];
     },
     apply: (fn) => (t) => () => {
-        const [map, writeT] = fn();
+        const [mapped, writeT] = fn();
         const [ans, writeU] = t();
-        return [map(ans), monoid.combine(writeT, writeU)];
+        return [mapped(ans), monoid.combine(writeT, writeU)];
     },
 });

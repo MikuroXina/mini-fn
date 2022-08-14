@@ -1,10 +1,11 @@
-import type { Hkt2, HktKeyA2, HktKeyA3, HktKeyA4, HktDictA2, HktDictA3, HktDictA4 } from "../hkt";
-import { Category } from "./category";
+import type { Hkt2, HktDictA2, HktDictA3, HktDictA4, HktKeyA2, HktKeyA3, HktKeyA4 } from "../hkt";
 import type { Profunctor, Profunctor2, Profunctor3, Profunctor4 } from "./profunctor";
 
-export interface Strong<Symbol extends symbol> extends Profunctor<Symbol> {
-    first<A, B, C>(m: Hkt2<Symbol, A, B>): Hkt2<Symbol, [A, C], [B, C]>;
-    second<A, B, C>(m: Hkt2<Symbol, A, B>): Hkt2<Symbol, [C, A], [C, B]>;
+import { Category } from "./category";
+
+export interface Strong<Sym extends symbol> extends Profunctor<Sym> {
+    first<A, B, C>(m: Hkt2<Sym, A, B>): Hkt2<Sym, [A, C], [B, C]>;
+    second<A, B, C>(m: Hkt2<Sym, A, B>): Hkt2<Sym, [C, A], [C, B]>;
 }
 
 export interface Strong2<S extends HktKeyA2> extends Profunctor2<S> {
@@ -21,15 +22,15 @@ export interface Strong4<S extends HktKeyA4> extends Profunctor4<S> {
 }
 
 export const split =
-    <Symbol extends symbol>(str: Strong<Symbol>, cat: Category<Symbol>) =>
-    <A, B>(funcA: Hkt2<Symbol, A, B>) =>
-    <C, D>(funcC: Hkt2<Symbol, C, D>): Hkt2<Symbol, [A, C], [B, D]> =>
+    <Sym extends symbol>(str: Strong<Sym>, cat: Category<Sym>) =>
+    <A, B>(funcA: Hkt2<Sym, A, B>) =>
+    <C, D>(funcC: Hkt2<Sym, C, D>): Hkt2<Sym, [A, C], [B, D]> =>
         cat.compose<[A, C], [B, C], [B, D]>(str.first<A, B, C>(funcA))(str.second<C, D, B>(funcC));
 
-export const fanOut = <Symbol extends symbol>(str: Strong<Symbol>, cat: Category<Symbol>) => {
+export const fanOut = <Sym extends symbol>(str: Strong<Sym>, cat: Category<Sym>) => {
     const splitSC = split(str, cat);
-    return <A, B>(funcB: Hkt2<Symbol, A, B>) =>
-        <C>(funcC: Hkt2<Symbol, A, C>): Hkt2<Symbol, A, [B, C]> =>
+    return <A, B>(funcB: Hkt2<Sym, A, B>) =>
+        <C>(funcC: Hkt2<Sym, A, C>): Hkt2<Sym, A, [B, C]> =>
             cat.compose<A, [A, A], [B, C]>(
                 str.diMap<A, A>((a: A) => a)((a: A): [A, A] => [a, a])(cat.identity()),
             )(splitSC(funcB)(funcC));

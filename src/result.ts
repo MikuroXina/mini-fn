@@ -36,17 +36,17 @@ export const or =
     (resA: Result<E, T>) =>
         isErr(resA) ? resB : resA;
 export const orElse =
-    <E, T, F>(fn: (err: E) => Result<F, T>) =>
+    <E, T, F>(fn: (error: E) => Result<F, T>) =>
     (resA: Result<E, T>) =>
         isErr(resA) ? fn(resA[1]) : resA;
-
-export const toString = <E, T>(res: Result<E, T>) =>
-    isOk(res) ? `ok(${res[1]})` : `err(${res[1]})`;
-export const toArray = <E, T>(res: Result<E, T>) => optionToArray(optionOk(res));
 
 export const optionOk = <E, T>(res: Result<E, T>): Option<T> => (isOk(res) ? some(res[1]) : none());
 export const optionErr = <E, T>(res: Result<E, T>): Option<E> =>
     isErr(res) ? some(res[1]) : none();
+
+export const toString = <E, T>(res: Result<E, T>) =>
+    isOk(res) ? `ok(${res[1]})` : `err(${res[1]})`;
+export const toArray = <E, T>(res: Result<E, T>) => optionToArray(optionOk(res));
 
 export const map =
     <T, U>(fn: (t: T) => U) =>
@@ -77,8 +77,15 @@ export const unwrapOrElse =
     <E>(res: Result<E, T>) =>
         isOk(res) ? res[1] : fn();
 
-export const resOptToOptRes = <E, T>(resOpt: Result<E, Option<T>>): Option<Result<E, T>> =>
-    isOk(resOpt) ? (isSome(resOpt[1]) ? some(ok(resOpt[1][1])) : none()) : some(resOpt);
+export const resOptToOptRes = <E, T>(resOpt: Result<E, Option<T>>): Option<Result<E, T>> => {
+    if (isErr(resOpt)) {
+        return some(resOpt);
+    }
+    if (isSome(resOpt[1])) {
+        return some(ok(resOpt[1][1]));
+    }
+    return none();
+};
 
 declare module "./hkt" {
     interface HktDictA2<A1, A2> {

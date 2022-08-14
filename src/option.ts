@@ -25,15 +25,15 @@ export const fromPredicate =
         return none();
     };
 
+export const isSome = <T>(opt: Option<T>): opt is Some<T> => opt[0] === someSymbol;
+export const isNone = <T>(opt: Option<T>): opt is None => opt[0] === noneSymbol;
+
 export const toString = <T>(opt: Option<T>) => (isSome(opt) ? `some(${opt[1]})` : "none");
 export const toArray = <T>(opt: Option<T>): T[] => {
     const arr = [...opt] as unknown[];
     arr.shift();
     return arr as T[];
 };
-
-export const isSome = <T>(opt: Option<T>): opt is Some<T> => opt[0] === someSymbol;
-export const isNone = <T>(opt: Option<T>): opt is None => opt[0] === noneSymbol;
 
 export const flatten = <T>(opt: Option<Option<T>>): Option<T> => {
     if (isSome(opt)) {
@@ -165,8 +165,15 @@ export const mapOrElse =
         return fn();
     };
 
-export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Option<T>> =>
-    isSome(optRes) ? (isOk(optRes[1]) ? ok(some(optRes[1][1])) : err(optRes[1][1])) : ok(none());
+export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Option<T>> => {
+    if (isNone(optRes)) {
+        return ok(none());
+    }
+    if (isOk(optRes[1])) {
+        return ok(some(optRes[1][1]));
+    }
+    return err(optRes[1][1]);
+};
 
 export const flatMap =
     <T, U>(f: (t: T) => Option<U>) =>

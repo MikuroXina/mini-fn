@@ -11,11 +11,6 @@ export interface Reader<in R, out A> {
     (request: R): A;
 }
 
-export const withReader = <R, A>(reader: (a: R) => A): Reader<R, A> => {
-    const askApplied = ask<R>();
-    return (req: R) => reader(askApplied(req));
-};
-
 export const run =
     <R, A>(r: Reader<R, A>) =>
     (req: R) =>
@@ -29,6 +24,11 @@ export const local =
     <A>(ma: Reader<U, A>): Reader<T, A> =>
     (t) =>
         ma(f(t));
+
+export const withReader = <R, A>(reader: (a: R) => A): Reader<R, A> => {
+    const askApplied = ask<R>();
+    return (req: R) => reader(askApplied(req));
+};
 
 export const map =
     <T, U>(f: (t: T) => U) =>

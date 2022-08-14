@@ -1,19 +1,20 @@
+import type { Functor, Functor1, Functor2, Functor3, Functor4 } from "./functor";
 import type {
+    GetHktA1,
+    GetHktA2,
+    GetHktA3,
+    GetHktA4,
     Hkt,
     HktKeyA1,
     HktKeyA2,
     HktKeyA3,
     HktKeyA4,
-    GetHktA1,
-    GetHktA2,
-    GetHktA3,
-    GetHktA4,
 } from "../hkt";
-import type { Functor, Functor1, Functor2, Functor3, Functor4 } from "./functor";
+
 import type { SemiGroup } from "./semi-group";
 
-export interface Apply<Symbol extends symbol> extends Functor<Symbol> {
-    apply<T, U>(fn: Hkt<Symbol, (t: T) => U>): (t: Hkt<Symbol, T>) => Hkt<Symbol, U>;
+export interface Apply<Sym extends symbol> extends Functor<Sym> {
+    apply<T, U>(fn: Hkt<Sym, (t: T) => U>): (t: Hkt<Sym, T>) => Hkt<Sym, U>;
 }
 
 export interface Apply1<S extends HktKeyA1> extends Functor1<S> {
@@ -48,22 +49,22 @@ export const ap =
         applyA.apply(applyA.map(applyB.apply)(funcM))(funcT);
 
 export const apFirst =
-    <Symbol extends symbol>(apply: Apply<Symbol>) =>
-    <T>(first: Hkt<Symbol, T>) =>
-    <U>(second: Hkt<Symbol, U>): Hkt<Symbol, T> =>
+    <Sym extends symbol>(apply: Apply<Sym>) =>
+    <T>(first: Hkt<Sym, T>) =>
+    <U>(second: Hkt<Sym, U>): Hkt<Sym, T> =>
         apply.apply(apply.map((t: T) => () => t)(first))(second);
 
 export const apSecond =
-    <Symbol extends symbol>(apply: Apply<Symbol>) =>
-    <T>(first: Hkt<Symbol, T>) =>
-    <U>(second: Hkt<Symbol, U>): Hkt<Symbol, U> =>
+    <Sym extends symbol>(apply: Apply<Sym>) =>
+    <T>(first: Hkt<Sym, T>) =>
+    <U>(second: Hkt<Sym, U>): Hkt<Sym, U> =>
         apply.apply(apply.map(() => (u: U) => u)(first))(second);
 
 export const apSelective =
-    <Symbol extends symbol>(apply: Apply<Symbol>) =>
-    <N extends keyof any, T>(name: Exclude<N, keyof T>) =>
-    (funcT: Hkt<Symbol, T>) =>
-    <U>(funcU: Hkt<Symbol, U>): Hkt<Symbol, { [K in keyof T | N]: K extends keyof T ? T[K] : U }> =>
+    <Sym extends symbol>(apply: Apply<Sym>) =>
+    <N extends PropertyKey, T>(name: Exclude<N, keyof T>) =>
+    (funcT: Hkt<Sym, T>) =>
+    <U>(funcU: Hkt<Sym, U>): Hkt<Sym, { [K in keyof T | N]: K extends keyof T ? T[K] : U }> =>
         apply.apply(
             apply.map(
                 (t: T) => (u: U) =>
@@ -72,7 +73,8 @@ export const apSelective =
         )(funcU);
 
 export const makeSemiGroup =
-    <Symbol extends symbol>(apply: Apply<Symbol>) =>
-    <T>(semi: SemiGroup<T>): SemiGroup<Hkt<Symbol, T>> => ({
-        combine: (l, r) => apply.apply(apply.map((l: T) => (r: T) => semi.combine(l, r))(l))(r),
+    <Sym extends symbol>(apply: Apply<Sym>) =>
+    <T>(semi: SemiGroup<T>): SemiGroup<Hkt<Sym, T>> => ({
+        combine: (l, r) =>
+            apply.apply(apply.map((left: T) => (right: T) => semi.combine(left, right))(l))(r),
     });
