@@ -50,10 +50,10 @@ export const and =
         return optA;
     };
 export const andThen =
-    <U>(optB: () => Option<U>) =>
-    <T>(optA: Option<T>) => {
+    <T, U>(optB: (t: T) => Option<U>) =>
+    (optA: Option<T>) => {
         if (isSome(optA)) {
-            return optB();
+            return optB(optA[1]);
         }
         return optA;
     };
@@ -179,14 +179,7 @@ export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Op
     return err(optRes[1][1]);
 };
 
-export const flatMap =
-    <T, U>(f: (t: T) => Option<U>) =>
-    (opt: Option<T>): Option<U> => {
-        if (opt[0] === someSymbol) {
-            return f(opt[1]);
-        }
-        return opt;
-    };
+export const flatMap = andThen;
 
 declare module "./hkt" {
     interface HktDictA1<A1> {
