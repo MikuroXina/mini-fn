@@ -130,4 +130,16 @@ describe("Option", () => {
         expect(Option.optResToResOpt(Option.none())).toStrictEqual(Result.ok(Option.none()));
         expect(Option.optResToResOpt(Option.some(Result.err(5)))).toStrictEqual(Result.err(5));
     });
+    test("okOr", () => {
+        const orZero = Option.okOr(0);
+
+        expect(orZero(Option.some("foo"))).toStrictEqual(Result.ok("foo"));
+        expect(orZero(Option.none())).toStrictEqual(Result.err(0));
+    });
+    test("okOrElse", () => {
+        const orZero = Option.okOrElse(() => 0);
+
+        expect(orZero(Option.some("foo"))).toStrictEqual(Result.ok("foo"));
+        expect(orZero(Option.none())).toStrictEqual(Result.err(0));
+    });
 });
