@@ -1,5 +1,5 @@
 {
-  "name": "mini-fn",
+  "name": "@mikuroxina/mini-fn",
   "version": "0.1.0",
   "description": "The minimal functional programming library.",
   "exports": "./src/lib.js",
