@@ -1,7 +1,6 @@
-import { Result, err, isOk, ok } from "./result";
-
 import type { Monad1 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
+import { Result } from "./lib";
 
 const someSymbol = Symbol("OptionSome");
 export type Some<T> = readonly [typeof someSymbol, T];
@@ -169,20 +168,26 @@ export const contains =
     (opt: Option<T>) =>
         mapOr(false)((t) => t === x)(opt);
 
-export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Option<T>> => {
+export const optResToResOpt = <E, T>(
+    optRes: Option<Result.Result<E, T>>,
+): Result.Result<E, Option<T>> => {
     if (isNone(optRes)) {
-        return ok(none());
+        return Result.ok(none());
     }
-    if (isOk(optRes[1])) {
-        return ok(some(optRes[1][1]));
+    if (Result.isOk(optRes[1])) {
+        return Result.ok(some(optRes[1][1]));
     }
-    return err(optRes[1][1]);
+    return Result.err(optRes[1][1]);
 };
 
-/*
-okOr
-okOrElse
-*/
+export const okOr =
+    <E>(err: E) =>
+    <T>(opt: Option<T>): Result.Result<E, T> =>
+        mapOrElse(() => Result.err<E, T>(err))((t: T) => Result.ok(t))(opt);
+export const okOrElse =
+    <E>(err: () => E) =>
+    <T>(opt: Option<T>): Result.Result<E, T> =>
+        mapOrElse(() => Result.err<E, T>(err()))((t: T) => Result.ok(t))(opt);
 
 export const flatMap = andThen;
 
