@@ -2,14 +2,17 @@
   "name": "@mikuroxina/mini-fn",
   "version": "0.1.0",
   "description": "The minimal functional programming library.",
-  "exports": "./src/lib.js",
-  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/lib.js",
+  "types": "./dist/lib.d.ts",
   "repository": "https://github.com/MikuroXina/mini-fn.git",
   "author": "MikuroXina",
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
-    "build": "esbuild src/lib.ts --outfile=dist/lib.js --bundle --minify --platform=node --target=node16 ",
+    "build": "tsc -p . && esbuild src/lib.ts --outfile=dist/lib.js --bundle --minify --platform=node --target=node16 ",
     "lint": "eslint 'src/**/*.ts'"
   },
   "devDependencies": {

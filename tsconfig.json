@@ -12,8 +12,10 @@
         "isolatedModules": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
-        "noEmit": true,
-        "baseUrl": "."
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "outDir": "./dist",
+        "baseUrl": "./src"
     },
     "exclude": ["node_modules"]
 }
