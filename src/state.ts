@@ -10,21 +10,21 @@ export interface State<in out S, out A> {
 }
 
 export const run =
-    <S, A>(s: State<S, A>) =>
-    (state: S) =>
+    <S, A>(state: S) =>
+    (s: State<S, A>) =>
         s(state);
 export const evaluate =
-    <S, A>(s: State<S, A>) =>
-    (state: S): S =>
+    <S, A>(state: S) =>
+    (s: State<S, A>): S =>
         s(state)[1];
 export const execute =
-    <S, A>(s: State<S, A>) =>
-    (state: S): A =>
+    <S, A>(state: S) =>
+    (s: State<S, A>): A =>
         s(state)[0];
 export const withState =
-    <S, A>(s: State<S, A>) =>
-    (fn: (state: S) => S): State<S, A> =>
-    (state) =>
+    <S, A>(fn: (state: S) => S) =>
+    (s: State<S, A>): State<S, A> =>
+    (state: S) =>
         s(fn(state));
 export const get =
     <S>(): State<S, S> =>
