@@ -148,8 +148,8 @@ export const map =
     };
 export const mapOr =
     <U>(init: U) =>
-    <T>(opt: Option<T>) =>
-    (f: (t: T) => U): U => {
+    <T>(f: (t: T) => U) =>
+    (opt: Option<T>): U => {
         if (opt[0] === someSymbol) {
             return f(opt[1]);
         }
@@ -157,8 +157,8 @@ export const mapOr =
     };
 export const mapOrElse =
     <U>(fn: () => U) =>
-    <T>(opt: Option<T>) =>
-    (f: (t: T) => U): U => {
+    <T>(f: (t: T) => U) =>
+    (opt: Option<T>): U => {
         if (opt[0] === someSymbol) {
             return f(opt[1]);
         }
