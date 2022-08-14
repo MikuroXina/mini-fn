@@ -19,10 +19,13 @@ export const inspect =
         return t;
     };
 export const log = <T>(t: T) => inspect<T>(console.log)(t);
+export const debug = <T>(t: T) => inspect<T>(console.debug)(t);
 export const info = <T>(t: T) => inspect<T>(console.info)(t);
 export const warn = <T>(t: T) => inspect<T>(console.warn)(t);
 export const error = <T>(t: T) => inspect<T>(console.error)(t);
 export const dir = <T>(t: T) => inspect<T>(console.dir)(t);
+export const dirxml = <T>(t: T) => inspect<T>(console.dirxml)(t);
+export const table = <T>(t: T) => inspect<T>(console.table)(t);
 
 export const flatten = <T>(catCat: Cat<Cat<T>>): Cat<T> => catCat.value;
 
