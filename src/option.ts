@@ -4,17 +4,16 @@ import type { Monad1 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
 
 const someSymbol = Symbol("OptionSome");
-const noneSymbol = Symbol("OptionNone");
-
 export type Some<T> = readonly [typeof someSymbol, T];
+export const some = <T>(v: T): Some<T> => [someSymbol, v];
+
+const noneSymbol = Symbol("OptionNone");
 export type None = readonly [typeof noneSymbol];
+export const none = (): None => [noneSymbol];
 
 declare const optionNominal: unique symbol;
 export type OptionHktKey = typeof optionNominal;
 export type Option<T> = None | Some<T>;
-
-export const some = <T>(v: T): Option<T> => [someSymbol, v];
-export const none = <T>(): Option<T> => [noneSymbol];
 
 export const fromPredicate =
     <T>(predicate: (t: T) => boolean) =>
@@ -83,7 +82,7 @@ export const xor =
         if (isNone(optA) && isSome(optB)) {
             return optB;
         }
-        return none<T>();
+        return none();
     };
 
 export const filter =
@@ -94,7 +93,7 @@ export const filter =
                 return opt;
             }
         }
-        return none<T>();
+        return none();
     };
 
 export const zip =
