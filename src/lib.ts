@@ -1,4 +1,5 @@
 export * as Cat from "./cat";
+export * as Cont from "./cont";
 export * as Curry from "./curry";
 export * as Hkt from "./hkt";
 export * as Identity from "./identity";
