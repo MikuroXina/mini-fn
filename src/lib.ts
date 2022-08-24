@@ -3,6 +3,7 @@ export * as Cont from "./cont";
 export * as Curry from "./curry";
 export * as Hkt from "./hkt";
 export * as Identity from "./identity";
+export * as List from "./list";
 export * as Option from "./option";
 export * as Ordering from "./ordering";
 export * as Promise from "./promise";

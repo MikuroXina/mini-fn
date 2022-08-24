@@ -19,6 +19,12 @@ export const err = <E, T>(e: E): Result<E, T> => [errSymbol, e];
 export const isOk = <E, T>(res: Result<E, T>): res is Ok<T> => res[0] === okSymbol;
 export const isErr = <E, T>(res: Result<E, T>): res is Err<E> => res[0] === errSymbol;
 
+export const either =
+    <E, R>(g: (e: E) => R) =>
+    <T>(f: (t: T) => R) =>
+    (res: Result<E, T>): R =>
+        isOk(res) ? f(res[1]) : g(res[1]);
+
 export const flatten = <E, T>(resRes: Result<E, Result<E, T>>): Result<E, T> =>
     isOk(resRes) ? resRes[1] : err(resRes[1]);
 export const mergeOkErr = <T>(res: Result<T, T>) => res[1];
