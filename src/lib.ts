@@ -12,5 +12,6 @@ export * as Promise from "./promise";
 export * as Reader from "./reader";
 export * as Result from "./result";
 export * as State from "./state";
+export * as Tuple from "./tuple";
 export * as TypeClass from "./type-class";
 export * as Writer from "./writer";
