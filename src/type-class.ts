@@ -1,8 +1,10 @@
 export * as Applicative from "./type-class/applicative";
 export * as Apply from "./type-class/apply";
 export * as Category from "./type-class/category";
+export * as Endo from "./type-class/endo";
 export * as Eq from "./type-class/eq";
 export * as FlatMap from "./type-class/flat-map";
+export * as Foldable from "./type-class/foldable";
 export * as Functor from "./type-class/functor";
 export * as Monad from "./type-class/monad";
 export * as Monoid from "./type-class/monoid";

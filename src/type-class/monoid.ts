@@ -1,3 +1,4 @@
+import { List } from "../lib";
 import type { SemiGroup } from "./semi-group";
 
 /**
@@ -8,6 +9,15 @@ import type { SemiGroup } from "./semi-group";
 export interface Monoid<T> extends SemiGroup<T> {
     readonly identity: T;
 }
+
+export const append =
+    <T>(monoid: Monoid<T>) =>
+    (l: T) =>
+    (r: T): T =>
+        monoid.combine(l, r);
+
+export const concat = <T>(monoid: Monoid<T>): ((list: List.List<T>) => T) =>
+    List.foldL(append(monoid))(monoid.identity);
 
 export const minMonoid = (infinity: number): Monoid<number> => ({
     combine(l, r) {
