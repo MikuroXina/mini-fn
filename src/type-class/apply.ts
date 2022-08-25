@@ -1,4 +1,4 @@
-import type { Functor, Functor1, Functor2, Functor3, Functor4 } from "./functor";
+import type { Functor, Functor1, Functor2, Functor2Monoid, Functor3, Functor4 } from "./functor";
 import type {
     GetHktA1,
     GetHktA2,
@@ -25,7 +25,7 @@ export interface Apply2<S extends HktKeyA2> extends Functor2<S> {
         fn: GetHktA2<S, T1, (t: T2) => U2>,
     ): (t: GetHktA2<S, T1, T2>) => GetHktA2<S, T1, U2>;
 }
-export interface Apply2Monoid<S extends HktKeyA2, M> extends Functor2<S> {
+export interface Apply2Monoid<S extends HktKeyA2, M> extends Functor2Monoid<S, M> {
     apply<T2, U2>(fn: GetHktA2<S, M, (t: T2) => U2>): (t: GetHktA2<S, M, T2>) => GetHktA2<S, M, U2>;
 }
 export interface Apply3<S extends HktKeyA3> extends Functor3<S> {

@@ -19,6 +19,9 @@ export interface Functor1<S extends HktKeyA1> {
 export interface Functor2<S extends HktKeyA2> {
     map<T1, T2, U2>(fn: (t: T2) => U2): (t: GetHktA2<S, T1, T2>) => GetHktA2<S, T1, U2>;
 }
+export interface Functor2Monoid<S extends HktKeyA2, M> {
+    map<T2, U2>(fn: (t: T2) => U2): (t: GetHktA2<S, M, T2>) => GetHktA2<S, M, U2>;
+}
 export interface Functor3<S extends HktKeyA3> {
     map<T1, T2, T3, U3>(fn: (t: T3) => U3): (t: GetHktA3<S, T1, T2, T3>) => GetHktA3<S, T1, T2, U3>;
 }
