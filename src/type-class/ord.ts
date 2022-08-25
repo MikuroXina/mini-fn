@@ -2,7 +2,7 @@ import { Eq, PartialEq, tuple as tupleEq } from "./eq";
 import { flatMap, isNone, map, mapOr, none, Option, some } from "../option";
 import { Ordering, equal, then, isEq } from "../ordering";
 import type { Monoid } from "./monoid";
-import { Contravariant } from "./variance";
+import type { Contravariant } from "./variance";
 
 declare const partialOrdNominal: unique symbol;
 export type PartialOrdHktKey = typeof partialOrdNominal;
