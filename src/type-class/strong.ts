@@ -1,7 +1,7 @@
 import type { Hkt2, HktDictA2, HktDictA3, HktDictA4, HktKeyA2, HktKeyA3, HktKeyA4 } from "../hkt";
 import type { Profunctor, Profunctor2, Profunctor3, Profunctor4 } from "./profunctor";
 
-import { Category } from "./category";
+import type { Category } from "./category";
 
 export interface Strong<Sym extends symbol> extends Profunctor<Sym> {
     first<A, B, C>(m: Hkt2<Sym, A, B>): Hkt2<Sym, [A, C], [B, C]>;

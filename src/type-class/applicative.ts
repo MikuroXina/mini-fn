@@ -1,5 +1,5 @@
 import { Apply, Apply1, Apply2, Apply2Monoid, Apply3, Apply4, makeSemiGroup } from "./apply";
-import type { Hkt, HktKeyA1, HktKeyA2, HktKeyA3, HktKeyA4 } from "../hkt";
+import type { GetHktA1, Hkt, HktKeyA1, HktKeyA2, HktKeyA3, HktKeyA4 } from "../hkt";
 import type { Pure, Pure1, Pure2, Pure2Monoid, Pure3, Pure4 } from "./pure";
 
 import type { Monoid } from "./monoid";
@@ -21,3 +21,9 @@ export const makeMonoid = <Sym extends symbol>(app: Applicative<Sym>) => {
         identity: app.pure(m.identity),
     });
 };
+
+export const liftA2 =
+    <S extends HktKeyA1>(app: Applicative1<S>) =>
+    <A, B, C>(f: (a: A) => (b: B) => C) =>
+    (x: GetHktA1<S, A>): ((y: GetHktA1<S, B>) => GetHktA1<S, C>) =>
+        app.apply(app.map(f)(x));

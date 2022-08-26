@@ -1,6 +1,11 @@
+import * as Result from "./result";
+
+import type { GetHktA1, HktKeyA1 } from "hkt";
+
+import type { Applicative1 } from "type-class/applicative";
 import type { Monad1 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
-import { Result } from "./lib";
+import type { Traversable1 } from "type-class/traversable";
 
 const someSymbol = Symbol("OptionSome");
 export type Some<T> = readonly [typeof someSymbol, T];
@@ -203,6 +208,7 @@ export const monoid = <T>(): Monoid<Option<T>> => ({
 });
 
 export const monad: Monad1<OptionHktKey> = {
+    product: zip,
     pure: some,
     map,
     flatMap,
@@ -210,4 +216,23 @@ export const monad: Monad1<OptionHktKey> = {
         <T1, U1>(fnOpt: Option<(t: T1) => U1>) =>
         (tOpt: Option<T1>) =>
             flatMap((fn: (t: T1) => U1) => map(fn)(tOpt))(fnOpt),
+};
+
+export const traversable: Traversable1<OptionHktKey> = {
+    map,
+    foldR: (folder) => (init) => (data) => {
+        if (isNone(data)) {
+            return init;
+        }
+        return folder(data[1])(init);
+    },
+    traverse:
+        <F extends HktKeyA1>(app: Applicative1<F>) =>
+        <A, B>(visitor: (a: A) => GetHktA1<F, B>) =>
+        (opt: Option<A>): GetHktA1<F, Option<B>> => {
+            if (isNone(opt)) {
+                return app.pure(none() as Option<B>);
+            }
+            return app.map<B, Option<B>>(some)(visitor(opt[1]));
+        },
 };

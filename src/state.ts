@@ -1,11 +1,10 @@
-import type { Applicative2 } from "./type-class/applicative";
 import type { Functor2 } from "./type-class/functor";
 import type { Monad2 } from "./type-class/monad";
 
 declare const stateNominal: unique symbol;
 export type StateHktKey = typeof stateNominal;
 
-export interface State<in out S, out A> {
+export interface State<S, A> {
     (state: S): readonly [A, S];
 }
 
@@ -35,6 +34,14 @@ export const put =
     () =>
         [[], state];
 
+export const product =
+    <S, A>(a: State<S, A>) =>
+    <B>(b: State<S, B>): State<S, [A, B]> =>
+    (state) => {
+        const [aRes, nextState] = a(state);
+        const [bRes, lastState] = b(nextState);
+        return [[aRes, bRes], lastState];
+    };
 export const map =
     <S, A, B>(fn: (a: A) => B) =>
     (s: State<S, A>): State<S, B> =>
@@ -71,8 +78,8 @@ declare module "./hkt" {
 }
 
 export const functor: Functor2<StateHktKey> = { map };
-export const applicative: Applicative2<StateHktKey> = { map, apply, pure };
 export const monad: Monad2<StateHktKey> = {
+    product,
     map,
     apply,
     pure,

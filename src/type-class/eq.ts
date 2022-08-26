@@ -6,7 +6,7 @@ import type { Monoid } from "./monoid";
  * - Symmetric: `PartialEq<A, B>` always equals to `PartialEq<B, A>`.
  * - Transitive: `PartialEq<A, B>` and `PartialEq<B, C>` always implies `PartialEq<A, C>`.
  */
-export interface PartialEq<in Lhs, in Rhs> {
+export interface PartialEq<Lhs, Rhs> {
     eq(l: Lhs, r: Rhs): boolean;
 }
 
@@ -78,6 +78,6 @@ export const eqSymbol = Symbol("ImplEq");
  * const numPartialEq: PartialEq<number, number> = (x, y) => x === y;
  * ```
  */
-export interface Eq<in Lhs, in Rhs> extends PartialEq<Lhs, Rhs> {
+export interface Eq<Lhs, Rhs> extends PartialEq<Lhs, Rhs> {
     [eqSymbol]: true;
 }

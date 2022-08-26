@@ -1,13 +1,15 @@
+import * as Identity from "./identity";
+
 import type { GetHktA1, HktKeyA1 } from "./hkt";
 import type { Monad1, Monad2Monoid } from "./type-class/monad";
+
 import type { Functor2 } from "./type-class/functor";
-import { Identity } from "./lib";
 import type { Monoid } from "./type-class/monoid";
 
 declare const writerNominal: unique symbol;
 export type WriterHktKey = typeof writerNominal;
 
-export interface Writer<out W, out A> {
+export interface Writer<W, A> {
     (): [A, W];
 }
 
@@ -47,12 +49,44 @@ export const censor =
         return [ans, f(write)];
     };
 
+export const product =
+    <W>(monoid: Monoid<W>) =>
+    <A>(a: Writer<W, A>) =>
+    <B>(b: Writer<W, B>): Writer<W, [A, B]> =>
+    () => {
+        const [aEval, aExec] = a();
+        const [bEval, bExec] = b();
+        return [[aEval, bEval], monoid.combine(aExec, bExec)];
+    };
+export const pure =
+    <W>(monoid: Monoid<W>) =>
+    <T2>(a: T2): Writer<W, T2> =>
+    () =>
+        [a, monoid.identity];
 export const map =
     <T, U>(f: (t: T) => U) =>
     <W>(w: Writer<W, T>): Writer<W, U> =>
     () => {
         const [ans, write] = w();
         return [f(ans), write];
+    };
+export const flatMap =
+    <W>(monoid: Monoid<W>) =>
+    <T2, U2>(fn: (t: T2) => Writer<W, U2>) =>
+    (t: Writer<W, T2>): Writer<W, U2> =>
+    () => {
+        const [ansT, writeT] = t();
+        const [ansU, writeU] = fn(ansT)();
+        return [ansU, monoid.combine(writeT, writeU)];
+    };
+export const apply =
+    <W>(monoid: Monoid<W>) =>
+    <T2, U2>(fn: Writer<W, (t: T2) => U2>) =>
+    (t: Writer<W, T2>): Writer<W, U2> =>
+    () => {
+        const [mapped, writeT] = fn();
+        const [ans, writeU] = t();
+        return [mapped(ans), monoid.combine(writeT, writeU)];
     };
 
 declare module "./hkt" {
@@ -64,16 +98,9 @@ declare module "./hkt" {
 export const functor: Functor2<WriterHktKey> = { map };
 
 export const makeMonad = <W>(monoid: Monoid<W>): Monad2Monoid<WriterHktKey, W> => ({
-    pure: (a) => () => [a, monoid.identity],
+    product: product(monoid),
+    pure: pure(monoid),
     map,
-    flatMap: (fn) => (t) => () => {
-        const [ansT, writeT] = t();
-        const [ansU, writeU] = fn(ansT)();
-        return [ansU, monoid.combine(writeT, writeU)];
-    },
-    apply: (fn) => (t) => () => {
-        const [mapped, writeT] = fn();
-        const [ans, writeU] = t();
-        return [mapped(ans), monoid.combine(writeT, writeU)];
-    },
+    flatMap: flatMap(monoid),
+    apply: apply(monoid),
 });
