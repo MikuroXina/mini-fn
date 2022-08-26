@@ -10,6 +10,8 @@ import type {
     HktKeyA4,
 } from "../hkt";
 
+import type { Invariant } from "./variance";
+
 export interface Functor<F extends symbol> {
     map<T, U>(fn: (t: T) => U): (t: Hkt<F, T>) => Hkt<F, U>;
 }
@@ -49,3 +51,7 @@ export const bindTo =
     <Sym extends symbol>(func: Functor<Sym>) =>
     <N extends PropertyKey>(name: N) =>
         func.map(<T>(a: T) => ({ [name]: a } as Record<N, T>));
+
+export const functorAsInvariant = <S extends HktKeyA1>(func: Functor1<S>): Invariant<S> => ({
+    inMap: (f) => () => func.map(f),
+});

@@ -446,6 +446,7 @@ export const monoid = <T>(): Monoid<List<T>> => ({
 });
 
 export const monad: Monad1<ListHktKey> = {
+    product: zip,
     pure: singleton,
     map,
     flatMap: (fn) => (t) => concat(map(fn)(t)),
@@ -460,11 +461,11 @@ export const traversable: Traversable1<ListHktKey> = {
     foldR,
     traverse:
         <F extends HktKeyA1>(app: Applicative.Applicative1<F>) =>
-        <A, B>(visiter: (a: A) => GetHktA1<F, B>): ((list: List<A>) => GetHktA1<F, List<B>>) => {
+        <A, B>(visitor: (a: A) => GetHktA1<F, B>): ((list: List<A>) => GetHktA1<F, List<B>>) => {
             const consF =
                 (x: A) =>
                 (ys: GetHktA1<F, List<B>>): GetHktA1<F, List<B>> =>
-                    Applicative.liftA2(app)(appendToHead)(visiter(x))(ys);
+                    Applicative.liftA2(app)(appendToHead)(visitor(x))(ys);
             return foldR(consF)(app.pure(empty()));
         },
 };

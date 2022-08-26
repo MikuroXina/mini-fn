@@ -207,6 +207,7 @@ export const monoid = <T>(): Monoid<Option<T>> => ({
 });
 
 export const monad: Monad1<OptionHktKey> = {
+    product: zip,
     pure: some,
     map,
     flatMap,
@@ -226,11 +227,11 @@ export const traversable: Traversable1<OptionHktKey> = {
     },
     traverse:
         <F extends HktKeyA1>(app: Applicative1<F>) =>
-        <A, B>(visiter: (a: A) => GetHktA1<F, B>) =>
+        <A, B>(visitor: (a: A) => GetHktA1<F, B>) =>
         (opt: Option<A>): GetHktA1<F, Option<B>> => {
             if (isNone(opt)) {
                 return app.pure(none() as Option<B>);
             }
-            return app.map<B, Option<B>>(some)(visiter(opt[1]));
+            return app.map<B, Option<B>>(some)(visitor(opt[1]));
         },
 };

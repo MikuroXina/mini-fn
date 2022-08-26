@@ -77,6 +77,11 @@ export const mapErr =
     <T>(res: Result<E, T>): Result<F, T> =>
         isErr(res) ? err(fn(res[1])) : res;
 
+export const product =
+    <E, A>(aRes: Result<E, A>) =>
+    <B>(bRes: Result<E, B>): Result<E, [A, B]> =>
+        andThen((a: A) => map((b: B): [A, B] => [a, b])(bRes))(aRes);
+
 export const unwrapOr =
     <T>(init: T) =>
     <E>(res: Result<E, T>) =>
@@ -96,6 +101,29 @@ export const resOptToOptRes = <E, T>(resOpt: Result<E, Option<T>>): Option<Resul
     return none();
 };
 
+export const apply =
+    <T1, T2, U2>(fnRes: Result<T1, (t: T2) => U2>) =>
+    (tRes: Result<T1, T2>): Result<T1, U2> =>
+        andThen((fn: (t: T2) => U2) => map(fn)(tRes))(fnRes);
+
+export const foldR: <X, A, B>(
+    folder: (a: A) => (b: B) => B,
+) => (init: B) => (data: Result<X, A>) => B = (folder) => (init) => (res) => {
+    if (isErr(res)) {
+        return init;
+    }
+    return folder(res[1])(init);
+};
+export const traverse =
+    <F extends HktKeyA1>(app: Applicative1<F>) =>
+    <A, B>(visitor: (a: A) => GetHktA1<F, B>) =>
+    <X>(res: Result<X, A>): GetHktA1<F, Result<X, B>> => {
+        if (isErr(res)) {
+            return app.pure(err(res[1]));
+        }
+        return app.map(ok)(visitor(res[1]));
+    };
+
 declare module "./hkt" {
     interface HktDictA2<A1, A2> {
         [resultNominal]: Result<A1, A2>;
@@ -108,30 +136,15 @@ export const monoid = <E, T>(error: E): Monoid<Result<E, T>> => ({
 });
 
 export const monad: Monad2<ResultHktKey> = {
+    product,
     pure: ok,
     map,
     flatMap: andThen,
-    apply:
-        <T1, T2, U2>(fnRes: Result<T1, (t: T2) => U2>) =>
-        (tRes: Result<T1, T2>): Result<T1, U2> =>
-            andThen((fn: (t: T2) => U2) => map(fn)(tRes))(fnRes),
+    apply,
 };
 
 export const traversable: Traversable2<ResultHktKey> = {
     map,
-    foldR: (folder) => (init) => (res) => {
-        if (isErr(res)) {
-            return init;
-        }
-        return folder(res[1])(init);
-    },
-    traverse:
-        <F extends HktKeyA1>(app: Applicative1<F>) =>
-        <A, B>(visiter: (a: A) => GetHktA1<F, B>) =>
-        <X>(res: Result<X, A>): GetHktA1<F, Result<X, B>> => {
-            if (isErr(res)) {
-                return app.pure(err(res[1]));
-            }
-            return app.map(ok)(visiter(res[1]));
-        },
+    foldR,
+    traverse,
 };

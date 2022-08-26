@@ -25,6 +25,12 @@ export const local =
     (t) =>
         ma(f(t));
 
+export const product =
+    <R, A>(a: Reader<R, A>) =>
+    <B>(b: Reader<R, B>): Reader<R, [A, B]> =>
+    (r: R) =>
+        [a(r), b(r)];
+
 export const withReader = <R, A>(reader: (a: R) => A): Reader<R, A> => {
     const askApplied = ask<R>();
     return (req: R) => reader(askApplied(req));
@@ -98,6 +104,7 @@ declare module "./hkt" {
 
 export const functor: Functor2<ReaderHktKey> = { map };
 export const monad: Monad2<ReaderHktKey> = {
+    product,
     pure,
     map,
     flatMap,

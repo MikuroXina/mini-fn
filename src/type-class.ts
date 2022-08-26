@@ -13,6 +13,7 @@ export * as Profunctor from "./type-class/profunctor";
 export * as Pure from "./type-class/pure";
 export * as SemiGroup from "./type-class/semi-group";
 export * as SemiGroupoid from "./type-class/semi-groupoid";
+export * as SemiGroupal from "./type-class/semi-groupal";
 export * as Strong from "./type-class/strong";
 export * as Traversable from "./type-class/traversable";
 export * as Variance from "./type-class/variance";

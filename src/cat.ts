@@ -31,6 +31,10 @@ export const table = <T>(t: T) => inspect<T>(console.table)(t);
 
 export const flatten = <T>(catCat: Cat<Cat<T>>): Cat<T> => catCat.value;
 
+export const product =
+    <A>(a: Cat<A>) =>
+    <B>(b: Cat<B>): Cat<[A, B]> =>
+        cat([a.value, b.value]);
 export const map =
     <T, U>(fn: (t: T) => U) =>
     (catT: Cat<T>): Cat<U> =>
@@ -47,6 +51,7 @@ declare module "./hkt" {
 }
 
 export const monad: Monad1<CatHktKey> = {
+    product,
     pure: cat,
     map,
     flatMap,

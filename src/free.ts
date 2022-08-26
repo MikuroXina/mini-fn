@@ -59,6 +59,21 @@ export const hoistFreeT =
         return node(functor.map(hoistFreeT(functor)(fn))(fn(fr[1])));
     };
 
+export const productT =
+    <F extends HktKeyA1>(app: Applicative1<F>) =>
+    <A>(a: Free<F, A>) =>
+    <B>(b: Free<F, B>): Free<F, [A, B]> => {
+        if (isNode(a)) {
+            const mapped = app.map(productT(app))(a[1]);
+            const applied = app.apply<Free<F, B>, Free<F, [A, B]>>(mapped)(app.pure(b));
+            return node(applied);
+        }
+        if (isNode(b)) {
+            return node(app.map(productT(app)(a))(b[1]));
+        }
+        return pure<[A, B]>([a[1], b[1]]);
+    };
+
 export const foldFreeT =
     <M extends HktKeyA1>(m: Monad1<M>) =>
     <F extends HktKeyA1>(fn: <T>(f: GetHktA1<F, T>) => GetHktA1<M, T>) =>
@@ -134,9 +149,10 @@ declare module "./hkt" {
     }
 }
 
-export const monad = <F extends HktKeyA1>(functor: Functor1<F>): Monad2Monoid<FreeHktKey, F> => ({
+export const monad = <F extends HktKeyA1>(app: Applicative1<F>): Monad2Monoid<FreeHktKey, F> => ({
+    product: productT(app),
     pure,
-    map: mapT(functor),
-    flatMap: flatMapT(functor),
-    apply: applyT(functor),
+    map: mapT(app),
+    flatMap: flatMapT(app),
+    apply: applyT(app),
 });
