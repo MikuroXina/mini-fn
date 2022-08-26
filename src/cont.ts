@@ -1,6 +1,7 @@
+import * as Identity from "./identity";
+
 import type { GetHktA1, HktKeyA1 } from "./hkt";
 
-import { Identity } from "./lib";
 import type { Monad1 } from "./type-class/monad";
 
 export interface ContT<R, M extends HktKeyA1, A> {

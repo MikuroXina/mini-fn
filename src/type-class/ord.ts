@@ -1,8 +1,9 @@
 import { Eq, PartialEq, tuple as tupleEq } from "./eq";
-import { flatMap, isNone, map, mapOr, none, Option, some } from "../option";
-import { Ordering, equal, then, isEq } from "../ordering";
-import type { Monoid } from "./monoid";
+import { Option, flatMap, isNone, map, mapOr, none, some } from "../option";
+import { Ordering, equal, isEq, then } from "../ordering";
+
 import type { Contravariant } from "./variance";
+import type { Monoid } from "./monoid";
 
 declare const partialOrdNominal: unique symbol;
 export type PartialOrdHktKey = typeof partialOrdNominal;
@@ -12,7 +13,7 @@ export type PartialOrdHktKey = typeof partialOrdNominal;
  * - Transitivity: If `f` is `PartialOrd`, for all `a`, `b` and `c`; `f(a, b) == f(b, c) == f(a, c)`.
  * - Duality: If `f` is `PartialOrd`, for all `a` and `b`; `f(a, b) == -f(b, a)`.
  */
-export interface PartialOrd<in Lhs, in Rhs> extends PartialEq<Lhs, Rhs> {
+export interface PartialOrd<Lhs, Rhs> extends PartialEq<Lhs, Rhs> {
     partialCmp(lhs: Lhs, rhs: Rhs): Option<Ordering>;
 }
 
@@ -70,7 +71,7 @@ export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
  * - Duality: If `f` is `PartialOrd`, for all `a` and `b`; `f(a, b) == -f(b, a)`.
  * - Strict: Ordering for all values is well-defined (so the return value is not an `Option`).
  */
-export interface Ord<in Lhs, in Rhs> extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> {
+export interface Ord<Lhs, Rhs> extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> {
     cmp(lhs: Lhs, rhs: Rhs): Ordering;
 }
 

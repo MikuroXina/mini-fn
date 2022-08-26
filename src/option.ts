@@ -1,9 +1,10 @@
+import * as Result from "./result";
+
 import type { GetHktA1, HktKeyA1 } from "hkt";
 
 import type { Applicative1 } from "type-class/applicative";
 import type { Monad1 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
-import { Result } from "./lib";
 import type { Traversable1 } from "type-class/traversable";
 
 const someSymbol = Symbol("OptionSome");

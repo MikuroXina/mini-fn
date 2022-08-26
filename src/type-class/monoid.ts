@@ -1,4 +1,5 @@
-import { List } from "../lib";
+import * as List from "../list";
+
 import type { SemiGroup } from "./semi-group";
 
 /**

@@ -1,6 +1,7 @@
+import * as Tuple from "./tuple";
+
 import type { Monad1 } from "./type-class/monad";
 import type { Traversable1 } from "./type-class/traversable";
-import { Tuple } from "./lib";
 import { flip } from "./func";
 
 declare const identityNominal: unique symbol;

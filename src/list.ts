@@ -1,12 +1,15 @@
+import * as Cat from "./cat";
+import * as Option from "./option";
+
+import type { GetHktA1, HktKeyA1 } from "hkt";
+
+import { Applicative } from "./type-class";
 import type { Monad1 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
-import { Cat, Option } from "./lib";
 import type { PartialEq } from "./type-class/eq";
 import type { Traversable1 } from "./type-class/traversable";
-import type { GetHktA1, HktKeyA1 } from "hkt";
-import { Applicative } from "./type-class";
 
-export interface List<out T> {
+export interface List<T> {
     current(): Option.Option<T>;
     rest(): List<T>;
 }

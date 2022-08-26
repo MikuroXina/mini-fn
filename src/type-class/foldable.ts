@@ -1,5 +1,7 @@
+import * as List from "../list";
+import * as Option from "../option";
+
 import type { GetHktA1, GetHktA2, HktKeyA1, HktKeyA2 } from "../hkt";
-import { List, Option } from "../lib";
 import { andMonoid, orMonoid } from "../bool";
 import { compose, oneShot } from "../func";
 

@@ -1,13 +1,15 @@
+import * as Identity from "./identity";
+
 import type { GetHktA1, HktKeyA1 } from "./hkt";
-import type { Functor2 } from "./type-class/functor";
-import { Identity } from "./lib";
 import type { Monad1, Monad2 } from "./type-class/monad";
+
+import type { Functor2 } from "./type-class/functor";
 import type { Profunctor2 } from "./type-class/profunctor";
 
 declare const readerNominal: unique symbol;
 export type ReaderHktKey = typeof readerNominal;
 
-export interface Reader<in R, out A> {
+export interface Reader<R, A> {
     (request: R): A;
 }
 

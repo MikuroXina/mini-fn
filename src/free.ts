@@ -1,6 +1,8 @@
+import * as Option from "./option";
+import * as Result from "./result";
+
 import type { GetHktA1, HktKeyA1 } from "./hkt";
 import type { Monad1, Monad2Monoid } from "./type-class/monad";
-import { Option, Result } from "./lib";
 
 import type { Applicative1 } from "./type-class/applicative";
 import type { Functor1 } from "./type-class/functor";
