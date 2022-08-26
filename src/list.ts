@@ -2,6 +2,9 @@ import type { Monad1 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
 import { Cat, Option } from "./lib";
 import type { PartialEq } from "./type-class/eq";
+import type { Traversable1 } from "./type-class/traversable";
+import type { GetHktA1, HktKeyA1 } from "hkt";
+import { Applicative } from "./type-class";
 
 export interface List<out T> {
     current(): Option.Option<T>;
@@ -450,4 +453,18 @@ export const monad: Monad1<ListHktKey> = {
         <T1, U1>(fns: List<(t: T1) => U1>) =>
         (t: List<T1>): List<U1> =>
             concat(map((fn: (t: T1) => U1) => map(fn)(t))(fns)),
+};
+
+export const traversable: Traversable1<ListHktKey> = {
+    map,
+    foldR,
+    traverse:
+        <F extends HktKeyA1>(app: Applicative.Applicative1<F>) =>
+        <A, B>(visiter: (a: A) => GetHktA1<F, B>): ((list: List<A>) => GetHktA1<F, List<B>>) => {
+            const consF =
+                (x: A) =>
+                (ys: GetHktA1<F, List<B>>): GetHktA1<F, List<B>> =>
+                    Applicative.liftA2(app)(appendToHead)(visiter(x))(ys);
+            return foldR(consF)(app.pure(empty()));
+        },
 };

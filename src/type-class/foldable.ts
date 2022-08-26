@@ -1,4 +1,4 @@
-import type { GetHktA1, HktKeyA1 } from "../hkt";
+import type { GetHktA1, GetHktA2, HktKeyA1, HktKeyA2 } from "../hkt";
 import { List, Option } from "../lib";
 import { andMonoid, orMonoid } from "../bool";
 import { compose, oneShot } from "../func";
@@ -6,22 +6,26 @@ import { compose, oneShot } from "../func";
 import { Monoid } from "../type-class";
 import type { PartialEq } from "./eq";
 
-export interface Foldable<T extends HktKeyA1> {
+export interface Foldable1<T extends HktKeyA1> {
     foldR<A, B>(folder: (a: A) => (b: B) => B): (init: B) => (data: GetHktA1<T, A>) => B;
 }
 
+export interface Foldable2<T extends HktKeyA2> {
+    foldR<X, A, B>(folder: (a: A) => (b: B) => B): (init: B) => (data: GetHktA2<T, X, A>) => B;
+}
+
 export const foldMap =
-    <T extends HktKeyA1, A, M>(foldable: Foldable<T>, monoid: Monoid.Monoid<M>) =>
+    <T extends HktKeyA1, A, M>(foldable: Foldable1<T>, monoid: Monoid.Monoid<M>) =>
     (f: (t: A) => M): ((ta: GetHktA1<T, A>) => M) =>
         foldable.foldR<A, M>(compose(Monoid.append(monoid))(f))(monoid.identity);
 
 export const fold = <T extends HktKeyA1, M>(
-    foldable: Foldable<T>,
+    foldable: Foldable1<T>,
     monoid: Monoid.Monoid<M>,
 ): ((tm: GetHktA1<T, M>) => M) => foldMap<T, M, M>(foldable, monoid)((x) => x);
 
 export const foldL =
-    <T extends HktKeyA1>(foldable: Foldable<T>) =>
+    <T extends HktKeyA1>(foldable: Foldable1<T>) =>
     <A, B>(f: (b: B) => (a: A) => B) =>
     (init: B) =>
     (data: GetHktA1<T, A>): B =>
@@ -30,7 +34,7 @@ export const foldL =
         )(init);
 
 export const foldR1 =
-    <T extends HktKeyA1>(foldable: Foldable<T>) =>
+    <T extends HktKeyA1>(foldable: Foldable1<T>) =>
     <A>(f: (l: A) => (r: A) => A) =>
     (data: GetHktA1<T, A>): A => {
         const mf =
@@ -47,7 +51,7 @@ export const foldR1 =
     };
 
 export const foldL1 =
-    <T extends HktKeyA1>(foldable: Foldable<T>) =>
+    <T extends HktKeyA1>(foldable: Foldable1<T>) =>
     <A>(f: (l: A) => (r: A) => A) =>
     (data: GetHktA1<T, A>): A => {
         const mf =
@@ -64,7 +68,7 @@ export const foldL1 =
     };
 
 export const toList =
-    <T extends HktKeyA1>(foldable: Foldable<T>) =>
+    <T extends HktKeyA1>(foldable: Foldable1<T>) =>
     <A>(data: GetHktA1<T, A>): List.List<A> =>
         List.build(
             <B>(c: (a: A) => (b: B) => B) =>
@@ -73,35 +77,35 @@ export const toList =
         );
 
 export const isNull = <T extends HktKeyA1, A>(
-    foldable: Foldable<T>,
+    foldable: Foldable1<T>,
 ): ((ta: GetHktA1<T, A>) => boolean) => foldable.foldR<A, boolean>(() => () => false)(true);
 
 export const length = <T extends HktKeyA1, A>(
-    foldable: Foldable<T>,
+    foldable: Foldable1<T>,
 ): ((ta: GetHktA1<T, A>) => number) => foldL(foldable)<A, number>((c: number) => () => c + 1)(0);
 
 export const and = <T extends HktKeyA1>(
-    foldable: Foldable<T>,
+    foldable: Foldable1<T>,
 ): ((list: GetHktA1<T, boolean>) => boolean) =>
     foldable.foldR((a: boolean) => (b: boolean) => a && b)(true);
 
 export const all =
-    <T extends HktKeyA1>(foldable: Foldable<T>) =>
+    <T extends HktKeyA1>(foldable: Foldable1<T>) =>
     <A>(f: (a: A) => boolean): ((list: GetHktA1<T, A>) => boolean) =>
         foldMap<T, A, boolean>(foldable, andMonoid)(f);
 
 export const or = <T extends HktKeyA1>(
-    foldable: Foldable<T>,
+    foldable: Foldable1<T>,
 ): ((list: GetHktA1<T, boolean>) => boolean) =>
     foldable.foldR((a: boolean) => (b: boolean) => a || b)(false);
 
 export const any =
-    <T extends HktKeyA1>(foldable: Foldable<T>) =>
+    <T extends HktKeyA1>(foldable: Foldable1<T>) =>
     <A>(f: (a: A) => boolean): ((list: GetHktA1<T, A>) => boolean) =>
         foldMap<T, A, boolean>(foldable, orMonoid)(f);
 
 export const contains = <T extends HktKeyA1, A>(
-    foldable: Foldable<T>,
+    foldable: Foldable1<T>,
     eq: PartialEq<A, A>,
 ): ((target: A) => (ta: GetHktA1<T, A>) => boolean) =>
     compose<(a: A) => boolean, (list: GetHktA1<T, A>) => boolean>(any(foldable))(

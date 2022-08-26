@@ -1,7 +1,10 @@
+import type { GetHktA1, HktKeyA1 } from "hkt";
 import { Option, isSome, none, toArray as optionToArray, some } from "./option";
 
+import type { Applicative1 } from "type-class/applicative";
 import type { Monad2 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
+import type { Traversable2 } from "./type-class/traversable";
 
 const okSymbol = Symbol("ResultOk");
 const errSymbol = Symbol("ResultErr");
@@ -112,4 +115,23 @@ export const monad: Monad2<ResultHktKey> = {
         <T1, T2, U2>(fnRes: Result<T1, (t: T2) => U2>) =>
         (tRes: Result<T1, T2>): Result<T1, U2> =>
             andThen((fn: (t: T2) => U2) => map(fn)(tRes))(fnRes),
+};
+
+export const traversable: Traversable2<ResultHktKey> = {
+    map,
+    foldR: (folder) => (init) => (res) => {
+        if (isErr(res)) {
+            return init;
+        }
+        return folder(res[1])(init);
+    },
+    traverse:
+        <F extends HktKeyA1>(app: Applicative1<F>) =>
+        <A, B>(visiter: (a: A) => GetHktA1<F, B>) =>
+        <X>(res: Result<X, A>): GetHktA1<F, Result<X, B>> => {
+            if (isErr(res)) {
+                return app.pure(err(res[1]));
+            }
+            return app.map(ok)(visiter(res[1]));
+        },
 };

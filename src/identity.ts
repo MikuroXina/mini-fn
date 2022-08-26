@@ -1,4 +1,6 @@
 import type { Monad1 } from "./type-class/monad";
+import type { Traversable1 } from "./type-class/traversable";
+import { flip } from "./func";
 
 declare const identityNominal: unique symbol;
 export type IdentityHktKey = typeof identityNominal;
@@ -19,4 +21,10 @@ export const monad: Monad1<IdentityHktKey> = {
     map: id,
     flatMap: id,
     apply: id,
+};
+
+export const traversable: Traversable1<IdentityHktKey> = {
+    map: id,
+    foldR: flip,
+    traverse: () => id,
 };
