@@ -11,6 +11,10 @@ export interface StateT<S, M, A> {
     (state: S): GetHktA1<M, [A, S]>;
 }
 
+export const runStateT =
+    <S, M, A>(s: StateT<S, M, A>) =>
+    (state: S): GetHktA1<M, [A, S]> =>
+        s(state);
 export const evaluateStateT =
     <M extends HktKeyA1>(monad: Monad1<M>) =>
     <S, A>(s: StateT<S, M, A>) =>
@@ -36,11 +40,15 @@ export const withStateT =
 
 export type State<S, A> = StateT<S, Identity.IdentityHktKey, A>;
 
-export const evaluate =
+export const runState =
+    <S, A>(s: State<S, A>) =>
+    (state: S): [A, S] =>
+        s(state);
+export const evaluateState =
     <S, A>(s: State<S, A>) =>
     (state: S): A =>
         s(state)[0];
-export const execute =
+export const executeState =
     <S, A>(s: State<S, A>) =>
     (state: S): S =>
         s(state)[1];
