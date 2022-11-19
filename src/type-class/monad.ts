@@ -37,39 +37,35 @@ export function bind<S extends HktKeyA1>(
     m: Monad1<S>,
 ): <A, B>(
     f: (a: A) => GetHktA1<S, B>,
-) => <NK extends PropertyKey>(
-    name: Exclude<NK, keyof A>,
-) => (ma: GetHktA1<S, A>) => GetHktA1<S, Append<A, NK, B>>;
+) => <NK extends PropertyKey>(name: NK) => (ma: GetHktA1<S, A>) => GetHktA1<S, Append<A, NK, B>>;
 export function bind<S extends HktKeyA2>(
     m: Monad2<S>,
 ): <A, B, T>(
     f: (a: A) => GetHktA2<S, T, B>,
 ) => <NK extends PropertyKey>(
-    name: Exclude<NK, keyof A>,
+    name: NK,
 ) => (ma: GetHktA2<S, T, A>) => GetHktA2<S, T, Append<A, NK, B>>;
 export function bind<S extends HktKeyA3>(
     m: Monad3<S>,
 ): <A, B, T, U>(
     f: (a: A) => GetHktA3<S, T, U, B>,
 ) => <NK extends PropertyKey>(
-    name: Exclude<NK, keyof A>,
+    name: NK,
 ) => (ma: GetHktA3<S, T, U, A>) => GetHktA3<S, T, U, Append<A, NK, B>>;
 export function bind<S extends HktKeyA4>(
     m: Monad4<S>,
 ): <A, B, T, U, V>(
     f: (a: A) => GetHktA4<S, T, U, V, B>,
 ) => <NK extends PropertyKey>(
-    name: Exclude<NK, keyof A>,
+    name: NK,
 ) => (ma: GetHktA4<S, T, U, V, A>) => GetHktA4<S, T, U, V, Append<A, NK, B>>;
 export function bind<S extends symbol>(
     m: Monad<S>,
 ): <A, B>(
     f: (a: A) => Hkt<S, B>,
-) => <NK extends PropertyKey>(
-    name: Exclude<NK, keyof A>,
-) => (ma: Hkt<S, A>) => Hkt<S, Append<A, NK, B>> {
+) => <NK extends PropertyKey>(name: NK) => (ma: Hkt<S, A>) => Hkt<S, Append<A, NK, B>> {
     return <A, B>(f: (a: A) => Hkt<S, B>) =>
-        <NK extends PropertyKey>(name: Exclude<NK, keyof A>) =>
+        <NK extends PropertyKey>(name: NK) =>
         (ma) =>
             m.flatMap(
                 (a: A): Hkt<S, Append<A, NK, B>> =>
