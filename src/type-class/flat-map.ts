@@ -1,13 +1,18 @@
 import type {
-    HktKeyA1,
-    HktKeyA2,
-    HktKeyA3,
-    HktKeyA4,
     GetHktA1,
     GetHktA2,
     GetHktA3,
     GetHktA4,
+    Hkt,
+    HktKeyA1,
+    HktKeyA2,
+    HktKeyA3,
+    HktKeyA4,
 } from "../hkt";
+
+export interface FlatMap<S extends symbol> {
+    flatMap<T1, U1>(a: (t: T1) => Hkt<S, U1>): (t: Hkt<S, T1>) => Hkt<S, U1>;
+}
 
 export interface FlatMap1<S extends HktKeyA1> {
     flatMap<T1, U1>(a: (t: T1) => GetHktA1<S, U1>): (t: GetHktA1<S, T1>) => GetHktA1<S, U1>;
