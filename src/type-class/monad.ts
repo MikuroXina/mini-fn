@@ -19,6 +19,8 @@ import type {
     HktKeyA4,
 } from "../hkt";
 
+import { Identity } from "../lib";
+
 export interface Monad<S extends symbol> extends Applicative<S>, FlatMap<S> {}
 
 export interface Monad1<S extends HktKeyA1> extends Applicative1<S>, FlatMap1<S> {}
@@ -33,33 +35,33 @@ export type Append<A, NK extends PropertyKey, B> = {
     readonly [K in keyof A | NK]: K extends keyof A ? A[K] : B;
 };
 
-export function bind<S extends HktKeyA1>(
+export function bindT<S extends HktKeyA1>(
     m: Monad1<S>,
 ): <A, B>(
     f: (a: A) => GetHktA1<S, B>,
 ) => <NK extends PropertyKey>(name: NK) => (ma: GetHktA1<S, A>) => GetHktA1<S, Append<A, NK, B>>;
-export function bind<S extends HktKeyA2>(
+export function bindT<S extends HktKeyA2>(
     m: Monad2<S>,
 ): <A, B, T>(
     f: (a: A) => GetHktA2<S, T, B>,
 ) => <NK extends PropertyKey>(
     name: NK,
 ) => (ma: GetHktA2<S, T, A>) => GetHktA2<S, T, Append<A, NK, B>>;
-export function bind<S extends HktKeyA3>(
+export function bindT<S extends HktKeyA3>(
     m: Monad3<S>,
 ): <A, B, T, U>(
     f: (a: A) => GetHktA3<S, T, U, B>,
 ) => <NK extends PropertyKey>(
     name: NK,
 ) => (ma: GetHktA3<S, T, U, A>) => GetHktA3<S, T, U, Append<A, NK, B>>;
-export function bind<S extends HktKeyA4>(
+export function bindT<S extends HktKeyA4>(
     m: Monad4<S>,
 ): <A, B, T, U, V>(
     f: (a: A) => GetHktA4<S, T, U, V, B>,
 ) => <NK extends PropertyKey>(
     name: NK,
 ) => (ma: GetHktA4<S, T, U, V, A>) => GetHktA4<S, T, U, V, Append<A, NK, B>>;
-export function bind<S extends symbol>(
+export function bindT<S extends symbol>(
     m: Monad<S>,
 ): <A, B>(
     f: (a: A) => Hkt<S, B>,
@@ -74,3 +76,5 @@ export function bind<S extends symbol>(
                     ),
             )(ma);
 }
+
+export const bind = bindT(Identity.monad);
