@@ -1,4 +1,4 @@
-import * as Identity from "./identity";
+import type * as Identity from "./identity";
 
 import type { GetHktA1, HktKeyA1 } from "./hkt";
 import type { Monad1, Monad2Monoid } from "./type-class/monad";
@@ -6,48 +6,32 @@ import type { Monad1, Monad2Monoid } from "./type-class/monad";
 import type { Functor2 } from "./type-class/functor";
 import type { Monoid } from "./type-class/monoid";
 
+export interface WriterT<W, M, A> {
+    (): GetHktA1<M, [A, W]>;
+}
+
+export const executeWriterT =
+    <M extends HktKeyA1>(monad: Monad1<M>) =>
+    <W, A>(w: WriterT<W, M, A>): GetHktA1<M, W> =>
+        monad.map(([, nextWriter]: [A, W]) => nextWriter)(w());
+export const mapWriterT =
+    <M, N, A, B, W1, W2>(fn: (maw: GetHktA1<M, [A, W1]>) => GetHktA1<N, [B, W2]>) =>
+    (w: WriterT<W1, M, A>): WriterT<W2, N, B> =>
+    () =>
+        fn(w());
+
 declare const writerNominal: unique symbol;
 export type WriterHktKey = typeof writerNominal;
 
-export interface Writer<W, A> {
-    (): [A, W];
-}
+export type Writer<W, A> = WriterT<W, Identity.IdentityHktKey, A>;
 
-export const evaluate = <W, A>(w: Writer<W, A>): A => w()[0];
-export const execute = <W, A>(w: Writer<W, A>): W => w()[1];
-
-export const tellM =
-    <W, S extends HktKeyA1>(w: W, m: Monad1<S>): Writer<W, GetHktA1<S, []>> =>
+export const evaluateWriter = <W, A>(w: Writer<W, A>): A => w()[0];
+export const executeWriter = <W, A>(w: Writer<W, A>): W => w()[1];
+export const mapWriter =
+    <A, B, W1, W2>(fn: (aw: [A, W1]) => [B, W2]) =>
+    (w: Writer<W1, A>): Writer<W2, B> =>
     () =>
-        [m.pure([]), w];
-export const tell = <W>(w: W): Writer<W, []> =>
-    tellM<W, Identity.IdentityHktKey>(w, Identity.monad);
-export const listenM =
-    <S extends HktKeyA1>(m: Monad1<S>) =>
-    <W, A>(a: GetHktA1<S, Writer<W, A>>): GetHktA1<S, [A, W]> =>
-        m.map((writer: Writer<W, A>) => writer())(a);
-export const listen = <W, A>(): ((w: Writer<W, A>) => [A, W]) =>
-    listenM<Identity.IdentityHktKey>(Identity.monad);
-export const pass =
-    <W, A>(w: Writer<W, [A, (write: W) => W]>): Writer<W, A> =>
-    () => {
-        const [[ans, fn], write] = w();
-        return [ans, fn(write)];
-    };
-export const listens =
-    <W, B>(f: (w: W) => B) =>
-    <A>(w: Writer<W, A>): Writer<W, [A, B]> =>
-    () => {
-        const [ans, write] = w();
-        return [[ans, f(write)], write];
-    };
-export const censor =
-    <W>(f: (w: W) => W) =>
-    <A>(w: Writer<W, A>): Writer<W, A> =>
-    () => {
-        const [ans, write] = w();
-        return [ans, f(write)];
-    };
+        fn(w());
 
 export const product =
     <W>(monoid: Monoid<W>) =>

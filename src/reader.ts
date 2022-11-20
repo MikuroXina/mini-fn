@@ -6,12 +6,25 @@ import type { Monad1, Monad2 } from "./type-class/monad";
 import type { Functor2 } from "./type-class/functor";
 import type { Profunctor2 } from "./type-class/profunctor";
 
+export interface ReaderT<R, M, A> {
+    (record: R): GetHktA1<M, A>;
+}
+
+export const mapReaderT =
+    <M, N, A, B>(fn: (ma: GetHktA1<M, A>) => GetHktA1<N, B>) =>
+    <R>(r: ReaderT<R, M, A>): ReaderT<R, N, B> =>
+    (record: R) =>
+        fn(r(record));
+export const withReaderT =
+    <R1, R2>(mapper: (record: R1) => R2) =>
+    <M, A>(r: ReaderT<R2, M, A>): ReaderT<R1, M, A> =>
+    (record: R1) =>
+        r(mapper(record));
+
 declare const readerNominal: unique symbol;
 export type ReaderHktKey = typeof readerNominal;
 
-export interface Reader<R, A> {
-    (request: R): A;
-}
+export type Reader<R, A> = ReaderT<R, Identity.IdentityHktKey, A>;
 
 export const run =
     <R, A>(r: Reader<R, A>) =>

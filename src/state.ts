@@ -1,25 +1,62 @@
+import type { GetHktA1, HktKeyA1 } from "hkt";
+import type { Monad1, Monad2 } from "./type-class/monad";
+
 import type { Functor2 } from "./type-class/functor";
-import type { Monad2 } from "./type-class/monad";
+import type { Identity } from "lib";
 
 declare const stateNominal: unique symbol;
 export type StateHktKey = typeof stateNominal;
 
-export interface State<S, A> {
-    (state: S): readonly [A, S];
+export interface StateT<S, M, A> {
+    (state: S): GetHktA1<M, [A, S]>;
 }
 
-export const run =
-    <S, A>(state: S) =>
-    (s: State<S, A>) =>
+export const runStateT =
+    <S, M, A>(s: StateT<S, M, A>) =>
+    (state: S): GetHktA1<M, [A, S]> =>
         s(state);
-export const evaluate =
-    <S, A>(state: S) =>
-    (s: State<S, A>): S =>
-        s(state)[1];
-export const execute =
-    <S, A>(state: S) =>
-    (s: State<S, A>): A =>
+export const evaluateStateT =
+    <M extends HktKeyA1>(monad: Monad1<M>) =>
+    <S, A>(s: StateT<S, M, A>) =>
+    (state: S): GetHktA1<M, S> =>
+        monad.map(([, nextS]: [A, S]) => nextS)(s(state));
+export const executeStateT =
+    <M extends HktKeyA1>(monad: Monad1<M>) =>
+    <S, A>(s: StateT<S, M, A>) =>
+    (state: S): GetHktA1<M, A> =>
+        monad.map(([nextA]: [A, S]) => nextA)(s(state));
+export const mapStateT =
+    <M extends HktKeyA1, N extends HktKeyA1, S, A, B>(
+        fn: (m: GetHktA1<M, [A, S]>) => GetHktA1<N, [B, S]>,
+    ) =>
+    (s: StateT<S, M, A>): StateT<S, N, B> =>
+    (state: S) =>
+        fn(s(state));
+export const withStateT =
+    <S, M extends HktKeyA1, A>(fn: (state: S) => S) =>
+    (s: StateT<S, M, A>): StateT<S, M, A> =>
+    (state: S) =>
+        s(fn(state));
+
+export type State<S, A> = StateT<S, Identity.IdentityHktKey, A>;
+
+export const runState =
+    <S, A>(s: State<S, A>) =>
+    (state: S): [A, S] =>
+        s(state);
+export const evaluateState =
+    <S, A>(s: State<S, A>) =>
+    (state: S): A =>
         s(state)[0];
+export const executeState =
+    <S, A>(s: State<S, A>) =>
+    (state: S): S =>
+        s(state)[1];
+export const mapState =
+    <S, A, B>(fn: (a: [A, S]) => [B, S]) =>
+    (s: State<S, A>): State<S, B> =>
+    (state) =>
+        fn(s(state));
 export const withState =
     <S, A>(fn: (state: S) => S) =>
     (s: State<S, A>): State<S, A> =>
