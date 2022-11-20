@@ -31,6 +31,20 @@ export interface Monad2Monoid<S extends HktKeyA2, M>
 export interface Monad3<S extends HktKeyA3> extends Applicative3<S>, FlatMap3<S> {}
 export interface Monad4<S extends HktKeyA4> extends Applicative4<S>, FlatMap4<S> {}
 
+export function begin<S extends HktKeyA1>(m: Monad1<S>): GetHktA1<S, Record<PropertyKey, never>>;
+export function begin<S extends HktKeyA2, T>(
+    m: Monad2<S>,
+): GetHktA2<S, T, Record<PropertyKey, never>>;
+export function begin<S extends HktKeyA3, T, U>(
+    m: Monad3<S>,
+): GetHktA3<S, T, U, Record<PropertyKey, never>>;
+export function begin<S extends HktKeyA4, T, U, V>(
+    m: Monad4<S>,
+): GetHktA4<S, T, U, V, Record<PropertyKey, never>>;
+export function begin<S extends symbol>(m: Monad<S>): Hkt<S, Record<PropertyKey, never>> {
+    return m.pure({});
+}
+
 export type Append<A, NK extends PropertyKey, B> = {
     readonly [K in keyof A | NK]: K extends keyof A ? A[K] : B;
 };
