@@ -1,4 +1,5 @@
 import { Option, Result } from "../src/lib";
+import { describe, expect, test } from "vitest";
 
 describe("Result", () => {
     test("isOk", () => {

@@ -1,3 +1,5 @@
+import { expect, test } from "vitest";
+
 import { Cat } from "../src/lib";
 
 test("Cat", () => {

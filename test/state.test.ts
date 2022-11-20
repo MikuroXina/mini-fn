@@ -1,4 +1,5 @@
 import { Cat, State } from "../src/lib";
+import { expect, test } from "vitest";
 
 import { Monad } from "../src/type-class";
 
