@@ -1,16 +1,17 @@
-import * as Tuple from "./tuple";
+import { flip, id } from "./func";
 
 import type { Monad1 } from "./type-class/monad";
 import type { Traversable1 } from "./type-class/traversable";
-import { flip } from "./func";
+import { make } from "./tuple";
+
+export { id };
 
 declare const identityNominal: unique symbol;
 export type IdentityHktKey = typeof identityNominal;
 
 export type Identity<T> = T;
 
-export const run = <T>(i: Identity<T>) => i;
-export const id = run;
+export const run = id;
 
 declare module "./hkt" {
     interface HktDictA1<A1> {
@@ -19,7 +20,7 @@ declare module "./hkt" {
 }
 
 export const monad: Monad1<IdentityHktKey> = {
-    product: Tuple.make,
+    product: make,
     pure: id,
     map: id,
     flatMap: id,
