@@ -1,6 +1,7 @@
 export * as Bool from "./bool";
 export * as Cat from "./cat";
 export * as Cont from "./cont";
+export * as MonadCont from "./cont/monad";
 export * as Curry from "./curry";
 export * as Free from "./free";
 export * as Frozen from "./frozen";
