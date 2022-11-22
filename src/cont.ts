@@ -2,8 +2,7 @@ import * as Identity from "./identity";
 
 import type { GetHktA1, HktKeyA1 } from "./hkt";
 import type { Monad1, Monad2 } from "./type-class/monad";
-
-import { constant } from "./func";
+import { absurd, constant } from "./func";
 
 export interface ContT<R, M extends HktKeyA1, A> {
     (callback: (a: A) => GetHktA1<M, R>): GetHktA1<M, R>;
@@ -99,6 +98,16 @@ export const lift =
     <R, A>(m: GetHktA1<M, A>): ContT<R, M, A> =>
     (mapper) =>
         monad.flatMap(mapper)(m);
+
+export const when =
+    (cond: boolean) =>
+    <R>(cont: Cont<R, []>): Cont<R, []> =>
+        cond ? cont : pure([]);
+export const unless =
+    (cond: boolean) =>
+    <R>(cont: Cont<R, []>): Cont<R, []> =>
+        cond ? pure([]) : cont;
+export const guard = <R>(cond: boolean): Cont<R, []> => (cond ? pure([]) : absurd);
 
 declare const contNominal: unique symbol;
 export type ContHktKey = typeof contNominal;
