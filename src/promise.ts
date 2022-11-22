@@ -8,6 +8,8 @@ import type { Monoid } from "./type-class/monoid";
 declare const promiseNominal: unique symbol;
 export type PromiseHktKey = typeof promiseNominal;
 
+export const pure = Promise.resolve;
+
 export const product =
     <A>(a: Promise<A>) =>
     <B>(b: Promise<B>): Promise<[A, B]> =>
@@ -49,7 +51,7 @@ export const monoid = <T>(identity: T): Monoid<Promise<T>> => ({
 
 export const monad: Monad1<PromiseHktKey> = {
     product,
-    pure: Promise.resolve,
+    pure,
     map,
     flatMap: flatMap,
     apply,
