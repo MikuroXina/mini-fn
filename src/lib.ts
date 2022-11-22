@@ -4,6 +4,7 @@ export * as Cont from "./cont";
 export * as MonadCont from "./cont/monad";
 export * as Curry from "./curry";
 export * as Free from "./free";
+export * as MonadFree from "./free/monad";
 export * as Frozen from "./frozen";
 export * as Func from "./func";
 export * as Hkt from "./hkt";
