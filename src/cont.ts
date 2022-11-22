@@ -4,7 +4,9 @@ import type { GetHktA1, HktKeyA1 } from "./hkt";
 import type { Monad1, Monad2 } from "./type-class/monad";
 import { absurd, constant } from "./func";
 
-export interface ContT<R, M extends HktKeyA1, A> {
+import type { MonadPromise1 } from "promise/monad";
+
+export interface ContT<R, M, A> {
     (callback: (a: A) => GetHktA1<M, R>): GetHktA1<M, R>;
 }
 
@@ -99,6 +101,11 @@ export const lift =
     (mapper) =>
         monad.flatMap(mapper)(m);
 
+export const liftPromise =
+    <M extends HktKeyA1>(monad: MonadPromise1<M>) =>
+    <R, A>(p: Promise<A>): ContT<R, M, A> =>
+        lift(monad)(monad.liftPromise(p));
+
 export const when =
     (cond: boolean) =>
     <R>(cont: Cont<R, []>): Cont<R, []> =>
@@ -115,6 +122,9 @@ export type ContHktKey = typeof contNominal;
 declare module "./hkt" {
     interface HktDictA2<A1, A2> {
         [contNominal]: Cont<A1, A2>;
+    }
+    interface HktDictA3<A1, A2, A3> {
+        [contNominal]: ContT<A1, A2, A3>;
     }
 }
 

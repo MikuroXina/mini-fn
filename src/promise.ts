@@ -1,7 +1,9 @@
+import { absurd, id } from "./func";
+
 import type { Monad1 } from "./type-class/monad";
 import type { MonadCont } from "cont/monad";
+import type { MonadPromise1 } from "promise/monad";
 import type { Monoid } from "./type-class/monoid";
-import { absurd } from "./func";
 
 declare const promiseNominal: unique symbol;
 export type PromiseHktKey = typeof promiseNominal;
@@ -56,4 +58,9 @@ export const monad: Monad1<PromiseHktKey> = {
 export const monadCont: MonadCont<PromiseHktKey> = {
     ...monad,
     callCC: callCC,
+};
+
+export const monadPromise: MonadPromise1<PromiseHktKey> = {
+    ...monad,
+    liftPromise: id,
 };
