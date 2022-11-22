@@ -1,5 +1,7 @@
 import type { Monad1 } from "./type-class/monad";
+import type { MonadCont } from "cont/monad";
 import type { Monoid } from "./type-class/monoid";
+import { absurd } from "./func";
 
 declare const promiseNominal: unique symbol;
 export type PromiseHktKey = typeof promiseNominal;
@@ -20,6 +22,18 @@ export const apply: <T1, U1>(fn: Promise<(t: T1) => U1>) => (t: Promise<T1>) => 
     (f) => (t) =>
         t.then((value) => f.then((func) => func(value)));
 
+export const callCC = <A, B>(
+    continuation: (callback: (a: A) => Promise<B>) => Promise<A>,
+): Promise<A> =>
+    new Promise((resolve, reject) => {
+        resolve(
+            continuation((err) => {
+                reject(err);
+                return absurd();
+            }),
+        );
+    });
+
 declare module "./hkt" {
     interface HktDictA1<A1> {
         [promiseNominal]: Promise<A1>;
@@ -37,4 +51,9 @@ export const monad: Monad1<PromiseHktKey> = {
     map,
     flatMap: flatMap,
     apply,
+};
+
+export const monadCont: MonadCont<PromiseHktKey> = {
+    ...monad,
+    callCC: callCC,
 };
