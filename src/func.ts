@@ -2,8 +2,12 @@ export const id = <T>(x: T) => x;
 
 export const constant =
     <T>(x: T) =>
-    () =>
+    <U>(_u: U) =>
         x;
+
+export const absurd = <T>(): T => {
+    throw new Error("PANIC: absurd must not be called");
+};
 
 export const oneShot =
     <T, U>(f: (a: T) => U) =>
