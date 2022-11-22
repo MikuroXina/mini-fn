@@ -2,7 +2,7 @@ export const id = <T>(x: T) => x;
 
 export const constant =
     <T>(x: T) =>
-    () =>
+    <U>(_u: U) =>
         x;
 
 export const oneShot =
