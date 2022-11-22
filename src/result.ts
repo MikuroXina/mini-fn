@@ -1,7 +1,7 @@
-import type { GetHktA1, HktKeyA1 } from "hkt";
 import { Option, isSome, none, toArray as optionToArray, some } from "./option";
 
 import type { Applicative1 } from "type-class/applicative";
+import type { GetHktA1 } from "hkt";
 import type { Monad2 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
 import type { Traversable2 } from "./type-class/traversable";
@@ -115,7 +115,7 @@ export const foldR: <X, A, B>(
     return folder(res[1])(init);
 };
 export const traverse =
-    <F extends HktKeyA1>(app: Applicative1<F>) =>
+    <F>(app: Applicative1<F>) =>
     <A, B>(visitor: (a: A) => GetHktA1<F, B>) =>
     <X>(res: Result<X, A>): GetHktA1<F, Result<X, B>> => {
         if (isErr(res)) {

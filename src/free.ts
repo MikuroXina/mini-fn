@@ -1,11 +1,11 @@
 import * as Option from "./option";
 import * as Result from "./result";
 
-import type { GetHktA1, HktKeyA1 } from "./hkt";
 import type { Monad1, Monad2Monoid } from "./type-class/monad";
 
 import type { Applicative1 } from "./type-class/applicative";
 import type { Functor1 } from "./type-class/functor";
+import type { GetHktA1 } from "./hkt";
 
 const pureNominal = Symbol("FreePure");
 const nodeNominal = Symbol("FreeNode");
@@ -16,15 +16,13 @@ export type Node<F, A> = [typeof nodeNominal, GetHktA1<F, Free<F, A>>];
 export const pure = <A>(a: A): Pure<A> => [pureNominal, a];
 export const node = <F, A>(f: GetHktA1<F, Free<F, A>>): Node<F, A> => [nodeNominal, f];
 
-export const isPure = <F extends HktKeyA1, A>(free: Free<F, A>): free is Pure<A> =>
-    free[0] === pureNominal;
-export const isNode = <F extends HktKeyA1, A>(free: Free<F, A>): free is Node<F, A> =>
-    free[0] === nodeNominal;
+export const isPure = <F, A>(free: Free<F, A>): free is Pure<A> => free[0] === pureNominal;
+export const isNode = <F, A>(free: Free<F, A>): free is Node<F, A> => free[0] === nodeNominal;
 
 export type Free<F, A> = Pure<A> | Node<F, A>;
 
 export const retractT =
-    <F extends HktKeyA1>(monad: Monad1<F>) =>
+    <F>(monad: Monad1<F>) =>
     <T>(fr: Free<F, T>): GetHktA1<F, T> => {
         if (isPure(fr)) {
             return monad.pure(fr[1]);
@@ -33,7 +31,7 @@ export const retractT =
     };
 
 export const iterT =
-    <F extends HktKeyA1>(functor: Functor1<F>) =>
+    <F>(functor: Functor1<F>) =>
     <T>(fn: (m: GetHktA1<F, T>) => T) =>
     (fr: Free<F, T>): T => {
         if (isPure(fr)) {
@@ -42,7 +40,7 @@ export const iterT =
         return fn(functor.map(iterT(functor)(fn))(fr[1]));
     };
 export const iterA =
-    <A extends HktKeyA1, F extends HktKeyA1>(app: Applicative1<A>, functor: Functor1<F>) =>
+    <A, F>(app: Applicative1<A>, functor: Functor1<F>) =>
     <T>(fn: (m: GetHktA1<F, GetHktA1<A, T>>) => GetHktA1<A, T>) =>
     (fr: Free<F, T>): GetHktA1<A, T> => {
         if (isPure(fr)) {
@@ -52,8 +50,8 @@ export const iterA =
     };
 
 export const hoistFreeT =
-    <G extends HktKeyA1>(functor: Functor1<G>) =>
-    <F extends HktKeyA1>(fn: <T>(f: GetHktA1<F, T>) => GetHktA1<G, T>) =>
+    <G>(functor: Functor1<G>) =>
+    <F>(fn: <T>(f: GetHktA1<F, T>) => GetHktA1<G, T>) =>
     <T>(fr: Free<F, T>): Free<G, T> => {
         if (isPure(fr)) {
             return fr;
@@ -62,7 +60,7 @@ export const hoistFreeT =
     };
 
 export const productT =
-    <F extends HktKeyA1>(app: Applicative1<F>) =>
+    <F>(app: Applicative1<F>) =>
     <A>(a: Free<F, A>) =>
     <B>(b: Free<F, B>): Free<F, [A, B]> => {
         if (isNode(a)) {
@@ -77,8 +75,8 @@ export const productT =
     };
 
 export const foldFreeT =
-    <M extends HktKeyA1>(m: Monad1<M>) =>
-    <F extends HktKeyA1>(fn: <T>(f: GetHktA1<F, T>) => GetHktA1<M, T>) =>
+    <M>(m: Monad1<M>) =>
+    <F>(fn: <T>(f: GetHktA1<F, T>) => GetHktA1<M, T>) =>
     <T>(fr: Free<F, T>): GetHktA1<M, T> => {
         if (isPure(fr)) {
             return m.pure(fr[1]);
@@ -87,7 +85,7 @@ export const foldFreeT =
     };
 
 export const mapT =
-    <F extends HktKeyA1>(functor: Functor1<F>) =>
+    <F>(functor: Functor1<F>) =>
     <T, U>(f: (t: T) => U) =>
     (t: Free<F, T>): Free<F, U> => {
         if (isPure(t)) {
@@ -97,7 +95,7 @@ export const mapT =
     };
 
 export const flatMapT =
-    <F extends HktKeyA1>(functor: Functor1<F>) =>
+    <F>(functor: Functor1<F>) =>
     <T, U>(mf: (t: T) => Free<F, U>) =>
     (t: Free<F, T>): Free<F, U> => {
         if (isPure(t)) {
@@ -107,7 +105,7 @@ export const flatMapT =
     };
 
 export const applyT =
-    <F extends HktKeyA1>(functor: Functor1<F>) =>
+    <F>(functor: Functor1<F>) =>
     <T, U>(mf: Free<F, (t: T) => U>) =>
     (t: Free<F, T>): Free<F, U> => {
         if (isPure(t)) {
@@ -121,7 +119,7 @@ export const applyT =
     };
 
 export const cutoffT =
-    <F extends HktKeyA1>(functor: Functor1<F>) =>
+    <F>(functor: Functor1<F>) =>
     (n: number) =>
     <T>(fr: Free<F, T>): Free<F, Option.Option<T>> => {
         if (n <= 0) {
@@ -135,7 +133,7 @@ export const cutoffT =
     };
 
 export const unfoldT =
-    <F extends HktKeyA1>(functor: Functor1<F>) =>
+    <F>(functor: Functor1<F>) =>
     <A, B>(fn: (b: B) => Result.Result<A, GetHktA1<F, B>>) =>
     (seed: B): Free<F, A> =>
         Result.either((a: A): Free<F, A> => pure(a))((fb: GetHktA1<F, B>) =>
@@ -151,7 +149,7 @@ declare module "./hkt" {
     }
 }
 
-export const monad = <F extends HktKeyA1>(app: Applicative1<F>): Monad2Monoid<FreeHktKey, F> => ({
+export const monad = <F>(app: Applicative1<F>): Monad2Monoid<FreeHktKey, F> => ({
     product: productT(app),
     pure,
     map: mapT(app),

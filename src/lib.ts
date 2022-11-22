@@ -17,6 +17,7 @@ export * as MonadReader from "./reader/monad";
 export * as Result from "./result";
 export * as State from "./state";
 export * as StateMonad from "./state/monad";
+export * as Trans from "./trans";
 export * as Tuple from "./tuple";
 export * as TypeClass from "./type-class";
 export * as Writer from "./writer";

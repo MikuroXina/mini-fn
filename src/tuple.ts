@@ -1,6 +1,5 @@
-import type { GetHktA1, HktKeyA1 } from "hkt";
-
 import type { Applicative1 } from "type-class/applicative";
+import type { GetHktA1 } from "hkt";
 import type { Monad1 } from "./type-class/monad";
 import type { Traversable1 } from "type-class/traversable";
 
@@ -64,7 +63,7 @@ export const foldR: <A, B>(
 };
 
 export const traverse =
-    <F extends HktKeyA1>(app: Applicative1<F>) =>
+    <F>(app: Applicative1<F>) =>
     <A, B>(visitor: (a: A) => GetHktA1<F, B>) =>
     ([a1, a2]: [A, A]): GetHktA1<F, [B, B]> =>
         app.product<B, B>(visitor(a1))(visitor(a2));

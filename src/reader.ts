@@ -1,9 +1,9 @@
 import * as Identity from "./identity";
 
-import type { GetHktA1, HktKeyA1 } from "./hkt";
 import type { Monad1, Monad2 } from "./type-class/monad";
 
 import type { Functor2 } from "./type-class/functor";
+import type { GetHktA1 } from "./hkt";
 import type { Profunctor2 } from "./type-class/profunctor";
 
 export interface ReaderT<R, M, A> {
@@ -31,8 +31,7 @@ export const run =
     (req: R) =>
         r(req);
 
-export const askM = <R, S extends HktKeyA1>(m: Monad1<S>): GetHktA1<S, Reader<R, R>> =>
-    m.pure((x) => x);
+export const askM = <R, S>(m: Monad1<S>): GetHktA1<S, Reader<R, R>> => m.pure((x) => x);
 export const ask = <R>(): Reader<R, R> => askM<R, Identity.IdentityHktKey>(Identity.monad);
 export const local =
     <T, U>(f: (t: T) => U) =>

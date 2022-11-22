@@ -1,9 +1,8 @@
 import * as Cat from "./cat";
 import * as Option from "./option";
 
-import type { GetHktA1, HktKeyA1 } from "hkt";
-
 import { Applicative } from "./type-class";
+import type { GetHktA1 } from "hkt";
 import type { Monad1 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
 import type { PartialEq } from "./type-class/eq";
@@ -463,7 +462,7 @@ export const traversable: Traversable1<ListHktKey> = {
     map,
     foldR,
     traverse:
-        <F extends HktKeyA1>(app: Applicative.Applicative1<F>) =>
+        <F>(app: Applicative.Applicative1<F>) =>
         <A, B>(visitor: (a: A) => GetHktA1<F, B>): ((list: List<A>) => GetHktA1<F, List<B>>) => {
             const consF =
                 (x: A) =>
