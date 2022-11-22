@@ -5,6 +5,10 @@ export const constant =
     <U>(_u: U) =>
         x;
 
+export const absurd = <T>(): T => {
+    throw new Error("PANIC: absurd must not be called");
+};
+
 export const oneShot =
     <T, U>(f: (a: T) => U) =>
     (a: T): U =>
