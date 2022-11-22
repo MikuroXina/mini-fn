@@ -119,12 +119,15 @@ export const guard = <R>(cond: boolean): Cont<R, []> => (cond ? pure([]) : absur
 declare const contNominal: unique symbol;
 export type ContHktKey = typeof contNominal;
 
+declare const contTNominal: unique symbol;
+export type ContTHktKey = typeof contTNominal;
+
 declare module "./hkt" {
     interface HktDictA2<A1, A2> {
         [contNominal]: Cont<A1, A2>;
     }
     interface HktDictA3<A1, A2, A3> {
-        [contNominal]: ContT<A1, A2, A3>;
+        [contTNominal]: ContT<A1, A2, A3>;
     }
 }
 
