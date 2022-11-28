@@ -96,3 +96,34 @@ export function bindT<S extends symbol>(
 }
 
 export const bind = bindT(Identity.monad);
+
+export function kleisli<S>(
+    monad: Monad1<S>,
+): <A, B>(
+    f: (a: A) => GetHktA1<S, B>,
+) => <C>(g: (b: B) => GetHktA1<S, C>) => (a: A) => GetHktA1<S, C>;
+export function kleisli<S, T>(
+    monad: Monad2<S>,
+): <A, B>(
+    f: (a: A) => GetHktA2<S, T, B>,
+) => <C>(g: (b: B) => GetHktA2<S, T, C>) => (a: A) => GetHktA2<S, T, C>;
+export function kleisli<S, T>(
+    monad: Monad2Monoid<S, T>,
+): <A, B>(
+    f: (a: A) => GetHktA2<S, T, B>,
+) => <C>(g: (b: B) => GetHktA2<S, T, C>) => (a: A) => GetHktA2<S, T, C>;
+export function kleisli<S, T, U>(
+    monad: Monad3<S>,
+): <A, B>(
+    f: (a: A) => GetHktA3<S, T, U, B>,
+) => <C>(g: (b: B) => GetHktA3<S, T, U, C>) => (a: A) => GetHktA3<S, T, U, C>;
+export function kleisli<S, T, U, V>(
+    monad: Monad4<S>,
+): <A, B>(
+    f: (a: A) => GetHktA4<S, T, U, V, B>,
+) => <C>(g: (b: B) => GetHktA4<S, T, U, V, C>) => (a: A) => GetHktA4<S, T, U, V, C>;
+export function kleisli<S extends symbol>(
+    monad: Monad<S>,
+): <A, B>(f: (a: A) => Hkt<S, B>) => <C>(g: (b: B) => Hkt<S, C>) => (a: A) => Hkt<S, C> {
+    return (f) => (g) => (x) => monad.flatMap(g)(f(x));
+}
