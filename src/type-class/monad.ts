@@ -10,6 +10,7 @@ import type { FlatMap, FlatMap1, FlatMap2, FlatMap2Monoid, FlatMap3, FlatMap4 } 
 import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt";
 
 import { Identity } from "../lib";
+import { id } from "../func";
 
 export interface Monad<S extends symbol> extends Applicative<S>, FlatMap<S> {}
 
@@ -18,6 +19,23 @@ export interface Monad2<S> extends Applicative2<S>, FlatMap2<S> {}
 export interface Monad2Monoid<S, M> extends Applicative2Monoid<S, M>, FlatMap2Monoid<S, M> {}
 export interface Monad3<S> extends Applicative3<S>, FlatMap3<S> {}
 export interface Monad4<S> extends Applicative4<S>, FlatMap4<S> {}
+
+export function flat<S>(m: Monad1<S>): <A>(a: GetHktA1<S, GetHktA1<S, A>>) => GetHktA1<S, A>;
+export function flat<S>(
+    m: Monad2<S>,
+): <B, A>(a: GetHktA2<S, B, GetHktA2<S, B, A>>) => GetHktA2<S, B, A>;
+export function flat<S, M>(
+    m: Monad2Monoid<S, M>,
+): <A>(a: GetHktA2<S, M, GetHktA2<S, M, A>>) => GetHktA2<S, M, A>;
+export function flat<S>(
+    m: Monad3<S>,
+): <C, B, A>(a: GetHktA3<S, C, B, GetHktA3<S, C, B, A>>) => GetHktA3<S, C, B, A>;
+export function flat<S>(
+    m: Monad4<S>,
+): <D, C, B, A>(a: GetHktA4<S, D, C, B, GetHktA4<S, D, C, B, A>>) => GetHktA4<S, D, C, B, A>;
+export function flat<S extends symbol>(m: Monad<S>): <A>(a: Hkt<S, Hkt<S, A>>) => Hkt<S, A> {
+    return m.flatMap(id);
+}
 
 export function begin<S>(m: Monad1<S>): GetHktA1<S, object>;
 export function begin<S, T>(m: Monad2<S>): GetHktA2<S, T, object>;
