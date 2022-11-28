@@ -1,3 +1,5 @@
+import * as Identity from "../identity";
+
 import type {
     Applicative,
     Applicative1,
@@ -9,7 +11,6 @@ import type {
 import type { FlatMap, FlatMap1, FlatMap2, FlatMap2Monoid, FlatMap3, FlatMap4 } from "./flat-map";
 import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt";
 
-import { Identity } from "../lib";
 import { id } from "../func";
 
 export interface Monad<S extends symbol> extends Applicative<S>, FlatMap<S> {}
