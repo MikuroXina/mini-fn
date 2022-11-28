@@ -1,7 +1,7 @@
-import type { GetHktA1, HktKeyA1 } from "hkt";
 import type { Monad1, Monad2 } from "./type-class/monad";
 
 import type { Functor2 } from "./type-class/functor";
+import type { GetHktA1 } from "hkt";
 import type { Identity } from "lib";
 
 declare const stateNominal: unique symbol;
@@ -16,24 +16,22 @@ export const runStateT =
     (state: S): GetHktA1<M, [A, S]> =>
         s(state);
 export const evaluateStateT =
-    <M extends HktKeyA1>(monad: Monad1<M>) =>
+    <M>(monad: Monad1<M>) =>
     <S, A>(s: StateT<S, M, A>) =>
     (state: S): GetHktA1<M, S> =>
         monad.map(([, nextS]: [A, S]) => nextS)(s(state));
 export const executeStateT =
-    <M extends HktKeyA1>(monad: Monad1<M>) =>
+    <M>(monad: Monad1<M>) =>
     <S, A>(s: StateT<S, M, A>) =>
     (state: S): GetHktA1<M, A> =>
         monad.map(([nextA]: [A, S]) => nextA)(s(state));
 export const mapStateT =
-    <M extends HktKeyA1, N extends HktKeyA1, S, A, B>(
-        fn: (m: GetHktA1<M, [A, S]>) => GetHktA1<N, [B, S]>,
-    ) =>
+    <M, N, S, A, B>(fn: (m: GetHktA1<M, [A, S]>) => GetHktA1<N, [B, S]>) =>
     (s: StateT<S, M, A>): StateT<S, N, B> =>
     (state: S) =>
         fn(s(state));
 export const withStateT =
-    <S, M extends HktKeyA1, A>(fn: (state: S) => S) =>
+    <S, M, A>(fn: (state: S) => S) =>
     (s: StateT<S, M, A>): StateT<S, M, A> =>
     (state: S) =>
         s(fn(state));

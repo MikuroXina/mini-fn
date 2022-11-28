@@ -1,20 +1,20 @@
-import type { GetHktA2, GetHktA3, GetHktA4, Hkt2, HktKeyA2, HktKeyA3, HktKeyA4 } from "../hkt";
+import type { GetHktA2, GetHktA3, GetHktA4, Hkt2 } from "../hkt";
 
 export interface Profunctor<Sym extends symbol> {
     diMap<A, B>(f: (a: A) => B): <C, D>(g: (c: C) => D) => (m: Hkt2<Sym, D, A>) => Hkt2<Sym, C, B>;
 }
 
-export interface Profunctor2<S extends HktKeyA2> {
+export interface Profunctor2<S> {
     diMap<A, B>(
         f: (a: A) => B,
     ): <C, D>(g: (c: C) => D) => (m: GetHktA2<S, D, A>) => GetHktA2<S, C, B>;
 }
-export interface Profunctor3<S extends HktKeyA3> {
+export interface Profunctor3<S> {
     diMap<A, B>(
         f: (a: A) => B,
     ): <C, D>(g: (c: C) => D) => <T>(m: GetHktA3<S, T, D, A>) => GetHktA3<S, T, C, B>;
 }
-export interface Profunctor4<S extends HktKeyA4> {
+export interface Profunctor4<S> {
     diMap<A, B>(
         f: (a: A) => B,
     ): <C, D>(g: (c: C) => D) => <T, U>(m: GetHktA4<S, T, U, D, A>) => GetHktA4<S, T, U, C, B>;

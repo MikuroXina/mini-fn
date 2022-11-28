@@ -1,17 +1,16 @@
-import type { GetHktA1, HktKeyA1 } from "hkt";
-
+import type { GetHktA1 } from "hkt";
 import type { Monad } from "type-class";
 
-export type CallCC<M extends HktKeyA1> = <A, B>(
+export type CallCC<M> = <A, B>(
     continuation: (callback: (a: A) => GetHktA1<M, B>) => GetHktA1<M, A>,
 ) => GetHktA1<M, A>;
 
-export interface MonadCont<M extends HktKeyA1> extends Monad.Monad1<M> {
+export interface MonadCont<M> extends Monad.Monad1<M> {
     callCC: CallCC<M>;
 }
 
 export const label =
-    <M extends HktKeyA1>(mc: MonadCont<M>) =>
+    <M>(mc: MonadCont<M>) =>
     <A, B>(a: A): GetHktA1<M, [(a: A) => GetHktA1<M, B>, A]> =>
         mc.callCC(
             (
@@ -22,9 +21,7 @@ export const label =
             },
         );
 
-export const labelWithoutArg = <M extends HktKeyA1, A>(
-    mc: MonadCont<M>,
-): GetHktA1<M, GetHktA1<M, A>> =>
+export const labelWithoutArg = <M, A>(mc: MonadCont<M>): GetHktA1<M, GetHktA1<M, A>> =>
     mc.callCC((k: (a: GetHktA1<M, A>) => GetHktA1<M, A>): GetHktA1<M, GetHktA1<M, A>> => {
         const go = (): GetHktA1<M, A> => k(go());
         return mc.pure(go());

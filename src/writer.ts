@@ -1,9 +1,9 @@
 import type * as Identity from "./identity";
 
-import type { GetHktA1, HktKeyA1 } from "./hkt";
 import type { Monad1, Monad2Monoid } from "./type-class/monad";
 
 import type { Functor2 } from "./type-class/functor";
+import type { GetHktA1 } from "./hkt";
 import type { Monoid } from "./type-class/monoid";
 
 export interface WriterT<W, M, A> {
@@ -11,7 +11,7 @@ export interface WriterT<W, M, A> {
 }
 
 export const executeWriterT =
-    <M extends HktKeyA1>(monad: Monad1<M>) =>
+    <M>(monad: Monad1<M>) =>
     <W, A>(w: WriterT<W, M, A>): GetHktA1<M, W> =>
         monad.map(([, nextWriter]: [A, W]) => nextWriter)(w());
 export const mapWriterT =

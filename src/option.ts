@@ -1,8 +1,7 @@
 import * as Result from "./result";
 
-import type { GetHktA1, HktKeyA1 } from "hkt";
-
 import type { Applicative1 } from "type-class/applicative";
+import type { GetHktA1 } from "hkt";
 import type { Monad1 } from "./type-class/monad";
 import type { Monoid } from "./type-class/monoid";
 import type { Traversable1 } from "type-class/traversable";
@@ -227,7 +226,7 @@ export const traversable: Traversable1<OptionHktKey> = {
         return folder(data[1])(init);
     },
     traverse:
-        <F extends HktKeyA1>(app: Applicative1<F>) =>
+        <F>(app: Applicative1<F>) =>
         <A, B>(visitor: (a: A) => GetHktA1<F, B>) =>
         (opt: Option<A>): GetHktA1<F, Option<B>> => {
             if (isNone(opt)) {

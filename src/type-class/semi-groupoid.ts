@@ -1,19 +1,19 @@
-import type { Hkt2, HktDictA2, HktDictA3, HktDictA4, HktKeyA2, HktKeyA3, HktKeyA4 } from "../hkt";
+import type { GetHktA2, GetHktA3, GetHktA4, Hkt2 } from "../hkt";
 
 export interface SemiGroupoid<Sym extends symbol> {
     compose<A, B, C>(funcA: Hkt2<Sym, A, B>): (funcB: Hkt2<Sym, B, C>) => Hkt2<Sym, A, C>;
 }
 
-export interface SemiGroupoid2<S extends HktKeyA2> {
-    compose<A, B, C>(funcA: HktDictA2<A, B>[S]): (funcB: HktDictA2<B, C>[S]) => HktDictA2<A, C>[S];
+export interface SemiGroupoid2<S> {
+    compose<A, B, C>(funcA: GetHktA2<S, A, B>): (funcB: GetHktA2<S, B, C>) => GetHktA2<S, A, C>;
 }
-export interface SemiGroupoid3<S extends HktKeyA3> {
+export interface SemiGroupoid3<S> {
     compose<A, B, C, D>(
-        funcA: HktDictA3<A, B, D>[S],
-    ): (funcB: HktDictA3<B, C, D>[S]) => HktDictA3<A, C, D>[S];
+        funcA: GetHktA3<S, A, B, D>,
+    ): (funcB: GetHktA3<S, B, C, D>) => GetHktA3<S, A, C, D>;
 }
-export interface SemiGroupoid4<S extends HktKeyA4> {
+export interface SemiGroupoid4<S> {
     compose<A, B, C, D, E>(
-        funcA: HktDictA4<A, B, D, E>[S],
-    ): (funcB: HktDictA4<B, C, D, E>[S]) => HktDictA4<A, C, D, E>[S];
+        funcA: GetHktA4<S, A, B, D, E>,
+    ): (funcB: GetHktA4<S, B, C, D, E>) => GetHktA4<S, A, C, D, E>;
 }
