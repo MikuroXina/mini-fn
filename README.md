@@ -11,7 +11,7 @@ mini-fn provides simple, tiny library having functional features and its type de
 You can pipe your functions with `Cat<T>`'s `feed<U>(f: (t: T) => U): Cat<U>` method like this:
 
 ```ts
-import { cat } from "mini-fn/cat.ts";
+import { cat } from "mini-fn/cat.js";
 
 const result = cat(-3)
     .feed((x) => x ** 2)
@@ -22,7 +22,7 @@ console.log(result.value); // "9"
 And there are some useful types such as `Option<T>`, `Result<E, T>`, and so on.
 
 ```ts
-import * as Option from "mini-fn/option.ts";
+import * as Option from "mini-fn/option.js";
 const sqrtThenToString = (num: number): Option.Option<string> => {
     if (num < 0) {
         return Option.none();
@@ -39,8 +39,8 @@ applied(Option.none()); // none
 Some of them also provides its monad implementation, so you can combine and transform them like this:
 
 ```ts
-import { cat, log } from "mini-fn";
-import * as Option from "mini-fn/option.ts";
+import { cat, log } from "mini-fn/cat.js";
+import * as Option from "mini-fn/option.js";
 
 const half = (x: number): Option.Option<number> => {
     if (x % 2 != 0) {
