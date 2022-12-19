@@ -1,9 +1,10 @@
-import { Cat, State } from "../src/lib";
-
-import { Monad } from "../src/type-class";
+import { cat } from "../src/cat.js";
+import { State, monad as stateMonad, StateHktKey, put, get } from "../src/state.js";
+import { begin, bindT } from "../src/type-class/monad.js";
+import { expect, test } from "vitest";
 
 const xorShiftRng =
-    (): State.State<number, number> =>
+    (): State<number, number> =>
     (state: number): [number, number] => {
         state ^= state << 13;
         state ^= state >> 17;
@@ -13,8 +14,8 @@ const xorShiftRng =
 
 test("roll three dices", () => {
     const seed = 1423523;
-    const bound = Monad.bindT(State.monad)(xorShiftRng);
-    const results = Cat.cat(Monad.begin<State.StateHktKey, number>(State.monad))
+    const bound = bindT(stateMonad)(xorShiftRng);
+    const results = cat(begin<StateHktKey, number>(stateMonad))
         .feed(bound("result1"))
         .feed(bound("result2"))
         .feed(bound("result3"))
@@ -28,16 +29,16 @@ test("roll three dices", () => {
 
 test("twenty times", () => {
     const twentyTimes = (x: number): number =>
-        Cat.cat(State.put(x + x))
-            .feed(State.flatMap(State.get<number>))
-            .feed(State.map((x2: number) => x2 + x2))
-            .feed(State.map((x4: number) => x4 + x4))
+        cat(put(x + x))
+            .feed(stateMonad.flatMap(get<number>))
+            .feed(stateMonad.map((x2: number) => x2 + x2))
+            .feed(stateMonad.map((x4: number) => x4 + x4))
             .feed(
-                State.flatMap((x8: number) =>
-                    State.map<number, number, number>((x2: number) => x8 + x2)(State.get<number>()),
+                stateMonad.flatMap((x8: number) =>
+                    stateMonad.map<number, number, number>((x2: number) => x8 + x2)(get<number>()),
                 ),
             )
-            .feed(State.map((x10: number) => x10 + x10))
+            .feed(stateMonad.map((x10: number) => x10 + x10))
             .value(0)[0];
 
     expect(twentyTimes(10)).toBe(200);
