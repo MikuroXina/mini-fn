@@ -1,8 +1,8 @@
-import type { Monad1, Monad2 } from "./type-class/monad";
+import type { Monad1, Monad2 } from "./type-class/monad.js";
 
-import type { Functor2 } from "./type-class/functor";
-import type { GetHktA1 } from "hkt";
-import type { Identity } from "lib";
+import type { Functor2 } from "./type-class/functor.js";
+import type { GetHktA1 } from "src/hkt.js";
+import type { IdentityHktKey } from "./identity.js";
 
 declare const stateNominal: unique symbol;
 export type StateHktKey = typeof stateNominal;
@@ -36,7 +36,7 @@ export const withStateT =
     (state: S) =>
         s(fn(state));
 
-export type State<S, A> = StateT<S, Identity.IdentityHktKey, A>;
+export type State<S, A> = StateT<S, IdentityHktKey, A>;
 
 export const runState =
     <S, A>(s: State<S, A>) =>
@@ -106,7 +106,7 @@ export const flatMap =
 export const flatten = <S, A>(ss: State<S, State<S, A>>): State<S, A> =>
     flatMap((s: State<S, A>) => s)(ss);
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA2<A1, A2> {
         [stateNominal]: State<A1, A2>;
     }

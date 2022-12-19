@@ -1,4 +1,4 @@
-import type { GetHktA1, GetHktA2, Hkt } from "hkt";
+import type { GetHktA1, GetHktA2, Hkt } from "../hkt.js";
 
 export interface SemiGroupal<F extends symbol> {
     product<A, B>(fa: Hkt<F, A>): (fb: Hkt<F, B>) => Hkt<F, [A, B]>;

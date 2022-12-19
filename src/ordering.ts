@@ -1,4 +1,4 @@
-import type { Monoid } from "./type-class/monoid";
+import type { Monoid } from "./type-class/monoid.js";
 
 export const less = -1;
 export type Less = typeof less;

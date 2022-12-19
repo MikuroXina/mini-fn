@@ -1,9 +1,9 @@
-import { Eq, PartialEq, tuple as tupleEq } from "./eq";
-import { Option, flatMap, isNone, map, mapOr, none, some } from "../option";
-import { Ordering, equal, isEq, then } from "../ordering";
+import { Eq, PartialEq, tuple as tupleEq } from "./eq.js";
+import { Option, flatMap, isNone, map, mapOr, none, some } from "../option.js";
+import { Ordering, equal, isEq, then } from "../ordering.js";
 
-import type { Contravariant } from "./variance";
-import type { Monoid } from "./monoid";
+import type { Contravariant } from "./variance.js";
+import type { Monoid } from "./monoid.js";
 
 declare const partialOrdNominal: unique symbol;
 export type PartialOrdHktKey = typeof partialOrdNominal;
@@ -42,7 +42,7 @@ export const tuple = <T extends unknown[]>(ord: {
     eq: tupleEq(ord).eq,
 });
 
-declare module "../hkt" {
+declare module "../hkt.js" {
     interface HktDictA1<A1> {
         [partialOrdNominal]: PartialOrd<A1, A1>;
     }

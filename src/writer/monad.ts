@@ -1,6 +1,6 @@
-import type { GetHktA1 } from "hkt";
-import type { Monad1 } from "../type-class/monad";
-import type { Monoid } from "../type-class/monoid";
+import type { GetHktA1 } from "../hkt.js";
+import type { Monad1 } from "../type-class/monad.js";
+import type { Monoid } from "../type-class/monoid.js";
 
 export interface MonadWriter<W, M> extends Monoid<W>, Monad1<M> {
     tell: (output: W) => GetHktA1<M, []>;

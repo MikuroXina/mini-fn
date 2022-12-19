@@ -1,5 +1,3 @@
-import * as Identity from "../identity";
-
 import type {
     Applicative,
     Applicative1,
@@ -7,11 +5,19 @@ import type {
     Applicative2Monoid,
     Applicative3,
     Applicative4,
-} from "./applicative";
-import type { FlatMap, FlatMap1, FlatMap2, FlatMap2Monoid, FlatMap3, FlatMap4 } from "./flat-map";
-import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt";
+} from "./applicative.js";
+import type {
+    FlatMap,
+    FlatMap1,
+    FlatMap2,
+    FlatMap2Monoid,
+    FlatMap3,
+    FlatMap4,
+} from "./flat-map.js";
+import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt.js";
 
-import { id } from "../func";
+import { id } from "../func.js";
+import { monad as idMonad } from "../identity.js";
 
 export interface Monad<S extends symbol> extends Applicative<S>, FlatMap<S> {}
 
@@ -96,7 +102,7 @@ export function bindT<S extends symbol>(
             )(ma);
 }
 
-export const bind = bindT(Identity.monad);
+export const bind = bindT(idMonad);
 
 export function kleisli<S>(
     monad: Monad1<S>,

@@ -1,5 +1,5 @@
-import type { Contravariant } from "./variance";
-import type { Monoid } from "./monoid";
+import type { Contravariant } from "./variance.js";
+import type { Monoid } from "./monoid.js";
 
 /**
  * All instances of `PartialEq` must satisfy the following conditions:
@@ -12,7 +12,7 @@ export interface PartialEq<Lhs, Rhs> {
 
 declare const partialEqNominal: unique symbol;
 export type PartialEqHktKey = typeof partialEqNominal;
-declare module "../hkt" {
+declare module "../hkt.js" {
     interface HktDictA1<A1> {
         [partialEqNominal]: PartialEq<A1, A1>;
     }

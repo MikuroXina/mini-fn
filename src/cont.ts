@@ -1,10 +1,10 @@
-import * as Identity from "./identity";
+import * as Identity from "./identity.js";
 
-import type { Monad1, Monad2 } from "./type-class/monad";
-import { absurd, constant } from "./func";
+import type { Monad1, Monad2 } from "./type-class/monad.js";
+import { absurd, constant } from "./func.js";
 
-import type { GetHktA1 } from "./hkt";
-import type { MonadPromise1 } from "promise/monad";
+import type { GetHktA1 } from "./hkt.js";
+import type { MonadPromise1 } from "./promise/monad.js";
 
 export interface ContT<R, M, A> {
     (callback: (a: A) => GetHktA1<M, R>): GetHktA1<M, R>;
@@ -118,7 +118,7 @@ export type ContHktKey = typeof contNominal;
 declare const contTNominal: unique symbol;
 export type ContTHktKey = typeof contTNominal;
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA2<A1, A2> {
         [contNominal]: Cont<A1, A2>;
     }

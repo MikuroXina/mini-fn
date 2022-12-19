@@ -1,4 +1,4 @@
-import type { GetHktA2, GetHktA3, GetHktA4, Hkt2 } from "../hkt";
+import type { GetHktA2, GetHktA3, GetHktA4, Hkt2 } from "../hkt.js";
 
 export interface Profunctor<Sym extends symbol> {
     diMap<A, B>(f: (a: A) => B): <C, D>(g: (c: C) => D) => (m: Hkt2<Sym, D, A>) => Hkt2<Sym, C, B>;

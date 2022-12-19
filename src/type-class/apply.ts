@@ -1,8 +1,8 @@
-import type { Functor, Functor1, Functor2, Functor2Monoid, Functor3, Functor4 } from "./functor";
-import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt";
-import type { SemiGroupal1, SemiGroupal2, SemiGroupal2Monoid } from "./semi-groupal";
+import type { Functor, Functor1, Functor2, Functor2Monoid, Functor3, Functor4 } from "./functor.js";
+import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt.js";
+import type { SemiGroupal1, SemiGroupal2, SemiGroupal2Monoid } from "./semi-groupal.js";
 
-import type { SemiGroup } from "./semi-group";
+import type { SemiGroup } from "./semi-group.js";
 
 export interface Apply<Sym extends symbol> extends Functor<Sym> {
     apply<T, U>(fn: Hkt<Sym, (t: T) => U>): (t: Hkt<Sym, T>) => Hkt<Sym, U>;
