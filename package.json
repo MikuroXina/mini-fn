@@ -11,7 +11,7 @@
   "author": "MikuroXina",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "tsc -p . && esbuild src/**/*.ts --outdir=dist/src --format=esm --minify --platform=node --target=node16",
+    "build": "tsc -p . && esbuild src/**/*.ts --outdir=dist/src --format=esm --minify --platform=neutral --target=node16",
     "test": "vitest run",
     "lint": "eslint 'src/**/*.ts'"
   },
