@@ -8,21 +8,21 @@ mini-fn provides simple, tiny library having functional features and its type de
 
 ## Examples
 
-You can pipe your functions with {@link Cat.Cat | `Cat<T>`}'s {@link Cat.Cat.feed | `feed<U>(f: (t: T) => U): Cat<U>`} method like this:
+You can pipe your functions with `Cat<T>`'s `feed<U>(f: (t: T) => U): Cat<U>` method like this:
 
 ```ts
-import { Cat } from "mini-fn";
+import { cat } from "mini-fn/cat.ts";
 
-const result = Cat.cat(-3)
+const result = cat(-3)
     .feed((x) => x ** 2)
     .feed((x) => x.toString());
 console.log(result.value); // "9"
 ```
 
-And there are some useful types such as {@link Option | `Option<T>`}, {@link Result | `Result<E, T>`}, and so on.
+And there are some useful types such as `Option<T>`, `Result<E, T>`, and so on.
 
 ```ts
-import { Option } from "mini-fn";
+import * as Option from "mini-fn/option.ts";
 const sqrtThenToString = (num: number): Option.Option<string> => {
     if (num < 0) {
         return Option.none();
@@ -39,7 +39,8 @@ applied(Option.none()); // none
 Some of them also provides its monad implementation, so you can combine and transform them like this:
 
 ```ts
-import { Cat, Option } from "mini-fn";
+import { cat, log } from "mini-fn";
+import * as Option from "mini-fn/option.ts";
 
 const half = (x: number): Option.Option<number> => {
     if (x % 2 != 0) {
@@ -49,12 +50,12 @@ const half = (x: number): Option.Option<number> => {
 };
 const liftedHalf = Option.monad.flatMap(half);
 
-Cat.cat(20)
+cat(20)
     .feed(Option.monad.pure)
     .feed(liftedHalf)
-    .feed(Cat.log) // some(10)
+    .feed(log) // some(10)
     .feed(liftedHalf)
-    .feed(Cat.log) // some(5)
+    .feed(log) // some(5)
     .feed(liftedHalf)
-    .feed(Cat.log); // none
+    .feed(log); // none
 ```
