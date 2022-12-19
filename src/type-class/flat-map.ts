@@ -1,4 +1,4 @@
-import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt";
+import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt.js";
 
 export interface FlatMap<S extends symbol> {
     flatMap<T1, U1>(a: (t: T1) => Hkt<S, U1>): (t: Hkt<S, T1>) => Hkt<S, U1>;

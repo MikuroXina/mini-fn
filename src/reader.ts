@@ -1,10 +1,9 @@
-import * as Identity from "./identity";
+import { IdentityHktKey, monad as identityMonad } from "./identity.js";
+import type { Monad1, Monad2 } from "./type-class/monad.js";
 
-import type { Monad1, Monad2 } from "./type-class/monad";
-
-import type { Functor2 } from "./type-class/functor";
-import type { GetHktA1 } from "./hkt";
-import type { Profunctor2 } from "./type-class/profunctor";
+import type { Functor2 } from "./type-class/functor.js";
+import type { GetHktA1 } from "./hkt.js";
+import type { Profunctor2 } from "./type-class/profunctor.js";
 
 export interface ReaderT<R, M, A> {
     (record: R): GetHktA1<M, A>;
@@ -24,7 +23,7 @@ export const withReaderT =
 declare const readerNominal: unique symbol;
 export type ReaderHktKey = typeof readerNominal;
 
-export type Reader<R, A> = ReaderT<R, Identity.IdentityHktKey, A>;
+export type Reader<R, A> = ReaderT<R, IdentityHktKey, A>;
 
 export const run =
     <R, A>(r: Reader<R, A>) =>
@@ -32,7 +31,7 @@ export const run =
         r(req);
 
 export const askM = <R, S>(m: Monad1<S>): GetHktA1<S, Reader<R, R>> => m.pure((x) => x);
-export const ask = <R>(): Reader<R, R> => askM<R, Identity.IdentityHktKey>(Identity.monad);
+export const ask = <R>(): Reader<R, R> => askM<R, IdentityHktKey>(identityMonad);
 export const local =
     <T, U>(f: (t: T) => U) =>
     <A>(ma: Reader<U, A>): Reader<T, A> =>
@@ -110,7 +109,7 @@ export const diMap =
     (t) =>
         f(r(g(t)));
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA2<A1, A2> {
         [readerNominal]: Reader<A1, A2>;
     }

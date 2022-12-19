@@ -1,4 +1,4 @@
-import type { GetHktA2, GetHktA3, GetHktA4, Hkt2 } from "../hkt";
+import type { GetHktA2, GetHktA3, GetHktA4, Hkt2 } from "../hkt.js";
 
 export interface SemiGroupoid<Sym extends symbol> {
     compose<A, B, C>(funcA: Hkt2<Sym, A, B>): (funcB: Hkt2<Sym, B, C>) => Hkt2<Sym, A, C>;

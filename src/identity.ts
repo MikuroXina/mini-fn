@@ -1,8 +1,8 @@
-import { flip, id } from "./func";
+import { flip, id } from "./func.js";
 
-import type { Monad1 } from "./type-class/monad";
-import type { Traversable1 } from "./type-class/traversable";
-import { make } from "./tuple";
+import type { Monad1 } from "./type-class/monad.js";
+import type { Traversable1 } from "./type-class/traversable.js";
+import { make } from "./tuple.js";
 
 export { id };
 
@@ -13,7 +13,7 @@ export type Identity<T> = T;
 
 export const run = id;
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA1<A1> {
         [identityNominal]: Identity<A1>;
     }

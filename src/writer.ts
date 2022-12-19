@@ -1,10 +1,9 @@
-import type * as Identity from "./identity";
+import type { Monad1, Monad2Monoid } from "./type-class/monad.js";
 
-import type { Monad1, Monad2Monoid } from "./type-class/monad";
-
-import type { Functor2 } from "./type-class/functor";
-import type { GetHktA1 } from "./hkt";
-import type { Monoid } from "./type-class/monoid";
+import type { Functor2 } from "./type-class/functor.js";
+import type { GetHktA1 } from "./hkt.js";
+import type { IdentityHktKey } from "./identity.js";
+import type { Monoid } from "./type-class/monoid.js";
 
 export interface WriterT<W, M, A> {
     (): GetHktA1<M, [A, W]>;
@@ -23,7 +22,7 @@ export const mapWriterT =
 declare const writerNominal: unique symbol;
 export type WriterHktKey = typeof writerNominal;
 
-export type Writer<W, A> = WriterT<W, Identity.IdentityHktKey, A>;
+export type Writer<W, A> = WriterT<W, IdentityHktKey, A>;
 
 export const evaluateWriter = <W, A>(w: Writer<W, A>): A => w()[0];
 export const executeWriter = <W, A>(w: Writer<W, A>): W => w()[1];
@@ -73,7 +72,7 @@ export const apply =
         return [mapped(ans), monoid.combine(writeT, writeU)];
     };
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA2<A1, A2> {
         [writerNominal]: Writer<A1, A2>;
     }

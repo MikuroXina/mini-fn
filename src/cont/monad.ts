@@ -1,11 +1,11 @@
-import type { GetHktA1 } from "hkt";
-import type { Monad } from "type-class";
+import type { GetHktA1 } from "../hkt.js";
+import type { Monad1 } from "../type-class/monad.js";
 
 export type CallCC<M> = <A, B>(
     continuation: (callback: (a: A) => GetHktA1<M, B>) => GetHktA1<M, A>,
 ) => GetHktA1<M, A>;
 
-export interface MonadCont<M> extends Monad.Monad1<M> {
+export interface MonadCont<M> extends Monad1<M> {
     callCC: CallCC<M>;
 }
 

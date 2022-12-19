@@ -1,12 +1,11 @@
-import * as List from "../list";
-import * as Option from "../option";
+import type { GetHktA1, GetHktA2 } from "../hkt.js";
+import { List, build } from "../list.js";
+import { Monoid, append } from "./monoid.js";
+import { Option, isNone, none, some, unwrapOrElse } from "../option.js";
+import { andMonoid, orMonoid } from "../bool.js";
+import { compose, oneShot } from "../func.js";
 
-import type { GetHktA1, GetHktA2 } from "../hkt";
-import { andMonoid, orMonoid } from "../bool";
-import { compose, oneShot } from "../func";
-
-import { Monoid } from "../type-class";
-import type { PartialEq } from "./eq";
+import type { PartialEq } from "./eq.js";
 
 export interface Foldable1<T> {
     foldR<A, B>(folder: (a: A) => (b: B) => B): (init: B) => (data: GetHktA1<T, A>) => B;
@@ -17,13 +16,13 @@ export interface Foldable2<T> {
 }
 
 export const foldMap =
-    <T, A, M>(foldable: Foldable1<T>, monoid: Monoid.Monoid<M>) =>
+    <T, A, M>(foldable: Foldable1<T>, monoid: Monoid<M>) =>
     (f: (t: A) => M): ((ta: GetHktA1<T, A>) => M) =>
-        foldable.foldR<A, M>(compose(Monoid.append(monoid))(f))(monoid.identity);
+        foldable.foldR<A, M>(compose(append(monoid))(f))(monoid.identity);
 
 export const fold = <T, M>(
     foldable: Foldable1<T>,
-    monoid: Monoid.Monoid<M>,
+    monoid: Monoid<M>,
 ): ((tm: GetHktA1<T, M>) => M) => foldMap<T, M, M>(foldable, monoid)((x) => x);
 
 export const foldL =
@@ -41,15 +40,15 @@ export const foldR1 =
     (data: GetHktA1<T, A>): A => {
         const mf =
             (x: A) =>
-            (m: Option.Option<A>): Option.Option<A> => {
-                if (Option.isNone(m)) {
-                    return Option.some(x);
+            (m: Option<A>): Option<A> => {
+                if (isNone(m)) {
+                    return some(x);
                 }
-                return Option.some(f(x)(m[1]));
+                return some(f(x)(m[1]));
             };
-        return Option.unwrapOrElse<A>(() => {
+        return unwrapOrElse<A>(() => {
             throw new Error("foldR1: empty structure");
-        })(foldable.foldR(mf)(Option.none())(data));
+        })(foldable.foldR(mf)(none())(data));
     };
 
 export const foldL1 =
@@ -57,22 +56,22 @@ export const foldL1 =
     <A>(f: (l: A) => (r: A) => A) =>
     (data: GetHktA1<T, A>): A => {
         const mf =
-            (m: Option.Option<A>) =>
-            (y: A): Option.Option<A> => {
-                if (Option.isNone(m)) {
-                    return Option.some(y);
+            (m: Option<A>) =>
+            (y: A): Option<A> => {
+                if (isNone(m)) {
+                    return some(y);
                 }
-                return Option.some(f(m[1])(y));
+                return some(f(m[1])(y));
             };
-        return Option.unwrapOrElse<A>(() => {
+        return unwrapOrElse<A>(() => {
             throw new Error("foldR1: empty structure");
-        })(foldL(foldable)(mf)(Option.none())(data));
+        })(foldL(foldable)(mf)(none())(data));
     };
 
 export const toList =
     <T>(foldable: Foldable1<T>) =>
-    <A>(data: GetHktA1<T, A>): List.List<A> =>
-        List.build(
+    <A>(data: GetHktA1<T, A>): List<A> =>
+        build(
             <B>(c: (a: A) => (b: B) => B) =>
                 (n: B) =>
                     foldable.foldR(c)(n)(data),

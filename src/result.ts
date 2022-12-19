@@ -1,10 +1,10 @@
-import { Option, isSome, none, toArray as optionToArray, some } from "./option";
+import { Option, isSome, none, toArray as optionToArray, some } from "./option.js";
 
-import type { Applicative1 } from "type-class/applicative";
-import type { GetHktA1 } from "hkt";
-import type { Monad2 } from "./type-class/monad";
-import type { Monoid } from "./type-class/monoid";
-import type { Traversable2 } from "./type-class/traversable";
+import type { Applicative1 } from "./type-class/applicative.js";
+import type { GetHktA1 } from "./hkt.js";
+import type { Monad2 } from "./type-class/monad.js";
+import type { Monoid } from "./type-class/monoid.js";
+import type { Traversable2 } from "./type-class/traversable.js";
 
 const okSymbol = Symbol("ResultOk");
 const errSymbol = Symbol("ResultErr");
@@ -124,7 +124,7 @@ export const traverse =
         return app.map(ok)(visitor(res[1]));
     };
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA2<A1, A2> {
         [resultNominal]: Result<A1, A2>;
     }

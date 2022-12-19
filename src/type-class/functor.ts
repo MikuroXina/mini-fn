@@ -1,6 +1,6 @@
-import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt";
+import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt.js";
 
-import type { Invariant } from "./variance";
+import type { Invariant } from "./variance.js";
 
 export interface Functor<F extends symbol> {
     map<T, U>(fn: (t: T) => U): (t: Hkt<F, T>) => Hkt<F, U>;

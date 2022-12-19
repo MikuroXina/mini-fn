@@ -1,9 +1,9 @@
-import type { Foldable1, Foldable2 } from "./foldable";
-import type { Functor1, Functor2 } from "./functor";
-import type { GetHktA1, GetHktA2 } from "hkt";
+import type { Foldable1, Foldable2 } from "./foldable.js";
+import type { Functor1, Functor2 } from "./functor.js";
+import type { GetHktA1, GetHktA2 } from "../hkt.js";
 
-import type { Applicative1 } from "./applicative";
-import type { Monad1 } from "./monad";
+import type { Applicative1 } from "./applicative.js";
+import type { Monad1 } from "./monad.js";
 
 export interface Traversable1<T> extends Functor1<T>, Foldable1<T> {
     traverse<F>(

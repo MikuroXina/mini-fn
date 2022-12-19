@@ -1,5 +1,5 @@
-import type { GetHktA1, GetHktA2, GetHktA3 } from "../hkt";
-import type { Monad1, Monad2, Monad3 } from "type-class/monad";
+import type { GetHktA1, GetHktA2, GetHktA3 } from "../hkt.js";
+import type { Monad1, Monad2, Monad3 } from "../type-class/monad.js";
 
 export interface MonadPromise1<M> extends Monad1<M> {
     liftPromise: <T>(a: Promise<T>) => GetHktA1<M, T>;

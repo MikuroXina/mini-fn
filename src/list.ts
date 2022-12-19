@@ -1,12 +1,12 @@
-import * as Cat from "./cat";
-import * as Option from "./option";
+import * as Applicative from "./type-class/applicative.js";
+import * as Cat from "./cat.js";
+import * as Option from "./option.js";
 
-import { Applicative } from "./type-class";
-import type { GetHktA1 } from "hkt";
-import type { Monad1 } from "./type-class/monad";
-import type { Monoid } from "./type-class/monoid";
-import type { PartialEq } from "./type-class/eq";
-import type { Traversable1 } from "./type-class/traversable";
+import type { GetHktA1 } from "./hkt.js";
+import type { Monad1 } from "./type-class/monad.js";
+import type { Monoid } from "./type-class/monoid.js";
+import type { PartialEq } from "./type-class/eq.js";
+import type { Traversable1 } from "./type-class/traversable.js";
 
 export interface List<T> {
     current(): Option.Option<T>;
@@ -436,7 +436,7 @@ export const group = <T>(eq: PartialEq<T, T>): ((list: List<T>) => List<List<T>>
 declare const listNominal: unique symbol;
 export type ListHktKey = typeof listNominal;
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA1<A1> {
         [listNominal]: List<A1>;
     }

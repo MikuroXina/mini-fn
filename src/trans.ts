@@ -1,5 +1,5 @@
-import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4 } from "hkt";
-import type { Monad1, Monad2, Monad2Monoid, Monad3, Monad4 } from "type-class/monad";
+import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4 } from "./hkt.js";
+import type { Monad1, Monad2, Monad2Monoid, Monad3, Monad4 } from "./type-class/monad.js";
 
 export interface MonadTrans1<T> {
     lift: <M>(monad: Monad1<M>) => <A>(ma: GetHktA1<M, A>) => GetHktA1<T, GetHktA1<M, A>>;

@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-import type { Monad1 } from "./type-class/monad";
+import type { Monad1 } from "./type-class/monad.js";
 
 declare const catNominal: unique symbol;
 export type CatHktKey = typeof catNominal;
@@ -44,7 +44,7 @@ export const flatMap =
     (catT: Cat<T>): Cat<U> =>
         flatten(map(fn)(catT));
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA1<A1> {
         [catNominal]: Cat<A1>;
     }

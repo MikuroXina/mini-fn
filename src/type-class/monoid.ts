@@ -1,6 +1,6 @@
-import * as List from "../list";
+import * as List from "../list.js";
 
-import type { SemiGroup } from "./semi-group";
+import type { SemiGroup } from "./semi-group.js";
 
 /**
  * All instances of `Monoid` must satisfy following conditions:

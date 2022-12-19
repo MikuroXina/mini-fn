@@ -1,5 +1,5 @@
-import type { Monad1 } from "type-class/monad";
-import { id } from "./func";
+import type { Monad1 } from "./type-class/monad.js";
+import { id } from "./func.js";
 
 declare const frozenNominal: unique symbol;
 export type FrozenHktKey = typeof frozenNominal;
@@ -15,7 +15,7 @@ export type Frozen<T> = T & {
 
 export const freeze = <T>(x: T): Frozen<T> => x as Frozen<T>;
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA1<A1> {
         [frozenNominal]: Frozen<A1>;
     }

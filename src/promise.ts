@@ -1,9 +1,9 @@
-import { absurd, id } from "./func";
+import { absurd, id } from "./func.js";
 
-import type { Monad1 } from "./type-class/monad";
-import type { MonadCont } from "cont/monad";
-import type { MonadPromise1 } from "promise/monad";
-import type { Monoid } from "./type-class/monoid";
+import type { Monad1 } from "./type-class/monad.js";
+import type { MonadCont } from "./cont/monad.js";
+import type { MonadPromise1 } from "./promise/monad.js";
+import type { Monoid } from "./type-class/monoid.js";
 
 declare const promiseNominal: unique symbol;
 export type PromiseHktKey = typeof promiseNominal;
@@ -38,7 +38,7 @@ export const callCC = <A, B>(
         );
     });
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA1<A1> {
         [promiseNominal]: Promise<A1>;
     }

@@ -1,8 +1,8 @@
-import { Apply, Apply1, Apply2, Apply2Monoid, Apply3, Apply4, makeSemiGroup } from "./apply";
-import type { GetHktA1, Hkt } from "../hkt";
-import type { Pure, Pure1, Pure2, Pure2Monoid, Pure3, Pure4 } from "./pure";
+import { Apply, Apply1, Apply2, Apply2Monoid, Apply3, Apply4, makeSemiGroup } from "./apply.js";
+import type { GetHktA1, Hkt } from "../hkt.js";
+import type { Pure, Pure1, Pure2, Pure2Monoid, Pure3, Pure4 } from "./pure.js";
 
-import type { Monoid } from "./monoid";
+import type { Monoid } from "./monoid.js";
 
 export interface Applicative<Sym extends symbol> extends Apply<Sym>, Pure<Sym> {}
 

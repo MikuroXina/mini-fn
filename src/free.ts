@@ -1,13 +1,12 @@
-import * as Option from "./option";
-import * as Result from "./result";
+import * as Option from "./option.js";
+import * as Result from "./result.js";
 
-import type { Monad1, Monad2Monoid } from "./type-class/monad";
+import { Monad1, Monad2Monoid, kleisli } from "./type-class/monad.js";
 
-import type { Applicative1 } from "./type-class/applicative";
-import type { Functor1 } from "./type-class/functor";
-import type { GetHktA1 } from "./hkt";
-import { Monad } from "./type-class";
-import type { Traversable1 } from "./type-class/traversable";
+import type { Applicative1 } from "./type-class/applicative.js";
+import type { Functor1 } from "./type-class/functor.js";
+import type { GetHktA1 } from "./hkt.js";
+import type { Traversable1 } from "./type-class/traversable.js";
 
 const pureNominal = Symbol("FreePure");
 const nodeNominal = Symbol("FreeNode");
@@ -155,7 +154,7 @@ export const unfoldM =
     <A, B>(
         f: (b: B) => GetHktA1<M, Result.Result<A, GetHktA1<F, B>>>,
     ): ((b: B) => GetHktA1<M, Free<F, A>>) => {
-        return Monad.kleisli(monad)(f)(
+        return kleisli(monad)(f)(
             Result.either((a: A) => monad.pure(pure(a) as Free<F, A>))((fb) =>
                 monad.map(node)(traversable.traverse(monad)(unfoldM(traversable, monad)(f))(fb)),
             ),
@@ -165,7 +164,7 @@ export const unfoldM =
 declare const freeHktNominal: unique symbol;
 export type FreeHktKey = typeof freeHktNominal;
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA2<A1, A2> {
         [freeHktNominal]: Free<A1, A2>;
     }

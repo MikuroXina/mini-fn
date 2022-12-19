@@ -6,8 +6,8 @@
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "esModuleInterop": true,
-        "module": "commonjs",
-        "moduleResolution": "node",
+        "module": "NodeNext",
+        "moduleResolution": "Node16",
         "resolveJsonModule": true,
         "isolatedModules": true,
         "noImplicitAny": true,
@@ -16,7 +16,8 @@
         "emitDeclarationOnly": true,
         "importsNotUsedAsValues": "error",
         "outDir": "./dist",
-        "baseUrl": "./src"
+        "declarationDir": "./dist",
+        "baseUrl": "."
     },
     "exclude": ["node_modules", "dist"]
 }

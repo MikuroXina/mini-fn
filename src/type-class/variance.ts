@@ -1,4 +1,4 @@
-import type { GetHktA1 } from "../hkt";
+import type { GetHktA1 } from "../hkt.js";
 
 export interface Invariant<S> {
     inMap<T1, U1>(

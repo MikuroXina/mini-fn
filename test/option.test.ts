@@ -1,4 +1,7 @@
-import { Option, Result } from "../src/lib";
+import * as Option from "../src/option.js";
+import * as Result from "../src/result.js";
+
+import { describe, expect, test } from "vitest";
 
 describe("Option", () => {
     test("isSome", () => {

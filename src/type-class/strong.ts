@@ -1,7 +1,7 @@
-import type { GetHktA2, GetHktA3, GetHktA4, Hkt2 } from "../hkt";
-import type { Profunctor, Profunctor2, Profunctor3, Profunctor4 } from "./profunctor";
+import type { GetHktA2, GetHktA3, GetHktA4, Hkt2 } from "../hkt.js";
+import type { Profunctor, Profunctor2, Profunctor3, Profunctor4 } from "./profunctor.js";
 
-import type { Category } from "./category";
+import type { Category } from "./category.js";
 
 export interface Strong<Sym extends symbol> extends Profunctor<Sym> {
     first<A, B, C>(m: Hkt2<Sym, A, B>): Hkt2<Sym, [A, C], [B, C]>;

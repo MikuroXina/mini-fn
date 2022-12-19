@@ -1,7 +1,7 @@
-import type { Applicative1 } from "type-class/applicative";
-import type { GetHktA1 } from "hkt";
-import type { Monad1 } from "./type-class/monad";
-import type { Traversable1 } from "type-class/traversable";
+import type { Applicative1 } from "./type-class/applicative.js";
+import type { GetHktA1 } from "./hkt.js";
+import type { Monad1 } from "./type-class/monad.js";
+import type { Traversable1 } from "./type-class/traversable.js";
 
 export type Tuple<A, B> = [A, B];
 
@@ -71,7 +71,7 @@ export const traverse =
 declare const tupleHktNominal: unique symbol;
 export type TupleHktKey = typeof tupleHktNominal;
 
-declare module "./hkt" {
+declare module "./hkt.js" {
     interface HktDictA1<A1> {
         [tupleHktNominal]: Tuple<A1, A1>;
     }
