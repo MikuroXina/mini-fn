@@ -1,7 +1,7 @@
 import type { GetHktA1, GetHktA2 } from "../hkt.js";
-import { List, build } from "src/list.js";
+import { List, build } from "../list.js";
 import { Monoid, append } from "./monoid.js";
-import { Option, isNone, none, some, unwrapOrElse } from "src/option.js";
+import { Option, isNone, none, some, unwrapOrElse } from "../option.js";
 import { andMonoid, orMonoid } from "../bool.js";
 import { compose, oneShot } from "../func.js";
 
