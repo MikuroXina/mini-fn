@@ -94,6 +94,11 @@ export const foldFree =
         return m.flatMap(foldFree(m)(fn))(fn(fr[1]));
     };
 
+export const liftF =
+    <F>(func: Functor1<F>) =>
+    <T>(ft: GetHktA1<F, T>): Free<F, T> =>
+        node(func.map(pure)(ft));
+
 export const mapT =
     <F>(functor: Functor1<F>) =>
     <T, U>(f: (t: T) => U) =>
