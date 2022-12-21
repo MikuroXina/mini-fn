@@ -14,8 +14,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: 18
       - name: Install dependencies
         run: yarn install --immutable
       - name: Run test
         run: yarn run test
+
+      - name: Generate coverage
+        run: yarn run coverage
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/clover.xml
+          flags: unittests
+          name: mini-fn
+          verbose: true
