@@ -91,7 +91,7 @@ export const range = (start: number, end: number, step = 1): List<number> => ({
 
 export const digits = (num: number, radix: number): List<number> => ({
     current: () => (num === 0 ? Option.none() : Option.some(num % radix)),
-    rest: () => digits(num / radix, radix),
+    rest: () => digits(Math.floor(num / radix), radix),
 });
 
 export const fromString = (str: string): List<string> => ({
