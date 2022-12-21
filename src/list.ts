@@ -23,7 +23,7 @@ export function* toIterator<T>(list: List<T>): Generator<T, void> {
             break;
         }
         yield next[1];
-        rest = list.rest();
+        rest = rest.rest();
     }
 }
 
