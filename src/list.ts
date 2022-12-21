@@ -44,10 +44,15 @@ export const map =
 
 export const plus =
     <T>(left: List<T>) =>
-    (right: List<T>): List<T> => ({
-        current: () => Option.and(right.current())(left.current()),
-        rest: () => plus(left.rest())(right.rest()),
-    });
+    (right: List<T>): List<T> => {
+        if (Option.isNone(left.current())) {
+            return right;
+        }
+        return {
+            current: () => left.current(),
+            rest: () => plus(left.rest())(right),
+        };
+    };
 export const appendToHead =
     <T>(value: T) =>
     (list: List<T>): List<T> => ({
