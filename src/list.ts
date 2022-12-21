@@ -95,7 +95,7 @@ export const digits = (num: number, radix: number): List<number> => ({
 });
 
 export const fromString = (str: string): List<string> => ({
-    current: () => Option.fromPredicate((x: string) => x === "")(str.slice(0, 1)),
+    current: () => Option.fromPredicate((x: string) => x !== "")(str.slice(0, 1)),
     rest: () => fromString(str.slice(1)),
 });
 export const fromArray = <T>(arr: T[]): List<T> => ({
