@@ -16,12 +16,15 @@
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
+    "coverage": "vitest run --coverage",
     "lint": "eslint 'src/**/*.ts'"
   },
   "devDependencies": {
     "@types/node": "^18.0.3",
     "@typescript-eslint/eslint-plugin": "^5.31.0",
     "@typescript-eslint/parser": "^5.31.0",
+    "@vitest/coverage-c8": "^0.26.2",
+    "c8": "^7.12.0",
     "eslint": "^7.32.0 || ^8.2.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-prettier": "^8.5.0",
