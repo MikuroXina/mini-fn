@@ -42,6 +42,13 @@ export const map =
         rest: () => map(f)(list.rest()),
     });
 
+export const empty = <T>(): List<T> => ({ current: Option.none, rest: empty });
+export const singletonWith = <T>(value: () => T): List<T> => ({
+    current: () => Option.some(value()),
+    rest: empty,
+});
+export const singleton = <T>(value: T): List<T> => singletonWith(() => value);
+
 export const plus =
     <T>(left: List<T>) =>
     (right: List<T>): List<T> => {
@@ -61,17 +68,8 @@ export const appendToHead =
     });
 export const appendToTail =
     <T>(value: T) =>
-    (list: List<T>): List<T> => ({
-        current: () => Option.andThen(() => Option.some(value))(list.current()),
-        rest: () => appendToTail(value)(list.rest()),
-    });
-
-export const empty = <T>(): List<T> => ({ current: Option.none, rest: empty });
-export const singletonWith = <T>(value: () => T): List<T> => ({
-    current: () => Option.some(value()),
-    rest: empty,
-});
-export const singleton = <T>(value: T): List<T> => singletonWith(() => value);
+    (list: List<T>): List<T> =>
+        plus(list)(singleton(value));
 
 export const repeatWith = <T>(elem: () => T): List<T> => ({
     current: () => Option.some(elem()),
