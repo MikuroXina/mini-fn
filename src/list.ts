@@ -290,6 +290,10 @@ export const subsequences = <T>(list: List<T>): List<List<T>> =>
     plus<List<T>>(empty())(subsequencesExceptEmpty(list));
 
 export const permutations = <A>(list: List<A>): List<List<A>> => {
+    if (Option.isNone(list.current())) {
+        return empty();
+    }
+
     const perms =
         <T>(tList: List<T>) =>
         (uList: List<T>): List<List<T>> => {
