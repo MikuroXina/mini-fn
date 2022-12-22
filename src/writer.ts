@@ -19,6 +19,35 @@ export const mapWriterT =
     () =>
         fn(w());
 
+export const tellM =
+    <M>(monad: Monad1<M>) =>
+    <W>(w: W): WriterT<W, M, []> =>
+    () =>
+        monad.pure([[], w]);
+export const listenM =
+    <M>(monad: Monad1<M>) =>
+    <W, A>(writer: WriterT<W, M, A>): WriterT<W, M, [A, W]> =>
+    () =>
+        monad.map(([a, w]: [A, W]): [[A, W], W] => [[a, w], w])(writer());
+export const listensM =
+    <M>(monad: Monad1<M>) =>
+    <W, B>(mapper: (w: W) => B) =>
+    <A>(writer: WriterT<W, M, A>): WriterT<W, M, [A, B]> =>
+    () =>
+        monad.map(([a, w]: [A, W]): [[A, B], W] => [[a, mapper(w)], w])(writer());
+export const passM =
+    <M>(monad: Monad1<M>) =>
+    <W, A>(writer: WriterT<W, M, [A, (w: W) => W]>): WriterT<W, M, A> =>
+    () =>
+        monad.map(([[a, f], w]: [[A, (w: W) => W], W]): [A, W] => [a, f(w)])(writer());
+
+export const censorM =
+    <M>(monad: Monad1<M>) =>
+    <W>(cense: (w: W) => W) =>
+    <A>(writer: WriterT<W, M, A>): WriterT<W, M, A> =>
+    () =>
+        monad.map(([a, w]: [A, W]): [A, W] => [a, cense(w)])(writer());
+
 declare const writerNominal: unique symbol;
 export type WriterHktKey = typeof writerNominal;
 
@@ -31,6 +60,38 @@ export const mapWriter =
     (w: Writer<W1, A>): Writer<W2, B> =>
     () =>
         fn(w());
+
+export const tell =
+    <W>(w: W): Writer<W, []> =>
+    () =>
+        [[], w];
+export const listen =
+    <W, A>(writer: Writer<W, A>): Writer<W, [A, W]> =>
+    () => {
+        const [a, w] = writer();
+        return [[a, w], w];
+    };
+export const listens =
+    <W, B>(mapper: (w: W) => B) =>
+    <A>(writer: Writer<W, A>): Writer<W, [A, B]> =>
+    () => {
+        const [a, w] = writer();
+        return [[a, mapper(w)], w];
+    };
+export const pass =
+    <W, A>(writer: Writer<W, [A, (w: W) => W]>): Writer<W, A> =>
+    () => {
+        const [[a, f], w] = writer();
+        return [a, f(w)];
+    };
+
+export const censor =
+    <W>(cense: (w: W) => W) =>
+    <A>(writer: Writer<W, A>): Writer<W, A> =>
+    () => {
+        const [a, w] = writer();
+        return [a, cense(w)];
+    };
 
 export const product =
     <W>(monoid: Monoid<W>) =>
