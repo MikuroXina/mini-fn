@@ -2,16 +2,27 @@ import * as Applicative from "./type-class/applicative.js";
 import * as Cat from "./cat.js";
 import * as Option from "./option.js";
 
+import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+
 import type { GetHktA1 } from "./hkt.js";
 import type { Monad1 } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
-import type { PartialEq } from "./type-class/eq.js";
 import type { Traversable1 } from "./type-class/traversable.js";
 
 export interface List<T> {
     current(): Option.Option<T>;
     rest(): List<T>;
 }
+
+export const partialEq = <T>(equality: PartialEq<T, T>): PartialEq<List<T>, List<T>> => ({
+    eq: (aList: List<T>, bList: List<T>): boolean =>
+        Option.partialEq(equality).eq(aList.current(), bList.current()) &&
+        partialEq(equality).eq(aList.rest(), bList.rest()),
+});
+export const eq = <T>(equality: Eq<T, T>): Eq<List<T>, List<T>> => ({
+    ...partialEq(equality),
+    [eqSymbol]: true,
+});
 
 export const isNull = <T>(list: List<T>): boolean => Option.isNone(list.current());
 
@@ -402,9 +413,9 @@ export const findIndex =
         return Option.none();
     };
 export const elemIndex =
-    <T>(eq: PartialEq<T, T>) =>
+    <T>(equality: PartialEq<T, T>) =>
     (target: T) =>
-        findIndex((value: T) => eq.eq(value, target));
+        findIndex((value: T) => equality.eq(value, target));
 export const findIndices =
     <T>(pred: (value: T) => boolean) =>
     (list: List<T>): number[] => {
@@ -419,9 +430,9 @@ export const findIndices =
         return indices;
     };
 export const elemIndices =
-    <T>(eq: PartialEq<T, T>) =>
+    <T>(equality: PartialEq<T, T>) =>
     (target: T) =>
-        findIndices((value: T) => eq.eq(value, target));
+        findIndices((value: T) => equality.eq(value, target));
 
 export const takeWhile =
     <T>(pred: (t: T) => boolean) =>
@@ -457,12 +468,12 @@ export const span =
 export const spanNot = <T>(pred: (t: T) => boolean) => span((t: T) => !pred(t));
 
 export const stripPrefix =
-    <T>(eq: PartialEq<T, T>) =>
+    <T>(equality: PartialEq<T, T>) =>
     (prefix: List<T>) =>
     (list: List<T>): Option.Option<List<T>> =>
         either<Option.Option<List<T>>>(() => Option.some(list))((x: T, xs) =>
             Option.andThen(([y, ys]: [T, List<T>]) =>
-                eq.eq(x, y) ? stripPrefix<T>(eq)(xs)(ys) : Option.none(),
+                equality.eq(x, y) ? stripPrefix<T>(equality)(xs)(ys) : Option.none(),
             )(unCons(list)),
         )(prefix);
 
@@ -471,8 +482,8 @@ export const groupBy = <T>(f: (l: T) => (r: T) => boolean): ((list: List<T>) => 
         const [ys, zs] = span(f(x))(xs);
         return appendToHead(appendToHead(x)(ys))(groupBy(f)(zs));
     });
-export const group = <T>(eq: PartialEq<T, T>): ((list: List<T>) => List<List<T>>) =>
-    groupBy((l) => (r) => eq.eq(l, r));
+export const group = <T>(equality: PartialEq<T, T>): ((list: List<T>) => List<List<T>>) =>
+    groupBy((l) => (r) => equality.eq(l, r));
 
 declare const listNominal: unique symbol;
 export type ListHktKey = typeof listNominal;
