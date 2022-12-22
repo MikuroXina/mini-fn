@@ -260,8 +260,8 @@ export const zipWith = <T, U, V>(
 
 export const unzip = <A, B>(list: List<[A, B]>): [List<A>, List<B>] =>
     foldR<[A, B], [List<A>, List<B>]>(([a, b]) => ([as, bs]) => [
-        appendToHead(a)(as),
-        appendToHead(b)(bs),
+        appendToTail(a)(as),
+        appendToTail(b)(bs),
     ])([empty(), empty()])(list);
 
 const prependToAll =
