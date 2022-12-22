@@ -380,8 +380,12 @@ export const replicate =
 
 export const atMay =
     (index: number) =>
-    <T>(list: List<T>): Option.Option<T> =>
-        drop(index)(list).current();
+    <T>(list: List<T>): Option.Option<T> => {
+        if (index < 0) {
+            return Option.none();
+        }
+        return drop(index)(list).current();
+    };
 export const findIndex =
     <T>(pred: (value: T) => boolean) =>
     (list: List<T>): Option.Option<number> => {
