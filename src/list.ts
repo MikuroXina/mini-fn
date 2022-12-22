@@ -435,7 +435,7 @@ export const takeWhile =
 export const dropWhile =
     <T>(pred: (t: T) => boolean) =>
     (list: List<T>): List<T> =>
-        either<List<T>>(empty)((x: T, xs) => (pred(x) ? dropWhile(pred)(xs) : xs))(list);
+        either<List<T>>(empty)((x: T, xs) => (pred(x) ? dropWhile(pred)(xs) : list))(list);
 export const dropWhileEnd = <T>(pred: (t: T) => boolean): ((list: List<T>) => List<T>) =>
     foldR<T, List<T>>((x) => (xs) => pred(x) && isNull(xs) ? empty() : appendToHead(x)(xs))(
         empty(),
