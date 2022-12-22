@@ -422,11 +422,15 @@ export const elemIndices =
 
 export const takeWhile =
     <T>(pred: (t: T) => boolean) =>
-    (list: List<T>): List<T> => ({
-        current: list.current,
-        rest: () =>
-            Option.unwrapOr(true)(Option.map(pred)(list.current())) ? empty() : list.rest(),
-    });
+    (list: List<T>): List<T> => {
+        if (Option.mapOr(false)(pred)(list.current())) {
+            return {
+                current: list.current,
+                rest: () => takeWhile(pred)(list.rest()),
+            };
+        }
+        return empty();
+    };
 
 export const dropWhile =
     <T>(pred: (t: T) => boolean) =>
