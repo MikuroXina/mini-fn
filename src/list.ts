@@ -68,8 +68,15 @@ export const appendToHead =
     });
 export const appendToTail =
     <T>(value: T) =>
-    (list: List<T>): List<T> =>
-        plus(list)(singleton(value));
+    (list: List<T>): List<T> => {
+        if (Option.isNone(list.current())) {
+            return singleton(value);
+        }
+        return {
+            current: list.current,
+            rest: () => appendToTail(value)(list.rest()),
+        };
+    };
 
 export const repeatWith = <T>(elem: () => T): List<T> => ({
     current: () => Option.some(elem()),
@@ -142,7 +149,7 @@ export const foldR1 =
 export const length = <T>(list: List<T>): number => foldL((a: number) => () => a + 1)(0)(list);
 
 export const build = <A>(g: <B>(gg: (a: A) => (b: B) => B) => (b: B) => B): List<A> =>
-    g(appendToHead)(empty());
+    g(appendToTail)(empty());
 
 export const concat = <T>(listList: List<List<T>>): List<T> =>
     build(
