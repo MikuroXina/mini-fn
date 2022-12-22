@@ -1,4 +1,14 @@
-import { List, appendToHead, drop, empty, head, map as listMap, unCons } from "./list.js";
+import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import {
+    List,
+    appendToHead,
+    drop,
+    empty,
+    head,
+    map as listMap,
+    partialEq as listPartialEq,
+    unCons,
+} from "./list.js";
 import { Option, isNone, map as optionMap } from "./option.js";
 
 import type { Comonad1 } from "./type-class/comonad.js";
@@ -11,6 +21,17 @@ export interface Zipper<T> {
     current: T;
     right: List<T>;
 }
+
+export const partialEq = <T>(equality: PartialEq<T, T>): PartialEq<Zipper<T>, Zipper<T>> => ({
+    eq: (aZipper: Zipper<T>, bZipper: Zipper<T>): boolean =>
+        listPartialEq(equality).eq(aZipper.left, bZipper.left) &&
+        equality.eq(aZipper.current, bZipper.current) &&
+        listPartialEq(equality).eq(aZipper.right, bZipper.right),
+});
+export const eq = <T>(equality: Eq<T, T>): Eq<Zipper<T>, Zipper<T>> => ({
+    ...partialEq(equality),
+    [eqSymbol]: true,
+});
 
 export const extract = <T>(zipper: Zipper<T>): T => zipper.current;
 export const top = <T>(zipper: Zipper<T>): [Option<T>, T, Option<T>] => [
