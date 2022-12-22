@@ -356,8 +356,18 @@ export const take =
     };
 export const drop =
     (count: number) =>
-    <T>(list: List<T>): List<T> =>
-        count <= 0 ? list : take(count - 1)(tail(list));
+    <T>(list: List<T>): List<T> => {
+        if (Option.isNone(list.current())) {
+            return empty();
+        }
+        if (count <= 0) {
+            return list;
+        }
+        if (count === 1) {
+            return list.rest();
+        }
+        return drop(count - 1)(list.rest());
+    };
 export const splitAt =
     (index: number) =>
     <T>(list: List<T>): [List<T>, List<T>] =>
