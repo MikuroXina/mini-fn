@@ -186,7 +186,7 @@ export const last = <T>(list: List<T>): Option.Option<T> => {
     }
     let rest = list;
     while (true) {
-        const next = list.rest();
+        const next = rest.rest();
         if (Option.isNone(next.current())) {
             return rest.current();
         }
