@@ -292,25 +292,34 @@ export const subsequences = <T>(list: List<T>): List<List<T>> =>
 export const permutations = <A>(list: List<A>): List<List<A>> => {
     const perms =
         <T>(tList: List<T>) =>
-        (uList: List<T>): List<List<T>> =>
-            either<List<List<T>>>(empty)((t: T, ts): List<List<T>> => {
-                const interleaveF =
-                    (f: (a: List<T>) => List<T>) =>
-                    (yList: List<T>) =>
-                    (r: List<List<T>>): [List<T>, List<List<T>>] =>
-                        either<[List<T>, List<List<T>>]>(() => [ts, r])((y: T, ys) => {
-                            const [us, zs] = interleaveF((x) => f(appendToHead(y)(x)))(ys)(r);
-                            return [
-                                appendToHead(y)(us),
-                                appendToHead(f(appendToHead(t)(appendToHead(t)(us))))(zs),
-                            ];
-                        })(yList);
-                const interleave =
-                    (xList: List<T>) =>
-                    (r: List<List<T>>): List<List<T>> =>
-                        interleaveF((x) => x)(xList)(r)[1];
-                return foldR(interleave)(perms(ts)(appendToHead(t)(uList)))(permutations(uList));
-            })(tList);
+        (uList: List<T>): List<List<T>> => {
+            const tAndTs = unCons(tList);
+            if (Option.isNone(tAndTs)) {
+                return empty();
+            }
+            const [t, ts] = tAndTs[1];
+            const interleaveF =
+                (f: (a: List<T>) => List<T>) =>
+                (yList: List<T>) =>
+                (r: List<List<T>>): [List<T>, List<List<T>>] => {
+                    const yAndYs = unCons(yList);
+                    if (Option.isNone(yAndYs)) {
+                        return [ts, r];
+                    }
+
+                    const [y, ys] = yAndYs[1];
+                    const [us, zs] = interleaveF((x) => f(appendToHead(y)(x)))(ys)(r);
+                    return [
+                        appendToHead(y)(us),
+                        appendToHead(f(appendToHead(t)(appendToHead(y)(us))))(zs),
+                    ];
+                };
+            const interleave =
+                (xList: List<T>) =>
+                (r: List<List<T>>): List<List<T>> =>
+                    interleaveF((x) => x)(xList)(r)[1];
+            return foldR(interleave)(perms(ts)(appendToHead(t)(uList)))(permutations(uList));
+        };
     return appendToHead(list)(perms(list)(empty()));
 };
 
