@@ -26,6 +26,7 @@ export function* toIterator<T>(list: List<T>): Generator<T, void> {
         rest = rest.rest();
     }
 }
+export const toArray = <T>(list: List<T>): T[] => [...toIterator(list)];
 
 export const unCons = <T>(list: List<T>): Option.Option<[T, List<T>]> =>
     Option.map((curr: T): [T, List<T>] => [curr, list.rest()])(list.current());
