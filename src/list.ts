@@ -144,6 +144,8 @@ export const foldR1 =
         either<T>(() => {
             throw new Error("expected a list having one element at least");
         })((x: T, xs) => foldR(f)(x)(xs))(list);
+
+export const toString = foldL((a: string) => (b: string) => a + b)("");
 export const length = <T>(list: List<T>): number => foldL((a: number) => () => a + 1)(0)(list);
 
 export const build = <A>(g: <B>(gg: (a: A) => (b: B) => B) => (b: B) => B): List<A> =>
