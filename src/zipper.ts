@@ -98,6 +98,14 @@ export const duplicate = <T>(zipper: Zipper<T>): Zipper<Zipper<T>> => ({
     right: drop(1)(iterateRight(zipper)),
 });
 
+export const map =
+    <T, U>(fn: (t: T) => U) =>
+    (zipper: Zipper<T>): Zipper<U> => ({
+        left: listMap(fn)(zipper.left),
+        current: fn(zipper.current),
+        right: listMap(fn)(zipper.right),
+    });
+
 declare module "./hkt.js" {
     interface HktDictA1<A1> {
         [zipperNominal]: Zipper<A1>;
@@ -105,13 +113,7 @@ declare module "./hkt.js" {
 }
 
 export const functor: Functor1<ZipperHktKey> = {
-    map:
-        <T, U>(fn: (t: T) => U) =>
-        (zipper: Zipper<T>): Zipper<U> => ({
-            left: listMap(fn)(zipper.left),
-            current: fn(zipper.current),
-            right: listMap(fn)(zipper.right),
-        }),
+    map,
 };
 
 export const comonad: Comonad1<ZipperHktKey> = {
