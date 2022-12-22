@@ -132,13 +132,10 @@ export const foldL1 =
         })((x: T, xs) => foldL(f)(x)(xs))(list);
 export const foldR =
     <T, U>(f: (a: T) => (b: U) => U) =>
-    (init: U) =>
-    (list: List<T>): U => {
-        let res = init;
-        for (const t of toIterator(list)) {
-            res = f(t)(res);
-        }
-        return res;
+    (init: U) => {
+        const go = (list: List<T>): U =>
+            Option.mapOr(init)(([y, ys]: [T, List<T>]) => f(y)(go(ys)))(unCons(list));
+        return go;
     };
 export const foldR1 =
     <T>(f: (a: T) => (b: T) => T) =>
@@ -149,7 +146,7 @@ export const foldR1 =
 export const length = <T>(list: List<T>): number => foldL((a: number) => () => a + 1)(0)(list);
 
 export const build = <A>(g: <B>(gg: (a: A) => (b: B) => B) => (b: B) => B): List<A> =>
-    g(appendToTail)(empty());
+    g(appendToHead)(empty());
 
 export const concat = <T>(listList: List<List<T>>): List<T> =>
     build(
@@ -260,8 +257,8 @@ export const zipWith = <T, U, V>(
 
 export const unzip = <A, B>(list: List<[A, B]>): [List<A>, List<B>] =>
     foldR<[A, B], [List<A>, List<B>]>(([a, b]) => ([as, bs]) => [
-        appendToTail(a)(as),
-        appendToTail(b)(bs),
+        appendToHead(a)(as),
+        appendToHead(b)(bs),
     ])([empty(), empty()])(list);
 
 const prependToAll =
