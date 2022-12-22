@@ -1,3 +1,4 @@
+import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
 import { Result, err, isOk, ok } from "./result.js";
 
 import type { Applicative1 } from "./type-class/applicative.js";
@@ -36,6 +37,16 @@ export const toArray = <T>(opt: Option<T>): T[] => {
     arr.shift();
     return arr as T[];
 };
+
+export const partialEq = <T>(equality: PartialEq<T, T>): PartialEq<Option<T>, Option<T>> => ({
+    eq: (optA: Option<T>, optB: Option<T>): boolean =>
+        (isSome(optA) && isSome(optB) && equality.eq(optA[1], optB[1])) ||
+        (isNone(optA) && isNone(optB)),
+});
+export const eq = <T>(equality: Eq<T, T>): Eq<Option<T>, Option<T>> => ({
+    ...partialEq(equality),
+    [eqSymbol]: true,
+});
 
 export const flatten = <T>(opt: Option<Option<T>>): Option<T> => {
     if (isSome(opt)) {
