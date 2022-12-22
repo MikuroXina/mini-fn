@@ -450,7 +450,7 @@ export const span =
                 const [ys, zs] = span(pred)(xs);
                 return [appendToHead(x)(ys), zs];
             }
-            return [empty(), xs];
+            return [empty(), list];
         })(list);
 export const spanNot = <T>(pred: (t: T) => boolean) => span((t: T) => !pred(t));
 
