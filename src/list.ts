@@ -460,7 +460,7 @@ export const stripPrefix =
     <T>(eq: PartialEq<T, T>) =>
     (prefix: List<T>) =>
     (list: List<T>): Option.Option<List<T>> =>
-        either(() => (isNull(list) ? Option.none() : Option.some(list)))((x: T, xs) =>
+        either<Option.Option<List<T>>>(() => Option.some(list))((x: T, xs) =>
             Option.andThen(([y, ys]: [T, List<T>]) =>
                 eq.eq(x, y) ? stripPrefix<T>(eq)(xs)(ys) : Option.none(),
             )(unCons(list)),
