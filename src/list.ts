@@ -23,9 +23,10 @@ export function* toIterator<T>(list: List<T>): Generator<T, void> {
             break;
         }
         yield next[1];
-        rest = list.rest();
+        rest = rest.rest();
     }
 }
+export const toArray = <T>(list: List<T>): T[] => [...toIterator(list)];
 
 export const unCons = <T>(list: List<T>): Option.Option<[T, List<T>]> =>
     Option.map((curr: T): [T, List<T>] => [curr, list.rest()])(list.current());
@@ -42,12 +43,24 @@ export const map =
         rest: () => map(f)(list.rest()),
     });
 
+export const empty = <T>(): List<T> => ({ current: Option.none, rest: empty });
+export const singletonWith = <T>(value: () => T): List<T> => ({
+    current: () => Option.some(value()),
+    rest: empty,
+});
+export const singleton = <T>(value: T): List<T> => singletonWith(() => value);
+
 export const plus =
     <T>(left: List<T>) =>
-    (right: List<T>): List<T> => ({
-        current: () => Option.and(right.current())(left.current()),
-        rest: () => plus(left.rest())(right.rest()),
-    });
+    (right: List<T>): List<T> => {
+        if (Option.isNone(left.current())) {
+            return right;
+        }
+        return {
+            current: () => left.current(),
+            rest: () => plus(left.rest())(right),
+        };
+    };
 export const appendToHead =
     <T>(value: T) =>
     (list: List<T>): List<T> => ({
@@ -56,17 +69,15 @@ export const appendToHead =
     });
 export const appendToTail =
     <T>(value: T) =>
-    (list: List<T>): List<T> => ({
-        current: () => Option.andThen(() => Option.some(value))(list.current()),
-        rest: () => appendToTail(value)(list.rest()),
-    });
-
-export const empty = <T>(): List<T> => ({ current: Option.none, rest: empty });
-export const singletonWith = <T>(value: () => T): List<T> => ({
-    current: () => Option.some(value()),
-    rest: empty,
-});
-export const singleton = <T>(value: T): List<T> => singletonWith(() => value);
+    (list: List<T>): List<T> => {
+        if (Option.isNone(list.current())) {
+            return singleton(value);
+        }
+        return {
+            current: list.current,
+            rest: () => appendToTail(value)(list.rest()),
+        };
+    };
 
 export const repeatWith = <T>(elem: () => T): List<T> => ({
     current: () => Option.some(elem()),
@@ -88,11 +99,11 @@ export const range = (start: number, end: number, step = 1): List<number> => ({
 
 export const digits = (num: number, radix: number): List<number> => ({
     current: () => (num === 0 ? Option.none() : Option.some(num % radix)),
-    rest: () => digits(num / radix, radix),
+    rest: () => digits(Math.floor(num / radix), radix),
 });
 
 export const fromString = (str: string): List<string> => ({
-    current: () => Option.fromPredicate((x: string) => x === "")(str.slice(0, 1)),
+    current: () => Option.fromPredicate((x: string) => x !== "")(str.slice(0, 1)),
     rest: () => fromString(str.slice(1)),
 });
 export const fromArray = <T>(arr: T[]): List<T> => ({
@@ -122,13 +133,10 @@ export const foldL1 =
         })((x: T, xs) => foldL(f)(x)(xs))(list);
 export const foldR =
     <T, U>(f: (a: T) => (b: U) => U) =>
-    (init: U) =>
-    (list: List<T>): U => {
-        let res = init;
-        for (const t of toIterator(list)) {
-            res = f(t)(res);
-        }
-        return res;
+    (init: U) => {
+        const go = (list: List<T>): U =>
+            Option.mapOr(init)(([y, ys]: [T, List<T>]) => f(y)(go(ys)))(unCons(list));
+        return go;
     };
 export const foldR1 =
     <T>(f: (a: T) => (b: T) => T) =>
@@ -136,6 +144,8 @@ export const foldR1 =
         either<T>(() => {
             throw new Error("expected a list having one element at least");
         })((x: T, xs) => foldR(f)(x)(xs))(list);
+
+export const toString = foldL((a: string) => (b: string) => a + b)("");
 export const length = <T>(list: List<T>): number => foldL((a: number) => () => a + 1)(0)(list);
 
 export const build = <A>(g: <B>(gg: (a: A) => (b: B) => B) => (b: B) => B): List<A> =>
@@ -176,7 +186,7 @@ export const last = <T>(list: List<T>): Option.Option<T> => {
     }
     let rest = list;
     while (true) {
-        const next = list.rest();
+        const next = rest.rest();
         if (Option.isNone(next.current())) {
             return rest.current();
         }
@@ -283,27 +293,40 @@ export const subsequences = <T>(list: List<T>): List<List<T>> =>
     plus<List<T>>(empty())(subsequencesExceptEmpty(list));
 
 export const permutations = <A>(list: List<A>): List<List<A>> => {
+    if (Option.isNone(list.current())) {
+        return empty();
+    }
+
     const perms =
         <T>(tList: List<T>) =>
-        (uList: List<T>): List<List<T>> =>
-            either<List<List<T>>>(empty)((t: T, ts): List<List<T>> => {
-                const interleaveF =
-                    (f: (a: List<T>) => List<T>) =>
-                    (yList: List<T>) =>
-                    (r: List<List<T>>): [List<T>, List<List<T>>] =>
-                        either<[List<T>, List<List<T>>]>(() => [ts, r])((y: T, ys) => {
-                            const [us, zs] = interleaveF((x) => f(appendToHead(y)(x)))(ys)(r);
-                            return [
-                                appendToHead(y)(us),
-                                appendToHead(f(appendToHead(t)(appendToHead(t)(us))))(zs),
-                            ];
-                        })(yList);
-                const interleave =
-                    (xList: List<T>) =>
-                    (r: List<List<T>>): List<List<T>> =>
-                        interleaveF((x) => x)(xList)(r)[1];
-                return foldR(interleave)(perms(ts)(appendToHead(t)(uList)))(permutations(uList));
-            })(tList);
+        (uList: List<T>): List<List<T>> => {
+            const tAndTs = unCons(tList);
+            if (Option.isNone(tAndTs)) {
+                return empty();
+            }
+            const [t, ts] = tAndTs[1];
+            const interleaveF =
+                (f: (a: List<T>) => List<T>) =>
+                (yList: List<T>) =>
+                (r: List<List<T>>): [List<T>, List<List<T>>] => {
+                    const yAndYs = unCons(yList);
+                    if (Option.isNone(yAndYs)) {
+                        return [ts, r];
+                    }
+
+                    const [y, ys] = yAndYs[1];
+                    const [us, zs] = interleaveF((x) => f(appendToHead(y)(x)))(ys)(r);
+                    return [
+                        appendToHead(y)(us),
+                        appendToHead(f(appendToHead(t)(appendToHead(y)(us))))(zs),
+                    ];
+                };
+            const interleave =
+                (xList: List<T>) =>
+                (r: List<List<T>>): List<List<T>> =>
+                    interleaveF((x) => x)(xList)(r)[1];
+            return foldR(interleave)(perms(ts)(appendToHead(t)(uList)))(permutations(uList));
+        };
     return appendToHead(list)(perms(list)(empty()));
 };
 
@@ -336,8 +359,18 @@ export const take =
     };
 export const drop =
     (count: number) =>
-    <T>(list: List<T>): List<T> =>
-        count <= 0 ? list : take(count - 1)(tail(list));
+    <T>(list: List<T>): List<T> => {
+        if (Option.isNone(list.current())) {
+            return empty();
+        }
+        if (count <= 0) {
+            return list;
+        }
+        if (count === 1) {
+            return list.rest();
+        }
+        return drop(count - 1)(list.rest());
+    };
 export const splitAt =
     (index: number) =>
     <T>(list: List<T>): [List<T>, List<T>] =>
@@ -350,8 +383,12 @@ export const replicate =
 
 export const atMay =
     (index: number) =>
-    <T>(list: List<T>): Option.Option<T> =>
-        drop(index)(list).current();
+    <T>(list: List<T>): Option.Option<T> => {
+        if (index < 0) {
+            return Option.none();
+        }
+        return drop(index)(list).current();
+    };
 export const findIndex =
     <T>(pred: (value: T) => boolean) =>
     (list: List<T>): Option.Option<number> => {
@@ -388,16 +425,20 @@ export const elemIndices =
 
 export const takeWhile =
     <T>(pred: (t: T) => boolean) =>
-    (list: List<T>): List<T> => ({
-        current: list.current,
-        rest: () =>
-            Option.unwrapOr(true)(Option.map(pred)(list.current())) ? empty() : list.rest(),
-    });
+    (list: List<T>): List<T> => {
+        if (Option.mapOr(false)(pred)(list.current())) {
+            return {
+                current: list.current,
+                rest: () => takeWhile(pred)(list.rest()),
+            };
+        }
+        return empty();
+    };
 
 export const dropWhile =
     <T>(pred: (t: T) => boolean) =>
     (list: List<T>): List<T> =>
-        either<List<T>>(empty)((x: T, xs) => (pred(x) ? dropWhile(pred)(xs) : xs))(list);
+        either<List<T>>(empty)((x: T, xs) => (pred(x) ? dropWhile(pred)(xs) : list))(list);
 export const dropWhileEnd = <T>(pred: (t: T) => boolean): ((list: List<T>) => List<T>) =>
     foldR<T, List<T>>((x) => (xs) => pred(x) && isNull(xs) ? empty() : appendToHead(x)(xs))(
         empty(),
@@ -411,7 +452,7 @@ export const span =
                 const [ys, zs] = span(pred)(xs);
                 return [appendToHead(x)(ys), zs];
             }
-            return [empty(), xs];
+            return [empty(), list];
         })(list);
 export const spanNot = <T>(pred: (t: T) => boolean) => span((t: T) => !pred(t));
 
@@ -419,7 +460,7 @@ export const stripPrefix =
     <T>(eq: PartialEq<T, T>) =>
     (prefix: List<T>) =>
     (list: List<T>): Option.Option<List<T>> =>
-        either(() => (isNull(list) ? Option.none() : Option.some(list)))((x: T, xs) =>
+        either<Option.Option<List<T>>>(() => Option.some(list))((x: T, xs) =>
             Option.andThen(([y, ys]: [T, List<T>]) =>
                 eq.eq(x, y) ? stripPrefix<T>(eq)(xs)(ys) : Option.none(),
             )(unCons(list)),
