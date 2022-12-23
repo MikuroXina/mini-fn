@@ -2,17 +2,17 @@ import type { Functor, Functor1, Functor2 } from "./functor.js";
 import type { GetHktA1, GetHktA2, Hkt } from "../hkt.js";
 
 export interface Comonad<W extends symbol> extends Functor<W> {
-    extract: <A>(wa: Hkt<W, A>) => A;
-    duplicate: <A>(wa: Hkt<W, A>) => Hkt<W, Hkt<W, A>>;
+    readonly extract: <A>(wa: Hkt<W, A>) => A;
+    readonly duplicate: <A>(wa: Hkt<W, A>) => Hkt<W, Hkt<W, A>>;
 }
 
 export interface Comonad1<W> extends Functor1<W> {
-    extract: <A>(wa: GetHktA1<W, A>) => A;
-    duplicate: <A>(wa: GetHktA1<W, A>) => GetHktA1<W, GetHktA1<W, A>>;
+    readonly extract: <A>(wa: GetHktA1<W, A>) => A;
+    readonly duplicate: <A>(wa: GetHktA1<W, A>) => GetHktA1<W, GetHktA1<W, A>>;
 }
 export interface Comonad2<W> extends Functor2<W> {
-    extract: <B, A>(wa: GetHktA2<W, B, A>) => A;
-    duplicate: <B, A>(wa: GetHktA2<W, B, A>) => GetHktA2<W, B, GetHktA2<W, B, A>>;
+    readonly extract: <B, A>(wa: GetHktA2<W, B, A>) => A;
+    readonly duplicate: <B, A>(wa: GetHktA2<W, B, A>) => GetHktA2<W, B, GetHktA2<W, B, A>>;
 }
 
 export function extend<W>(

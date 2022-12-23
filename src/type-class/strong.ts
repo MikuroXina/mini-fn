@@ -4,21 +4,25 @@ import type { Profunctor, Profunctor2, Profunctor3, Profunctor4 } from "./profun
 import type { Category } from "./category.js";
 
 export interface Strong<Sym extends symbol> extends Profunctor<Sym> {
-    first<A, B, C>(m: Hkt2<Sym, A, B>): Hkt2<Sym, [A, C], [B, C]>;
-    second<A, B, C>(m: Hkt2<Sym, A, B>): Hkt2<Sym, [C, A], [C, B]>;
+    readonly first: <A, B, C>(m: Hkt2<Sym, A, B>) => Hkt2<Sym, [A, C], [B, C]>;
+    readonly second: <A, B, C>(m: Hkt2<Sym, A, B>) => Hkt2<Sym, [C, A], [C, B]>;
 }
 
 export interface Strong2<S> extends Profunctor2<S> {
-    first<A, B, C>(m: GetHktA2<S, A, B>): GetHktA2<S, [A, C], [B, C]>;
-    second<A, B, C>(m: GetHktA2<S, A, B>): GetHktA2<S, [C, A], [C, B]>;
+    readonly first: <A, B, C>(m: GetHktA2<S, A, B>) => GetHktA2<S, [A, C], [B, C]>;
+    readonly second: <A, B, C>(m: GetHktA2<S, A, B>) => GetHktA2<S, [C, A], [C, B]>;
 }
 export interface Strong3<S> extends Profunctor3<S> {
-    first<A, B, C, D>(m: GetHktA3<S, A, B, D>): GetHktA3<S, [A, C], [B, C], D>;
-    second<A, B, C, D>(m: GetHktA3<S, A, B, D>): GetHktA3<S, [C, A], [C, B], D>;
+    readonly first: <A, B, C, D>(m: GetHktA3<S, A, B, D>) => GetHktA3<S, [A, C], [B, C], D>;
+    readonly second: <A, B, C, D>(m: GetHktA3<S, A, B, D>) => GetHktA3<S, [C, A], [C, B], D>;
 }
 export interface Strong4<S> extends Profunctor4<S> {
-    first<A, B, C, D, E>(m: GetHktA4<S, A, B, D, E>): GetHktA4<S, [A, C], [B, C], D, E>;
-    second<A, B, C, D, E>(m: GetHktA4<S, A, B, D, E>): GetHktA4<S, [C, A], [C, B], D, E>;
+    readonly first: <A, B, C, D, E>(
+        m: GetHktA4<S, A, B, D, E>,
+    ) => GetHktA4<S, [A, C], [B, C], D, E>;
+    readonly second: <A, B, C, D, E>(
+        m: GetHktA4<S, A, B, D, E>,
+    ) => GetHktA4<S, [C, A], [C, B], D, E>;
 }
 
 export const split =

@@ -3,7 +3,7 @@ import type { GetHktA1 } from "./hkt.js";
 
 // TODO: Impl more type instances
 
-export type Tuple<A, B> = [A, B];
+export type Tuple<A, B> = readonly [A, B];
 
 export const make =
     <A>(a: A) =>
@@ -41,7 +41,7 @@ export const foldR: <A, B>(
 export const traverse =
     <F>(app: Applicative1<F>) =>
     <A, B>(visitor: (a: A) => GetHktA1<F, B>) =>
-    ([a1, a2]: [A, A]): GetHktA1<F, [B, B]> =>
+    ([a1, a2]: [A, A]): GetHktA1<F, Tuple<B, B>> =>
         app.product<B, B>(visitor(a1))(visitor(a2));
 
 declare const tupleHktNominal: unique symbol;

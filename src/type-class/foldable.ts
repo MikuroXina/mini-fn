@@ -8,11 +8,15 @@ import { compose, oneShot } from "../func.js";
 import type { PartialEq } from "./eq.js";
 
 export interface Foldable1<T> {
-    foldR<A, B>(folder: (a: A) => (b: B) => B): (init: B) => (data: GetHktA1<T, A>) => B;
+    readonly foldR: <A, B>(
+        folder: (a: A) => (b: B) => B,
+    ) => (init: B) => (data: GetHktA1<T, A>) => B;
 }
 
 export interface Foldable2<T> {
-    foldR<X, A, B>(folder: (a: A) => (b: B) => B): (init: B) => (data: GetHktA2<T, X, A>) => B;
+    readonly foldR: <X, A, B>(
+        folder: (a: A) => (b: B) => B,
+    ) => (init: B) => (data: GetHktA2<T, X, A>) => B;
 }
 
 export const foldMap =

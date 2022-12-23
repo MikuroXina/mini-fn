@@ -7,12 +7,13 @@ import type { Applicative1 } from "./type-class/applicative.js";
 import type { Functor1 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { Traversable1 } from "./type-class/traversable.js";
+import type { Tuple } from "./tuple.js";
 
 const pureNominal = Symbol("FreePure");
 const nodeNominal = Symbol("FreeNode");
 
-export type Pure<A> = [typeof pureNominal, A];
-export type Node<F, A> = [typeof nodeNominal, GetHktA1<F, Free<F, A>>];
+export type Pure<A> = readonly [typeof pureNominal, A];
+export type Node<F, A> = readonly [typeof nodeNominal, GetHktA1<F, Free<F, A>>];
 
 export const pure = <A>(a: A): Pure<A> => [pureNominal, a];
 export const node = <F, A>(f: GetHktA1<F, Free<F, A>>): Node<F, A> => [nodeNominal, f];
@@ -72,10 +73,10 @@ export const hoistFree =
 export const productT =
     <F>(app: Applicative1<F>) =>
     <A>(a: Free<F, A>) =>
-    <B>(b: Free<F, B>): Free<F, [A, B]> => {
+    <B>(b: Free<F, B>): Free<F, Tuple<A, B>> => {
         if (isNode(a)) {
             const mapped = app.map(productT(app))(a[1]);
-            const applied = app.apply<Free<F, B>, Free<F, [A, B]>>(mapped)(app.pure(b));
+            const applied = app.apply<Free<F, B>, Free<F, Tuple<A, B>>>(mapped)(app.pure(b));
             return node(applied);
         }
         if (isNode(b)) {
@@ -97,7 +98,7 @@ export const foldFree =
 export const liftF =
     <F>(func: Functor1<F>) =>
     <T>(ft: GetHktA1<F, T>): Free<F, T> =>
-        node(func.map(pure)(ft));
+        node(func.map<T, Free<F, T>>(pure)(ft));
 
 export const mapT =
     <F>(functor: Functor1<F>) =>
@@ -161,7 +162,9 @@ export const unfoldM =
     ): ((b: B) => GetHktA1<M, Free<F, A>>) => {
         return kleisli(monad)(f)(
             Result.either((a: A) => monad.pure(pure(a) as Free<F, A>))((fb) =>
-                monad.map(node)(traversable.traverse(monad)(unfoldM(traversable, monad)(f))(fb)),
+                monad.map((ffa: GetHktA1<F, Free<F, A>>) => node(ffa) as Free<F, A>)(
+                    traversable.traverse(monad)(unfoldM(traversable, monad)(f))(fb),
+                ),
             ),
         );
     };

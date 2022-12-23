@@ -1,13 +1,13 @@
 import { Lazy, force, defer as lazyDefer, map as lazyMap } from "./lazy.js";
+import { Tuple, map as tupleMap } from "./tuple.js";
 
 import type { Functor1 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
 import { compose } from "./func.js";
-import { map as tupleMap } from "./tuple.js";
 
 declare const cofreeNominal: unique symbol;
 export type CofreeHktKey = typeof cofreeNominal;
-export type Cofree<F, A> = Lazy<[A, GetHktA1<F, Cofree<F, A>>]>;
+export type Cofree<F, A> = Lazy<Tuple<A, GetHktA1<F, Cofree<F, A>>>>;
 
 export const defer: <F, A>(fn: () => [A, GetHktA1<F, Cofree<F, A>>]) => Cofree<F, A> = lazyDefer;
 
@@ -24,17 +24,19 @@ export const map =
     <F>(f: Functor1<F>) =>
     <A, B>(fn: (a: A) => B) =>
     (c: Cofree<F, A>): Cofree<F, B> =>
-        lazyMap(([a, fa]: [A, GetHktA1<F, Cofree<F, A>>]): [B, GetHktA1<F, Cofree<F, B>>] => [
-            fn(a),
-            f.map(map(f)(fn))(fa),
-        ])(c);
+        lazyMap(
+            ([a, fa]: readonly [A, GetHktA1<F, Cofree<F, A>>]): [B, GetHktA1<F, Cofree<F, B>>] => [
+                fn(a),
+                f.map(map(f)(fn))(fa),
+            ],
+        )(c);
 export const extract = head;
 
 export const hoist =
     <F>(f: Functor1<F>) =>
     <G>(nat: <T>(a: GetHktA1<F, T>) => GetHktA1<G, T>) =>
     <A>(c: Cofree<F, A>): Cofree<G, A> =>
-        lazyMap<[A, GetHktA1<F, Cofree<F, A>>], [A, GetHktA1<G, Cofree<G, A>>]>(
+        lazyMap<Tuple<A, GetHktA1<F, Cofree<F, A>>>, Tuple<A, GetHktA1<G, Cofree<G, A>>>>(
             tupleMap(
                 compose<GetHktA1<F, Cofree<G, A>>, GetHktA1<G, Cofree<G, A>>>(nat)(
                     f.map(hoist(f)(nat)),

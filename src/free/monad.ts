@@ -5,7 +5,7 @@ import type { Functor1 } from "../type-class/functor.js";
 import type { MonadTrans2Monoid } from "../trans.js";
 
 export interface MonadFree<F, M> extends Monad1<M> {
-    wrap: <A>(fma: GetHktA1<F, GetHktA1<M, A>>) => GetHktA1<M, A>;
+    readonly wrap: <A>(fma: GetHktA1<F, GetHktA1<M, A>>) => GetHktA1<M, A>;
 }
 
 export const liftF =

@@ -4,6 +4,7 @@ import type { Monad1, Monad2 } from "./type-class/monad.js";
 import type { Functor2 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { Profunctor2 } from "./type-class/profunctor.js";
+import type { Tuple } from "./tuple.js";
 
 export interface ReaderT<R, M, A> {
     (record: R): GetHktA1<M, A>;
@@ -40,7 +41,7 @@ export const local =
 
 export const product =
     <R, A>(a: Reader<R, A>) =>
-    <B>(b: Reader<R, B>): Reader<R, [A, B]> =>
+    <B>(b: Reader<R, B>): Reader<R, Tuple<A, B>> =>
     (r: R) =>
         [a(r), b(r)];
 

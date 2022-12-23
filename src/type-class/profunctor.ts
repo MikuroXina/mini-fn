@@ -1,23 +1,25 @@
 import type { GetHktA2, GetHktA3, GetHktA4, Hkt2 } from "../hkt.js";
 
 export interface Profunctor<Sym extends symbol> {
-    diMap<A, B>(f: (a: A) => B): <C, D>(g: (c: C) => D) => (m: Hkt2<Sym, D, A>) => Hkt2<Sym, C, B>;
+    readonly diMap: <A, B>(
+        f: (a: A) => B,
+    ) => <C, D>(g: (c: C) => D) => (m: Hkt2<Sym, D, A>) => Hkt2<Sym, C, B>;
 }
 
 export interface Profunctor2<S> {
-    diMap<A, B>(
+    readonly diMap: <A, B>(
         f: (a: A) => B,
-    ): <C, D>(g: (c: C) => D) => (m: GetHktA2<S, D, A>) => GetHktA2<S, C, B>;
+    ) => <C, D>(g: (c: C) => D) => (m: GetHktA2<S, D, A>) => GetHktA2<S, C, B>;
 }
 export interface Profunctor3<S> {
-    diMap<A, B>(
+    readonly diMap: <A, B>(
         f: (a: A) => B,
-    ): <C, D>(g: (c: C) => D) => <T>(m: GetHktA3<S, T, D, A>) => GetHktA3<S, T, C, B>;
+    ) => <C, D>(g: (c: C) => D) => <T>(m: GetHktA3<S, T, D, A>) => GetHktA3<S, T, C, B>;
 }
 export interface Profunctor4<S> {
-    diMap<A, B>(
+    readonly diMap: <A, B>(
         f: (a: A) => B,
-    ): <C, D>(g: (c: C) => D) => <T, U>(m: GetHktA4<S, T, U, D, A>) => GetHktA4<S, T, U, C, B>;
+    ) => <C, D>(g: (c: C) => D) => <T, U>(m: GetHktA4<S, T, U, D, A>) => GetHktA4<S, T, U, C, B>;
 }
 
 export const leftMap =

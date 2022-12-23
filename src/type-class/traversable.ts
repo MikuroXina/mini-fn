@@ -6,17 +6,17 @@ import type { Applicative1 } from "./applicative.js";
 import type { Monad1 } from "./monad.js";
 
 export interface Traversable1<T> extends Functor1<T>, Foldable1<T> {
-    traverse<F>(
+    readonly traverse: <F>(
         app: Applicative1<F>,
-    ): <A, B>(
+    ) => <A, B>(
         visitor: (a: A) => GetHktA1<F, B>,
     ) => (data: GetHktA1<T, A>) => GetHktA1<F, GetHktA1<T, B>>;
 }
 
 export interface Traversable2<T> extends Functor2<T>, Foldable2<T> {
-    traverse<F>(
+    traverse: <F>(
         app: Applicative1<F>,
-    ): <A, B>(
+    ) => <A, B>(
         visitor: (a: A) => GetHktA1<F, B>,
     ) => <X>(data: GetHktA2<T, X, A>) => GetHktA1<F, GetHktA2<T, X, B>>;
 }
