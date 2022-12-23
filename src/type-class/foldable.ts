@@ -105,7 +105,7 @@ export const any =
 
 export const contains = <T, A>(
     foldable: Foldable1<T>,
-    eq: PartialEq<A, A>,
+    eq: PartialEq<A>,
 ): ((target: A) => (ta: GetHktA1<T, A>) => boolean) =>
     compose<(a: A) => boolean, (list: GetHktA1<T, A>) => boolean>(any(foldable))(
         (l: A) => (r: A) => eq.eq(l, r),

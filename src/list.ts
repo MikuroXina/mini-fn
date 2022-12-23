@@ -448,7 +448,7 @@ export const findIndex =
         return Option.none();
     };
 export const elemIndex =
-    <T>(equality: PartialEq<T, T>) =>
+    <T>(equality: PartialEq<T>) =>
     (target: T) =>
         findIndex((value: T) => equality.eq(value, target));
 export const findIndices =
@@ -465,7 +465,7 @@ export const findIndices =
         return indices;
     };
 export const elemIndices =
-    <T>(equality: PartialEq<T, T>) =>
+    <T>(equality: PartialEq<T>) =>
     (target: T) =>
         findIndices((value: T) => equality.eq(value, target));
 
@@ -503,7 +503,7 @@ export const span =
 export const spanNot = <T>(pred: (t: T) => boolean) => span((t: T) => !pred(t));
 
 export const stripPrefix =
-    <T>(equality: PartialEq<T, T>) =>
+    <T>(equality: PartialEq<T>) =>
     (prefix: List<T>) =>
     (list: List<T>): Option.Option<List<T>> =>
         either<Option.Option<List<T>>>(() => Option.some(list))((x: T, xs) =>
@@ -517,7 +517,7 @@ export const groupBy = <T>(f: (l: T) => (r: T) => boolean): ((list: List<T>) => 
         const [ys, zs] = span(f(x))(xs);
         return appendToHead(appendToHead(x)(ys))(groupBy(f)(zs));
     });
-export const group = <T>(equality: PartialEq<T, T>): ((list: List<T>) => List<List<T>>) =>
+export const group = <T>(equality: PartialEq<T>): ((list: List<T>) => List<List<T>>) =>
     groupBy((l) => (r) => equality.eq(l, r));
 
 export const filter = <T>(pred: (element: T) => boolean): ((list: List<T>) => List<T>) =>

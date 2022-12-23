@@ -13,7 +13,7 @@ export type PartialOrdHktKey = typeof partialOrdNominal;
  * - Transitivity: If `f` is `PartialOrd`, for all `a`, `b` and `c`; `f(a, b) == f(b, c) == f(a, c)`.
  * - Duality: If `f` is `PartialOrd`, for all `a` and `b`; `f(a, b) == -f(b, a)`.
  */
-export interface PartialOrd<Lhs, Rhs> extends PartialEq<Lhs, Rhs> {
+export interface PartialOrd<Lhs, Rhs = Lhs> extends PartialEq<Lhs, Rhs> {
     readonly partialCmp: (lhs: Lhs, rhs: Rhs) => Option<Ordering>;
 }
 
@@ -25,8 +25,8 @@ export const fromPartialCmp = <Lhs, Rhs>(
 });
 
 export const tuple = <T extends unknown[]>(ord: {
-    readonly [K in keyof T]: PartialOrd<T[K], T[K]>;
-}): PartialOrd<T, T> => ({
+    readonly [K in keyof T]: PartialOrd<T[K]>;
+}): PartialOrd<T> => ({
     partialCmp: (lhs, rhs) => {
         const len = Math.min(lhs.length, rhs.length);
         let result: Ordering = equal;
@@ -44,7 +44,7 @@ export const tuple = <T extends unknown[]>(ord: {
 
 declare module "../hkt.js" {
     interface HktDictA1<A1> {
-        [partialOrdNominal]: PartialOrd<A1, A1>;
+        [partialOrdNominal]: PartialOrd<A1>;
     }
 }
 
@@ -52,7 +52,7 @@ export const contravariant: Contravariant<PartialOrdHktKey> = {
     contraMap: (f) => (ord) => fromPartialCmp((l, r) => ord.partialCmp(f(l), f(r))),
 };
 
-export const identity: PartialOrd<unknown, unknown> = fromPartialCmp(() => some(equal));
+export const identity: PartialOrd<unknown> = fromPartialCmp(() => some(equal));
 
 export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
     combine: (x, y) => ({
@@ -71,7 +71,7 @@ export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
  * - Duality: If `f` is `PartialOrd`, for all `a` and `b`; `f(a, b) == -f(b, a)`.
  * - Strict: Ordering for all values is well-defined (so the return value is not an `Option`).
  */
-export interface Ord<Lhs, Rhs> extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> {
+export interface Ord<Lhs, Rhs = Lhs> extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> {
     readonly cmp: (lhs: Lhs, rhs: Rhs) => Ordering;
 }
 

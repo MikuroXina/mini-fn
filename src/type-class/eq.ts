@@ -6,7 +6,7 @@ import type { Monoid } from "./monoid.js";
  * - Symmetric: `PartialEq<A, B>` always equals to `PartialEq<B, A>`.
  * - Transitive: `PartialEq<A, B>` and `PartialEq<B, C>` always implies `PartialEq<A, C>`.
  */
-export interface PartialEq<Lhs, Rhs> {
+export interface PartialEq<Lhs, Rhs = Lhs> {
     readonly eq: (l: Lhs, r: Rhs) => boolean;
 }
 
@@ -14,22 +14,21 @@ declare const partialEqNominal: unique symbol;
 export type PartialEqHktKey = typeof partialEqNominal;
 declare module "../hkt.js" {
     interface HktDictA1<A1> {
-        [partialEqNominal]: PartialEq<A1, A1>;
+        [partialEqNominal]: PartialEq<A1>;
     }
 }
 
 export const contravariant: Contravariant<PartialEqHktKey> = {
     contraMap:
         <T1, T2>(f: (arg: T1) => T2) =>
-        (p: PartialEq<T2, T2>): PartialEq<T1, T1> => ({ eq: (l, r) => p.eq(f(l), f(r)) }),
+        (p: PartialEq<T2>): PartialEq<T1> => ({ eq: (l, r) => p.eq(f(l), f(r)) }),
 };
 
 export const fromCmp = <Lhs, Rhs>(cmp: (l: Lhs, r: Rhs) => boolean): PartialEq<Lhs, Rhs> => ({
     eq: cmp,
 });
 
-export const structural = <S>(cmp: { readonly [K in keyof S]: PartialEq<S[K], S[K]> }): PartialEq<
-    Readonly<S>,
+export const structural = <S>(cmp: { readonly [K in keyof S]: PartialEq<S[K]> }): PartialEq<
     Readonly<S>
 > =>
     fromCmp((l, r) =>
@@ -43,8 +42,8 @@ export const structural = <S>(cmp: { readonly [K in keyof S]: PartialEq<S[K], S[
     );
 
 export const tuple = <S extends unknown[]>(cmp: {
-    readonly [K in keyof S]: PartialEq<S[K], S[K]>;
-}): PartialEq<Readonly<S>, Readonly<S>> =>
+    readonly [K in keyof S]: PartialEq<S[K]>;
+}): PartialEq<Readonly<S>> =>
     fromCmp((l, r) => {
         const len = Math.min(l.length, r.length);
         for (let i = 0; i < len; i += 1) {
@@ -78,6 +77,6 @@ export const eqSymbol = Symbol("ImplEq");
  * const numPartialEq: PartialEq<number, number> = (x, y) => x === y;
  * ```
  */
-export interface Eq<Lhs, Rhs> extends PartialEq<Lhs, Rhs> {
+export interface Eq<Lhs, Rhs = Lhs> extends PartialEq<Lhs, Rhs> {
     readonly [eqSymbol]: true;
 }
