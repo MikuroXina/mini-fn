@@ -20,9 +20,9 @@ import type { Functor1 } from "./type-class/functor.js";
 declare const zipperNominal: unique symbol;
 export type ZipperHktKey = typeof zipperNominal;
 export interface Zipper<T> {
-    left: List<T>;
-    current: T;
-    right: List<T>;
+    readonly left: List<T>;
+    readonly current: T;
+    readonly right: List<T>;
 }
 
 export const partialEq = <T>(equality: PartialEq<T, T>): PartialEq<Zipper<T>, Zipper<T>> => ({
