@@ -4,6 +4,7 @@ import * as Option from "./option.js";
 
 import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
 
+import type { Functor1 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { Monad1 } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
@@ -498,6 +499,8 @@ export const monoid = <T>(): Monoid<List<T>> => ({
     identity: empty(),
     combine: (l, r) => plus(l)(r),
 });
+
+export const functor: Functor1<ListHktKey> = { map };
 
 export const monad: Monad1<ListHktKey> = {
     product: zip,
