@@ -7,12 +7,12 @@ import {
     head,
     map as listMap,
     partialEq as listPartialEq,
+    singleton as listSingleton,
     plus,
     reverse,
-    singleton,
     unCons,
 } from "./list.js";
-import { Option, isNone, map as optionMap } from "./option.js";
+import { Option, isNone, map as optionMap, unwrap } from "./option.js";
 
 import type { Comonad1 } from "./type-class/comonad.js";
 import type { Functor1 } from "./type-class/functor.js";
@@ -36,6 +36,8 @@ export const eq = <T>(equality: Eq<T, T>): Eq<Zipper<T>, Zipper<T>> => ({
     [eqSymbol]: true,
 });
 
+export const singleton = <T>(current: T): Zipper<T> => ({ left: empty(), current, right: empty() });
+
 export const fromList = <T>(list: List<T>): Option<Zipper<T>> =>
     optionMap(
         ([x, xs]: [T, List<T>]): Zipper<T> => ({
@@ -46,7 +48,7 @@ export const fromList = <T>(list: List<T>): Option<Zipper<T>> =>
     )(unCons(list));
 
 export const toList = <T>(zipper: Zipper<T>): List<T> =>
-    plus(reverse(zipper.left))(plus(singleton(zipper.current))(zipper.right));
+    plus(reverse(zipper.left))(plus(listSingleton(zipper.current))(zipper.right));
 
 export const extract = <T>(zipper: Zipper<T>): T => zipper.current;
 export const top = <T>(zipper: Zipper<T>): [Option<T>, T, Option<T>] => [
@@ -71,6 +73,20 @@ export const right = <T>(zipper: Zipper<T>): Option<Zipper<T>> =>
             right: rs,
         }),
     )(unCons(zipper.right));
+
+export const start = <T>(zipper: Zipper<T>): Zipper<T> => unwrap(fromList(toList(zipper)));
+export const end = <T>(zipper: Zipper<T>): Zipper<T> => {
+    const endItemAndRest = unCons(reverse(zipper.right));
+    if (isNone(endItemAndRest)) {
+        return zipper;
+    }
+    const [endItem, rest] = endItemAndRest[1];
+    return {
+        left: plus(zipper.left)(plus(listSingleton(zipper.current))(rest)),
+        current: endItem,
+        right: empty(),
+    };
+};
 
 export const iterateLeft = <T>(zipper: Zipper<T>): List<Zipper<T>> => {
     const inner =
