@@ -82,7 +82,7 @@ export const end = <T>(zipper: Zipper<T>): Zipper<T> => {
     }
     const [endItem, rest] = endItemAndRest[1];
     return {
-        left: plus(zipper.left)(plus(listSingleton(zipper.current))(rest)),
+        left: plus(rest)(plus(listSingleton(zipper.current))(zipper.left)),
         current: endItem,
         right: empty(),
     };
