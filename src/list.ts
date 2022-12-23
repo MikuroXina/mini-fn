@@ -9,6 +9,7 @@ import type { GetHktA1 } from "./hkt.js";
 import type { Monad1 } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { Traversable1 } from "./type-class/traversable.js";
+import type { Tuple } from "./tuple.js";
 
 export interface List<T> {
     readonly current: () => Option.Option<T>;
@@ -298,6 +299,34 @@ export const intercalate =
     (listList: List<List<T>>): List<T> =>
         concat(intersperse(separator)(listList));
 
+export const transpose = <T>(listList: List<List<T>>): List<List<T>> => {
+    const xxsAndXss = unCons(listList);
+    if (Option.isNone(xxsAndXss)) {
+        return empty();
+    }
+    const [xxs, xss] = xxsAndXss[1];
+    const xAndXs = unCons(xxs);
+    if (Option.isNone(xAndXs)) {
+        return transpose(xss);
+    }
+    const [x, xs] = xAndXs[1];
+    const [hds, tls] = unzip(
+        flatMap((list: List<T>): List<[T, List<T>]> => fromOption(unCons(list)))(xss),
+    );
+    const combine =
+        (y: T) =>
+        (h: List<T>) =>
+        (ys: List<T>) =>
+        (t: List<List<T>>): List<List<T>> =>
+            appendToHead(appendToHead(y)(h))(transpose(appendToHead(ys)(t)));
+    return combine(x)(hds)(xs)(tls);
+};
+export const interleave = <T>(listList: List<List<T>>): List<T> => concat(transpose(listList));
+export const interleaveTwoWay =
+    <T>(xs: List<T>) =>
+    (ys: List<T>): List<T> =>
+        interleave(fromArray([xs, ys]));
+
 export const subsequencesExceptEmpty = <T>(list: List<T>): List<List<T>> =>
     either<List<List<T>>>(empty)((x: T, xs) => {
         const f =
@@ -338,11 +367,11 @@ export const permutations = <A>(list: List<A>): List<List<A>> => {
                         appendToHead(f(appendToHead(t)(appendToHead(y)(us))))(zs),
                     ];
                 };
-            const interleave =
+            const interleaveA =
                 (xList: List<T>) =>
                 (r: List<List<T>>): List<List<T>> =>
                     interleaveF((x) => x)(xList)(r)[1];
-            return foldR(interleave)(perms(ts)(appendToHead(t)(uList)))(permutations(uList));
+            return foldR(interleaveA)(perms(ts)(appendToHead(t)(uList)))(permutations(uList));
         };
     return appendToHead(list)(perms(list)(empty()));
 };
@@ -493,6 +522,46 @@ export const group = <T>(equality: PartialEq<T, T>): ((list: List<T>) => List<Li
 
 export const filter = <T>(pred: (element: T) => boolean): ((list: List<T>) => List<T>) =>
     flatMap((element) => (pred(element) ? singleton(element) : empty()));
+
+export const diagonals = <T>(listList: List<List<T>>): List<List<T>> => {
+    const go =
+        (b: List<List<T>>) =>
+        (entries: List<List<T>>): List<List<T>> => {
+            const ts = map((t: List<T>) => t.rest())(b);
+            return appendToHead(flatMap((t: List<T>) => fromOption(t.current()))(b))(
+                either(() => transpose(ts))((e: List<T>, es: List<List<T>>) =>
+                    go(appendToHead(e)(ts))(es),
+                )(entries),
+            );
+        };
+    return tail(go(empty())(listList));
+};
+export const diagonal = <T>(listList: List<List<T>>): List<T> => concat(diagonals(listList));
+
+export const cartesianProduct =
+    <A, B, C>(f: (a: A) => (b: B) => C) =>
+    (xs: List<A>) =>
+    (ys: List<B>): List<C> => {
+        if (isNull(xs)) {
+            return empty();
+        }
+        return diagonal(map((y: B) => map((x: A) => f(x)(y))(xs))(ys));
+    };
+export const tupleCartesian =
+    <A>(xs: List<A>) =>
+    <B>(ys: List<B>): List<Tuple<A, B>> =>
+        cartesianProduct(
+            (a: A) =>
+                (b: B): Tuple<A, B> =>
+                    [a, b],
+        )(xs)(ys);
+export const applyCartesian =
+    <A, B>(fs: List<(a: A) => B>) =>
+    (xs: List<A>): List<B> =>
+        cartesianProduct((f: (a: A) => B) => (a: A) => f(a))(fs)(xs);
+
+export const choices = <T>(listList: List<List<T>>): List<List<T>> =>
+    foldR(cartesianProduct(appendToHead))(singleton(empty<T>()))(listList);
 
 declare const listNominal: unique symbol;
 export type ListHktKey = typeof listNominal;
