@@ -1,6 +1,7 @@
 export * as Applicative from "./type-class/applicative.js";
 export * as Apply from "./type-class/apply.js";
 export * as Category from "./type-class/category.js";
+export * as Comonad from "./type-class/comonad.js";
 export * as Endo from "./type-class/endo.js";
 export * as Eq from "./type-class/eq.js";
 export * as FlatMap from "./type-class/flat-map.js";
