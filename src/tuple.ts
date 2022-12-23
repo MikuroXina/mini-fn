@@ -1,35 +1,79 @@
+import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import { Lazy, force, defer as lazyDefer } from "./lazy.js";
+
 import type { Applicative1 } from "./type-class/applicative.js";
 import type { GetHktA1 } from "./hkt.js";
-
-// TODO: Impl more type instances
+import type { Monoid } from "./type-class/monoid.js";
+import type { SemiGroup } from "./type-class/semi-group.js";
 
 export type Tuple<A, B> = readonly [A, B];
+
+export const partialEq = <A, B>(
+    equalityA: PartialEq<A, A>,
+    equalityB: PartialEq<B, B>,
+): PartialEq<Tuple<A, B>, Tuple<A, B>> => ({
+    eq: (l, r) => equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]),
+});
+export const eq = <A, B>(
+    equalityA: Eq<A, A>,
+    equalityB: Eq<B, B>,
+): Eq<Tuple<A, B>, Tuple<A, B>> => ({
+    ...partialEq(equalityA, equalityB),
+    [eqSymbol]: true,
+});
 
 export const make =
     <A>(a: A) =>
     <B>(b: B): Tuple<A, B> =>
         [a, b];
 
-export const first = <A, B>([a]: [A, B]): A => a;
-export const second = <A, B>([, b]: [A, B]): B => b;
+export const first = <A, B>([a]: Tuple<A, B>): A => a;
+export const second = <A, B>([, b]: Tuple<A, B>): B => b;
 
 export const curry =
-    <A, B, C>(f: (tuple: [A, B]) => C) =>
+    <A, B, C>(f: (tuple: Tuple<A, B>) => C) =>
     (a: A) =>
     (b: B): C =>
         f([a, b]);
 
 export const uncurry =
     <A, B, C>(f: (a: A) => (b: B) => C) =>
-    ([a, b]: [A, B]): C =>
+    ([a, b]: Tuple<A, B>): C =>
         f(a)(b);
 
-export const swap = <A, B>([a, b]: [A, B]): [B, A] => [b, a];
+export const swap = <A, B>([a, b]: Tuple<A, B>): Tuple<B, A> => [b, a];
 
 export const map =
     <A, B>(f: (a: A) => B) =>
-    <C>(a: Tuple<C, A>): Tuple<C, B> =>
-        [a[0], f(a[1])];
+    <C>([c, a]: Tuple<C, A>): Tuple<C, B> =>
+        [c, f(a)];
+export const apply =
+    <A>(sg: SemiGroup<A>) =>
+    <T, U>([a1, f]: Tuple<A, (t: T) => U>) =>
+    ([a2, x]: Tuple<A, T>): Tuple<A, U> =>
+        [sg.combine(a1, a2), f(x)];
+export const pure =
+    <A>(monoid: Monoid<A>) =>
+    <B>(b: B): Tuple<A, B> =>
+        [monoid.identity, b];
+export const bind =
+    <A>(sg: SemiGroup<A>) =>
+    <B>([a1, b]: Tuple<A, B>) =>
+    <C>(f: (b: B) => Tuple<A, C>) => {
+        const [a2, c] = f(b);
+        return [sg.combine(a1, a2), c];
+    };
+
+export const extend =
+    <A>(f: <B>(tuple: Tuple<A, B>) => B) =>
+    <B>(tuple: Tuple<A, B>): Tuple<A, B> =>
+        [tuple[0], f(tuple)];
+export const extract = second;
+
+export const defer = <A, B>(lazy: Lazy<Tuple<A, B>>): Tuple<Lazy<A>, Lazy<B>> => [
+    lazyDefer(() => first(force(lazy))),
+    lazyDefer(() => second(force(lazy))),
+];
 
 export const foldR: <A, B>(
     folder: (a: A) => (b: B) => B,
