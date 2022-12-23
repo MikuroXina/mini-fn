@@ -178,6 +178,11 @@ export const concatMap =
                     foldR((x: T) => (b: B) => foldR(c)(b)(fn(x)))(n)(list),
         );
 
+export const flatMap =
+    <T, U>(fn: (t: T) => List<U>) =>
+    (t: List<T>): List<U> =>
+        concat(map(fn)(t));
+
 export const scanL =
     <T, U>(f: (u: U) => (t: T) => U) =>
     (init: U) =>
@@ -486,6 +491,9 @@ export const groupBy = <T>(f: (l: T) => (r: T) => boolean): ((list: List<T>) => 
 export const group = <T>(equality: PartialEq<T, T>): ((list: List<T>) => List<List<T>>) =>
     groupBy((l) => (r) => equality.eq(l, r));
 
+export const filter = <T>(pred: (element: T) => boolean): ((list: List<T>) => List<T>) =>
+    flatMap((element) => (pred(element) ? singleton(element) : empty()));
+
 declare const listNominal: unique symbol;
 export type ListHktKey = typeof listNominal;
 
@@ -506,7 +514,7 @@ export const monad: Monad1<ListHktKey> = {
     product: zip,
     pure: singleton,
     map,
-    flatMap: (fn) => (t) => concat(map(fn)(t)),
+    flatMap,
     apply:
         <T1, U1>(fns: List<(t: T1) => U1>) =>
         (t: List<T1>): List<U1> =>
