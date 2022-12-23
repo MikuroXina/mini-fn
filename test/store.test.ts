@@ -23,8 +23,9 @@ test("store with life game", () => {
     const neighborsOf = ([x, y]: Coord): List<Coord> =>
         fromArray(
             [-1, 0, 1]
-                .flatMap((dx) => [-1, 0, 1].map<Coord>((dy) => [x + dx, y + dy]))
-                .filter(([px, py]) => !(px == 0 && py == 0)),
+                .flatMap((dx) => [-1, 0, 1].map<Coord>((dy) => [dx, dy]))
+                .filter(([px, py]) => !(px == 0 && py == 0))
+                .map(([dx, dy]) => [x + dx, y + dy]),
         );
     const neighborCells: (plane: CellPlane<Conway>) => List<Conway> =
         experiment(listFunctor)(neighborsOf);
