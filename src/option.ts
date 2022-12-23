@@ -55,6 +55,13 @@ export const flatten = <T>(opt: Option<Option<T>>): Option<T> => {
     return opt;
 };
 
+export const unwrap = <T>(opt: Option<T>): T => {
+    if (isNone(opt)) {
+        throw new Error("unwrapped None");
+    }
+    return opt[1];
+};
+
 export const and =
     <U>(optB: Option<U>) =>
     <T>(optA: Option<T>) => {
