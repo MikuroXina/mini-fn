@@ -9,11 +9,10 @@ import {
     toIterator,
     zip,
 } from "../src/list.js";
-import { Store, comonad, experiment, extract } from "../src/store.js";
+import { Store, experiment, extend, extract } from "../src/store.js";
 import { expect, test } from "vitest";
 
 import { constant } from "../src/func.js";
-import { extend } from "../src/type-class/comonad.js";
 
 test("store with life game", () => {
     type Coord = [number, number];
@@ -40,7 +39,7 @@ test("store with life game", () => {
         }
         return "Dead";
     };
-    const evolve = extend(comonad)(step);
+    const evolve = extend(step);
 
     const toCellPlane = (record: Conway[][]): CellPlane<Conway> => ({
         index: [0, 0],

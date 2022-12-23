@@ -24,6 +24,13 @@ export const duplicate = <S, A>(store: Store<S, A>): Store<S, Store<S, A>> => ({
     accessor: (idx) => ({ ...store, index: idx }),
 });
 
+export const extend =
+    <S, A, B>(mapper: (sa: Store<S, A>) => B) =>
+    (store: Store<S, A>): Store<S, B> => ({
+        ...store,
+        accessor: (idx) => mapper({ ...store, index: idx }),
+    });
+
 export const experiment =
     <F>(functor: Functor1<F>) =>
     <S>(mapper: (s: S) => GetHktA1<F, S>) =>
