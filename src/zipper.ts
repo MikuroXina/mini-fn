@@ -7,6 +7,9 @@ import {
     head,
     map as listMap,
     partialEq as listPartialEq,
+    plus,
+    reverse,
+    singleton,
     unCons,
 } from "./list.js";
 import { Option, isNone, map as optionMap } from "./option.js";
@@ -32,6 +35,18 @@ export const eq = <T>(equality: Eq<T, T>): Eq<Zipper<T>, Zipper<T>> => ({
     ...partialEq(equality),
     [eqSymbol]: true,
 });
+
+export const fromList = <T>(list: List<T>): Option<Zipper<T>> =>
+    optionMap(
+        ([x, xs]: [T, List<T>]): Zipper<T> => ({
+            left: empty(),
+            current: x,
+            right: xs,
+        }),
+    )(unCons(list));
+
+export const toList = <T>(zipper: Zipper<T>): List<T> =>
+    plus(reverse(zipper.left))(plus(singleton(zipper.current))(zipper.right));
 
 export const extract = <T>(zipper: Zipper<T>): T => zipper.current;
 export const top = <T>(zipper: Zipper<T>): [Option<T>, T, Option<T>] => [
