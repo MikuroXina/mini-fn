@@ -1,6 +1,6 @@
 import { Eq, PartialEq, tuple as tupleEq } from "./eq.js";
 import { Option, flatMap, isNone, map, mapOr, none, some } from "../option.js";
-import { Ordering, equal, isEq, then } from "../ordering.js";
+import { Ordering, equal, greater, isEq, less, then } from "../ordering.js";
 
 import type { Contravariant } from "./variance.js";
 import type { Monoid } from "./monoid.js";
@@ -22,6 +22,19 @@ export const fromPartialCmp = <Lhs, Rhs>(
 ): PartialOrd<Lhs, Rhs> => ({
     partialCmp,
     eq: (l, r) => mapOr(false)((order: Ordering) => isEq(order))(partialCmp(l, r)),
+});
+
+export const numeric = fromPartialCmp((l: number, r: number) => {
+    if (Number.isNaN(l) || Number.isNaN(r)) {
+        return none();
+    }
+    if (l == r) {
+        return some(equal);
+    }
+    if (l < r) {
+        return some(less);
+    }
+    return some(greater);
 });
 
 export const tuple = <T extends unknown[]>(ord: {
