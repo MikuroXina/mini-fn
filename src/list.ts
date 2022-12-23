@@ -11,8 +11,8 @@ import type { Monoid } from "./type-class/monoid.js";
 import type { Traversable1 } from "./type-class/traversable.js";
 
 export interface List<T> {
-    current(): Option.Option<T>;
-    rest(): List<T>;
+    readonly current: () => Option.Option<T>;
+    readonly rest: () => List<T>;
 }
 
 export const partialEq = <T>(equality: PartialEq<T, T>): PartialEq<List<T>, List<T>> => ({

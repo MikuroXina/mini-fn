@@ -14,7 +14,7 @@ export type PartialOrdHktKey = typeof partialOrdNominal;
  * - Duality: If `f` is `PartialOrd`, for all `a` and `b`; `f(a, b) == -f(b, a)`.
  */
 export interface PartialOrd<Lhs, Rhs> extends PartialEq<Lhs, Rhs> {
-    partialCmp(lhs: Lhs, rhs: Rhs): Option<Ordering>;
+    readonly partialCmp: (lhs: Lhs, rhs: Rhs) => Option<Ordering>;
 }
 
 export const fromPartialCmp = <Lhs, Rhs>(
@@ -72,7 +72,7 @@ export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
  * - Strict: Ordering for all values is well-defined (so the return value is not an `Option`).
  */
 export interface Ord<Lhs, Rhs> extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> {
-    cmp(lhs: Lhs, rhs: Rhs): Ordering;
+    readonly cmp: (lhs: Lhs, rhs: Rhs) => Ordering;
 }
 
 export const reversed = <Lhs, Rhs>(ord: Ord<Lhs, Rhs>): Ord<Lhs, Rhs> => ({

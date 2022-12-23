@@ -7,7 +7,7 @@ export type CatHktKey = typeof catNominal;
 
 export interface Cat<T> {
     readonly value: T;
-    feed<U>(fn: (t: T) => U): Cat<U>;
+    readonly feed: <U>(fn: (t: T) => U) => Cat<U>;
 }
 export const cat = <T>(value: T): Cat<T> => ({
     value,

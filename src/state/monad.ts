@@ -2,7 +2,7 @@ import type { GetHktA1 } from "../hkt.js";
 import type { Monad1 } from "../type-class/monad.js";
 
 export interface MonadState<S, M> extends Monad1<M> {
-    state: <A>(modifier: (state: S) => [A, S]) => GetHktA1<M, A>;
+    readonly state: <A>(modifier: (state: S) => [A, S]) => GetHktA1<M, A>;
 }
 
 export const get = <S, M>(s: MonadState<S, M>): GetHktA1<M, S> =>

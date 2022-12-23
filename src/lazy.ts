@@ -9,7 +9,7 @@ import type { Traversable1 } from "./type-class/traversable.js";
 const lazyNominal = Symbol("Lazy");
 export type LazyHktKey = typeof lazyNominal;
 export interface Lazy<L> {
-    [lazyNominal]: () => L;
+    readonly [lazyNominal]: () => L;
 }
 
 export const defer = <L>(deferred: () => L): Lazy<L> => ({ [lazyNominal]: deferred });

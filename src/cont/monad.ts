@@ -6,7 +6,7 @@ export type CallCC<M> = <A, B>(
 ) => GetHktA1<M, A>;
 
 export interface MonadCont<M> extends Monad1<M> {
-    callCC: CallCC<M>;
+    readonly callCC: CallCC<M>;
 }
 
 export const label =

@@ -3,24 +3,28 @@ import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt.js";
 import type { Invariant } from "./variance.js";
 
 export interface Functor<F extends symbol> {
-    map<T, U>(fn: (t: T) => U): (t: Hkt<F, T>) => Hkt<F, U>;
+    readonly map: <T, U>(fn: (t: T) => U) => (t: Hkt<F, T>) => Hkt<F, U>;
 }
 export interface Functor1<S> {
-    map<T1, U1>(fn: (t: T1) => U1): (t: GetHktA1<S, T1>) => GetHktA1<S, U1>;
+    readonly map: <T1, U1>(fn: (t: T1) => U1) => (t: GetHktA1<S, T1>) => GetHktA1<S, U1>;
 }
 export interface Functor2<S> {
-    map<T1, T2, U2>(fn: (t: T2) => U2): (t: GetHktA2<S, T1, T2>) => GetHktA2<S, T1, U2>;
+    readonly map: <T1, T2, U2>(
+        fn: (t: T2) => U2,
+    ) => (t: GetHktA2<S, T1, T2>) => GetHktA2<S, T1, U2>;
 }
 export interface Functor2Monoid<S, M> {
-    map<T2, U2>(fn: (t: T2) => U2): (t: GetHktA2<S, M, T2>) => GetHktA2<S, M, U2>;
+    readonly map: <T2, U2>(fn: (t: T2) => U2) => (t: GetHktA2<S, M, T2>) => GetHktA2<S, M, U2>;
 }
 export interface Functor3<S> {
-    map<T1, T2, T3, U3>(fn: (t: T3) => U3): (t: GetHktA3<S, T1, T2, T3>) => GetHktA3<S, T1, T2, U3>;
+    readonly map: <T1, T2, T3, U3>(
+        fn: (t: T3) => U3,
+    ) => (t: GetHktA3<S, T1, T2, T3>) => GetHktA3<S, T1, T2, U3>;
 }
 export interface Functor4<S> {
-    map<T1, T2, T3, T4, U4>(
+    readonly map: <T1, T2, T3, T4, U4>(
         fn: (t: T4) => U4,
-    ): (t: GetHktA4<S, T1, T2, T3, T4>) => GetHktA4<S, T1, T2, T3, U4>;
+    ) => (t: GetHktA4<S, T1, T2, T3, T4>) => GetHktA4<S, T1, T2, T3, U4>;
 }
 
 export const map =

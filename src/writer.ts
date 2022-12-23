@@ -4,6 +4,7 @@ import type { Functor2 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { IdentityHktKey } from "./identity.js";
 import type { Monoid } from "./type-class/monoid.js";
+import type { Tuple } from "./tuple.js";
 
 export interface WriterT<W, M, A> {
     (): GetHktA1<M, [A, W]>;
@@ -96,7 +97,7 @@ export const censor =
 export const product =
     <W>(monoid: Monoid<W>) =>
     <A>(a: Writer<W, A>) =>
-    <B>(b: Writer<W, B>): Writer<W, [A, B]> =>
+    <B>(b: Writer<W, B>): Writer<W, Tuple<A, B>> =>
     () => {
         const [aEval, aExec] = a();
         const [bEval, bExec] = b();

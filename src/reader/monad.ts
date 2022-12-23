@@ -2,8 +2,8 @@ import type { GetHktA1 } from "../hkt.js";
 import type { Monad1 } from "../type-class/monad.js";
 
 export interface MonadReader<R, M> extends Monad1<M> {
-    ask: () => GetHktA1<M, R>;
-    local: (modifier: (record: R) => R) => <A>(m: GetHktA1<M, A>) => GetHktA1<M, A>;
+    readonly ask: () => GetHktA1<M, R>;
+    readonly local: (modifier: (record: R) => R) => <A>(m: GetHktA1<M, A>) => GetHktA1<M, A>;
 }
 
 export const reader =

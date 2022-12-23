@@ -7,7 +7,7 @@ import type { Monoid } from "./monoid.js";
  * - Transitive: `PartialEq<A, B>` and `PartialEq<B, C>` always implies `PartialEq<A, C>`.
  */
 export interface PartialEq<Lhs, Rhs> {
-    eq(l: Lhs, r: Rhs): boolean;
+    readonly eq: (l: Lhs, r: Rhs) => boolean;
 }
 
 declare const partialEqNominal: unique symbol;
@@ -79,5 +79,5 @@ export const eqSymbol = Symbol("ImplEq");
  * ```
  */
 export interface Eq<Lhs, Rhs> extends PartialEq<Lhs, Rhs> {
-    [eqSymbol]: true;
+    readonly [eqSymbol]: true;
 }
