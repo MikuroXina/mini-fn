@@ -11,18 +11,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: ^7.19.0
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: yarn
+          cache: pnpm
       - name: Install dependencies
-        run: yarn install --immutable
+        run: pnpm install --frozen-lockfile
       - name: Run test
-        run: yarn run test
+        run: pnpm run test
 
       - name: Generate coverage
-        run: yarn run coverage
+        run: pnpm run coverage
       - uses: codecov/codecov-action@v3
         with:
           files: ./coverage/clover.xml
