@@ -2,6 +2,8 @@
 
 The minimal functional programming library.
 
+[![codecov](https://codecov.io/github/MikuroXina/mini-fn/branch/main/graph/badge.svg?token=3HZ2Y5T1A2)](https://codecov.io/github/MikuroXina/mini-fn)
+
 ---
 
 mini-fn provides simple, tiny library having functional features and its type declarations.
