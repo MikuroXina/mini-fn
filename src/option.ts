@@ -85,7 +85,8 @@ export const cmp =
         }
         return order.cmp(l[1], r[1]);
     };
-export const ord = fromCmp(cmp);
+// This argument wrapper is needed for avoid cyclic-import problem.
+export const ord = <T>(order: Ord<T, T>) => fromCmp(cmp)(order);
 
 export const flatten = <T>(opt: Option<Option<T>>): Option<T> => {
     if (isSome(opt)) {
