@@ -9,7 +9,6 @@ import {
     partialEq as lazyPartialEq,
     partialOrd as lazyPartialOrd,
 } from "./lazy.js";
-import type { Ord, PartialOrd } from "./type-class/ord.js";
 import {
     Tuple,
     eq as tupleEq,
@@ -21,7 +20,9 @@ import {
 
 import type { Functor1 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
+import type { Ord } from "./type-class/ord.js";
 import type { PartialEq } from "./type-class/partial-eq.js";
+import type { PartialOrd } from "./type-class/partial-ord.js";
 import { compose } from "./func.js";
 
 declare const cofreeNominal: unique symbol;

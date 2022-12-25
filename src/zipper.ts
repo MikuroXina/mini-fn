@@ -15,11 +15,12 @@ import {
     unCons,
 } from "./list.js";
 import { Option, andThen, isNone, map as optionMap, unwrap } from "./option.js";
-import type { Ord, PartialOrd } from "./type-class/ord.js";
 
 import type { Comonad1 } from "./type-class/comonad.js";
 import type { Functor1 } from "./type-class/functor.js";
+import type { Ord } from "./type-class/ord.js";
 import type { PartialEq } from "./type-class/partial-eq.js";
+import type { PartialOrd } from "./type-class/partial-ord.js";
 import { andThen as thenWith } from "./ordering.js";
 
 declare const zipperNominal: unique symbol;

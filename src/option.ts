@@ -1,5 +1,4 @@
 import { Eq, eqSymbol } from "./type-class/eq.js";
-import type { Ord, PartialOrd } from "./type-class/ord.js";
 import { Result, err, isOk, ok } from "./result.js";
 import { equal, greater, less } from "./ordering.js";
 
@@ -7,7 +6,9 @@ import type { Applicative1 } from "./type-class/applicative.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { Monad1 } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
+import type { Ord } from "./type-class/ord.js";
 import type { PartialEq } from "./type-class/partial-eq.js";
+import type { PartialOrd } from "./type-class/partial-ord.js";
 import type { Traversable1 } from "./type-class/traversable.js";
 
 const someSymbol = Symbol("OptionSome");

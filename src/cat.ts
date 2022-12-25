@@ -1,10 +1,11 @@
 /* eslint-disable no-console */
 
 import { Eq, eqSymbol } from "./type-class/eq.js";
-import type { Ord, PartialOrd } from "./type-class/ord.js";
 
 import type { Monad1 } from "./type-class/monad.js";
+import type { Ord } from "./type-class/ord.js";
 import type { PartialEq } from "./type-class/partial-eq.js";
+import type { PartialOrd } from "./type-class/partial-ord.js";
 
 declare const catNominal: unique symbol;
 export type CatHktKey = typeof catNominal;
