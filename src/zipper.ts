@@ -6,16 +6,20 @@ import {
     empty,
     head,
     map as listMap,
+    ord as listOrd,
     partialEq as listPartialEq,
+    partialOrd as listPartialOrd,
     singleton as listSingleton,
     plus,
     reverse,
     unCons,
 } from "./list.js";
-import { Option, isNone, map as optionMap, unwrap } from "./option.js";
+import { Option, andThen, isNone, map as optionMap, unwrap } from "./option.js";
+import type { Ord, PartialOrd } from "./type-class/ord.js";
 
 import type { Comonad1 } from "./type-class/comonad.js";
 import type { Functor1 } from "./type-class/functor.js";
+import { thenWith } from "./ordering.js";
 
 declare const zipperNominal: unique symbol;
 export type ZipperHktKey = typeof zipperNominal;
@@ -25,14 +29,33 @@ export interface Zipper<T> {
     readonly right: List<T>;
 }
 
-export const partialEq = <T>(equality: PartialEq<T, T>): PartialEq<Zipper<T>, Zipper<T>> => ({
+export const partialEq = <T>(equality: PartialEq<T>): PartialEq<Zipper<T>> => ({
     eq: (aZipper: Zipper<T>, bZipper: Zipper<T>): boolean =>
         listPartialEq(equality).eq(aZipper.left, bZipper.left) &&
         equality.eq(aZipper.current, bZipper.current) &&
         listPartialEq(equality).eq(aZipper.right, bZipper.right),
 });
-export const eq = <T>(equality: Eq<T, T>): Eq<Zipper<T>, Zipper<T>> => ({
+export const eq = <T>(equality: Eq<T>): Eq<Zipper<T>> => ({
     ...partialEq(equality),
+    [eqSymbol]: true,
+});
+export const partialOrd = <T>(order: PartialOrd<T>): PartialOrd<Zipper<T>> => ({
+    ...partialEq(order),
+    partialCmp: (lhs, rhs) =>
+        andThen(() => listPartialOrd(order).partialCmp(lhs.right, rhs.right))(
+            andThen(() => order.partialCmp(lhs.current, rhs.current))(
+                listPartialOrd(order).partialCmp(reverse(lhs.left), reverse(rhs.left)),
+            ),
+        ),
+});
+export const ord = <T>(order: Ord<T>): Ord<Zipper<T>> => ({
+    ...partialOrd(order),
+    cmp: (lhs, rhs) =>
+        thenWith(() => listOrd(order).cmp(lhs.right, rhs.right))(
+            thenWith(() => order.cmp(lhs.current, rhs.current))(
+                listOrd(order).cmp(reverse(lhs.left), reverse(rhs.left)),
+            ),
+        ),
     [eqSymbol]: true,
 });
 
