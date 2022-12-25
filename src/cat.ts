@@ -54,6 +54,10 @@ export const flatMap =
     <T, U>(fn: (t: T) => Cat<U>) =>
     (catT: Cat<T>): Cat<U> =>
         flatten(map(fn)(catT));
+export const apply =
+    <T1, U1>(fn: Cat<(t: T1) => U1>) =>
+    (t: Cat<T1>): Cat<U1> =>
+        flatMap(t.feed)(fn);
 
 declare module "./hkt.js" {
     interface HktDictA1<A1> {
@@ -66,8 +70,5 @@ export const monad: Monad1<CatHktKey> = {
     pure: cat,
     map,
     flatMap,
-    apply:
-        <T1, U1>(fn: Cat<(t: T1) => U1>) =>
-        (t: Cat<T1>): Cat<U1> =>
-            flatMap(t.feed)(fn),
+    apply,
 };
