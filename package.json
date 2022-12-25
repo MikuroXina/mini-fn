@@ -6,9 +6,16 @@
     "dist"
   ],
   "type": "module",
-  "main": "dist/lib.cjs",
-  "module": "dist/lib.js",
-  "types": "dist/lib.d.ts",
+  "main": "./dist/lib.cjs",
+  "module": "./dist/lib.js",
+  "types": "./dist/lib.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/lib.cjs",
+      "import": "./dist/lib.js",
+      "types": "./dist/lib.d.ts"
+    }
+  },
   "sideEffects": false,
   "repository": "https://github.com/MikuroXina/mini-fn.git",
   "author": "MikuroXina",
