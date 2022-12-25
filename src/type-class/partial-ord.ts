@@ -1,4 +1,4 @@
-import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "src/hkt.js";
+import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt.js";
 import { Option, flatMap, map, mapOr, some } from "../option.js";
 import { Ordering, and, equal, isEq } from "../ordering.js";
 

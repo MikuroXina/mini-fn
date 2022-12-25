@@ -1,4 +1,4 @@
-import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "src/hkt.js";
+import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt.js";
 
 import type { PartialEq } from "./partial-eq.js";
 

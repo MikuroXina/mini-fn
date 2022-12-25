@@ -1,5 +1,5 @@
 import { Eq, eqSymbol } from "./eq.js";
-import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "src/hkt.js";
+import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt.js";
 import { Ordering, isEq } from "../ordering.js";
 
 import type { PartialOrd } from "./partial-ord.js";

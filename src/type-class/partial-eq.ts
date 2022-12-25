@@ -1,4 +1,4 @@
-import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "src/hkt.js";
+import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt.js";
 
 import type { Contravariant } from "./variance.js";
 import type { Monoid } from "./monoid.js";

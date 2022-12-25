@@ -1,7 +1,7 @@
 import type { Monad1, Monad2 } from "./type-class/monad.js";
 
 import type { Functor2 } from "./type-class/functor.js";
-import type { GetHktA1 } from "src/hkt.js";
+import type { GetHktA1 } from "./hkt.js";
 import type { IdentityHktKey } from "./identity.js";
 import type { Tuple } from "./tuple.js";
 
