@@ -2,48 +2,50 @@ import * as Applicative from "./type-class/applicative.js";
 import * as Cat from "./cat.js";
 import * as Option from "./option.js";
 
-import { Eq, eqSymbol } from "./type-class/eq.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { Ordering, andThen } from "./ordering.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
 import type { Functor1 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { Monad1 } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
-import type { Ord } from "./type-class/ord.js";
-import type { PartialEq } from "./type-class/partial-eq.js";
-import type { PartialOrd } from "./type-class/partial-ord.js";
 import type { Traversable1 } from "./type-class/traversable.js";
 import type { Tuple } from "./tuple.js";
-import { andThen } from "./ordering.js";
 
 export interface List<T> {
     readonly current: () => Option.Option<T>;
     readonly rest: () => List<T>;
 }
 
-export const partialEq = <T>(equality: PartialEq<T>): PartialEq<List<T>> => ({
-    eq: (aList: List<T>, bList: List<T>): boolean =>
-        Option.partialEq(equality).eq(aList.current(), bList.current()) &&
-        partialEq(equality).eq(aList.rest(), bList.rest()),
-});
-export const eq = <T>(equality: Eq<T>): Eq<List<T>> => ({
-    ...partialEq(equality),
-    [eqSymbol]: true,
-});
-export const partialOrd = <T>(order: PartialOrd<T>): PartialOrd<List<T>> => ({
-    ...partialEq(order),
-    partialCmp: (l, r) =>
-        Option.andThen(() => partialOrd(order).partialCmp(l.rest(), r.rest()))(
+export const partialEquality = <T>(equalityT: PartialEq<T>) => {
+    const self = (l: List<T>, r: List<T>): boolean =>
+        Option.partialEq(equalityT).eq(l.current(), r.current()) && self(l.rest(), r.rest());
+    return self;
+};
+export const partialEq = fromPartialEquality(partialEquality);
+export const equality = <T>(equalityT: Eq<T>) => {
+    const self = (l: List<T>, r: List<T>): boolean =>
+        Option.eq(equalityT).eq(l.current(), r.current()) && self(l.rest(), r.rest());
+    return self;
+};
+export const eq = fromEquality(equality);
+export const partialCmp = <T>(order: PartialOrd<T>) => {
+    const self = (l: List<T>, r: List<T>): Option.Option<Ordering> =>
+        Option.andThen(() => self(l.rest(), r.rest()))(
             Option.partialOrd(order).partialCmp(l.current(), r.current()),
-        ),
-});
-export const ord = <T>(order: Ord<T>): Ord<List<T>> => ({
-    ...partialOrd(order),
-    cmp: (l, r) =>
-        andThen(() => ord(order).cmp(l.rest(), r.rest()))(
-            Option.ord(order).cmp(l.current(), r.current()),
-        ),
-    [eqSymbol]: true,
-});
+        );
+    return self;
+};
+export const partialOrd = fromPartialCmp(partialCmp);
+export const cmp = <T>(order: Ord<T>) => {
+    const self = (l: List<T>, r: List<T>): Ordering =>
+        andThen(() => self(l.rest(), r.rest()))(Option.ord(order).cmp(l.current(), r.current()));
+    return self;
+};
+export const ord = fromCmp(cmp);
 
 export const isNull = <T>(list: List<T>): boolean => Option.isNone(list.current());
 
@@ -467,9 +469,9 @@ export const findIndex =
         return Option.none();
     };
 export const elemIndex =
-    <T>(equality: PartialEq<T>) =>
+    <T>(equalityT: PartialEq<T>) =>
     (target: T) =>
-        findIndex((value: T) => equality.eq(value, target));
+        findIndex((value: T) => equalityT.eq(value, target));
 export const findIndices =
     <T>(pred: (value: T) => boolean) =>
     (list: List<T>): number[] => {
@@ -484,9 +486,9 @@ export const findIndices =
         return indices;
     };
 export const elemIndices =
-    <T>(equality: PartialEq<T>) =>
+    <T>(equalityT: PartialEq<T>) =>
     (target: T) =>
-        findIndices((value: T) => equality.eq(value, target));
+        findIndices((value: T) => equalityT.eq(value, target));
 
 export const takeWhile =
     <T>(pred: (t: T) => boolean) =>
@@ -522,12 +524,12 @@ export const span =
 export const spanNot = <T>(pred: (t: T) => boolean) => span((t: T) => !pred(t));
 
 export const stripPrefix =
-    <T>(equality: PartialEq<T>) =>
+    <T>(equalityT: PartialEq<T>) =>
     (prefix: List<T>) =>
     (list: List<T>): Option.Option<List<T>> =>
         either<Option.Option<List<T>>>(() => Option.some(list))((x: T, xs) =>
             Option.andThen(([y, ys]: [T, List<T>]) =>
-                equality.eq(x, y) ? stripPrefix<T>(equality)(xs)(ys) : Option.none(),
+                equalityT.eq(x, y) ? stripPrefix<T>(equalityT)(xs)(ys) : Option.none(),
             )(unCons(list)),
         )(prefix);
 
@@ -536,8 +538,8 @@ export const groupBy = <T>(f: (l: T) => (r: T) => boolean): ((list: List<T>) => 
         const [ys, zs] = span(f(x))(xs);
         return appendToHead(appendToHead(x)(ys))(groupBy(f)(zs));
     });
-export const group = <T>(equality: PartialEq<T>): ((list: List<T>) => List<List<T>>) =>
-    groupBy((l) => (r) => equality.eq(l, r));
+export const group = <T>(equalityT: PartialEq<T>): ((list: List<T>) => List<List<T>>) =>
+    groupBy((l) => (r) => equalityT.eq(l, r));
 
 export const filter = <T>(pred: (element: T) => boolean): ((list: List<T>) => List<T>) =>
     flatMap((element) => (pred(element) ? singleton(element) : empty()));
