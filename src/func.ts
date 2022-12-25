@@ -9,11 +9,6 @@ export const absurd = <T>(): T => {
     throw new Error("PANIC: absurd must not be called");
 };
 
-export const oneShot =
-    <T, U>(f: (a: T) => U) =>
-    (a: T): U =>
-        f(a);
-
 export const compose =
     <U, V>(f: (u: U) => V) =>
     <T>(g: (t: T) => U) =>

@@ -3,7 +3,7 @@ import { List, build } from "../list.js";
 import { Monoid, append } from "./monoid.js";
 import { Option, isNone, none, some, unwrapOrElse } from "../option.js";
 import { andMonoid, orMonoid } from "../bool.js";
-import { compose, oneShot } from "../func.js";
+import { compose, id } from "../func.js";
 
 import type { PartialEq } from "./partial-eq.js";
 
@@ -34,9 +34,7 @@ export const foldL =
     <A, B>(f: (b: B) => (a: A) => B) =>
     (init: B) =>
     (data: GetHktA1<T, A>): B =>
-        foldable.foldR((x: A) => (k: (b: B) => B) => oneShot((z: B) => k(f(z)(x))))((x: B): B => x)(
-            data,
-        )(init);
+        foldable.foldR((x: A) => (k: (b: B) => B) => (z: B) => k(f(z)(x)))(id)(data)(init);
 
 export const foldR1 =
     <T>(foldable: Foldable1<T>) =>
