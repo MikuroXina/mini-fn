@@ -15,4 +15,4 @@ export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
     }
     return some(greater);
 };
-export const partialOrd = fromPartialCmp(partialCmp);
+export const partialOrd = fromPartialCmp(() => partialCmp)();
