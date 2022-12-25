@@ -1,24 +1,37 @@
 import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
 import { Lazy, force, defer as lazyDefer } from "./lazy.js";
+import type { Ord, PartialOrd } from "./type-class/ord.js";
 
 import type { Applicative1 } from "./type-class/applicative.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { SemiGroup } from "./type-class/semi-group.js";
+import { andThen } from "./option.js";
+import { thenWith } from "./ordering.js";
 
 export type Tuple<A, B> = readonly [A, B];
 
 export const partialEq = <A, B>(
-    equalityA: PartialEq<A, A>,
-    equalityB: PartialEq<B, B>,
-): PartialEq<Tuple<A, B>, Tuple<A, B>> => ({
+    equalityA: PartialEq<A>,
+    equalityB: PartialEq<B>,
+): PartialEq<Tuple<A, B>> => ({
     eq: (l, r) => equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]),
 });
-export const eq = <A, B>(
-    equalityA: Eq<A, A>,
-    equalityB: Eq<B, B>,
-): Eq<Tuple<A, B>, Tuple<A, B>> => ({
+export const eq = <A, B>(equalityA: Eq<A>, equalityB: Eq<B>): Eq<Tuple<A, B>> => ({
     ...partialEq(equalityA, equalityB),
+    [eqSymbol]: true,
+});
+export const partialOrd = <A, B>(
+    ordA: PartialOrd<A>,
+    ordB: PartialOrd<B>,
+): PartialOrd<Tuple<A, B>> => ({
+    ...partialEq(ordA, ordB),
+    partialCmp: ([a1, b1], [a2, b2]) =>
+        andThen(() => ordB.partialCmp(b1, b2))(ordA.partialCmp(a1, a2)),
+});
+export const ord = <A, B>(ordA: Ord<A>, ordB: Ord<B>): Ord<Tuple<A, B>> => ({
+    ...partialOrd(ordA, ordB),
+    cmp: ([a1, b1], [a2, b2]) => thenWith(() => ordB.cmp(b1, b2))(ordA.cmp(a1, a2)),
     [eqSymbol]: true,
 });
 
