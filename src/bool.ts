@@ -11,4 +11,4 @@ export const orMonoid: Monoid<boolean> = {
 };
 
 export const equality = (lhs: boolean, rhs: boolean): boolean => lhs === rhs;
-export const eq = fromEquality(equality);
+export const eq = fromEquality(() => equality)();
