@@ -1,14 +1,14 @@
-import { Eq, eqSymbol } from "./type-class/eq.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { Ordering, equal, greater, less } from "./ordering.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 import { Result, err, isOk, ok } from "./result.js";
-import { equal, greater, less } from "./ordering.js";
 
 import type { Applicative1 } from "./type-class/applicative.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { Monad1 } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
-import type { Ord } from "./type-class/ord.js";
-import type { PartialEq } from "./type-class/partial-eq.js";
-import type { PartialOrd } from "./type-class/partial-ord.js";
 import type { Traversable1 } from "./type-class/traversable.js";
 
 const someSymbol = Symbol("OptionSome");
@@ -42,18 +42,21 @@ export const toArray = <T>(opt: Option<T>): T[] => {
     return arr as T[];
 };
 
-export const partialEq = <T>(equality: PartialEq<T>): PartialEq<Option<T>> => ({
-    eq: (optA: Option<T>, optB: Option<T>): boolean =>
-        (isSome(optA) && isSome(optB) && equality.eq(optA[1], optB[1])) ||
-        (isNone(optA) && isNone(optB)),
-});
-export const eq = <T>(equality: Eq<T>): Eq<Option<T>> => ({
-    ...partialEq(equality),
-    [eqSymbol]: true,
-});
-export const partialOrd = <T>(order: PartialOrd<T>): PartialOrd<Option<T>> => ({
-    ...partialEq(order),
-    partialCmp: (l, r) => {
+export const partialEquality =
+    <T>(equalityT: PartialEq<T>) =>
+    (optA: Option<T>, optB: Option<T>): boolean =>
+        (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1])) ||
+        (isNone(optA) && isNone(optB));
+export const partialEq = fromPartialEquality(partialEquality);
+export const equality =
+    <T>(equalityT: Eq<T>) =>
+    (optA: Option<T>, optB: Option<T>): boolean =>
+        (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1])) ||
+        (isNone(optA) && isNone(optB));
+export const eq = fromEquality(equality);
+export const partialCmp =
+    <T>(order: PartialOrd<T>) =>
+    (l: Option<T>, r: Option<T>): Option<Ordering> => {
         // considered that None is lesser than Some
         if (isNone(l)) {
             if (isNone(r)) {
@@ -65,11 +68,11 @@ export const partialOrd = <T>(order: PartialOrd<T>): PartialOrd<Option<T>> => ({
             return some(greater);
         }
         return order.partialCmp(l[1], r[1]);
-    },
-});
-export const ord = <T>(order: Ord<T>): Ord<Option<T>> => ({
-    ...partialOrd(order),
-    cmp: (l, r) => {
+    };
+export const partialOrd = fromPartialCmp(partialCmp);
+export const cmp =
+    <T>(order: Ord<T>) =>
+    (l: Option<T>, r: Option<T>): Ordering => {
         // considered that None is lesser than Some
         if (isNone(l)) {
             if (isNone(r)) {
@@ -81,9 +84,8 @@ export const ord = <T>(order: Ord<T>): Ord<Option<T>> => ({
             return greater;
         }
         return order.cmp(l[1], r[1]);
-    },
-    [eqSymbol]: true,
-});
+    };
+export const ord = fromCmp(cmp);
 
 export const flatten = <T>(opt: Option<Option<T>>): Option<T> => {
     if (isSome(opt)) {
