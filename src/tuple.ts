@@ -1,10 +1,11 @@
-import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import { Eq, eqSymbol } from "./type-class/eq.js";
 import { Lazy, force, defer as lazyDefer } from "./lazy.js";
 import type { Ord, PartialOrd } from "./type-class/ord.js";
 
 import type { Applicative1 } from "./type-class/applicative.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { Monoid } from "./type-class/monoid.js";
+import type { PartialEq } from "./type-class/partial-eq.js";
 import type { SemiGroup } from "./type-class/semi-group.js";
 import { andThen } from "./option.js";
 import { andThen as thenWith } from "./ordering.js";

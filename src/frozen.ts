@@ -1,7 +1,8 @@
-import { Eq, PartialEq, fromEquality, fromPartialEquality } from "./type-class/eq.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
 import { Option, andThen, none, some } from "./option.js";
 import { Ord, PartialOrd, fromCmp, fromPartialCmp } from "./type-class/ord.js";
 import { Ordering, isEq, and as then } from "./ordering.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 
 import type { Monad1 } from "./type-class/monad.js";
 import { id } from "./func.js";

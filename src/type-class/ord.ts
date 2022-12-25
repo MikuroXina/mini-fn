@@ -1,9 +1,10 @@
-import { Eq, PartialEq, eqSymbol } from "./eq.js";
+import { Eq, eqSymbol } from "./eq.js";
 import { Option, flatMap, map, mapOr, some } from "../option.js";
 import { Ordering, and, equal, isEq } from "../ordering.js";
 
 import type { Contravariant } from "./variance.js";
 import type { Monoid } from "./monoid.js";
+import type { PartialEq } from "./partial-eq.js";
 
 declare const partialOrdNominal: unique symbol;
 export type PartialOrdHktKey = typeof partialOrdNominal;

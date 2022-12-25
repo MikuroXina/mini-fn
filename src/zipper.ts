@@ -1,4 +1,4 @@
-import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import { Eq, eqSymbol } from "./type-class/eq.js";
 import {
     List,
     appendToHead,
@@ -19,6 +19,7 @@ import type { Ord, PartialOrd } from "./type-class/ord.js";
 
 import type { Comonad1 } from "./type-class/comonad.js";
 import type { Functor1 } from "./type-class/functor.js";
+import type { PartialEq } from "./type-class/partial-eq.js";
 import { andThen as thenWith } from "./ordering.js";
 
 declare const zipperNominal: unique symbol;

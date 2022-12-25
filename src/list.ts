@@ -2,13 +2,14 @@ import * as Applicative from "./type-class/applicative.js";
 import * as Cat from "./cat.js";
 import * as Option from "./option.js";
 
-import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import { Eq, eqSymbol } from "./type-class/eq.js";
 import type { Ord, PartialOrd } from "./type-class/ord.js";
 
 import type { Functor1 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { Monad1 } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
+import type { PartialEq } from "./type-class/partial-eq.js";
 import type { Traversable1 } from "./type-class/traversable.js";
 import type { Tuple } from "./tuple.js";
 import { andThen } from "./ordering.js";

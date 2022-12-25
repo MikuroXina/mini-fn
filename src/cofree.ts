@@ -1,4 +1,4 @@
-import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import { Eq, eqSymbol } from "./type-class/eq.js";
 import {
     Lazy,
     force,
@@ -21,6 +21,7 @@ import {
 
 import type { Functor1 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
+import type { PartialEq } from "./type-class/partial-eq.js";
 import { compose } from "./func.js";
 
 declare const cofreeNominal: unique symbol;

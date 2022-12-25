@@ -5,7 +5,7 @@ import { Option, isNone, none, some, unwrapOrElse } from "../option.js";
 import { andMonoid, orMonoid } from "../bool.js";
 import { compose, oneShot } from "../func.js";
 
-import type { PartialEq } from "./eq.js";
+import type { PartialEq } from "./partial-eq.js";
 
 export interface Foldable1<T> {
     readonly foldR: <A, B>(
