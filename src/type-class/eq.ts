@@ -20,10 +20,12 @@ export interface Eq<Lhs, Rhs = Lhs> extends PartialEq<Lhs, Rhs> {
     readonly [eqSymbol]: true;
 }
 
-export const fromEquality = <Lhs, Rhs>(equality: (l: Lhs, r: Rhs) => boolean): Eq<Lhs, Rhs> => ({
-    eq: equality,
-    [eqSymbol]: true,
-});
+export const fromEquality =
+    <Lhs, Rhs, X = void>(equality: (x: X) => (l: Lhs, r: Rhs) => boolean) =>
+    (x: X): Eq<Lhs, Rhs> => ({
+        eq: equality(x),
+        [eqSymbol]: true,
+    });
 
 export function fromProjection<F>(
     projection: <X>(structure: GetHktA1<F, X>) => X,

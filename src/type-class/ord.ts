@@ -15,12 +15,14 @@ export interface Ord<Lhs, Rhs = Lhs> extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> 
     readonly cmp: (lhs: Lhs, rhs: Rhs) => Ordering;
 }
 
-export const fromCmp = <Lhs, Rhs>(cmp: (lhs: Lhs, rhs: Rhs) => Ordering): Ord<Lhs, Rhs> => ({
-    eq: (l, r) => isEq(cmp(l, r)),
-    partialCmp: (l, r) => some(cmp(l, r)),
-    cmp,
-    [eqSymbol]: true,
-});
+export const fromCmp =
+    <Lhs, Rhs, X = void>(cmp: (x: X) => (lhs: Lhs, rhs: Rhs) => Ordering) =>
+    (x: X): Ord<Lhs, Rhs> => ({
+        eq: (l, r) => isEq(cmp(x)(l, r)),
+        partialCmp: (l, r) => some(cmp(x)(l, r)),
+        cmp: cmp(x),
+        [eqSymbol]: true,
+    });
 
 export function fromProjection<F>(
     projection: <X>(structure: GetHktA1<F, X>) => X,

@@ -18,12 +18,12 @@ export interface PartialOrd<Lhs, Rhs = Lhs> extends PartialEq<Lhs, Rhs> {
     readonly partialCmp: (lhs: Lhs, rhs: Rhs) => Option<Ordering>;
 }
 
-export const fromPartialCmp = <Lhs, Rhs>(
-    partialCmp: (lhs: Lhs, rhs: Rhs) => Option<Ordering>,
-): PartialOrd<Lhs, Rhs> => ({
-    partialCmp,
-    eq: (l, r) => mapOr(false)((order: Ordering) => isEq(order))(partialCmp(l, r)),
-});
+export const fromPartialCmp =
+    <Lhs, Rhs, X = void>(partialCmp: (x: X) => (lhs: Lhs, rhs: Rhs) => Option<Ordering>) =>
+    (x: X): PartialOrd<Lhs, Rhs> => ({
+        partialCmp: partialCmp(x),
+        eq: (l, r) => mapOr(false)((order: Ordering) => isEq(order))(partialCmp(x)(l, r)),
+    });
 
 export function fromProjection<F>(
     projection: <X>(structure: GetHktA1<F, X>) => X,
@@ -53,10 +53,13 @@ declare module "../hkt.js" {
 }
 
 export const contravariant: Contravariant<PartialOrdHktKey> = {
-    contraMap: (f) => (ord) => fromPartialCmp((l, r) => ord.partialCmp(f(l), f(r))),
+    contraMap:
+        <T1, U1>(f: (t1: T1) => U1) =>
+        (ord: PartialOrd<U1>) =>
+            fromPartialCmp(() => (l: T1, r: T1) => ord.partialCmp(f(l), f(r)))(),
 };
 
-export const identity: PartialOrd<unknown> = fromPartialCmp(() => some(equal));
+export const identity: PartialOrd<unknown> = fromPartialCmp(() => () => some(equal))();
 
 export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
     combine: (x, y) => ({

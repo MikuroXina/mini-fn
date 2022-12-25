@@ -27,11 +27,11 @@ export const contravariant: Contravariant<PartialEqHktKey> = {
         (p: PartialEq<T2>): PartialEq<T1> => ({ eq: (l, r) => p.eq(f(l), f(r)) }),
 };
 
-export const fromPartialEquality = <Lhs, Rhs>(
-    partialEquality: (l: Lhs, r: Rhs) => boolean,
-): PartialEq<Lhs, Rhs> => ({
-    eq: partialEquality,
-});
+export const fromPartialEquality =
+    <Lhs, Rhs, X = void>(partialEquality: (x: X) => (l: Lhs, r: Rhs) => boolean) =>
+    (x: X): PartialEq<Lhs, Rhs> => ({
+        eq: partialEquality(x),
+    });
 
 export function fromProjection<F>(
     projection: <X>(structure: GetHktA1<F, X>) => X,
@@ -53,9 +53,9 @@ export function fromProjection<F extends symbol>(
     });
 }
 
-export const strict = <T>() => fromPartialEquality<T, T>((l, r) => l === r);
+export const strict = <T>() => fromPartialEquality<T, T>(() => (l, r) => l === r)();
 
-export const identity = fromPartialEquality(() => true);
+export const identity = fromPartialEquality(() => () => true)();
 
 export const monoid = <Lhs, Rhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
     combine: (x, y) => ({ eq: (l, r) => x.eq(l, r) && y.eq(l, r) }),
