@@ -1,13 +1,12 @@
-import { Eq, eqSymbol } from "./type-class/eq.js";
-
 import type { Applicative1 } from "./type-class/applicative.js";
 import type { Functor1 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { Monad1 } from "./type-class/monad.js";
-import type { Ord } from "./type-class/ord.js";
-import type { PartialEq } from "./type-class/partial-eq.js";
-import type { PartialOrd } from "./type-class/partial-ord.js";
 import type { Traversable1 } from "./type-class/traversable.js";
+import { fromProjection as eqFromProjection } from "./type-class/eq.js";
+import { fromProjection as ordFromProjection } from "./type-class/ord.js";
+import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.js";
+import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.js";
 
 const lazyNominal = Symbol("Lazy");
 export type LazyHktKey = typeof lazyNominal;
@@ -19,22 +18,10 @@ export const defer = <L>(deferred: () => L): Lazy<L> => ({ [lazyNominal]: deferr
 
 export const force = <L>(lazy: Lazy<L>): L => lazy[lazyNominal]();
 
-export const partialEq = <T>(equality: PartialEq<T>): PartialEq<Lazy<T>> => ({
-    eq: (a, b) => equality.eq(force(a), force(b)),
-});
-export const eq = <T>(equality: Eq<T>): Eq<Lazy<T>> => ({
-    ...partialEq(equality),
-    [eqSymbol]: true,
-});
-export const partialOrd = <T>(order: PartialOrd<T>): PartialOrd<Lazy<T>> => ({
-    ...partialEq(order),
-    partialCmp: (l, r) => order.partialCmp(force(l), force(r)),
-});
-export const ord = <T>(order: Ord<T>): Ord<Lazy<T>> => ({
-    ...partialOrd(order),
-    cmp: (l, r) => order.cmp(force(l), force(r)),
-    [eqSymbol]: true,
-});
+export const partialEq = partialEqFromProjection<LazyHktKey>(force);
+export const eq = eqFromProjection<LazyHktKey>(force);
+export const partialOrd = partialOrdFromProjection<LazyHktKey>(force);
+export const ord = ordFromProjection<LazyHktKey>(force);
 
 export const pure = <A>(a: A): Lazy<A> => defer(() => a);
 export const map =
