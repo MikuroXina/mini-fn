@@ -53,7 +53,7 @@ import {
 } from "../src/list.js";
 import { expect, test } from "vitest";
 
-import { strict } from "../src/type-class/eq.js";
+import { strict } from "../src/type-class/partial-eq.js";
 
 test("isNull", () => {
     expect(isNull(empty())).toEqual(true);

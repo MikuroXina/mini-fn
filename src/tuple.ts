@@ -1,39 +1,38 @@
-import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
 import { Lazy, force, defer as lazyDefer } from "./lazy.js";
-import type { Ord, PartialOrd } from "./type-class/ord.js";
+import { Option, andThen } from "./option.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { Ordering, andThen as thenWith } from "./ordering.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
 import type { Applicative1 } from "./type-class/applicative.js";
 import type { GetHktA1 } from "./hkt.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { SemiGroup } from "./type-class/semi-group.js";
-import { andThen } from "./option.js";
-import { andThen as thenWith } from "./ordering.js";
 
 export type Tuple<A, B> = readonly [A, B];
 
-export const partialEq = <A, B>(
-    equalityA: PartialEq<A>,
-    equalityB: PartialEq<B>,
-): PartialEq<Tuple<A, B>> => ({
-    eq: (l, r) => equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]),
-});
-export const eq = <A, B>(equalityA: Eq<A>, equalityB: Eq<B>): Eq<Tuple<A, B>> => ({
-    ...partialEq(equalityA, equalityB),
-    [eqSymbol]: true,
-});
-export const partialOrd = <A, B>(
-    ordA: PartialOrd<A>,
-    ordB: PartialOrd<B>,
-): PartialOrd<Tuple<A, B>> => ({
-    ...partialEq(ordA, ordB),
-    partialCmp: ([a1, b1], [a2, b2]) =>
-        andThen(() => ordB.partialCmp(b1, b2))(ordA.partialCmp(a1, a2)),
-});
-export const ord = <A, B>(ordA: Ord<A>, ordB: Ord<B>): Ord<Tuple<A, B>> => ({
-    ...partialOrd(ordA, ordB),
-    cmp: ([a1, b1], [a2, b2]) => thenWith(() => ordB.cmp(b1, b2))(ordA.cmp(a1, a2)),
-    [eqSymbol]: true,
-});
+export const partialEquality =
+    <A, B>({ equalityA, equalityB }: { equalityA: PartialEq<A>; equalityB: PartialEq<B> }) =>
+    (l: Tuple<A, B>, r: Tuple<A, B>): boolean =>
+        equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
+export const partialEq = fromPartialEquality(partialEquality);
+export const equality =
+    <A, B>({ equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<B> }) =>
+    (l: Tuple<A, B>, r: Tuple<A, B>): boolean =>
+        equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
+export const eq = fromEquality(equality);
+export const partialCmp =
+    <A, B>({ ordA, ordB }: { ordA: PartialOrd<A>; ordB: PartialOrd<B> }) =>
+    ([a1, b1]: Tuple<A, B>, [a2, b2]: Tuple<A, B>): Option<Ordering> =>
+        andThen(() => ordB.partialCmp(b1, b2))(ordA.partialCmp(a1, a2));
+export const partialOrd = fromPartialCmp(partialCmp);
+export const cmp =
+    <A, B>({ ordA, ordB }: { ordA: Ord<A>; ordB: Ord<B> }) =>
+    ([a1, b1]: Tuple<A, B>, [a2, b2]: Tuple<A, B>) =>
+        thenWith(() => ordB.cmp(b1, b2))(ordA.cmp(a1, a2));
+export const ord = fromCmp(cmp);
 
 export const make =
     <A>(a: A) =>

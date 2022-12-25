@@ -1,3 +1,10 @@
+import { Eq, fromEquality } from "./type-class/eq.js";
+import { Option, andThen, none, some } from "./option.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { Ordering, isEq, and as then } from "./ordering.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
+
 import type { Monad1 } from "./type-class/monad.js";
 import { id } from "./func.js";
 
@@ -12,6 +19,57 @@ export type Frozen<T> = T & {
         ? Frozen<T[K]>
         : T[K];
 };
+
+export const partialEquality =
+    <S>(equalityDict: { readonly [K in keyof S]: PartialEq<S[K]> }) =>
+    (l: Frozen<S>, r: Frozen<S>): boolean =>
+        Object.keys(equalityDict).every((key) => {
+            if (Object.hasOwn(equalityDict, key)) {
+                const castKey = key as keyof S;
+                return equalityDict[castKey].eq(l[castKey], r[castKey]);
+            }
+            return true;
+        });
+export const partialEq = fromPartialEquality(partialEquality);
+export const equality =
+    <S>(equalityDict: { readonly [K in keyof S]: Eq<S[K]> }) =>
+    (l: Frozen<S>, r: Frozen<S>): boolean =>
+        Object.keys(equalityDict).every((key) => {
+            if (Object.hasOwn(equalityDict, key)) {
+                const castKey = key as keyof S;
+                return equalityDict[castKey].eq(l[castKey], r[castKey]);
+            }
+            return true;
+        });
+export const eq = fromEquality(equality);
+export const partialCmp =
+    <S>(orderDict: { readonly [K in keyof S]: PartialOrd<S[K]> }) =>
+    (l: Frozen<S>, r: Frozen<S>): Option<Ordering> =>
+        Object.keys(orderDict)
+            .map((key) => {
+                if (Object.hasOwn(orderDict, key)) {
+                    const castKey = key as keyof S;
+                    return orderDict[castKey].partialCmp(l[castKey], r[castKey]);
+                }
+                return none();
+            })
+            .reduce((prev, curr) =>
+                andThen((previous: Ordering) => (isEq(previous) ? curr : some(previous)))(prev),
+            );
+export const partialOrd = fromPartialCmp(partialCmp);
+export const cmp =
+    <S>(orderDict: { readonly [K in keyof S]: Ord<S[K]> }) =>
+    (l: Frozen<S>, r: Frozen<S>): Ordering =>
+        Object.keys(orderDict)
+            .map((key) => {
+                if (Object.hasOwn(orderDict, key)) {
+                    const castKey = key as keyof S;
+                    return orderDict[castKey].cmp(l[castKey], r[castKey]);
+                }
+                throw new Error("`orderDict` must have comparator by own key");
+            })
+            .reduce((prev, curr) => then(curr)(prev));
+export const ord = fromCmp(cmp);
 
 export const freeze = <T>(x: T): Frozen<T> => x as Frozen<T>;
 

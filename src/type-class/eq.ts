@@ -1,67 +1,6 @@
-import type { Contravariant } from "./variance.js";
-import type { Monoid } from "./monoid.js";
+import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt.js";
 
-/**
- * All instances of `PartialEq` must satisfy the following conditions:
- * - Symmetric: `PartialEq<A, B>` always equals to `PartialEq<B, A>`.
- * - Transitive: `PartialEq<A, B>` and `PartialEq<B, C>` always implies `PartialEq<A, C>`.
- */
-export interface PartialEq<Lhs, Rhs = Lhs> {
-    readonly eq: (l: Lhs, r: Rhs) => boolean;
-}
-
-declare const partialEqNominal: unique symbol;
-export type PartialEqHktKey = typeof partialEqNominal;
-declare module "../hkt.js" {
-    interface HktDictA1<A1> {
-        [partialEqNominal]: PartialEq<A1>;
-    }
-}
-
-export const contravariant: Contravariant<PartialEqHktKey> = {
-    contraMap:
-        <T1, T2>(f: (arg: T1) => T2) =>
-        (p: PartialEq<T2>): PartialEq<T1> => ({ eq: (l, r) => p.eq(f(l), f(r)) }),
-};
-
-export const fromCmp = <Lhs, Rhs>(cmp: (l: Lhs, r: Rhs) => boolean): PartialEq<Lhs, Rhs> => ({
-    eq: cmp,
-});
-
-export const structural = <S>(cmp: { readonly [K in keyof S]: PartialEq<S[K]> }): PartialEq<
-    Readonly<S>
-> =>
-    fromCmp((l, r) =>
-        Object.keys(cmp).every((key) => {
-            if (Object.hasOwn(cmp, key)) {
-                const castKey = key as keyof S;
-                return cmp[castKey].eq(l[castKey], r[castKey]);
-            }
-            return true;
-        }),
-    );
-
-export const tuple = <S extends unknown[]>(cmp: {
-    readonly [K in keyof S]: PartialEq<S[K]>;
-}): PartialEq<Readonly<S>> =>
-    fromCmp((l, r) => {
-        const len = Math.min(l.length, r.length);
-        for (let i = 0; i < len; i += 1) {
-            if (!cmp[i].eq(l[i], r[i])) {
-                return false;
-            }
-        }
-        return true;
-    });
-
-export const strict = <T>() => fromCmp<T, T>((l, r) => l === r);
-
-export const identity = fromCmp(() => true);
-
-export const monoid = <Lhs, Rhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
-    combine: (x, y) => ({ eq: (l, r) => x.eq(l, r) && y.eq(l, r) }),
-    identity,
-});
+import type { PartialEq } from "./partial-eq.js";
 
 export const eqSymbol = Symbol("ImplEq");
 
@@ -79,4 +18,32 @@ export const eqSymbol = Symbol("ImplEq");
  */
 export interface Eq<Lhs, Rhs = Lhs> extends PartialEq<Lhs, Rhs> {
     readonly [eqSymbol]: true;
+}
+
+export const fromEquality =
+    <Lhs, Rhs, X = void>(equality: (x: X) => (l: Lhs, r: Rhs) => boolean) =>
+    (x: X): Eq<Lhs, Rhs> => ({
+        eq: equality(x),
+        [eqSymbol]: true,
+    });
+
+export function fromProjection<F>(
+    projection: <X>(structure: GetHktA1<F, X>) => X,
+): <T>(equality: Eq<T>) => Eq<GetHktA1<F, T>>;
+export function fromProjection<F, A>(
+    projection: <X>(structure: GetHktA2<F, A, X>) => X,
+): <T>(equality: Eq<T>) => Eq<GetHktA2<F, A, T>>;
+export function fromProjection<F, B, A>(
+    projection: <X>(structure: GetHktA3<F, B, A, X>) => X,
+): <T>(equality: Eq<T>) => Eq<GetHktA3<F, B, A, T>>;
+export function fromProjection<F, C, B, A>(
+    projection: <X>(structure: GetHktA4<F, C, B, A, X>) => X,
+): <T>(equality: Eq<T>) => Eq<GetHktA4<F, C, B, A, T>>;
+export function fromProjection<F extends symbol>(
+    projection: <X>(structure: Hkt<F, X>) => X,
+): <T>(equality: Eq<T>) => Eq<Hkt<F, T>> {
+    return (equality) => ({
+        eq: (l, r) => equality.eq(projection(l), projection(r)),
+        [eqSymbol]: true,
+    });
 }

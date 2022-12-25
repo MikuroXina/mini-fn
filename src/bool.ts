@@ -1,4 +1,5 @@
 import type { Monoid } from "./type-class/monoid.js";
+import { fromEquality } from "./type-class/eq.js";
 
 export const andMonoid: Monoid<boolean> = {
     identity: true,
@@ -8,3 +9,6 @@ export const orMonoid: Monoid<boolean> = {
     identity: false,
     combine: (l, r) => l || r,
 };
+
+export const equality = (lhs: boolean, rhs: boolean): boolean => lhs === rhs;
+export const eq = fromEquality(() => equality)();

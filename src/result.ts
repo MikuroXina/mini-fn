@@ -1,7 +1,9 @@
-import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
 import { Option, isSome, none, toArray as optionToArray, some } from "./option.js";
-import type { Ord, PartialOrd } from "./type-class/ord.js";
-import { greater, less } from "./ordering.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { Ordering, greater, less } from "./ordering.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
 import type { Applicative1 } from "./type-class/applicative.js";
 import type { GetHktA1 } from "./hkt.js";
@@ -25,11 +27,9 @@ export const err = <E, T>(e: E): Result<E, T> => [errSymbol, e];
 export const isOk = <E, T>(res: Result<E, T>): res is Ok<T> => res[0] === okSymbol;
 export const isErr = <E, T>(res: Result<E, T>): res is Err<E> => res[0] === errSymbol;
 
-export const partialEq = <E, T>(
-    equalityE: PartialEq<E>,
-    equalityT: PartialEq<T>,
-): PartialEq<Result<E, T>> => ({
-    eq: (l, r) => {
+export const partialEquality =
+    <E, T>({ equalityE, equalityT }: { equalityE: PartialEq<E>; equalityT: PartialEq<T> }) =>
+    (l: Result<E, T>, r: Result<E, T>): boolean => {
         if (isErr(l) && isErr(r)) {
             return equalityE.eq(l[1], r[1]);
         }
@@ -37,18 +37,14 @@ export const partialEq = <E, T>(
             return equalityT.eq(l[1], r[1]);
         }
         return false;
-    },
-});
-export const eq = <E, T>(equalityE: Eq<E>, equalityT: Eq<T>): Eq<Result<E, T>> => ({
-    ...partialEq(equalityE, equalityT),
-    [eqSymbol]: true,
-});
-export const partialOrd = <E, T>(
-    orderE: PartialOrd<E>,
-    orderT: PartialOrd<T>,
-): PartialOrd<Result<E, T>> => ({
-    ...partialEq(orderE, orderT),
-    partialCmp: (l, r) => {
+    };
+export const partialEq = fromPartialEquality(partialEquality);
+export const equality = <E, T>(equalities: { equalityE: Eq<E>; equalityT: Eq<T> }) =>
+    partialEquality(equalities);
+export const eq = fromEquality(equality);
+export const partialCmp =
+    <E, T>({ orderE, orderT }: { orderE: PartialOrd<E>; orderT: PartialOrd<T> }) =>
+    (l: Result<E, T>, r: Result<E, T>): Option<Ordering> => {
         // considered that Ok is lesser than Err
         if (isOk(l)) {
             if (isOk(r)) {
@@ -60,11 +56,11 @@ export const partialOrd = <E, T>(
             return some(greater);
         }
         return orderE.partialCmp(l[1], r[1]);
-    },
-});
-export const ord = <E, T>(orderE: Ord<E>, orderT: Ord<T>): Ord<Result<E, T>> => ({
-    ...partialOrd(orderE, orderT),
-    cmp: (l, r) => {
+    };
+export const partialOrd = fromPartialCmp(partialCmp);
+export const cmp =
+    <E, T>({ orderE, orderT }: { orderE: Ord<E>; orderT: Ord<T> }) =>
+    (l: Result<E, T>, r: Result<E, T>): Ordering => {
         // considered that Ok is lesser than Err
         if (isOk(l)) {
             if (isOk(r)) {
@@ -76,9 +72,9 @@ export const ord = <E, T>(orderE: Ord<E>, orderT: Ord<T>): Ord<Result<E, T>> => 
             return greater;
         }
         return orderE.cmp(l[1], r[1]);
-    },
-    [eqSymbol]: true,
-});
+    };
+// This argument wrapper is needed for avoid cyclic-import problem.
+export const ord = <E, T>(x: { orderE: Ord<E, E>; orderT: Ord<T, T> }) => fromCmp(cmp)(x);
 
 export const either =
     <E, R>(g: (e: E) => R) =>
