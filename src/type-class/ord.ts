@@ -1,6 +1,6 @@
-import { Eq, PartialEq, tuple as tupleEq } from "./eq.js";
-import { Option, flatMap, isNone, map, mapOr, none, some } from "../option.js";
-import { Ordering, and, equal, greater, isEq, less } from "../ordering.js";
+import { Eq, PartialEq, eqSymbol } from "./eq.js";
+import { Option, flatMap, map, mapOr, some } from "../option.js";
+import { Ordering, and, equal, isEq } from "../ordering.js";
 
 import type { Contravariant } from "./variance.js";
 import type { Monoid } from "./monoid.js";
@@ -22,37 +22,6 @@ export const fromPartialCmp = <Lhs, Rhs>(
 ): PartialOrd<Lhs, Rhs> => ({
     partialCmp,
     eq: (l, r) => mapOr(false)((order: Ordering) => isEq(order))(partialCmp(l, r)),
-});
-
-export const numeric = fromPartialCmp((l: number, r: number) => {
-    if (Number.isNaN(l) || Number.isNaN(r)) {
-        return none();
-    }
-    if (l == r) {
-        return some(equal);
-    }
-    if (l < r) {
-        return some(less);
-    }
-    return some(greater);
-});
-
-export const tuple = <T extends unknown[]>(ord: {
-    readonly [K in keyof T]: PartialOrd<T[K]>;
-}): PartialOrd<T> => ({
-    partialCmp: (lhs, rhs) => {
-        const len = Math.min(lhs.length, rhs.length);
-        let result: Ordering = equal;
-        for (let i = 0; i < len; i += 1) {
-            const order = ord[i].partialCmp(lhs[i], rhs[i]);
-            if (isNone(order)) {
-                return none();
-            }
-            result = and(order[1])(result);
-        }
-        return some(result);
-    },
-    eq: tupleEq(ord).eq,
 });
 
 declare module "../hkt.js" {
@@ -87,6 +56,13 @@ export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
 export interface Ord<Lhs, Rhs = Lhs> extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> {
     readonly cmp: (lhs: Lhs, rhs: Rhs) => Ordering;
 }
+
+export const fromCmp = <Lhs, Rhs>(cmp: (lhs: Lhs, rhs: Rhs) => Ordering): Ord<Lhs, Rhs> => ({
+    eq: (l, r) => isEq(cmp(l, r)),
+    partialCmp: (l, r) => some(cmp(l, r)),
+    cmp,
+    [eqSymbol]: true,
+});
 
 export const reversed = <Lhs, Rhs>(ord: Ord<Lhs, Rhs>): Ord<Lhs, Rhs> => ({
     ...ord,

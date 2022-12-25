@@ -24,39 +24,15 @@ export const contravariant: Contravariant<PartialEqHktKey> = {
         (p: PartialEq<T2>): PartialEq<T1> => ({ eq: (l, r) => p.eq(f(l), f(r)) }),
 };
 
-export const fromCmp = <Lhs, Rhs>(cmp: (l: Lhs, r: Rhs) => boolean): PartialEq<Lhs, Rhs> => ({
-    eq: cmp,
+export const fromPartialEquality = <Lhs, Rhs>(
+    partialEquality: (l: Lhs, r: Rhs) => boolean,
+): PartialEq<Lhs, Rhs> => ({
+    eq: partialEquality,
 });
 
-export const structural = <S>(cmp: { readonly [K in keyof S]: PartialEq<S[K]> }): PartialEq<
-    Readonly<S>
-> =>
-    fromCmp((l, r) =>
-        Object.keys(cmp).every((key) => {
-            if (Object.hasOwn(cmp, key)) {
-                const castKey = key as keyof S;
-                return cmp[castKey].eq(l[castKey], r[castKey]);
-            }
-            return true;
-        }),
-    );
+export const strict = <T>() => fromPartialEquality<T, T>((l, r) => l === r);
 
-export const tuple = <S extends unknown[]>(cmp: {
-    readonly [K in keyof S]: PartialEq<S[K]>;
-}): PartialEq<Readonly<S>> =>
-    fromCmp((l, r) => {
-        const len = Math.min(l.length, r.length);
-        for (let i = 0; i < len; i += 1) {
-            if (!cmp[i].eq(l[i], r[i])) {
-                return false;
-            }
-        }
-        return true;
-    });
-
-export const strict = <T>() => fromCmp<T, T>((l, r) => l === r);
-
-export const identity = fromCmp(() => true);
+export const identity = fromPartialEquality(() => true);
 
 export const monoid = <Lhs, Rhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
     combine: (x, y) => ({ eq: (l, r) => x.eq(l, r) && y.eq(l, r) }),
@@ -80,3 +56,8 @@ export const eqSymbol = Symbol("ImplEq");
 export interface Eq<Lhs, Rhs = Lhs> extends PartialEq<Lhs, Rhs> {
     readonly [eqSymbol]: true;
 }
+
+export const fromEquality = <Lhs, Rhs>(equality: (l: Lhs, r: Rhs) => boolean): Eq<Lhs, Rhs> => ({
+    eq: equality,
+    [eqSymbol]: true,
+});
