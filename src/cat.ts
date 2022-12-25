@@ -1,5 +1,8 @@
 /* eslint-disable no-console */
 
+import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import type { Ord, PartialOrd } from "./type-class/ord.js";
+
 import type { Monad1 } from "./type-class/monad.js";
 
 declare const catNominal: unique symbol;
@@ -12,6 +15,23 @@ export interface Cat<T> {
 export const cat = <T>(value: T): Cat<T> => ({
     value,
     feed: <U>(fn: (t: T) => U) => cat(fn(value)),
+});
+
+export const partialEq = <T>(equality: PartialEq<T>): PartialEq<Cat<T>> => ({
+    eq: (l, r) => equality.eq(l.value, r.value),
+});
+export const eq = <T>(equality: Eq<T>): Eq<Cat<T>> => ({
+    ...partialEq(equality),
+    [eqSymbol]: true,
+});
+export const partialOrd = <T>(order: PartialOrd<T>): PartialOrd<Cat<T>> => ({
+    ...partialEq(order),
+    partialCmp: (l, r) => order.partialCmp(l.value, r.value),
+});
+export const ord = <T>(order: Ord<T>): Ord<Cat<T>> => ({
+    ...partialOrd(order),
+    cmp: (l, r) => order.cmp(l.value, r.value),
+    [eqSymbol]: true,
 });
 
 export const inspect =

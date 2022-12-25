@@ -1,7 +1,10 @@
 import * as Option from "./option.js";
 import * as Result from "./result.js";
 
+import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
 import { Monad1, Monad2Monoid, kleisli } from "./type-class/monad.js";
+import type { Ord, PartialOrd } from "./type-class/ord.js";
+import { greater, less } from "./ordering.js";
 
 import type { Applicative1 } from "./type-class/applicative.js";
 import type { Functor1 } from "./type-class/functor.js";
@@ -22,6 +25,116 @@ export const isPure = <F, A>(free: Free<F, A>): free is Pure<A> => free[0] === p
 export const isNode = <F, A>(free: Free<F, A>): free is Node<F, A> => free[0] === nodeNominal;
 
 export type Free<F, A> = Pure<A> | Node<F, A>;
+
+export const partialEq = <F, A>(
+    equalityA: PartialEq<A>,
+    equalityFA: <T>(equality: PartialEq<T>) => PartialEq<GetHktA1<F, T>>,
+): PartialEq<Free<F, A>> => {
+    const self: PartialEq<Free<F, A>> = {
+        eq: (l, r) => {
+            if (isPure(l) && isPure(r)) {
+                return equalityA.eq(l[1], r[1]);
+            }
+            if (isNode(l) && isNode(r)) {
+                return equalityFA(self).eq(l[1], r[1]);
+            }
+            return false;
+        },
+    };
+    return self;
+};
+export const eq = <F, A>(
+    equalityA: Eq<A>,
+    equalityFA: <T>(equality: Eq<T>) => Eq<GetHktA1<F, T>>,
+): Eq<Free<F, A>> => {
+    const self: Eq<Free<F, A>> = {
+        eq: (l, r) => {
+            if (isPure(l) && isPure(r)) {
+                return equalityA.eq(l[1], r[1]);
+            }
+            if (isNode(l) && isNode(r)) {
+                return equalityFA(self).eq(l[1], r[1]);
+            }
+            return false;
+        },
+        [eqSymbol]: true,
+    };
+    return self;
+};
+export const partialOrd = <F, A>(
+    orderA: PartialOrd<A>,
+    orderFA: <T>(order: PartialOrd<T>) => PartialOrd<GetHktA1<F, T>>,
+): PartialOrd<Free<F, A>> => {
+    const self: PartialOrd<Free<F, A>> = {
+        eq: (l, r) => {
+            if (isPure(l) && isPure(r)) {
+                return orderA.eq(l[1], r[1]);
+            }
+            if (isNode(l) && isNode(r)) {
+                return orderFA(self).eq(l[1], r[1]);
+            }
+            return false;
+        },
+        partialCmp: (l, r) => {
+            // considered that Pure is lesser than Node
+            if (isPure(l)) {
+                if (isPure(r)) {
+                    return orderA.partialCmp(l[1], r[1]);
+                }
+                return Option.some(less);
+            }
+            if (isPure(r)) {
+                return Option.some(greater);
+            }
+            return orderFA(self).partialCmp(l[1], r[1]);
+        },
+    };
+    return self;
+};
+export const ord = <F, A>(
+    orderA: Ord<A>,
+    orderFA: <T>(order: Ord<T>) => Ord<GetHktA1<F, T>>,
+): Ord<Free<F, A>> => {
+    const self: Ord<Free<F, A>> = {
+        eq: (l, r) => {
+            if (isPure(l) && isPure(r)) {
+                return orderA.eq(l[1], r[1]);
+            }
+            if (isNode(l) && isNode(r)) {
+                return orderFA(self).eq(l[1], r[1]);
+            }
+            return false;
+        },
+        [eqSymbol]: true,
+        partialCmp: (l, r) => {
+            // considered that Pure is lesser than Node
+            if (isPure(l)) {
+                if (isPure(r)) {
+                    return orderA.partialCmp(l[1], r[1]);
+                }
+                return Option.some(less);
+            }
+            if (isPure(r)) {
+                return Option.some(greater);
+            }
+            return orderFA(self).partialCmp(l[1], r[1]);
+        },
+        cmp: (l, r) => {
+            // considered that Pure is lesser than Node
+            if (isPure(l)) {
+                if (isPure(r)) {
+                    return orderA.cmp(l[1], r[1]);
+                }
+                return less;
+            }
+            if (isPure(r)) {
+                return greater;
+            }
+            return orderFA(self).cmp(l[1], r[1]);
+        },
+    };
+    return self;
+};
 
 export const retract =
     <F>(monad: Monad1<F>) =>

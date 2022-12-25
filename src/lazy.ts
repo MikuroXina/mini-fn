@@ -1,4 +1,5 @@
 import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import type { Ord, PartialOrd } from "./type-class/ord.js";
 
 import type { Applicative1 } from "./type-class/applicative.js";
 import type { Functor1 } from "./type-class/functor.js";
@@ -16,11 +17,20 @@ export const defer = <L>(deferred: () => L): Lazy<L> => ({ [lazyNominal]: deferr
 
 export const force = <L>(lazy: Lazy<L>): L => lazy[lazyNominal]();
 
-export const partialEq = <T>(equality: PartialEq<T, T>): PartialEq<Lazy<T>, Lazy<T>> => ({
+export const partialEq = <T>(equality: PartialEq<T>): PartialEq<Lazy<T>> => ({
     eq: (a, b) => equality.eq(force(a), force(b)),
 });
-export const eq = <T>(equality: Eq<T, T>): Eq<Lazy<T>, Lazy<T>> => ({
+export const eq = <T>(equality: Eq<T>): Eq<Lazy<T>> => ({
     ...partialEq(equality),
+    [eqSymbol]: true,
+});
+export const partialOrd = <T>(order: PartialOrd<T>): PartialOrd<Lazy<T>> => ({
+    ...partialEq(order),
+    partialCmp: (l, r) => order.partialCmp(force(l), force(r)),
+});
+export const ord = <T>(order: Ord<T>): Ord<Lazy<T>> => ({
+    ...partialOrd(order),
+    cmp: (l, r) => order.cmp(force(l), force(r)),
     [eqSymbol]: true,
 });
 
