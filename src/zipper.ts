@@ -1,4 +1,4 @@
-import { Eq, eqSymbol } from "./type-class/eq.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
 import {
     List,
     appendToHead,
@@ -15,13 +15,13 @@ import {
     unCons,
 } from "./list.js";
 import { Option, andThen, isNone, map as optionMap, unwrap } from "./option.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { Ordering, andThen as thenWith } from "./ordering.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
 import type { Comonad1 } from "./type-class/comonad.js";
 import type { Functor1 } from "./type-class/functor.js";
-import type { Ord } from "./type-class/ord.js";
-import type { PartialEq } from "./type-class/partial-eq.js";
-import type { PartialOrd } from "./type-class/partial-ord.js";
-import { andThen as thenWith } from "./ordering.js";
 
 declare const zipperNominal: unique symbol;
 export type ZipperHktKey = typeof zipperNominal;
@@ -31,35 +31,33 @@ export interface Zipper<T> {
     readonly right: List<T>;
 }
 
-export const partialEq = <T>(equality: PartialEq<T>): PartialEq<Zipper<T>> => ({
-    eq: (aZipper: Zipper<T>, bZipper: Zipper<T>): boolean =>
-        listPartialEq(equality).eq(aZipper.left, bZipper.left) &&
-        equality.eq(aZipper.current, bZipper.current) &&
-        listPartialEq(equality).eq(aZipper.right, bZipper.right),
-});
-export const eq = <T>(equality: Eq<T>): Eq<Zipper<T>> => ({
-    ...partialEq(equality),
-    [eqSymbol]: true,
-});
-export const partialOrd = <T>(order: PartialOrd<T>): PartialOrd<Zipper<T>> => ({
-    ...partialEq(order),
-    partialCmp: (lhs, rhs) =>
+export const partialEquality =
+    <T>(equalityT: PartialEq<T>) =>
+    (aZipper: Zipper<T>, bZipper: Zipper<T>): boolean =>
+        listPartialEq(equalityT).eq(aZipper.left, bZipper.left) &&
+        equalityT.eq(aZipper.current, bZipper.current) &&
+        listPartialEq(equalityT).eq(aZipper.right, bZipper.right);
+export const partialEq = fromPartialEquality(partialEquality);
+export const equality = <T>(equalityT: Eq<T>) => partialEquality(equalityT);
+export const eq = fromEquality(equality);
+export const partialCmp =
+    <T>(order: PartialOrd<T>) =>
+    (lhs: Zipper<T>, rhs: Zipper<T>): Option<Ordering> =>
         andThen(() => listPartialOrd(order).partialCmp(lhs.right, rhs.right))(
             andThen(() => order.partialCmp(lhs.current, rhs.current))(
                 listPartialOrd(order).partialCmp(reverse(lhs.left), reverse(rhs.left)),
             ),
-        ),
-});
-export const ord = <T>(order: Ord<T>): Ord<Zipper<T>> => ({
-    ...partialOrd(order),
-    cmp: (lhs, rhs) =>
+        );
+export const partialOrd = fromPartialCmp(partialCmp);
+export const cmp =
+    <T>(order: Ord<T>) =>
+    (lhs: Zipper<T>, rhs: Zipper<T>): Ordering =>
         thenWith(() => listOrd(order).cmp(lhs.right, rhs.right))(
             thenWith(() => order.cmp(lhs.current, rhs.current))(
                 listOrd(order).cmp(reverse(lhs.left), reverse(rhs.left)),
             ),
-        ),
-    [eqSymbol]: true,
-});
+        );
+export const ord = fromCmp(cmp);
 
 export const singleton = <T>(current: T): Zipper<T> => ({ left: empty(), current, right: empty() });
 
