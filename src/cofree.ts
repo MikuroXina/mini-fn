@@ -1,4 +1,4 @@
-import { Eq, eqSymbol } from "./type-class/eq.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
 import {
     Lazy,
     force,
@@ -9,6 +9,9 @@ import {
     partialEq as lazyPartialEq,
     partialOrd as lazyPartialOrd,
 } from "./lazy.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 import {
     Tuple,
     eq as tupleEq,
@@ -20,64 +23,72 @@ import {
 
 import type { Functor1 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
-import type { Ord } from "./type-class/ord.js";
-import type { PartialEq } from "./type-class/partial-eq.js";
-import type { PartialOrd } from "./type-class/partial-ord.js";
+import type { Option } from "./option.js";
+import type { Ordering } from "./ordering.js";
 import { compose } from "./func.js";
 
 declare const cofreeNominal: unique symbol;
 export type CofreeHktKey = typeof cofreeNominal;
 export type Cofree<F, A> = Lazy<Tuple<A, GetHktA1<F, Cofree<F, A>>>>;
 
-export const partialEq = <F, A>(
-    equalityA: PartialEq<A>,
-    equalityFA: <T>(equality: PartialEq<T>) => PartialEq<GetHktA1<F, T>>,
-): PartialEq<Cofree<F, A>> => {
-    const self: PartialEq<Cofree<F, A>> = lazyPartialEq(
-        tuplePartialEq(equalityA, {
-            eq: (l, r) => equalityFA(self).eq(l, r),
-        }),
-    );
+export const partialEquality = <F, A>({
+    equalityA,
+    equalityFA,
+}: {
+    equalityA: PartialEq<A>;
+    equalityFA: <T>(equality: PartialEq<T>) => PartialEq<GetHktA1<F, T>>;
+}): ((l: Cofree<F, A>, r: Cofree<F, A>) => boolean) => {
+    const self: (l: Cofree<F, A>, r: Cofree<F, A>) => boolean = lazyPartialEq<
+        Tuple<A, GetHktA1<F, Cofree<F, A>>>
+    >(tuplePartialEq({ equalityA, equalityB: equalityFA(fromPartialEquality(() => self)()) })).eq;
     return self;
 };
-export const eq = <F, A>(
-    equalityA: Eq<A>,
-    equalityFA: <T>(equality: Eq<T>) => Eq<GetHktA1<F, T>>,
-): Eq<Cofree<F, A>> => {
-    const self: Eq<Cofree<F, A>> = lazyEq(
-        tupleEq(equalityA, {
-            eq: (l, r) => equalityFA(self).eq(l, r),
-            [eqSymbol]: true,
-        }),
-    );
+export const partialEq = fromPartialEquality(partialEquality);
+export const equality = <F, A>({
+    equalityA,
+    equalityFA,
+}: {
+    equalityA: Eq<A>;
+    equalityFA: <T>(equality: Eq<T>) => Eq<GetHktA1<F, T>>;
+}): ((l: Cofree<F, A>, r: Cofree<F, A>) => boolean) => {
+    const self: (l: Cofree<F, A>, r: Cofree<F, A>) => boolean = lazyEq<
+        Tuple<A, GetHktA1<F, Cofree<F, A>>>
+    >(tupleEq({ equalityA, equalityB: equalityFA(fromEquality(() => self)()) })).eq;
     return self;
 };
-export const partialOrd = <F, A>(
-    orderA: PartialOrd<A>,
-    orderFA: <T>(order: PartialOrd<T>) => PartialOrd<GetHktA1<F, T>>,
-): PartialOrd<Cofree<F, A>> => {
-    const self: PartialOrd<Cofree<F, A>> = lazyPartialOrd(
-        tuplePartialOrd(orderA, {
-            eq: (l, r) => orderFA(self).eq(l, r),
-            partialCmp: (l, r) => orderFA(self).partialCmp(l, r),
+export const eq = fromEquality(equality);
+export const partialCmp = <F, A>({
+    orderA,
+    orderFA,
+}: {
+    orderA: PartialOrd<A>;
+    orderFA: <T>(order: PartialOrd<T>) => PartialOrd<GetHktA1<F, T>>;
+}): ((l: Cofree<F, A>, r: Cofree<F, A>) => Option<Ordering>) => {
+    const self: (l: Cofree<F, A>, r: Cofree<F, A>) => Option<Ordering> = lazyPartialOrd(
+        tuplePartialOrd({
+            ordA: orderA,
+            ordB: orderFA(fromPartialCmp(() => self)()),
         }),
-    );
+    ).partialCmp;
     return self;
 };
-export const ord = <F, A>(
-    orderA: Ord<A>,
-    orderFA: <T>(order: Ord<T>) => Ord<GetHktA1<F, T>>,
-): Ord<Cofree<F, A>> => {
-    const self: Ord<Cofree<F, A>> = lazyOrd(
-        tupleOrd(orderA, {
-            eq: (l, r) => orderFA(self).eq(l, r),
-            [eqSymbol]: true,
-            partialCmp: (l, r) => orderFA(self).partialCmp(l, r),
-            cmp: (l, r) => orderFA(self).cmp(l, r),
+export const partialOrd = fromPartialCmp(partialCmp);
+export const cmp = <F, A>({
+    orderA,
+    orderFA,
+}: {
+    orderA: Ord<A>;
+    orderFA: <T>(order: Ord<T>) => Ord<GetHktA1<F, T>>;
+}): ((l: Cofree<F, A>, r: Cofree<F, A>) => Ordering) => {
+    const self: (l: Cofree<F, A>, r: Cofree<F, A>) => Ordering = lazyOrd(
+        tupleOrd({
+            ordA: orderA,
+            ordB: orderFA(fromCmp(() => self)()),
         }),
-    );
+    ).cmp;
     return self;
 };
+export const ord = fromCmp(cmp);
 
 export const defer: <F, A>(fn: () => [A, GetHktA1<F, Cofree<F, A>>]) => Cofree<F, A> = lazyDefer;
 
