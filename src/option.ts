@@ -1,5 +1,7 @@
 import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import type { Ord, PartialOrd } from "./type-class/ord.js";
 import { Result, err, isOk, ok } from "./result.js";
+import { equal, greater, less } from "./ordering.js";
 
 import type { Applicative1 } from "./type-class/applicative.js";
 import type { GetHktA1 } from "./hkt.js";
@@ -38,13 +40,46 @@ export const toArray = <T>(opt: Option<T>): T[] => {
     return arr as T[];
 };
 
-export const partialEq = <T>(equality: PartialEq<T, T>): PartialEq<Option<T>, Option<T>> => ({
+export const partialEq = <T>(equality: PartialEq<T>): PartialEq<Option<T>> => ({
     eq: (optA: Option<T>, optB: Option<T>): boolean =>
         (isSome(optA) && isSome(optB) && equality.eq(optA[1], optB[1])) ||
         (isNone(optA) && isNone(optB)),
 });
-export const eq = <T>(equality: Eq<T, T>): Eq<Option<T>, Option<T>> => ({
+export const eq = <T>(equality: Eq<T>): Eq<Option<T>> => ({
     ...partialEq(equality),
+    [eqSymbol]: true,
+});
+export const partialOrd = <T>(order: PartialOrd<T>): PartialOrd<Option<T>> => ({
+    ...partialEq(order),
+    partialCmp: (l, r) => {
+        // considered that None is lesser than Some
+        if (isNone(l)) {
+            if (isNone(r)) {
+                return some(equal);
+            }
+            return some(less);
+        }
+        if (isNone(r)) {
+            return some(greater);
+        }
+        return order.partialCmp(l[1], r[1]);
+    },
+});
+export const ord = <T>(order: Ord<T>): Ord<Option<T>> => ({
+    ...partialOrd(order),
+    cmp: (l, r) => {
+        // considered that None is lesser than Some
+        if (isNone(l)) {
+            if (isNone(r)) {
+                return equal;
+            }
+            return less;
+        }
+        if (isNone(r)) {
+            return greater;
+        }
+        return order.cmp(l[1], r[1]);
+    },
     [eqSymbol]: true,
 });
 
