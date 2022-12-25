@@ -10,4 +10,4 @@ export const cmp = (lhs: string, rhs: string): Ordering => {
     }
     return greater;
 };
-export const ord: Ord<string> = fromCmp(cmp);
+export const ord: Ord<string> = fromCmp(() => cmp)();
