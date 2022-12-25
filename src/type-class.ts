@@ -10,6 +10,8 @@ export * as Functor from "./type-class/functor.js";
 export * as Monad from "./type-class/monad.js";
 export * as Monoid from "./type-class/monoid.js";
 export * as Ord from "./type-class/ord.js";
+export * as PartialEq from "./type-class/partial-eq.js";
+export * as PartialOrd from "./type-class/partial-ord.js";
 export * as Profunctor from "./type-class/profunctor.js";
 export * as Pure from "./type-class/pure.js";
 export * as SemiGroup from "./type-class/semi-group.js";
