@@ -24,12 +24,11 @@ export type Reversed<O extends Ordering> = O extends Less
     : Ordering;
 export const reverse = <O extends Ordering>(order: O): Reversed<O> => -order as Reversed<O>;
 
-// eslint-disable-next-line no-restricted-exports
-export const then = (second: Ordering) => (first: Ordering) => first === equal ? second : first;
-export const thenWith = (secondFn: () => Ordering) => (first: Ordering) =>
+export const and = (second: Ordering) => (first: Ordering) => first === equal ? second : first;
+export const andThen = (secondFn: () => Ordering) => (first: Ordering) =>
     first === equal ? secondFn() : first;
 
 export const monoid: Monoid<Ordering> = {
-    combine: (l, r) => then(r)(l),
+    combine: (l, r) => and(r)(l),
     identity: equal,
 };

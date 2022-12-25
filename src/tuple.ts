@@ -7,7 +7,7 @@ import type { GetHktA1 } from "./hkt.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { SemiGroup } from "./type-class/semi-group.js";
 import { andThen } from "./option.js";
-import { thenWith } from "./ordering.js";
+import { andThen as thenWith } from "./ordering.js";
 
 export type Tuple<A, B> = readonly [A, B];
 

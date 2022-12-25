@@ -19,7 +19,7 @@ import type { Ord, PartialOrd } from "./type-class/ord.js";
 
 import type { Comonad1 } from "./type-class/comonad.js";
 import type { Functor1 } from "./type-class/functor.js";
-import { thenWith } from "./ordering.js";
+import { andThen as thenWith } from "./ordering.js";
 
 declare const zipperNominal: unique symbol;
 export type ZipperHktKey = typeof zipperNominal;

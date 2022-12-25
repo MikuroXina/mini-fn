@@ -1,6 +1,6 @@
 import { Eq, PartialEq, tuple as tupleEq } from "./eq.js";
 import { Option, flatMap, isNone, map, mapOr, none, some } from "../option.js";
-import { Ordering, equal, greater, isEq, less, then } from "../ordering.js";
+import { Ordering, and, equal, greater, isEq, less } from "../ordering.js";
 
 import type { Contravariant } from "./variance.js";
 import type { Monoid } from "./monoid.js";
@@ -48,7 +48,7 @@ export const tuple = <T extends unknown[]>(ord: {
             if (isNone(order)) {
                 return none();
             }
-            result = then(order[1])(result);
+            result = and(order[1])(result);
         }
         return some(result);
     },
@@ -71,7 +71,7 @@ export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
     combine: (x, y) => ({
         partialCmp: (l, r) =>
             flatMap((first: Ordering) =>
-                map((second: Ordering) => then(second)(first))(y.partialCmp(l, r)),
+                map((second: Ordering) => and(second)(first))(y.partialCmp(l, r)),
             )(x.partialCmp(l, r)),
         eq: (l, r) => x.eq(l, r) && y.eq(l, r),
     }),

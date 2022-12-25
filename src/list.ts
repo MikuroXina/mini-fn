@@ -11,7 +11,7 @@ import type { Monad1 } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { Traversable1 } from "./type-class/traversable.js";
 import type { Tuple } from "./tuple.js";
-import { thenWith } from "./ordering.js";
+import { andThen } from "./ordering.js";
 
 export interface List<T> {
     readonly current: () => Option.Option<T>;
@@ -37,7 +37,7 @@ export const partialOrd = <T>(order: PartialOrd<T>): PartialOrd<List<T>> => ({
 export const ord = <T>(order: Ord<T>): Ord<List<T>> => ({
     ...partialOrd(order),
     cmp: (l, r) =>
-        thenWith(() => ord(order).cmp(l.rest(), r.rest()))(
+        andThen(() => ord(order).cmp(l.rest(), r.rest()))(
             Option.ord(order).cmp(l.current(), r.current()),
         ),
     [eqSymbol]: true,
