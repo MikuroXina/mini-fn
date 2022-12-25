@@ -23,9 +23,7 @@ export const partialCmp =
         }
         return some(result);
     };
-export const partialOrd = <T extends unknown[]>(orderDict: {
-    readonly [K in keyof T]: PartialOrd<T[K]>;
-}) => fromPartialCmp(partialCmp(orderDict));
+export const partialOrd = fromPartialCmp(partialCmp);
 export const cmp =
     <T extends unknown[]>(orderDict: {
         readonly [K in keyof T]: Ord<T[K]>;
@@ -38,6 +36,4 @@ export const cmp =
         }
         return result;
     };
-export const ord = <T extends unknown[]>(orderDict: {
-    readonly [K in keyof T]: Ord<T[K]>;
-}) => fromCmp(cmp(orderDict));
+export const ord = fromCmp(cmp);
