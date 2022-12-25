@@ -1,3 +1,5 @@
+import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "src/hkt.js";
+
 import type { PartialEq } from "./partial-eq.js";
 
 export const eqSymbol = Symbol("ImplEq");
@@ -22,3 +24,24 @@ export const fromEquality = <Lhs, Rhs>(equality: (l: Lhs, r: Rhs) => boolean): E
     eq: equality,
     [eqSymbol]: true,
 });
+
+export function fromProjection<F>(
+    projection: <X>(structure: GetHktA1<F, X>) => X,
+): <T>(equality: Eq<T>) => Eq<GetHktA1<F, T>>;
+export function fromProjection<F, A>(
+    projection: <X>(structure: GetHktA2<F, A, X>) => X,
+): <T>(equality: Eq<T>) => Eq<GetHktA2<F, A, T>>;
+export function fromProjection<F, B, A>(
+    projection: <X>(structure: GetHktA3<F, B, A, X>) => X,
+): <T>(equality: Eq<T>) => Eq<GetHktA3<F, B, A, T>>;
+export function fromProjection<F, C, B, A>(
+    projection: <X>(structure: GetHktA4<F, C, B, A, X>) => X,
+): <T>(equality: Eq<T>) => Eq<GetHktA4<F, C, B, A, T>>;
+export function fromProjection<F extends symbol>(
+    projection: <X>(structure: Hkt<F, X>) => X,
+): <T>(equality: Eq<T>) => Eq<Hkt<F, T>> {
+    return (equality) => ({
+        eq: (l, r) => equality.eq(projection(l), projection(r)),
+        [eqSymbol]: true,
+    });
+}
