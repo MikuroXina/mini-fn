@@ -66,6 +66,10 @@ export const withCont: <A, B, R>(
     callback: (fn: (b: B) => R) => (a: A) => R,
 ) => (cont: Cont<R, A>) => Cont<R, B> = withContT;
 
+export const reset: <R, S>(contT: Cont<R, R>) => Cont<S, R> = resetT(Identity.monad);
+export const shift: <R, A>(continuation: (callback: (a: A) => R) => Cont<R, R>) => Cont<R, A> =
+    shiftT(Identity.monad);
+
 export const pure =
     <R, M, A>(a: A): ContT<R, M, A> =>
     (fn) =>
