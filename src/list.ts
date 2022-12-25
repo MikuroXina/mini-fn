@@ -3,6 +3,7 @@ import * as Cat from "./cat.js";
 import * as Option from "./option.js";
 
 import { Eq, PartialEq, eqSymbol } from "./type-class/eq.js";
+import type { Ord, PartialOrd } from "./type-class/ord.js";
 
 import type { Functor1 } from "./type-class/functor.js";
 import type { GetHktA1 } from "./hkt.js";
@@ -10,19 +11,35 @@ import type { Monad1 } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { Traversable1 } from "./type-class/traversable.js";
 import type { Tuple } from "./tuple.js";
+import { thenWith } from "./ordering.js";
 
 export interface List<T> {
     readonly current: () => Option.Option<T>;
     readonly rest: () => List<T>;
 }
 
-export const partialEq = <T>(equality: PartialEq<T, T>): PartialEq<List<T>, List<T>> => ({
+export const partialEq = <T>(equality: PartialEq<T>): PartialEq<List<T>> => ({
     eq: (aList: List<T>, bList: List<T>): boolean =>
         Option.partialEq(equality).eq(aList.current(), bList.current()) &&
         partialEq(equality).eq(aList.rest(), bList.rest()),
 });
-export const eq = <T>(equality: Eq<T, T>): Eq<List<T>, List<T>> => ({
+export const eq = <T>(equality: Eq<T>): Eq<List<T>> => ({
     ...partialEq(equality),
+    [eqSymbol]: true,
+});
+export const partialOrd = <T>(order: PartialOrd<T>): PartialOrd<List<T>> => ({
+    ...partialEq(order),
+    partialCmp: (l, r) =>
+        Option.andThen(() => partialOrd(order).partialCmp(l.rest(), r.rest()))(
+            Option.partialOrd(order).partialCmp(l.current(), r.current()),
+        ),
+});
+export const ord = <T>(order: Ord<T>): Ord<List<T>> => ({
+    ...partialOrd(order),
+    cmp: (l, r) =>
+        thenWith(() => ord(order).cmp(l.rest(), r.rest()))(
+            Option.ord(order).cmp(l.current(), r.current()),
+        ),
     [eqSymbol]: true,
 });
 
