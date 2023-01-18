@@ -1,7 +1,10 @@
 export * as Applicative from "./type-class/applicative.js";
 export * as Apply from "./type-class/apply.js";
+export * as Bifunctor from "./type-class/bifunctor.js";
 export * as Category from "./type-class/category.js";
+export * as Choice from "./type-class/choice.js";
 export * as Comonad from "./type-class/comonad.js";
+export * as Distributive from "./type-class/distributive.js";
 export * as Endo from "./type-class/endo.js";
 export * as Eq from "./type-class/eq.js";
 export * as FlatMap from "./type-class/flat-map.js";
@@ -18,6 +21,7 @@ export * as Pure from "./type-class/pure.js";
 export * as SemiGroup from "./type-class/semi-group.js";
 export * as SemiGroupoid from "./type-class/semi-groupoid.js";
 export * as SemiGroupal from "./type-class/semi-groupal.js";
+export * as Settable from "./type-class/settable.js";
 export * as Strong from "./type-class/strong.js";
 export * as Traversable from "./type-class/traversable.js";
 export * as Variance from "./type-class/variance.js";
