@@ -1,8 +1,8 @@
-import { Option, mapOr, none, some } from "../src/option.js";
-import { Reader, ask, local, map, run } from "../src/reader.js";
+import { Option, mapOr, none, some } from "./option.js";
+import { Reader, ask, local, map, run } from "./reader.js";
 import { expect, test } from "vitest";
 
-import { cat } from "../src/cat.js";
+import { cat } from "./cat.js";
 
 test("ask", () => {
     interface User {

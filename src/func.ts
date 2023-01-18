@@ -9,6 +9,12 @@ export const absurd = <T>(): T => {
     throw new Error("PANIC: absurd must not be called");
 };
 
+export const pipe =
+    <T, U>(firstDo: (t: T) => U) =>
+    <V>(secondDo: (u: U) => V) =>
+    (t: T) =>
+        secondDo(firstDo(t));
+
 export const compose =
     <U, V>(f: (u: U) => V) =>
     <T>(g: (t: T) => U) =>

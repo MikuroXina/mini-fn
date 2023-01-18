@@ -1,5 +1,5 @@
 import { Eq, eqSymbol } from "./eq.js";
-import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4, Hkt } from "../hkt.js";
+import type { Get1, Hkt1 } from "../hkt.js";
 import { Ordering, isEq } from "../ordering.js";
 
 import type { PartialOrd } from "./partial-ord.js";
@@ -24,28 +24,14 @@ export const fromCmp =
         [eqSymbol]: true,
     });
 
-export function fromProjection<F>(
-    projection: <X>(structure: GetHktA1<F, X>) => X,
-): <T>(order: Ord<T>) => Ord<GetHktA1<F, T>>;
-export function fromProjection<F, A>(
-    projection: <X>(structure: GetHktA2<F, A, X>) => X,
-): <T>(order: Ord<T>) => Ord<GetHktA2<F, A, T>>;
-export function fromProjection<F, B, A>(
-    projection: <X>(structure: GetHktA3<F, B, A, X>) => X,
-): <T>(order: Ord<T>) => Ord<GetHktA3<F, B, A, T>>;
-export function fromProjection<F, C, B, A>(
-    projection: <X>(structure: GetHktA4<F, C, B, A, X>) => X,
-): <T>(order: Ord<T>) => Ord<GetHktA4<F, C, B, A, T>>;
-export function fromProjection<F extends symbol>(
-    projection: <X>(structure: Hkt<F, X>) => X,
-): <T>(order: Ord<T>) => Ord<Hkt<F, T>> {
-    return (order) => ({
+export const fromProjection =
+    <F extends Hkt1>(projection: <X>(structure: Get1<F, X>) => X) =>
+    <T>(order: Ord<T>): Ord<Get1<F, T>> => ({
         eq: (l, r) => order.eq(projection(l), projection(r)),
         [eqSymbol]: true,
         partialCmp: (l, r) => order.partialCmp(projection(l), projection(r)),
         cmp: (l, r) => order.cmp(projection(l), projection(r)),
     });
-}
 
 export const reversed = <Lhs, Rhs>(ord: Ord<Lhs, Rhs>): Ord<Lhs, Rhs> => ({
     ...ord,

@@ -1,7 +1,8 @@
-import { cat } from "../src/cat.js";
-import { State, monad as stateMonad, StateHktKey, put, get } from "../src/state.js";
-import { begin, bindT } from "../src/type-class/monad.js";
+import { cat } from "./cat.js";
+import { State, StateHkt, monad, StateTHkt, put, get } from "./state.js";
+import { begin, bindT } from "./type-class/monad.js";
 import { expect, test } from "vitest";
+import type { Apply2Only } from "./hkt.js";
 
 const xorShiftRng =
     (): State<number, number> =>
@@ -14,8 +15,8 @@ const xorShiftRng =
 
 test("roll three dices", () => {
     const seed = 1423523;
-    const bound = bindT(stateMonad)(xorShiftRng);
-    const results = cat(begin<StateHktKey, number>(stateMonad))
+    const bound = bindT<Apply2Only<StateHkt, number>>(monad())(xorShiftRng);
+    const results = cat(begin<StateTHkt>(monad()))
         .feed(bound("result1"))
         .feed(bound("result2"))
         .feed(bound("result3"))
@@ -28,6 +29,8 @@ test("roll three dices", () => {
 });
 
 test("twenty times", () => {
+    const stateMonad = monad<number>();
+
     const twentyTimes = (x: number): number =>
         cat(put(x + x))
             .feed(stateMonad.flatMap(get<number>))
@@ -35,7 +38,7 @@ test("twenty times", () => {
             .feed(stateMonad.map((x4: number) => x4 + x4))
             .feed(
                 stateMonad.flatMap((x8: number) =>
-                    stateMonad.map<number, number, number>((x2: number) => x8 + x2)(get<number>()),
+                    stateMonad.map<number, number>((x2: number) => x8 + x2)(get<number>()),
                 ),
             )
             .feed(stateMonad.map((x10: number) => x10 + x10))

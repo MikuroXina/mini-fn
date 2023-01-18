@@ -1,22 +1,51 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-empty-interface */
+/// Type of order 0. `*`.
+export interface Hkt0 {
+    readonly type: unknown;
+}
+/// Type of order 1. `arg1 -> *`.
+export interface Hkt1 extends Hkt0 {
+    readonly arg1: unknown;
+}
+/// Type of order 2. `arg2 -> arg1 -> *`.
+export interface Hkt2 extends Hkt1 {
+    readonly arg2: unknown;
+}
+/// Type of order 3. `arg3 -> arg2 -> arg1 -> *`.
+export interface Hkt3 extends Hkt2 {
+    readonly arg3: unknown;
+}
+/// Type of order 4. `arg4 -> arg3 -> arg2 -> arg1 -> *`.
+export interface Hkt4 extends Hkt3 {
+    readonly arg4: unknown;
+}
 
-export interface Hkt<Symbol extends symbol, A1> {}
-export interface Hkt2<Symbol extends symbol, A1, A2> extends Hkt<symbol, A1> {}
-export interface Hkt3<Symbol extends symbol, A1, A2, A3> extends Hkt2<symbol, A1, A2> {}
-export interface Hkt4<Symbol extends symbol, A1, A2, A3, A4> extends Hkt3<symbol, A1, A2, A3> {}
+export type Apply1<S, A1> = S extends Hkt1
+    ? S & {
+          readonly arg1: A1;
+      }
+    : never;
+export type Apply2Only<S, A2> = S extends Hkt2
+    ? S & {
+          readonly arg2: A2;
+      }
+    : never;
+export type Apply2<S, A1, A2> = Apply1<S, A1> & Apply2Only<S, A2>;
+export type Apply3Only<S, A3> = S extends Hkt3
+    ? S & {
+          readonly arg3: A3;
+      }
+    : never;
+export type Apply3<S, A1, A2, A3> = Apply2<S, A1, A2> & Apply3Only<S, A3>;
+export type Apply4Only<S, A4> = S extends Hkt4
+    ? S & {
+          readonly arg4: A4;
+      }
+    : never;
+export type Apply4<S, A1, A2, A3, A4> = Apply3<S, A1, A2, A3> & Apply4Only<S, A4>;
 
-export interface HktDictA1<A1> {}
-export interface HktDictA2<A1, A2> extends HktDictA1<A1> {}
-export interface HktDictA3<A1, A2, A3> extends HktDictA2<A1, A2> {}
-export interface HktDictA4<A1, A2, A3, A4> extends HktDictA3<A1, A2, A3> {}
+export type Instance<S> = S extends Hkt0 ? S["type"] : never;
 
-export type HktKeyA1 = keyof HktDictA1<unknown>;
-export type HktKeyA2 = keyof HktDictA2<unknown, unknown>;
-export type HktKeyA3 = keyof HktDictA3<unknown, unknown, unknown>;
-export type HktKeyA4 = keyof HktDictA4<unknown, unknown, unknown, unknown>;
-
-export type GetHktA1<S, A1> = S extends HktKeyA1 ? HktDictA1<A1>[S] : never;
-export type GetHktA2<S, A1, A2> = S extends HktKeyA2 ? HktDictA2<A1, A2>[S] : never;
-export type GetHktA3<S, A1, A2, A3> = S extends HktKeyA3 ? HktDictA3<A1, A2, A3>[S] : never;
-export type GetHktA4<S, A1, A2, A3, A4> = S extends HktKeyA4 ? HktDictA4<A1, A2, A3, A4>[S] : never;
+export type Get1<S, A1> = Instance<Apply1<S, A1>>;
+export type Get2<S, A2, A1> = Instance<Apply2<S, A1, A2>>;
+export type Get3<S, A3, A2, A1> = Instance<Apply3<S, A1, A2, A3>>;
+export type Get4<S, A4, A3, A2, A1> = Instance<Apply4<S, A1, A2, A3, A4>>;

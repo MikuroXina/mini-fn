@@ -1,22 +1,23 @@
-import type { GetHktA1 } from "../hkt.js";
-import type { Monad1 } from "../type-class/monad.js";
+import type { Get1, Hkt1 } from "../hkt.js";
 
-export interface MonadState<S, M> extends Monad1<M> {
-    readonly state: <A>(modifier: (state: S) => [A, S]) => GetHktA1<M, A>;
+import type { Monad } from "../type-class/monad.js";
+
+export interface MonadState<S, M extends Hkt1> extends Monad<M> {
+    readonly state: <A>(modifier: (state: S) => [A, S]) => Get1<M, A>;
 }
 
-export const get = <S, M>(s: MonadState<S, M>): GetHktA1<M, S> =>
+export const get = <S, M extends Hkt1>(s: MonadState<S, M>): Get1<M, S> =>
     s.state((state) => [state, state]);
 export const set =
-    <S, M>(s: MonadState<S, M>) =>
-    (state: S): GetHktA1<M, []> =>
+    <S, M extends Hkt1>(s: MonadState<S, M>) =>
+    (state: S): Get1<M, []> =>
         s.state(() => [[], state]);
 
 export const modify =
-    <S, M>(s: MonadState<S, M>) =>
-    (modifier: (state: S) => S): GetHktA1<M, []> =>
+    <S, M extends Hkt1>(s: MonadState<S, M>) =>
+    (modifier: (state: S) => S): Get1<M, []> =>
         s.state((state) => [[], modifier(state)]);
 export const gets =
-    <S, M>(s: MonadState<S, M>) =>
-    <A>(f: (state: S) => A): GetHktA1<M, A> =>
+    <S, M extends Hkt1>(s: MonadState<S, M>) =>
+    <A>(f: (state: S) => A): Get1<M, A> =>
         s.map(f)(get(s));

@@ -1,58 +1,55 @@
-import type { Monad1, Monad2Monoid } from "./type-class/monad.js";
+import type { Apply3Only, Get1, Hkt1, Hkt3 } from "./hkt.js";
 
-import type { Functor2 } from "./type-class/functor.js";
-import type { GetHktA1 } from "./hkt.js";
-import type { IdentityHktKey } from "./identity.js";
+import type { Functor } from "./type-class/functor.js";
+import type { IdentityHkt } from "./identity.js";
+import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { Tuple } from "./tuple.js";
 
 export interface WriterT<W, M, A> {
-    (): GetHktA1<M, [A, W]>;
+    (): Get1<M, [A, W]>;
 }
 
 export const executeWriterT =
-    <M>(monad: Monad1<M>) =>
-    <W, A>(w: WriterT<W, M, A>): GetHktA1<M, W> =>
+    <M extends Hkt1>(monad: Monad<M>) =>
+    <W, A>(w: WriterT<W, M, A>): Get1<M, W> =>
         monad.map(([, nextWriter]: [A, W]) => nextWriter)(w());
 export const mapWriterT =
-    <M, N, A, B, W1, W2>(fn: (maw: GetHktA1<M, [A, W1]>) => GetHktA1<N, [B, W2]>) =>
+    <M, N, A, B, W1, W2>(fn: (maw: Get1<M, [A, W1]>) => Get1<N, [B, W2]>) =>
     (w: WriterT<W1, M, A>): WriterT<W2, N, B> =>
     () =>
         fn(w());
 
 export const tellM =
-    <M>(monad: Monad1<M>) =>
+    <M extends Hkt1>(monad: Monad<M>) =>
     <W>(w: W): WriterT<W, M, []> =>
     () =>
         monad.pure([[], w]);
 export const listenM =
-    <M>(monad: Monad1<M>) =>
+    <M extends Hkt1>(monad: Monad<M>) =>
     <W, A>(writer: WriterT<W, M, A>): WriterT<W, M, [A, W]> =>
     () =>
         monad.map(([a, w]: [A, W]): [[A, W], W] => [[a, w], w])(writer());
 export const listensM =
-    <M>(monad: Monad1<M>) =>
+    <M extends Hkt1>(monad: Monad<M>) =>
     <W, B>(mapper: (w: W) => B) =>
     <A>(writer: WriterT<W, M, A>): WriterT<W, M, [A, B]> =>
     () =>
         monad.map(([a, w]: [A, W]): [[A, B], W] => [[a, mapper(w)], w])(writer());
 export const passM =
-    <M>(monad: Monad1<M>) =>
+    <M extends Hkt1>(monad: Monad<M>) =>
     <W, A>(writer: WriterT<W, M, [A, (w: W) => W]>): WriterT<W, M, A> =>
     () =>
         monad.map(([[a, f], w]: [[A, (w: W) => W], W]): [A, W] => [a, f(w)])(writer());
 
 export const censorM =
-    <M>(monad: Monad1<M>) =>
+    <M extends Hkt1>(monad: Monad<M>) =>
     <W>(cense: (w: W) => W) =>
     <A>(writer: WriterT<W, M, A>): WriterT<W, M, A> =>
     () =>
         monad.map(([a, w]: [A, W]): [A, W] => [a, cense(w)])(writer());
 
-declare const writerNominal: unique symbol;
-export type WriterHktKey = typeof writerNominal;
-
-export type Writer<W, A> = WriterT<W, IdentityHktKey, A>;
+export type Writer<W, A> = WriterT<W, IdentityHkt, A>;
 
 export const evaluateWriter = <W, A>(w: Writer<W, A>): A => w()[0];
 export const executeWriter = <W, A>(w: Writer<W, A>): W => w()[1];
@@ -134,15 +131,13 @@ export const apply =
         return [mapped(ans), monoid.combine(writeT, writeU)];
     };
 
-declare module "./hkt.js" {
-    interface HktDictA2<A1, A2> {
-        [writerNominal]: Writer<A1, A2>;
-    }
+export interface WriterTHkt extends Hkt3 {
+    readonly type: WriterT<this["arg3"], this["arg2"], this["arg1"]>;
 }
 
-export const functor: Functor2<WriterHktKey> = { map };
+export const functor: Functor<WriterTHkt> = { map };
 
-export const makeMonad = <W>(monoid: Monoid<W>): Monad2Monoid<WriterHktKey, W> => ({
+export const makeMonad = <W>(monoid: Monoid<W>): Monad<Apply3Only<WriterTHkt, W>> => ({
     product: product(monoid),
     pure: pure(monoid),
     map,

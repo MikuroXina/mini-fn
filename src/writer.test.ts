@@ -8,11 +8,11 @@ import {
     map,
     pure,
     tell,
-} from "../src/writer.js";
+} from "./writer.js";
 import { expect, test } from "vitest";
 
-import type { Monoid } from "src/type-class/monoid.js";
-import { cat } from "../src/cat.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { cat } from "./cat.js";
 
 const monoidArray = <T>(): Monoid<T[]> => ({
     identity: [],

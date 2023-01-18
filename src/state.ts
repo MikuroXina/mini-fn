@@ -1,33 +1,30 @@
-import type { Monad1, Monad2 } from "./type-class/monad.js";
+import type { Apply2Only, Get1, Hkt1, Hkt2, Hkt3 } from "./hkt.js";
 
-import type { Functor2 } from "./type-class/functor.js";
-import type { GetHktA1 } from "./hkt.js";
-import type { IdentityHktKey } from "./identity.js";
+import type { Functor } from "./type-class/functor.js";
+import type { IdentityHkt } from "./identity.js";
+import type { Monad } from "./type-class/monad.js";
 import type { Tuple } from "./tuple.js";
 
-declare const stateNominal: unique symbol;
-export type StateHktKey = typeof stateNominal;
-
 export interface StateT<S, M, A> {
-    (state: S): GetHktA1<M, [A, S]>;
+    (state: S): Get1<M, [A, S]>;
 }
 
 export const runStateT =
     <S, M, A>(s: StateT<S, M, A>) =>
-    (state: S): GetHktA1<M, [A, S]> =>
+    (state: S): Get1<M, [A, S]> =>
         s(state);
 export const evaluateStateT =
-    <M>(monad: Monad1<M>) =>
+    <M extends Hkt1>(monad: Monad<M>) =>
     <S, A>(s: StateT<S, M, A>) =>
-    (state: S): GetHktA1<M, S> =>
+    (state: S): Get1<M, S> =>
         monad.map(([, nextS]: [A, S]) => nextS)(s(state));
 export const executeStateT =
-    <M>(monad: Monad1<M>) =>
+    <M extends Hkt1>(monad: Monad<M>) =>
     <S, A>(s: StateT<S, M, A>) =>
-    (state: S): GetHktA1<M, A> =>
+    (state: S): Get1<M, A> =>
         monad.map(([nextA]: [A, S]) => nextA)(s(state));
 export const mapStateT =
-    <M, N, S, A, B>(fn: (m: GetHktA1<M, [A, S]>) => GetHktA1<N, [B, S]>) =>
+    <M, N, S, A, B>(fn: (m: Get1<M, [A, S]>) => Get1<N, [B, S]>) =>
     (s: StateT<S, M, A>): StateT<S, N, B> =>
     (state: S) =>
         fn(s(state));
@@ -37,7 +34,7 @@ export const withStateT =
     (state: S) =>
         s(fn(state));
 
-export type State<S, A> = StateT<S, IdentityHktKey, A>;
+export type State<S, A> = StateT<S, IdentityHkt, A>;
 
 export const runState =
     <S, A>(s: State<S, A>) =>
@@ -107,17 +104,19 @@ export const flatMap =
 export const flatten = <S, A>(ss: State<S, State<S, A>>): State<S, A> =>
     flatMap((s: State<S, A>) => s)(ss);
 
-declare module "./hkt.js" {
-    interface HktDictA2<A1, A2> {
-        [stateNominal]: State<A1, A2>;
-    }
+export interface StateTHkt extends Hkt3 {
+    readonly type: StateT<this["arg3"], this["arg2"], this["arg1"]>;
 }
 
-export const functor: Functor2<StateHktKey> = { map };
-export const monad: Monad2<StateHktKey> = {
+export interface StateHkt extends Hkt2 {
+    readonly type: State<this["arg2"], this["arg1"]>;
+}
+
+export const functor = <S>(): Functor<Apply2Only<StateHkt, S>> => ({ map });
+export const monad = <S>(): Monad<Apply2Only<StateHkt, S>> => ({
     product,
     map,
     apply,
     pure,
     flatMap,
-};
+});

@@ -8,11 +8,11 @@ import {
     toArray,
     toIterator,
     zip,
-} from "../src/list.js";
-import { Store, experiment, extend, extract } from "../src/store.js";
+} from "./list.js";
+import { Store, experiment, extend, extract } from "./store.js";
 import { expect, test } from "vitest";
 
-import { constant } from "../src/func.js";
+import { constant } from "./func.js";
 
 test("store with life game", () => {
     type Coord = [number, number];

@@ -9,12 +9,12 @@ import {
     runContT,
     when,
     withCont,
-} from "../src/cont.js";
+} from "./cont.js";
 import { expect, test, vitest } from "vitest";
 
-import type { IdentityHktKey } from "../src/identity.js";
-import { cat } from "../src/cat.js";
-import { id } from "../src/func.js";
+import type { IdentityHkt } from "./identity.js";
+import { cat } from "./cat.js";
+import { id } from "./func.js";
 
 test("eval", () => {
     const actual = evalCont<number>(pure(42));
@@ -48,7 +48,7 @@ test("using callCC", () => {
         (exit: (a: string) => Cont<string, []>): Cont<string, []> =>
             when(name.length === 0)(exit("expected at least 1 character"));
     const whatYourName = (name: string): string => {
-        const cont = callCC<string, IdentityHktKey, string, []>(
+        const cont = callCC<string, IdentityHkt, string, []>(
             (exit) =>
                 cat(validateName(name)(exit)).feed(flatMap(() => pure(`Welcome, ${name}!`))).value,
         );

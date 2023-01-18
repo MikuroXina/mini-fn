@@ -1,27 +1,27 @@
 import * as Option from "./option.js";
 import * as Result from "./result.js";
 
+import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
 import { Eq, fromEquality } from "./type-class/eq.js";
-import { Monad1, Monad2Monoid, kleisli } from "./type-class/monad.js";
+import { Monad, kleisli } from "./type-class/monad.js";
 import { Ord, fromCmp } from "./type-class/ord.js";
 import { Ordering, greater, less } from "./ordering.js";
 import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
-import type { Applicative1 } from "./type-class/applicative.js";
-import type { Functor1 } from "./type-class/functor.js";
-import type { GetHktA1 } from "./hkt.js";
-import type { Traversable1 } from "./type-class/traversable.js";
+import type { Applicative } from "./type-class/applicative.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Traversable } from "./type-class/traversable.js";
 import type { Tuple } from "./tuple.js";
 
 const pureNominal = Symbol("FreePure");
 const nodeNominal = Symbol("FreeNode");
 
 export type Pure<A> = readonly [typeof pureNominal, A];
-export type Node<F, A> = readonly [typeof nodeNominal, GetHktA1<F, Free<F, A>>];
+export type Node<F, A> = readonly [typeof nodeNominal, Get1<F, Free<F, A>>];
 
 export const pure = <A>(a: A): Pure<A> => [pureNominal, a];
-export const node = <F, A>(f: GetHktA1<F, Free<F, A>>): Node<F, A> => [nodeNominal, f];
+export const node = <F, A>(f: Get1<F, Free<F, A>>): Node<F, A> => [nodeNominal, f];
 
 export const isPure = <F, A>(free: Free<F, A>): free is Pure<A> => free[0] === pureNominal;
 export const isNode = <F, A>(free: Free<F, A>): free is Node<F, A> => free[0] === nodeNominal;
@@ -33,7 +33,7 @@ export const partialEquality = <F, A>({
     equalityFA,
 }: {
     equalityA: PartialEq<A>;
-    equalityFA: <T>(equality: PartialEq<T>) => PartialEq<GetHktA1<F, T>>;
+    equalityFA: <T>(equality: PartialEq<T>) => PartialEq<Get1<F, T>>;
 }) => {
     const self = (l: Free<F, A>, r: Free<F, A>): boolean => {
         if (isPure(l) && isPure(r)) {
@@ -52,7 +52,7 @@ export const equality = <F, A>({
     equalityFA,
 }: {
     equalityA: Eq<A>;
-    equalityFA: <T>(equality: Eq<T>) => Eq<GetHktA1<F, T>>;
+    equalityFA: <T>(equality: Eq<T>) => Eq<Get1<F, T>>;
 }) => {
     const self = (l: Free<F, A>, r: Free<F, A>): boolean => {
         if (isPure(l) && isPure(r)) {
@@ -71,7 +71,7 @@ export const partialCmp = <F, A>({
     orderFA,
 }: {
     orderA: PartialOrd<A>;
-    orderFA: <T>(order: PartialOrd<T>) => PartialOrd<GetHktA1<F, T>>;
+    orderFA: <T>(order: PartialOrd<T>) => PartialOrd<Get1<F, T>>;
 }) => {
     const self = (l: Free<F, A>, r: Free<F, A>): Option.Option<Ordering> => {
         // considered that Pure is lesser than Node
@@ -94,7 +94,7 @@ export const cmp = <F, A>({
     orderFA,
 }: {
     orderA: Ord<A>;
-    orderFA: <T>(order: Ord<T>) => Ord<GetHktA1<F, T>>;
+    orderFA: <T>(order: Ord<T>) => Ord<Get1<F, T>>;
 }) => {
     const self = (l: Free<F, A>, r: Free<F, A>): Ordering => {
         // considered that Pure is lesser than Node
@@ -114,8 +114,8 @@ export const cmp = <F, A>({
 export const ord = fromCmp(cmp);
 
 export const retract =
-    <F>(monad: Monad1<F>) =>
-    <T>(fr: Free<F, T>): GetHktA1<F, T> => {
+    <F extends Hkt1>(monad: Monad<F>) =>
+    <T>(fr: Free<F, T>): Get1<F, T> => {
         if (isPure(fr)) {
             return monad.pure(fr[1]);
         }
@@ -123,8 +123,8 @@ export const retract =
     };
 
 export const iter =
-    <F>(functor: Functor1<F>) =>
-    <T>(fn: (m: GetHktA1<F, T>) => T) =>
+    <F extends Hkt1>(functor: Functor<F>) =>
+    <T>(fn: (m: Get1<F, T>) => T) =>
     (fr: Free<F, T>): T => {
         if (isPure(fr)) {
             return fr[1];
@@ -132,18 +132,18 @@ export const iter =
         return fn(functor.map(iter(functor)(fn))(fr[1]));
     };
 export const iterA =
-    <A, F>(app: Applicative1<A>, functor: Functor1<F>) =>
-    <T>(fn: (m: GetHktA1<F, GetHktA1<A, T>>) => GetHktA1<A, T>) =>
-    (fr: Free<F, T>): GetHktA1<A, T> => {
+    <A extends Hkt1, F extends Hkt1>(app: Applicative<A>, functor: Functor<F>) =>
+    <T>(fn: (m: Get1<F, Get1<A, T>>) => Get1<A, T>) =>
+    (fr: Free<F, T>): Get1<A, T> => {
         if (isPure(fr)) {
             return app.pure(fr[1]);
         }
         return fn(functor.map(iterA(app, functor)(fn))(fr[1]));
     };
 export const iterM =
-    <M, F>(monad: Monad1<M>, functor: Functor1<F>) =>
-    <A>(fn: (fma: GetHktA1<F, GetHktA1<M, A>>) => GetHktA1<M, A>) =>
-    (f: Free<F, A>): GetHktA1<M, A> => {
+    <M extends Hkt1, F extends Hkt1>(monad: Monad<M>, functor: Functor<F>) =>
+    <A>(fn: (fma: Get1<F, Get1<M, A>>) => Get1<M, A>) =>
+    (f: Free<F, A>): Get1<M, A> => {
         if (isPure(f)) {
             return monad.pure(f[1]);
         }
@@ -151,8 +151,8 @@ export const iterM =
     };
 
 export const hoistFree =
-    <G>(functor: Functor1<G>) =>
-    <F>(fn: <T>(f: GetHktA1<F, T>) => GetHktA1<G, T>) =>
+    <G extends Hkt1>(functor: Functor<G>) =>
+    <F>(fn: <T>(f: Get1<F, T>) => Get1<G, T>) =>
     <T>(fr: Free<F, T>): Free<G, T> => {
         if (isPure(fr)) {
             return fr;
@@ -161,7 +161,7 @@ export const hoistFree =
     };
 
 export const productT =
-    <F>(app: Applicative1<F>) =>
+    <F extends Hkt1>(app: Applicative<F>) =>
     <A>(a: Free<F, A>) =>
     <B>(b: Free<F, B>): Free<F, Tuple<A, B>> => {
         if (isNode(a)) {
@@ -176,9 +176,9 @@ export const productT =
     };
 
 export const foldFree =
-    <M>(m: Monad1<M>) =>
-    <F>(fn: <T>(f: GetHktA1<F, T>) => GetHktA1<M, T>) =>
-    <T>(fr: Free<F, T>): GetHktA1<M, T> => {
+    <M extends Hkt1>(m: Monad<M>) =>
+    <F>(fn: <T>(f: Get1<F, T>) => Get1<M, T>) =>
+    <T>(fr: Free<F, T>): Get1<M, T> => {
         if (isPure(fr)) {
             return m.pure(fr[1]);
         }
@@ -186,12 +186,12 @@ export const foldFree =
     };
 
 export const liftF =
-    <F>(func: Functor1<F>) =>
-    <T>(ft: GetHktA1<F, T>): Free<F, T> =>
+    <F extends Hkt1>(func: Functor<F>) =>
+    <T>(ft: Get1<F, T>): Free<F, T> =>
         node(func.map<T, Free<F, T>>(pure)(ft));
 
 export const mapT =
-    <F>(functor: Functor1<F>) =>
+    <F extends Hkt1>(functor: Functor<F>) =>
     <T, U>(f: (t: T) => U) =>
     (t: Free<F, T>): Free<F, U> => {
         if (isPure(t)) {
@@ -201,7 +201,7 @@ export const mapT =
     };
 
 export const flatMapT =
-    <F>(functor: Functor1<F>) =>
+    <F extends Hkt1>(functor: Functor<F>) =>
     <T, U>(mf: (t: T) => Free<F, U>) =>
     (t: Free<F, T>): Free<F, U> => {
         if (isPure(t)) {
@@ -211,7 +211,7 @@ export const flatMapT =
     };
 
 export const applyT =
-    <F>(functor: Functor1<F>) =>
+    <F extends Hkt1>(functor: Functor<F>) =>
     <T, U>(mf: Free<F, (t: T) => U>) =>
     (t: Free<F, T>): Free<F, U> => {
         if (isPure(t)) {
@@ -225,7 +225,7 @@ export const applyT =
     };
 
 export const cutoff =
-    <F>(functor: Functor1<F>) =>
+    <F extends Hkt1>(functor: Functor<F>) =>
     (n: number) =>
     <T>(fr: Free<F, T>): Free<F, Option.Option<T>> => {
         if (n <= 0) {
@@ -239,36 +239,29 @@ export const cutoff =
     };
 
 export const unfold =
-    <F>(functor: Functor1<F>) =>
-    <A, B>(fn: (b: B) => Result.Result<A, GetHktA1<F, B>>) =>
+    <F extends Hkt1>(functor: Functor<F>) =>
+    <A, B>(fn: (b: B) => Result.Result<A, Get1<F, B>>) =>
     (seed: B): Free<F, A> =>
-        Result.either((a: A): Free<F, A> => pure(a))((fb: GetHktA1<F, B>) =>
+        Result.either((a: A): Free<F, A> => pure(a))((fb: Get1<F, B>) =>
             node(functor.map(unfold(functor)(fn))(fb)),
         )(fn(seed));
 export const unfoldM =
-    <F, M>(traversable: Traversable1<F>, monad: Monad1<M>) =>
-    <A, B>(
-        f: (b: B) => GetHktA1<M, Result.Result<A, GetHktA1<F, B>>>,
-    ): ((b: B) => GetHktA1<M, Free<F, A>>) => {
+    <F extends Hkt1, M extends Hkt1>(traversable: Traversable<F>, monad: Monad<M>) =>
+    <A, B>(f: (b: B) => Get1<M, Result.Result<A, Get1<F, B>>>): ((b: B) => Get1<M, Free<F, A>>) => {
         return kleisli(monad)(f)(
             Result.either((a: A) => monad.pure(pure(a) as Free<F, A>))((fb) =>
-                monad.map((ffa: GetHktA1<F, Free<F, A>>) => node(ffa) as Free<F, A>)(
+                monad.map((ffa: Get1<F, Free<F, A>>) => node(ffa) as Free<F, A>)(
                     traversable.traverse(monad)(unfoldM(traversable, monad)(f))(fb),
                 ),
             ),
         );
     };
 
-declare const freeHktNominal: unique symbol;
-export type FreeHktKey = typeof freeHktNominal;
-
-declare module "./hkt.js" {
-    interface HktDictA2<A1, A2> {
-        [freeHktNominal]: Free<A1, A2>;
-    }
+export interface FreeHkt extends Hkt2 {
+    readonly type: Free<this["arg2"], this["arg1"]>;
 }
 
-export const monad = <F>(app: Applicative1<F>): Monad2Monoid<FreeHktKey, F> => ({
+export const monad = <F extends Hkt1>(app: Applicative<F>): Monad<Apply2Only<FreeHkt, F>> => ({
     product: productT(app),
     pure,
     map: mapT(app),

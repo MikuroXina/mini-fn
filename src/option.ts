@@ -1,15 +1,15 @@
 import { Eq, fromEquality } from "./type-class/eq.js";
+import type { Get1, Hkt1 } from "./hkt.js";
 import { Ord, fromCmp } from "./type-class/ord.js";
 import { Ordering, equal, greater, less } from "./ordering.js";
 import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 import { Result, err, isOk, ok } from "./result.js";
 
-import type { Applicative1 } from "./type-class/applicative.js";
-import type { GetHktA1 } from "./hkt.js";
-import type { Monad1 } from "./type-class/monad.js";
+import type { Applicative } from "./type-class/applicative.js";
+import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
-import type { Traversable1 } from "./type-class/traversable.js";
+import type { Traversable } from "./type-class/traversable.js";
 
 const someSymbol = Symbol("OptionSome");
 export type Some<T> = readonly [typeof someSymbol, T];
@@ -19,8 +19,6 @@ const noneSymbol = Symbol("OptionNone");
 export type None = readonly [typeof noneSymbol];
 export const none = (): None => [noneSymbol];
 
-declare const optionNominal: unique symbol;
-export type OptionHktKey = typeof optionNominal;
 export type Option<T> = None | Some<T>;
 
 export const fromPredicate =
@@ -251,10 +249,8 @@ export const okOrElse =
 
 export const flatMap = andThen;
 
-declare module "./hkt.js" {
-    interface HktDictA1<A1> {
-        [optionNominal]: Option<A1>;
-    }
+export interface OptionHkt extends Hkt1 {
+    readonly type: Option<this["arg1"]>;
 }
 
 export const monoid = <T>(): Monoid<Option<T>> => ({
@@ -262,7 +258,7 @@ export const monoid = <T>(): Monoid<Option<T>> => ({
     identity: none(),
 });
 
-export const monad: Monad1<OptionHktKey> = {
+export const monad: Monad<OptionHkt> = {
     product: zip,
     pure: some,
     map,
@@ -273,7 +269,7 @@ export const monad: Monad1<OptionHktKey> = {
             flatMap((fn: (t: T1) => U1) => map(fn)(tOpt))(fnOpt),
 };
 
-export const traversable: Traversable1<OptionHktKey> = {
+export const traversable: Traversable<OptionHkt> = {
     map,
     foldR: (folder) => (init) => (data) => {
         if (isNone(data)) {
@@ -282,9 +278,9 @@ export const traversable: Traversable1<OptionHktKey> = {
         return folder(data[1])(init);
     },
     traverse:
-        <F>(app: Applicative1<F>) =>
-        <A, B>(visitor: (a: A) => GetHktA1<F, B>) =>
-        (opt: Option<A>): GetHktA1<F, Option<B>> => {
+        <F extends Hkt1>(app: Applicative<F>) =>
+        <A, B>(visitor: (a: A) => Get1<F, B>) =>
+        (opt: Option<A>): Get1<F, Option<B>> => {
             if (isNone(opt)) {
                 return app.pure(none() as Option<B>);
             }

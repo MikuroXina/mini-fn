@@ -5,11 +5,10 @@ import { Ordering, isEq, and as then } from "./ordering.js";
 import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
-import type { Monad1 } from "./type-class/monad.js";
+import type { Hkt1 } from "./hkt.js";
+import type { Monad } from "./type-class/monad.js";
 import { id } from "./func.js";
 
-declare const frozenNominal: unique symbol;
-export type FrozenHktKey = typeof frozenNominal;
 export type Frozen<T> = T & {
     readonly [K in keyof T]: T[K] extends Frozen<infer I>
         ? I
@@ -73,12 +72,6 @@ export const ord = fromCmp(cmp);
 
 export const freeze = <T>(x: T): Frozen<T> => x as Frozen<T>;
 
-declare module "./hkt.js" {
-    interface HktDictA1<A1> {
-        [frozenNominal]: Frozen<A1>;
-    }
-}
-
 export const product =
     <A, B>(fa: Frozen<A>) =>
     (fb: Frozen<B>): Frozen<[A, B]> =>
@@ -91,7 +84,11 @@ export const map =
 export const flatMap = id;
 export const apply = map;
 
-export const monad: Monad1<FrozenHktKey> = {
+export interface FrozenHkt extends Hkt1 {
+    readonly type: Frozen<this["arg1"]>;
+}
+
+export const monad: Monad<FrozenHkt> = {
     product,
     pure,
     map,

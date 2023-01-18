@@ -1,41 +1,24 @@
-import type { GetHktA2, GetHktA3, GetHktA4, Hkt2 } from "../hkt.js";
-import type { Profunctor, Profunctor2, Profunctor3, Profunctor4 } from "./profunctor.js";
+import type { Get2, Hkt2 } from "../hkt.js";
 
 import type { Category } from "./category.js";
+import type { Profunctor } from "./profunctor.js";
 
-export interface Strong<Sym extends symbol> extends Profunctor<Sym> {
-    readonly first: <A, B, C>(m: Hkt2<Sym, A, B>) => Hkt2<Sym, [A, C], [B, C]>;
-    readonly second: <A, B, C>(m: Hkt2<Sym, A, B>) => Hkt2<Sym, [C, A], [C, B]>;
-}
-
-export interface Strong2<S> extends Profunctor2<S> {
-    readonly first: <A, B, C>(m: GetHktA2<S, A, B>) => GetHktA2<S, [A, C], [B, C]>;
-    readonly second: <A, B, C>(m: GetHktA2<S, A, B>) => GetHktA2<S, [C, A], [C, B]>;
-}
-export interface Strong3<S> extends Profunctor3<S> {
-    readonly first: <A, B, C, D>(m: GetHktA3<S, A, B, D>) => GetHktA3<S, [A, C], [B, C], D>;
-    readonly second: <A, B, C, D>(m: GetHktA3<S, A, B, D>) => GetHktA3<S, [C, A], [C, B], D>;
-}
-export interface Strong4<S> extends Profunctor4<S> {
-    readonly first: <A, B, C, D, E>(
-        m: GetHktA4<S, A, B, D, E>,
-    ) => GetHktA4<S, [A, C], [B, C], D, E>;
-    readonly second: <A, B, C, D, E>(
-        m: GetHktA4<S, A, B, D, E>,
-    ) => GetHktA4<S, [C, A], [C, B], D, E>;
+export interface Strong<S extends Hkt2> extends Profunctor<S> {
+    readonly first: <A, B, C>(m: Get2<S, A, B>) => Get2<S, [A, C], [B, C]>;
+    readonly second: <A, B, C>(m: Get2<S, A, B>) => Get2<S, [C, A], [C, B]>;
 }
 
 export const split =
-    <Sym extends symbol>(str: Strong<Sym>, cat: Category<Sym>) =>
-    <A, B>(funcA: Hkt2<Sym, A, B>) =>
-    <C, D>(funcC: Hkt2<Sym, C, D>): Hkt2<Sym, [A, C], [B, D]> =>
+    <S extends Hkt2>(str: Strong<S>, cat: Category<S>) =>
+    <A, B>(funcA: Get2<S, A, B>) =>
+    <C, D>(funcC: Get2<S, C, D>): Get2<S, [A, C], [B, D]> =>
         cat.compose<[A, C], [B, C], [B, D]>(str.first<A, B, C>(funcA))(str.second<C, D, B>(funcC));
 
-export const fanOut = <Sym extends symbol>(str: Strong<Sym>, cat: Category<Sym>) => {
+export const fanOut = <S extends Hkt2>(str: Strong<S>, cat: Category<S>) => {
     const splitSC = split(str, cat);
-    return <A, B>(funcB: Hkt2<Sym, A, B>) =>
-        <C>(funcC: Hkt2<Sym, A, C>): Hkt2<Sym, A, [B, C]> =>
+    return <A, B>(funcB: Get2<S, A, B>) =>
+        <C>(funcC: Get2<S, A, C>): Get2<S, A, [B, C]> =>
             cat.compose<A, [A, A], [B, C]>(
-                str.diMap<A, A>((a: A) => a)((a: A): [A, A] => [a, a])(cat.identity()),
+                str.diMap((a: A) => a)((a: A): [A, A] => [a, a])(cat.identity()),
             )(splitSC(funcB)(funcC));
 };

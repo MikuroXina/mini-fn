@@ -1,18 +1,18 @@
-import * as Applicative from "./type-class/applicative.js";
 import * as Cat from "./cat.js";
 import * as Option from "./option.js";
 
+import { Applicative, liftA2 } from "./type-class/applicative.js";
 import { Eq, fromEquality } from "./type-class/eq.js";
+import type { Get1, Hkt1 } from "./hkt.js";
 import { Ord, fromCmp } from "./type-class/ord.js";
 import { Ordering, andThen } from "./ordering.js";
 import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
-import type { Functor1 } from "./type-class/functor.js";
-import type { GetHktA1 } from "./hkt.js";
-import type { Monad1 } from "./type-class/monad.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
-import type { Traversable1 } from "./type-class/traversable.js";
+import type { Traversable } from "./type-class/traversable.js";
 import type { Tuple } from "./tuple.js";
 
 export interface List<T> {
@@ -584,13 +584,8 @@ export const applyCartesian =
 export const choices = <T>(listList: List<List<T>>): List<List<T>> =>
     foldR(cartesianProduct(appendToHead))(singleton(empty<T>()))(listList);
 
-declare const listNominal: unique symbol;
-export type ListHktKey = typeof listNominal;
-
-declare module "./hkt.js" {
-    interface HktDictA1<A1> {
-        [listNominal]: List<A1>;
-    }
+export interface ListHkt extends Hkt1 {
+    readonly type: List<this["arg1"]>;
 }
 
 export const monoid = <T>(): Monoid<List<T>> => ({
@@ -598,9 +593,9 @@ export const monoid = <T>(): Monoid<List<T>> => ({
     combine: (l, r) => plus(l)(r),
 });
 
-export const functor: Functor1<ListHktKey> = { map };
+export const functor: Functor<ListHkt> = { map };
 
-export const monad: Monad1<ListHktKey> = {
+export const monad: Monad<ListHkt> = {
     product: zip,
     pure: singleton,
     map,
@@ -611,16 +606,16 @@ export const monad: Monad1<ListHktKey> = {
             concat(map((fn: (t: T1) => U1) => map(fn)(t))(fns)),
 };
 
-export const traversable: Traversable1<ListHktKey> = {
+export const traversable: Traversable<ListHkt> = {
     map,
     foldR,
     traverse:
-        <F>(app: Applicative.Applicative1<F>) =>
-        <A, B>(visitor: (a: A) => GetHktA1<F, B>): ((list: List<A>) => GetHktA1<F, List<B>>) => {
+        <F extends Hkt1>(app: Applicative<F>) =>
+        <A, B>(visitor: (a: A) => Get1<F, B>): ((list: List<A>) => Get1<F, List<B>>) => {
             const consF =
                 (x: A) =>
-                (ys: GetHktA1<F, List<B>>): GetHktA1<F, List<B>> =>
-                    Applicative.liftA2(app)(appendToHead)(visitor(x))(ys);
+                (ys: Get1<F, List<B>>): Get1<F, List<B>> =>
+                    liftA2(app)(appendToHead)(visitor(x))(ys);
             return foldR(consF)(app.pure(empty()));
         },
 };

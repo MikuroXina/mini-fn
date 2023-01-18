@@ -1,10 +1,8 @@
-import type { Functor1, Functor2 } from "./type-class/functor.js";
+import type { Get1, Hkt1, Hkt2 } from "./hkt.js";
 
-import type { Comonad2 } from "./type-class/comonad.js";
-import type { GetHktA1 } from "./hkt.js";
+import type { Comonad } from "./type-class/comonad.js";
+import type { Functor } from "./type-class/functor.js";
 
-declare const storeNominal: unique symbol;
-export type StoreHktKey = typeof storeNominal;
 export interface Store<S, A> {
     readonly index: S;
     readonly accessor: (s: S) => A;
@@ -32,17 +30,15 @@ export const extend =
     });
 
 export const experiment =
-    <F>(functor: Functor1<F>) =>
-    <S>(mapper: (s: S) => GetHktA1<F, S>) =>
-    <A>(store: Store<S, A>): GetHktA1<F, A> =>
+    <F extends Hkt1>(functor: Functor<F>) =>
+    <S>(mapper: (s: S) => Get1<F, S>) =>
+    <A>(store: Store<S, A>): Get1<F, A> =>
         functor.map(store.accessor)(mapper(store.index));
 
-declare module "./hkt.js" {
-    interface HktDictA2<A1, A2> {
-        [storeNominal]: Store<A1, A2>;
-    }
+export interface StoreHkt extends Hkt2 {
+    readonly type: Store<this["arg2"], this["arg1"]>;
 }
 
-export const functor: Functor2<StoreHktKey> = { map };
+export const functor: Functor<StoreHkt> = { map };
 
-export const comonad: Comonad2<StoreHktKey> = { map, extract, duplicate };
+export const comonad: Comonad<StoreHkt> = { map, extract, duplicate };
