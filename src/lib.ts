@@ -31,4 +31,5 @@ export * as Tuple from "./tuple.js";
 export * as TypeClass from "./type-class.js";
 export * as Writer from "./writer.js";
 export * as MonadWriter from "./state/monad.js";
+export * as Yoneda from "./yoneda.js";
 export * as Zipper from "./zipper.js";
