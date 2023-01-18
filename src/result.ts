@@ -1,15 +1,15 @@
 import { Eq, fromEquality } from "./type-class/eq.js";
+import type { Get1, Hkt1, Hkt2 } from "./hkt.js";
 import { Option, isSome, none, toArray as optionToArray, some } from "./option.js";
 import { Ord, fromCmp } from "./type-class/ord.js";
 import { Ordering, greater, less } from "./ordering.js";
 import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
-import type { Applicative1 } from "./type-class/applicative.js";
-import type { GetHktA1 } from "./hkt.js";
-import type { Monad2 } from "./type-class/monad.js";
+import type { Applicative } from "./type-class/applicative.js";
+import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
-import type { Traversable2 } from "./type-class/traversable.js";
+import type { Traversable } from "./type-class/traversable.js";
 
 const okSymbol = Symbol("ResultOk");
 const errSymbol = Symbol("ResultErr");
@@ -17,8 +17,6 @@ const errSymbol = Symbol("ResultErr");
 export type Ok<T> = readonly [typeof okSymbol, T];
 export type Err<E> = readonly [typeof errSymbol, E];
 
-declare const resultNominal: unique symbol;
-export type ResultHktKey = typeof resultNominal;
 export type Result<E, T> = Err<E> | Ok<T>;
 
 export const ok = <E, T>(v: T): Result<E, T> => [okSymbol, v];
@@ -169,19 +167,17 @@ export const foldR: <X, A, B>(
     return folder(res[1])(init);
 };
 export const traverse =
-    <F>(app: Applicative1<F>) =>
-    <A, B>(visitor: (a: A) => GetHktA1<F, B>) =>
-    <X>(res: Result<X, A>): GetHktA1<F, Result<X, B>> => {
+    <F extends Hkt1>(app: Applicative<F>) =>
+    <A, B>(visitor: (a: A) => Get1<F, B>) =>
+    <X>(res: Result<X, A>): Get1<F, Result<X, B>> => {
         if (isErr(res)) {
             return app.pure(err(res[1]));
         }
         return app.map(ok)(visitor(res[1]));
     };
 
-declare module "./hkt.js" {
-    interface HktDictA2<A1, A2> {
-        [resultNominal]: Result<A1, A2>;
-    }
+export interface ResultHkt extends Hkt2 {
+    readonly type: Result<this["arg2"], this["arg1"]>;
 }
 
 export const monoid = <E, T>(error: E): Monoid<Result<E, T>> => ({
@@ -189,7 +185,7 @@ export const monoid = <E, T>(error: E): Monoid<Result<E, T>> => ({
     identity: err(error),
 });
 
-export const monad: Monad2<ResultHktKey> = {
+export const monad: Monad<ResultHkt> = {
     product,
     pure: ok,
     map,
@@ -197,7 +193,7 @@ export const monad: Monad2<ResultHktKey> = {
     apply,
 };
 
-export const traversable: Traversable2<ResultHktKey> = {
+export const traversable: Traversable<ResultHkt> = {
     map,
     foldR,
     traverse,

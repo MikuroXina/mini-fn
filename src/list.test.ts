@@ -1,4 +1,4 @@
-import { Option, none, map as optionMap, some } from "../src/option.js";
+import { Option, none, map as optionMap, some } from "./option.js";
 import {
     appendToHead,
     appendToTail,
@@ -50,10 +50,10 @@ import {
     zip3,
     zip4,
     zipWith,
-} from "../src/list.js";
+} from "./list.js";
 import { expect, test } from "vitest";
 
-import { strict } from "../src/type-class/partial-eq.js";
+import { strict } from "./type-class/partial-eq.js";
 
 test("isNull", () => {
     expect(isNull(empty())).toEqual(true);

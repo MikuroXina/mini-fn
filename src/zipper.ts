@@ -20,11 +20,10 @@ import { Ordering, andThen as thenWith } from "./ordering.js";
 import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
-import type { Comonad1 } from "./type-class/comonad.js";
-import type { Functor1 } from "./type-class/functor.js";
+import type { Comonad } from "./type-class/comonad.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Hkt1 } from "./hkt.js";
 
-declare const zipperNominal: unique symbol;
-export type ZipperHktKey = typeof zipperNominal;
 export interface Zipper<T> {
     readonly left: List<T>;
     readonly current: T;
@@ -160,17 +159,15 @@ export const map =
         right: listMap(fn)(zipper.right),
     });
 
-declare module "./hkt.js" {
-    interface HktDictA1<A1> {
-        [zipperNominal]: Zipper<A1>;
-    }
+export interface ZipperHkt extends Hkt1 {
+    readonly type: Zipper<this["arg1"]>;
 }
 
-export const functor: Functor1<ZipperHktKey> = {
+export const functor: Functor<ZipperHkt> = {
     map,
 };
 
-export const comonad: Comonad1<ZipperHktKey> = {
+export const comonad: Comonad<ZipperHkt> = {
     ...functor,
     extract,
     duplicate,

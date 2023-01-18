@@ -1,30 +1,14 @@
-import type { Functor, Functor1, Functor2 } from "./functor.js";
-import type { GetHktA1, GetHktA2, Hkt } from "../hkt.js";
+import type { Get1, Hkt1 } from "../hkt.js";
 
-export interface Comonad<W extends symbol> extends Functor<W> {
-    readonly extract: <A>(wa: Hkt<W, A>) => A;
-    readonly duplicate: <A>(wa: Hkt<W, A>) => Hkt<W, Hkt<W, A>>;
-}
+import type { Functor } from "./functor.js";
+import { compose } from "../func.js";
 
-export interface Comonad1<W> extends Functor1<W> {
-    readonly extract: <A>(wa: GetHktA1<W, A>) => A;
-    readonly duplicate: <A>(wa: GetHktA1<W, A>) => GetHktA1<W, GetHktA1<W, A>>;
-}
-export interface Comonad2<W> extends Functor2<W> {
-    readonly extract: <B, A>(wa: GetHktA2<W, B, A>) => A;
-    readonly duplicate: <B, A>(wa: GetHktA2<W, B, A>) => GetHktA2<W, B, GetHktA2<W, B, A>>;
+export interface Comonad<W extends Hkt1> extends Functor<W> {
+    readonly extract: <A>(wa: Get1<W, A>) => A;
+    readonly duplicate: <A>(wa: Get1<W, A>) => Get1<W, Get1<W, A>>;
 }
 
-export function extend<W>(
-    comonad: Comonad1<W>,
-): <A1, A2>(extension: (wa: GetHktA1<W, A1>) => A2) => (wa: GetHktA1<W, A1>) => GetHktA1<W, A2>;
-export function extend<W>(
-    comonad: Comonad2<W>,
-): <A1, A2, B>(
-    extension: (wa: GetHktA2<W, B, A1>) => A2,
-) => (wa: GetHktA2<W, B, A1>) => GetHktA2<W, B, A2>;
-export function extend<W extends symbol>(
-    comonad: Comonad<W>,
-): <A1, A2>(extension: (wa: Hkt<W, A1>) => A2) => (wa: Hkt<W, A1>) => Hkt<W, A2> {
-    return (extension) => (wa) => comonad.map(extension)(comonad.duplicate(wa));
-}
+export const extend =
+    <W extends Hkt1>(comonad: Comonad<W>) =>
+    <A1, A2>(extension: (wa: Get1<W, A1>) => A2): ((wa: Get1<W, A1>) => Get1<W, A2>) =>
+        compose(comonad.map(extension))(comonad.duplicate);

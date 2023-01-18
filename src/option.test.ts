@@ -1,5 +1,5 @@
-import * as Option from "../src/option.js";
-import * as Result from "../src/result.js";
+import * as Option from "./option.js";
+import * as Result from "./result.js";
 
 import { describe, expect, test } from "vitest";
 

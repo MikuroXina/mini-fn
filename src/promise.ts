@@ -1,12 +1,10 @@
 import { absurd, id } from "./func.js";
 
-import type { Monad1 } from "./type-class/monad.js";
+import type { Hkt1 } from "./hkt.js";
+import type { Monad } from "./type-class/monad.js";
 import type { MonadCont } from "./cont/monad.js";
 import type { MonadPromise1 } from "./promise/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
-
-declare const promiseNominal: unique symbol;
-export type PromiseHktKey = typeof promiseNominal;
 
 export const pure = Promise.resolve;
 
@@ -38,10 +36,8 @@ export const callCC = <A, B>(
         );
     });
 
-declare module "./hkt.js" {
-    interface HktDictA1<A1> {
-        [promiseNominal]: Promise<A1>;
-    }
+export interface PromiseHkt extends Hkt1 {
+    readonly type: Promise<this["arg1"]>;
 }
 
 export const monoid = <T>(identity: T): Monoid<Promise<T>> => ({
@@ -49,7 +45,7 @@ export const monoid = <T>(identity: T): Monoid<Promise<T>> => ({
     identity: Promise.resolve(identity),
 });
 
-export const monad: Monad1<PromiseHktKey> = {
+export const monad: Monad<PromiseHkt> = {
     product,
     pure,
     map,
@@ -57,12 +53,12 @@ export const monad: Monad1<PromiseHktKey> = {
     apply,
 };
 
-export const monadCont: MonadCont<PromiseHktKey> = {
+export const monadCont: MonadCont<PromiseHkt> = {
     ...monad,
     callCC: callCC,
 };
 
-export const monadPromise: MonadPromise1<PromiseHktKey> = {
+export const monadPromise: MonadPromise1<PromiseHkt> = {
     ...monad,
     liftPromise: id,
 };

@@ -1,25 +1,21 @@
 import { flip, id } from "./func.js";
 
-import type { Monad1 } from "./type-class/monad.js";
-import type { Traversable1 } from "./type-class/traversable.js";
+import type { Hkt1 } from "./hkt.js";
+import type { Monad } from "./type-class/monad.js";
+import type { Traversable } from "./type-class/traversable.js";
 import { make } from "./tuple.js";
 
 export { id };
 
-declare const identityNominal: unique symbol;
-export type IdentityHktKey = typeof identityNominal;
+export interface IdentityHkt extends Hkt1 {
+    readonly type: this["arg1"];
+}
 
 export type Identity<T> = T;
 
 export const run = id;
 
-declare module "./hkt.js" {
-    interface HktDictA1<A1> {
-        [identityNominal]: Identity<A1>;
-    }
-}
-
-export const monad: Monad1<IdentityHktKey> = {
+export const monad: Monad<IdentityHkt> = {
     product: make,
     pure: id,
     map: id,
@@ -27,7 +23,7 @@ export const monad: Monad1<IdentityHktKey> = {
     apply: id,
 };
 
-export const traversable: Traversable1<IdentityHktKey> = {
+export const traversable: Traversable<IdentityHkt> = {
     map: id,
     foldR: flip,
     traverse: () => id,

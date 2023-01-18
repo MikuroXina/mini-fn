@@ -1,12 +1,11 @@
 import { Eq, fromEquality } from "./type-class/eq.js";
-import { Free, eq, flatMapT, isPure, liftF, node } from "../src/free.js";
+import { Free, eq, flatMapT, isPure, liftF, node } from "./free.js";
 import { describe, expect, test } from "vitest";
 
-import type { Functor1 } from "../src/type-class/functor.js";
-import { cat } from "../src/cat.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Hkt1 } from "./hkt.js";
+import { cat } from "./cat.js";
 
-declare const helloNominal: unique symbol;
-type HelloLangHktKey = typeof helloNominal;
 type Hello<T> = {
     type: "Hello";
     next: T;
@@ -25,10 +24,8 @@ type Bye = {
 };
 type HelloLang<T> = Hello<T> | Hey<T> | YearsOld<T> | Bye;
 
-declare module "../src/hkt.js" {
-    interface HktDictA1<A1> {
-        [helloNominal]: HelloLang<A1>;
-    }
+interface HelloLangHkt extends Hkt1 {
+    readonly type: HelloLang<this["arg1"]>;
 }
 
 describe("hello language", () => {
@@ -46,9 +43,9 @@ describe("hello language", () => {
                     return { ...code };
             }
         };
-    const functor: Functor1<HelloLangHktKey> = { map };
+    const functor: Functor<HelloLangHkt> = { map };
 
-    const runProgram = <T>(code: Free<HelloLangHktKey, T>): string => {
+    const runProgram = <T>(code: Free<HelloLangHkt, T>): string => {
         if (isPure(code)) {
             return `return ${code[1]}`;
         }
@@ -64,15 +61,15 @@ describe("hello language", () => {
         }
     };
 
-    const hello: Free<HelloLangHktKey, []> = liftF(functor)({ type: "Hello", next: [] });
-    const hey: Free<HelloLangHktKey, []> = liftF(functor)({ type: "Hey", next: [] });
-    const yearsOld = (years: number): Free<HelloLangHktKey, []> =>
+    const hello: Free<HelloLangHkt, []> = liftF(functor)({ type: "Hello", next: [] });
+    const hey: Free<HelloLangHkt, []> = liftF(functor)({ type: "Hey", next: [] });
+    const yearsOld = (years: number): Free<HelloLangHkt, []> =>
         liftF(functor)({ type: "YearsOld", years, next: [] });
-    const bye: Free<HelloLangHktKey, []> = liftF(functor)({ type: "Bye" });
+    const bye: Free<HelloLangHkt, []> = liftF(functor)({ type: "Bye" });
 
     const flatMap = flatMapT(functor);
 
-    const comparator = eq<HelloLangHktKey, unknown>({
+    const comparator = eq<HelloLangHkt, unknown>({
         equalityA: fromEquality(() => () => true)(),
         equalityFA: fromEquality(<T>(x: Eq<T>) => (l: HelloLang<T>, r: HelloLang<T>) => {
             if (l.type !== r.type) {
@@ -95,11 +92,11 @@ describe("hello language", () => {
     });
 
     test("syntax tree", () => {
-        const example: Free<HelloLangHktKey, unknown> = node<HelloLangHktKey, HelloLang<unknown>>({
+        const example: Free<HelloLangHkt, unknown> = node<HelloLangHkt, HelloLang<unknown>>({
             type: "Hello",
-            next: node<HelloLangHktKey, HelloLang<unknown>>({
+            next: node<HelloLangHkt, HelloLang<unknown>>({
                 type: "Hello",
-                next: node<HelloLangHktKey, HelloLang<unknown>>({
+                next: node<HelloLangHkt, HelloLang<unknown>>({
                     type: "Bye",
                 }),
             }),
@@ -107,7 +104,7 @@ describe("hello language", () => {
         expect(comparator.eq(example, example)).toBe(true);
         expect(runProgram(example)).toEqual("Hello.\nHello.\nBye.\n");
 
-        const exampleCode: Free<HelloLangHktKey, []> = cat(hello)
+        const exampleCode: Free<HelloLangHkt, []> = cat(hello)
             .feed(flatMap(() => hello))
             .feed(flatMap(() => bye)).value;
         expect(comparator.eq(example, exampleCode)).toBe(true);
@@ -115,7 +112,7 @@ describe("hello language", () => {
 
     test("program monad", () => {
         const subRoutine = cat(hello).feed(flatMap(() => yearsOld(25))).value;
-        const program: Free<HelloLangHktKey, []> = cat(hey)
+        const program: Free<HelloLangHkt, []> = cat(hey)
             .feed(flatMap(() => subRoutine))
             .feed(flatMap(() => hey))
             .feed(flatMap(() => bye)).value;

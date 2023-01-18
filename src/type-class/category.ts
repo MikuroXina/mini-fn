@@ -1,16 +1,7 @@
-import type { GetHktA2, GetHktA3, GetHktA4, Hkt2 } from "../hkt.js";
-import type { SemiGroupoid, SemiGroupoid2, SemiGroupoid3, SemiGroupoid4 } from "./semi-groupoid.js";
+import type { Get2, Hkt2 } from "../hkt.js";
 
-export interface Category<Sym extends symbol> extends SemiGroupoid<Sym> {
-    readonly identity: <A>() => Hkt2<Sym, A, A>;
-}
+import type { SemiGroupoid } from "./semi-groupoid.js";
 
-export interface Category2<S> extends SemiGroupoid2<S> {
-    readonly identity: <A>() => GetHktA2<S, A, A>;
-}
-export interface Category3<S> extends SemiGroupoid3<S> {
-    readonly identity: <A, B>() => GetHktA3<S, A, A, B>;
-}
-export interface Category4<S> extends SemiGroupoid4<S> {
-    readonly identity: <A, B, C>() => GetHktA4<S, A, A, B, C>;
+export interface Category<S extends Hkt2> extends SemiGroupoid<S> {
+    readonly identity: <A>() => Get2<S, A, A>;
 }

@@ -1,15 +1,16 @@
-import type { Applicative1 } from "./type-class/applicative.js";
-import type { Functor1 } from "./type-class/functor.js";
-import type { GetHktA1 } from "./hkt.js";
-import type { Monad1 } from "./type-class/monad.js";
-import type { Traversable1 } from "./type-class/traversable.js";
+import type { Get1, Hkt1 } from "./hkt.js";
+
+import type { Applicative } from "./type-class/applicative.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
+import type { Traversable } from "./type-class/traversable.js";
 import { fromProjection as eqFromProjection } from "./type-class/eq.js";
 import { fromProjection as ordFromProjection } from "./type-class/ord.js";
 import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.js";
 import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.js";
 
 const lazyNominal = Symbol("Lazy");
-export type LazyHktKey = typeof lazyNominal;
+
 export interface Lazy<L> {
     readonly [lazyNominal]: () => L;
 }
@@ -18,10 +19,10 @@ export const defer = <L>(deferred: () => L): Lazy<L> => ({ [lazyNominal]: deferr
 
 export const force = <L>(lazy: Lazy<L>): L => lazy[lazyNominal]();
 
-export const partialEq = partialEqFromProjection<LazyHktKey>(force);
-export const eq = eqFromProjection<LazyHktKey>(force);
-export const partialOrd = partialOrdFromProjection<LazyHktKey>(force);
-export const ord = ordFromProjection<LazyHktKey>(force);
+export const partialEq = partialEqFromProjection<LazyHkt>(force);
+export const eq = eqFromProjection<LazyHkt>(force);
+export const partialOrd = partialOrdFromProjection<LazyHkt>(force);
+export const ord = ordFromProjection<LazyHkt>(force);
 
 export const pure = <A>(a: A): Lazy<A> => defer(() => a);
 export const map =
@@ -47,22 +48,20 @@ export const foldR =
     (data: Lazy<A>): B =>
         folder(force(data))(init);
 export const traverse =
-    <F>(app: Applicative1<F>) =>
-    <A, B>(visitor: (a: A) => GetHktA1<F, B>) =>
-    (data: Lazy<A>): GetHktA1<F, Lazy<B>> =>
+    <F extends Hkt1>(app: Applicative<F>) =>
+    <A, B>(visitor: (a: A) => Get1<F, B>) =>
+    (data: Lazy<A>): Get1<F, Lazy<B>> =>
         app.map(pure)(visitor(force(data)));
 
-declare module "./hkt.js" {
-    export interface HktDictA1<A1> {
-        [lazyNominal]: Lazy<A1>;
-    }
+export interface LazyHkt extends Hkt1 {
+    readonly type: Lazy<this["arg1"]>;
 }
 
-export const functor: Functor1<LazyHktKey> = {
+export const functor: Functor<LazyHkt> = {
     map,
 };
 
-export const monad: Monad1<LazyHktKey> = {
+export const monad: Monad<LazyHkt> = {
     product,
     pure,
     map,
@@ -70,7 +69,7 @@ export const monad: Monad1<LazyHktKey> = {
     apply,
 };
 
-export const traversable: Traversable1<LazyHktKey> = {
+export const traversable: Traversable<LazyHkt> = {
     map,
     foldR,
     traverse,

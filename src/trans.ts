@@ -1,20 +1,11 @@
-import type { GetHktA1, GetHktA2, GetHktA3, GetHktA4 } from "./hkt.js";
-import type { Monad1, Monad2, Monad2Monoid, Monad3, Monad4 } from "./type-class/monad.js";
+import type { Get1, Get2, Hkt1, Hkt2 } from "./hkt.js";
 
-export interface MonadTrans1<T> {
-    readonly lift: <M>(monad: Monad1<M>) => <A>(ma: GetHktA1<M, A>) => GetHktA1<T, GetHktA1<M, A>>;
+import type { Monad } from "./type-class/monad.js";
+
+export interface MonadTransHkt extends Hkt2 {
+    readonly arg2: Hkt1;
 }
-export interface MonadTrans2<T> {
-    readonly lift: <M>(monad: Monad2<M>) => <A>(ma: GetHktA1<M, A>) => GetHktA2<T, M, A>;
-}
-export interface MonadTrans2Monoid<T, M> {
-    readonly lift: (monad: Monad2Monoid<T, M>) => <A>(ma: GetHktA1<M, A>) => GetHktA2<T, M, A>;
-}
-export interface MonadTrans3<T> {
-    readonly lift: <M>(monad: Monad3<M>) => <B, A>(ma: GetHktA2<M, B, A>) => GetHktA3<T, M, B, A>;
-}
-export interface MonadTrans4<T> {
-    readonly lift: <M>(
-        monad: Monad4<M>,
-    ) => <C, B, A>(ma: GetHktA3<M, C, B, A>) => GetHktA4<T, M, C, B, A>;
+
+export interface MonadTrans<T extends MonadTransHkt> {
+    readonly lift: <M extends Hkt1>(monad: Monad<M>) => <A>(ma: Get1<M, A>) => Get2<T, M, A>;
 }

@@ -6,17 +6,16 @@
  * @packageDocumentation
  */
 
-import type { Monad1 } from "./type-class/monad.js";
+import type { Hkt1 } from "./hkt.js";
+import type { Monad } from "./type-class/monad.js";
 import { fromProjection as eqFromProjection } from "./type-class/eq.js";
 import { fromProjection as ordFromProjection } from "./type-class/ord.js";
 import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.js";
 import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.js";
 
-declare const catNominal: unique symbol;
-/**
- * A type of the unique symbol for registration of `Cat` to `HktDictA1`.
- */
-export type CatHktKey = typeof catNominal;
+export interface CatHkt extends Hkt1 {
+    readonly type: Cat<this["arg1"]>;
+}
 
 /**
  * Contains a `value` and can be transformed into another one by `feed`.
@@ -58,19 +57,19 @@ export const get = <T>({ value }: Cat<T>): T => value;
 /**
  * Creates a `PartialEq` comparator for `Cat` from another existing one.
  */
-export const partialEq = partialEqFromProjection<CatHktKey>(get);
+export const partialEq = partialEqFromProjection<CatHkt>(get);
 /**
  * Creates a `Eq` comparator for `Cat` from another existing one.
  */
-export const eq = eqFromProjection<CatHktKey>(get);
+export const eq = eqFromProjection<CatHkt>(get);
 /**
  * Creates a `PartialOrd` comparator for `Cat` from another existing one.
  */
-export const partialOrd = partialOrdFromProjection<CatHktKey>(get);
+export const partialOrd = partialOrdFromProjection<CatHkt>(get);
 /**
  * Creates a `Ord` comparator for `Cat` from another existing one.
  */
-export const ord = ordFromProjection<CatHktKey>(get);
+export const ord = ordFromProjection<CatHkt>(get);
 
 /**
  * Inspects the passing value with an inspector. It is useful for using some side effects.
@@ -167,16 +166,10 @@ export const apply =
     (t: Cat<T1>): Cat<U1> =>
         flatMap(t.feed)(fn);
 
-declare module "./hkt.js" {
-    interface HktDictA1<A1> {
-        [catNominal]: Cat<A1>;
-    }
-}
-
 /**
  * The monad implementation of `Cat`.
  */
-export const monad: Monad1<CatHktKey> = {
+export const monad: Monad<CatHkt> = {
     product,
     pure: cat,
     map,

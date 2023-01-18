@@ -1,17 +1,17 @@
-import { IdentityHktKey, monad as identityMonad } from "./identity.js";
-import type { Monad1, Monad2 } from "./type-class/monad.js";
+import type { Get1, Hkt1, Hkt2 } from "./hkt.js";
+import { IdentityHkt, monad as identityMonad } from "./identity.js";
 
-import type { Functor2 } from "./type-class/functor.js";
-import type { GetHktA1 } from "./hkt.js";
-import type { Profunctor2 } from "./type-class/profunctor.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
+import type { Profunctor } from "./type-class/profunctor.js";
 import type { Tuple } from "./tuple.js";
 
 export interface ReaderT<R, M, A> {
-    (record: R): GetHktA1<M, A>;
+    (record: R): Get1<M, A>;
 }
 
 export const mapReaderT =
-    <M, N, A, B>(fn: (ma: GetHktA1<M, A>) => GetHktA1<N, B>) =>
+    <M, N, A, B>(fn: (ma: Get1<M, A>) => Get1<N, B>) =>
     <R>(r: ReaderT<R, M, A>): ReaderT<R, N, B> =>
     (record: R) =>
         fn(r(record));
@@ -21,18 +21,15 @@ export const withReaderT =
     (record: R1) =>
         r(mapper(record));
 
-declare const readerNominal: unique symbol;
-export type ReaderHktKey = typeof readerNominal;
-
-export type Reader<R, A> = ReaderT<R, IdentityHktKey, A>;
+export type Reader<R, A> = ReaderT<R, IdentityHkt, A>;
 
 export const run =
     <R, A>(r: Reader<R, A>) =>
     (req: R) =>
         r(req);
 
-export const askM = <R, S>(m: Monad1<S>): GetHktA1<S, Reader<R, R>> => m.pure((x) => x);
-export const ask = <R>(): Reader<R, R> => askM<R, IdentityHktKey>(identityMonad);
+export const askM = <R, S extends Hkt1>(m: Monad<S>): Get1<S, Reader<R, R>> => m.pure((x) => x);
+export const ask = <R>(): Reader<R, R> => askM<R, IdentityHkt>(identityMonad);
 export const local =
     <T, U>(f: (t: T) => U) =>
     <A>(ma: Reader<U, A>): Reader<T, A> =>
@@ -106,22 +103,20 @@ export const compose =
 export const diMap =
     <A, B>(f: (a: A) => B) =>
     <C, D>(g: (t: C) => D) =>
-    (r: Reader<D, A>): Reader<C, B> =>
+    (r: Reader<B, C>): Reader<A, D> =>
     (t) =>
-        f(r(g(t)));
+        g(r(f(t)));
 
-declare module "./hkt.js" {
-    interface HktDictA2<A1, A2> {
-        [readerNominal]: Reader<A1, A2>;
-    }
+export interface ReaderHkt extends Hkt2 {
+    readonly type: Reader<this["arg2"], this["arg1"]>;
 }
 
-export const functor: Functor2<ReaderHktKey> = { map };
-export const monad: Monad2<ReaderHktKey> = {
+export const functor: Functor<ReaderHkt> = { map };
+export const monad: Monad<ReaderHkt> = {
     product,
     pure,
     map,
     flatMap,
     apply,
 };
-export const profunctor: Profunctor2<ReaderHktKey> = { diMap };
+export const profunctor: Profunctor<ReaderHkt> = { diMap };

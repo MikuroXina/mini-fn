@@ -1,4 +1,5 @@
 import { Eq, fromEquality } from "./type-class/eq.js";
+import type { Get1, Hkt1, Hkt2 } from "./hkt.js";
 import { Lazy, force, defer as lazyDefer } from "./lazy.js";
 import { Option, andThen } from "./option.js";
 import { Ord, fromCmp } from "./type-class/ord.js";
@@ -6,8 +7,7 @@ import { Ordering, andThen as thenWith } from "./ordering.js";
 import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
-import type { Applicative1 } from "./type-class/applicative.js";
-import type { GetHktA1 } from "./hkt.js";
+import type { Applicative } from "./type-class/applicative.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { SemiGroup } from "./type-class/semi-group.js";
 
@@ -95,16 +95,11 @@ export const foldR: <A, B>(
 };
 
 export const traverse =
-    <F>(app: Applicative1<F>) =>
-    <A, B>(visitor: (a: A) => GetHktA1<F, B>) =>
-    ([a1, a2]: [A, A]): GetHktA1<F, Tuple<B, B>> =>
+    <F extends Hkt1>(app: Applicative<F>) =>
+    <A, B>(visitor: (a: A) => Get1<F, B>) =>
+    ([a1, a2]: [A, A]): Get1<F, Tuple<B, B>> =>
         app.product<B, B>(visitor(a1))(visitor(a2));
 
-declare const tupleHktNominal: unique symbol;
-export type TupleHktKey = typeof tupleHktNominal;
-
-declare module "./hkt.js" {
-    interface HktDictA2<A1, A2> {
-        [tupleHktNominal]: Tuple<A1, A2>;
-    }
+export interface TupleHkt extends Hkt2 {
+    readonly type: Tuple<this["arg2"], this["arg1"]>;
 }

@@ -1,40 +1,28 @@
-import type { Foldable1, Foldable2 } from "./foldable.js";
-import type { Functor1, Functor2 } from "./functor.js";
-import type { GetHktA1, GetHktA2 } from "../hkt.js";
+import type { Get1, Hkt1 } from "../hkt.js";
 
-import type { Applicative1 } from "./applicative.js";
-import type { Monad1 } from "./monad.js";
+import type { Applicative } from "./applicative.js";
+import type { Foldable } from "./foldable.js";
+import type { Functor } from "./functor.js";
+import type { Monad } from "./monad.js";
 
-export interface Traversable1<T> extends Functor1<T>, Foldable1<T> {
-    readonly traverse: <F>(
-        app: Applicative1<F>,
-    ) => <A, B>(
-        visitor: (a: A) => GetHktA1<F, B>,
-    ) => (data: GetHktA1<T, A>) => GetHktA1<F, GetHktA1<T, B>>;
+export interface Traversable<T extends Hkt1> extends Functor<T>, Foldable<T> {
+    readonly traverse: <F extends Hkt1>(
+        app: Applicative<F>,
+    ) => <A, B>(visitor: (a: A) => Get1<F, B>) => (data: Get1<T, A>) => Get1<F, Get1<T, B>>;
 }
 
-export interface Traversable2<T> extends Functor2<T>, Foldable2<T> {
-    traverse: <F>(
-        app: Applicative1<F>,
-    ) => <A, B>(
-        visitor: (a: A) => GetHktA1<F, B>,
-    ) => <X>(data: GetHktA2<T, X, A>) => GetHktA1<F, GetHktA2<T, X, B>>;
-}
+export const sequenceA = <T extends Hkt1, F extends Hkt1, A>(
+    traversable: Traversable<T>,
+    app: Applicative<F>,
+): ((tfa: Get1<T, Get1<F, A>>) => Get1<F, Get1<T, A>>) => traversable.traverse<F>(app)((x) => x);
 
-export const sequenceA = <T, F, A>(
-    traversable: Traversable1<T>,
-    app: Applicative1<F>,
-): ((tfa: GetHktA1<T, GetHktA1<F, A>>) => GetHktA1<F, GetHktA1<T, A>>) =>
-    traversable.traverse<F>(app)((x) => x);
-
-export const mapM = <T, M, A, B>(
-    traversable: Traversable1<T>,
-    monad: Monad1<M>,
-): ((visitor: (a: A) => GetHktA1<M, B>) => (ta: GetHktA1<T, A>) => GetHktA1<M, GetHktA1<T, B>>) =>
+export const mapM = <T extends Hkt1, M extends Hkt1, A, B>(
+    traversable: Traversable<T>,
+    monad: Monad<M>,
+): ((visitor: (a: A) => Get1<M, B>) => (ta: Get1<T, A>) => Get1<M, Get1<T, B>>) =>
     traversable.traverse(monad);
 
-export const sequence = <T, M, A>(
-    traversable: Traversable1<T>,
-    monad: Monad1<M>,
-): ((tma: GetHktA1<T, GetHktA1<M, A>>) => GetHktA1<M, GetHktA1<T, A>>) =>
-    sequenceA(traversable, monad);
+export const sequence = <T extends Hkt1, M extends Hkt1, A>(
+    traversable: Traversable<T>,
+    monad: Monad<M>,
+): ((tma: Get1<T, Get1<M, A>>) => Get1<M, Get1<T, A>>) => sequenceA(traversable, monad);
