@@ -3,6 +3,7 @@ export * as Cat from "./cat.js";
 export * as Cofree from "./cofree.js";
 export * as Cont from "./cont.js";
 export * as MonadCont from "./cont/monad.js";
+export * as Coyoneda from "./coyoneda.js";
 export * as Curry from "./curry.js";
 export * as Free from "./free.js";
 export * as MonadFree from "./free/monad.js";
