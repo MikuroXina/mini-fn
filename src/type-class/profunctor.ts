@@ -15,3 +15,11 @@ export const leftMap =
 export const rightMap = <S extends Hkt2>(
     pro: Profunctor<S>,
 ): (<C, D>(f: (a: C) => D) => <A>(m: Get2<S, A, C>) => Get2<S, A, D>) => pro.diMap(id);
+
+export interface FnHkt extends Hkt2 {
+    readonly type: (arg: this["arg2"]) => this["arg1"];
+}
+
+export const fnPro: Profunctor<FnHkt> = {
+    diMap: (f) => (g) => (m) => (a) => g(m(f(a))),
+};
