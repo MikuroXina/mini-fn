@@ -1,3 +1,6 @@
+import type { Arrow } from "./type-class/arrow.js";
+import type { Hkt2 } from "./hkt.js";
+
 export const id = <T>(x: T) => x;
 
 export const constant =
@@ -38,3 +41,22 @@ export const until =
         };
         return go;
     };
+
+export interface Fn<A, B> {
+    (a: A): B;
+}
+
+export interface FnHkt extends Hkt2 {
+    readonly type: Fn<this["arg2"], this["arg1"]>;
+}
+
+export const fnArrow: Arrow<FnHkt> = {
+    compose,
+    identity: () => id,
+    arr: id,
+    split:
+        (arrow1) =>
+        (arrow2) =>
+        ([b1, b2]) =>
+            [arrow1(b1), arrow2(b2)],
+};
