@@ -6,8 +6,7 @@ import type { Profunctor } from "./profunctor.js";
 import type { SemiGroup } from "./semi-group.js";
 import type { Monoid } from "./monoid.js";
 
-export interface Representable<F extends Hkt1, Rep> {
-    readonly functor: Functor<F>;
+export interface Representable<F extends Hkt1, Rep> extends Functor<F> {
     readonly index: <T>(f: Get1<F, T>) => (rep: Rep) => T;
     readonly tabulate: <T>(f: (rep: Rep) => T) => Get1<F, T>;
 }

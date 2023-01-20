@@ -120,7 +120,7 @@ export interface TupleDHkt extends Hkt1 {
 export const functorD: Functor<TupleDHkt> = { map: mapD };
 
 export const representableD: Representable<TupleDHkt, number> = {
-    functor: functorD,
+    ...functorD,
     index: (tuple) => (index) => index == 0 ? tuple[0] : tuple[1],
     tabulate: (get) => [get(0), get(1)],
 };
