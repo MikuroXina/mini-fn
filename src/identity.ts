@@ -1,8 +1,10 @@
-import { flip, id } from "./func.js";
+import { constant, flip, id } from "./func.js";
 
 import type { Distributive } from "./type-class/distributive.js";
+import type { Functor } from "./type-class/functor.js";
 import type { Hkt1 } from "./hkt.js";
 import type { Monad } from "./type-class/monad.js";
+import type { Representable } from "./type-class/representable.js";
 import type { Settable } from "./type-class/settable.js";
 import type { Traversable } from "./type-class/traversable.js";
 import { make } from "./tuple.js";
@@ -16,6 +18,10 @@ export interface IdentityHkt extends Hkt1 {
 export type Identity<T> = T;
 
 export const run = id;
+
+export const functor: Functor<IdentityHkt> = {
+    map: id,
+};
 
 export const monad: Monad<IdentityHkt> = {
     product: make,
@@ -41,4 +47,10 @@ export const settable: Settable<IdentityHkt> = {
     ...monad,
     ...distributive,
     untainted: id,
+};
+
+export const representable: Representable<IdentityHkt, []> = {
+    functor,
+    index: constant,
+    tabulate: (f) => f([]),
 };

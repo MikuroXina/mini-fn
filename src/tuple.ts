@@ -8,7 +8,9 @@ import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
 import type { Applicative } from "./type-class/applicative.js";
+import type { Functor } from "./type-class/functor.js";
 import type { Monoid } from "./type-class/monoid.js";
+import type { Representable } from "./type-class/representable.js";
 import type { SemiGroup } from "./type-class/semi-group.js";
 
 export type Tuple<A, B> = readonly [A, B];
@@ -100,6 +102,25 @@ export const traverse =
     ([a1, a2]: [A, A]): Get1<F, Tuple<B, B>> =>
         app.product<B, B>(visitor(a1))(visitor(a2));
 
+export const mapD =
+    <A, B>(f: (a: A) => B) =>
+    ([a1, a2]: Tuple<A, A>): Tuple<B, B> =>
+        [f(a1), f(a2)];
+
 export interface TupleHkt extends Hkt2 {
     readonly type: Tuple<this["arg2"], this["arg1"]>;
 }
+
+export const functor: Functor<TupleHkt> = { map };
+
+export interface TupleDHkt extends Hkt1 {
+    readonly type: Tuple<this["arg1"], this["arg1"]>;
+}
+
+export const functorD: Functor<TupleDHkt> = { map: mapD };
+
+export const representableD: Representable<TupleDHkt, number> = {
+    functor: functorD,
+    index: (tuple) => (index) => index == 0 ? tuple[0] : tuple[1],
+    tabulate: (get) => [get(0), get(1)],
+};

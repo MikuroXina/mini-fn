@@ -18,6 +18,7 @@ export * as PartialEq from "./type-class/partial-eq.js";
 export * as PartialOrd from "./type-class/partial-ord.js";
 export * as Profunctor from "./type-class/profunctor.js";
 export * as Pure from "./type-class/pure.js";
+export * as Representable from "./type-class/representable.js";
 export * as SemiGroup from "./type-class/semi-group.js";
 export * as SemiGroupoid from "./type-class/semi-groupoid.js";
 export * as SemiGroupal from "./type-class/semi-groupal.js";
