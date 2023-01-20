@@ -10,6 +10,10 @@ export interface Monad<S extends Hkt1> extends Applicative<S>, FlatMap<S> {}
 export const flat = <S extends Hkt1>(m: Monad<S>): (<A>(a: Get1<S, Get1<S, A>>) => Get1<S, A>) =>
     m.flatMap(id);
 
+export const liftM = <S extends Hkt1>(
+    m: Monad<S>,
+): (<A, B>(f: (a: A) => B) => (ma: Get1<S, A>) => Get1<S, B>) => m.map;
+
 export const begin = <S extends Hkt1>(m: Monad<S>): Get1<S, object> => m.pure({});
 
 export type Append<A extends object, NK extends PropertyKey, B> = A & {
