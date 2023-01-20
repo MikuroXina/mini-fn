@@ -1,27 +1,22 @@
-import type { Category3Monoid } from "./type-class/category.js";
-import type { GetHktA1 } from "./hkt.js";
-import type { Monad1 } from "./type-class/monad.js";
+import type { Category } from "./type-class/category.js";
+import type { Apply3Only, Get1, Hkt1, Hkt3 } from "./hkt.js";
+import type { Monad } from "./type-class/monad.js";
 
 export interface Kleisli<M, A, B> {
-    readonly runKleisli: (a: A) => GetHktA1<M, B>;
+    readonly runKleisli: (a: A) => Get1<M, B>;
 }
 
-declare const kleisliNominal: unique symbol;
-export type KleisliHktKey = typeof kleisliNominal;
-
-declare module "./hkt.js" {
-    interface HktDictA3<A1, A2, A3> {
-        [kleisliNominal]: Kleisli<A1, A2, A3>;
-    }
+export interface KleisliHkt extends Hkt3 {
+    readonly type: Kleisli<this["arg3"], this["arg2"], this["arg1"]>;
 }
 
-export const category = <M>(monad: Monad1<M>): Category3Monoid<KleisliHktKey, M> => ({
+export const category = <M extends Hkt1>(monad: Monad<M>): Category<Apply3Only<KleisliHkt, M>> => ({
     identity: <A>() => ({
         runKleisli: monad.pure<A>,
     }),
     compose:
-        ({ runKleisli: f }) =>
-        ({ runKleisli: g }) => ({
+        ({ runKleisli: g }) =>
+        ({ runKleisli: f }) => ({
             runKleisli: (a) => monad.flatMap(g)(f(a)),
         }),
 });
