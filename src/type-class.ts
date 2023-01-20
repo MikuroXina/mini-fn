@@ -1,3 +1,4 @@
+export * as Adjunction from "./type-class/adjunction.js";
 export * as Applicative from "./type-class/applicative.js";
 export * as Apply from "./type-class/apply.js";
 export * as Bifunctor from "./type-class/bifunctor.js";
