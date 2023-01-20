@@ -18,8 +18,8 @@ export interface NtHkt extends Hkt2 {
 export const category: Category<NtHkt> = {
     identity: () => ({ nt: id }),
     compose:
-        <A, B, C>({ nt: ntAB }: Nt<A, B>) =>
-        ({ nt: ntBC }: Nt<B, C>): Nt<A, C> => ({ nt: (f) => ntBC(ntAB(f)) }),
+        <B, C>({ nt: ntBC }: Nt<B, C>) =>
+        <A>({ nt: ntAB }: Nt<A, B>): Nt<A, C> => ({ nt: (f) => ntBC(ntAB(f)) }),
 };
 
 export const semiGroup = <F>(): SemiGroup<Nt<F, F>> => ({
