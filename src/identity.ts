@@ -1,5 +1,6 @@
 import { constant, flip, id } from "./func.js";
 
+import type { Adjunction } from "./type-class/adjunction.js";
 import type { Distributive } from "./type-class/distributive.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Hkt1 } from "./hkt.js";
@@ -50,7 +51,14 @@ export const settable: Settable<IdentityHkt> = {
 };
 
 export const representable: Representable<IdentityHkt, []> = {
-    functor,
+    ...functor,
     index: constant,
     tabulate: (f) => f([]),
+};
+
+export const adjunction: Adjunction<IdentityHkt, IdentityHkt, []> = {
+    functor,
+    representable,
+    unit: id,
+    counit: id,
 };
