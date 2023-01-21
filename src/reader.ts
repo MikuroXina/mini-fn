@@ -117,7 +117,6 @@ export interface ReaderHkt extends Hkt2 {
 
 export const functor = <R>(): Functor<Apply2Only<ReaderHkt, R>> => ({ map });
 export const monad = <R>(): Monad<Apply2Only<ReaderHkt, R>> => ({
-    product,
     pure,
     map,
     flatMap,
@@ -126,7 +125,7 @@ export const monad = <R>(): Monad<Apply2Only<ReaderHkt, R>> => ({
 export const profunctor: Profunctor<ReaderHkt> = { diMap };
 
 export const representableId = <R>(): Representable<Apply2Only<ReaderHkt, R>, R> => ({
-    functor: functor<R>(),
+    ...functor<R>(),
     index: id,
     tabulate: id,
 });

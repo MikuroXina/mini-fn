@@ -62,7 +62,6 @@ export const functor: Functor<LazyHkt> = {
 };
 
 export const monad: Monad<LazyHkt> = {
-    product,
     pure,
     map,
     flatMap,

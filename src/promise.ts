@@ -46,7 +46,6 @@ export const monoid = <T>(identity: T): Monoid<Promise<T>> => ({
 });
 
 export const monad: Monad<PromiseHkt> = {
-    product,
     pure,
     map,
     flatMap: flatMap,

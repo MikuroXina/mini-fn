@@ -8,7 +8,6 @@ import type { Monad } from "./type-class/monad.js";
 import type { Representable } from "./type-class/representable.js";
 import type { Settable } from "./type-class/settable.js";
 import type { Traversable } from "./type-class/traversable.js";
-import { make } from "./tuple.js";
 
 export { id };
 
@@ -25,7 +24,6 @@ export const functor: Functor<IdentityHkt> = {
 };
 
 export const monad: Monad<IdentityHkt> = {
-    product: make,
     pure: id,
     map: id,
     flatMap: id,

@@ -596,7 +596,6 @@ export const monoid = <T>(): Monoid<List<T>> => ({
 export const functor: Functor<ListHkt> = { map };
 
 export const monad: Monad<ListHkt> = {
-    product: zip,
     pure: singleton,
     map,
     flatMap,

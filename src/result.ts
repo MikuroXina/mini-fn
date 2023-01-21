@@ -186,7 +186,6 @@ export const monoid = <E, T>(error: E): Monoid<Result<E, T>> => ({
 });
 
 export const monad: Monad<ResultHkt> = {
-    product,
     pure: ok,
     map,
     flatMap: andThen,

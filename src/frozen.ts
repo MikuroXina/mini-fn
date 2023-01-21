@@ -89,7 +89,6 @@ export interface FrozenHkt extends Hkt1 {
 }
 
 export const monad: Monad<FrozenHkt> = {
-    product,
     pure,
     map,
     flatMap,
