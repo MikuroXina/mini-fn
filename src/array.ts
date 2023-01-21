@@ -1,9 +1,15 @@
-import type { Hkt1 } from "./hkt.js";
+import type { Get1, Hkt1 } from "./hkt.js";
+
 import type { Reduce } from "./type-class/reduce.js";
 
 export interface ArrayHkt extends Hkt1 {
     readonly type: readonly this["arg1"][];
 }
+
+export const fromReduce =
+    <F>(reduce: Reduce<F>) =>
+    <A>(fa: Get1<F, A>): readonly A[] =>
+        reduce.reduceL((arr: readonly A[]) => (elem: A) => [...arr, elem])([])(fa);
 
 export const reduceR: <A, B>(reducer: (a: A) => (b: B) => B) => (fa: readonly A[]) => (b: B) => B =
     (reducer) => (as) => (b) => {
