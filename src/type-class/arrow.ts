@@ -1,5 +1,5 @@
 import { Category, pipe } from "./category.js";
-import type { Get2, Hkt2 } from "src/hkt.js";
+import type { Get2, Hkt2 } from "../hkt.js";
 
 import type { Tuple } from "../tuple.js";
 

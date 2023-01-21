@@ -1,4 +1,4 @@
-import type { Get1, Get2, Hkt1, Hkt2 } from "src/hkt.js";
+import type { Get1, Get2, Hkt1, Hkt2 } from "../hkt.js";
 import { Profunctor, rightMap } from "./profunctor.js";
 
 import type { Applicative } from "./applicative.js";
