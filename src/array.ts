@@ -13,7 +13,8 @@ export const fromReduce =
 
 export const reduceR: <A, B>(reducer: (a: A) => (b: B) => B) => (fa: readonly A[]) => (b: B) => B =
     (reducer) => (as) => (b) => {
-        for (const a of as) {
+        const reversed = [...as].reverse();
+        for (const a of reversed) {
             b = reducer(a)(b);
         }
         return b;

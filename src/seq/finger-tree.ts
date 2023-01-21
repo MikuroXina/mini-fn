@@ -24,27 +24,6 @@ export interface DigitHkt extends Hkt1 {
     readonly type: Digit<this["arg1"]>;
 }
 
-export const reduceDigit: Reduce<DigitHkt> = {
-    reduceR: (red) => (a) => (b) => {
-        if (a.length === 1) {
-            return red(a[0])(b);
-        }
-        const [a1, ...as] = a;
-        return reduceDigit.reduceR(red)(as)(red(a1)(b));
-    },
-    reduceL:
-        <A, B>(red: (b: B) => (a: A) => B) =>
-        (b: B) =>
-        (a: Digit<A>): B => {
-            if (a.length === 1) {
-                return red(b)(a[0]);
-            }
-            const as = a.slice(0, -1) as Digit<A>;
-            const aLast = a.at(-1) as A;
-            return reduceDigit.reduceL(red)(red(b)(aLast))(as);
-        },
-};
-
 export type Node<A> = [A, A] | [A, A, A];
 
 export interface NodeHkt extends Hkt1 {
@@ -104,10 +83,9 @@ export const reduceTree: Reduce<FingerTreeHkt> = {
                 return reducer(tree.data);
             }
             const { left, nextTree, right } = tree;
-            const reducerReducer = reduceDigit.reduceR(reducer);
-            const reducerReducerReducer = reduceTree.reduceR(reducerReducer);
-            return (b: B) =>
-                reducerReducer(left)(reducerReducerReducer(nextTree)(reducerReducer(right)(b)));
+            const arrayReducer = reduceArray.reduceR(reducer);
+            const treeArrayReducer = reduceTree.reduceR(arrayReducer);
+            return (b: B) => arrayReducer(left)(treeArrayReducer(nextTree)(arrayReducer(right)(b)));
         },
     reduceL:
         <A, B>(reducer: (b: B) => (a: A) => B) =>
@@ -120,9 +98,9 @@ export const reduceTree: Reduce<FingerTreeHkt> = {
                 return reducer(b)(tree.data);
             }
             const { left, nextTree, right } = tree;
-            const reducerReducer = reduceDigit.reduceL(reducer);
-            const reducerReducerReducer = reduceTree.reduceL(reducerReducer);
-            return reducerReducer(reducerReducerReducer(reducerReducer(b)(right))(nextTree))(left);
+            const arrayReducer = reduceArray.reduceL(reducer);
+            const treeArrayReducer = reduceTree.reduceL(arrayReducer);
+            return arrayReducer(treeArrayReducer(arrayReducer(b)(left))(nextTree))(right);
         },
 };
 
@@ -187,7 +165,7 @@ export const appendManyToTail = <F>(
 export const fromReduce =
     <F>(reduce: Reduce<F>) =>
     <A>(fa: Get1<F, A>): FingerTree<A> =>
-        appendManyToHead(reduce)(fa)(empty);
+        appendManyToTail(reduce)(empty as FingerTree<A>)(fa);
 export const fromArray = fromReduce(reduceArray);
 
 const nodes = <A>(middle: readonly A[]): Node<A>[] => {
