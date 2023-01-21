@@ -129,5 +129,4 @@ export const monad = <R, M>(): Monad<Apply3Only<ContTHkt, R> & Apply2Only<ContTH
     map,
     flatMap,
     apply,
-    product,
 });

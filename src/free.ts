@@ -261,10 +261,20 @@ export interface FreeHkt extends Hkt2 {
     readonly type: Free<this["arg2"], this["arg1"]>;
 }
 
-export const monad = <F extends Hkt1>(app: Applicative<F>): Monad<Apply2Only<FreeHkt, F>> => ({
-    product: productT(app),
+export const functor = <F extends Hkt1>(f: Functor<F>): Monad<Apply2Only<FreeHkt, F>> => ({
+    map: mapT(f),
     pure,
-    map: mapT(app),
-    flatMap: flatMapT(app),
-    apply: applyT(app),
+    flatMap: <T1, U1>(fn: (t: T1) => Free<F, U1>): ((free: Free<F, T1>) => Free<F, U1>) => {
+        const self = (free: Free<F, T1>): Free<F, U1> =>
+            isPure(free) ? (fn(free[1]) as Free<F, U1>) : node(f.map(self)(free[1]));
+        return self;
+    },
+    apply: applyT(f),
+});
+
+export const monad = <F extends Hkt1>(f: Functor<F>): Monad<Apply2Only<FreeHkt, F>> => ({
+    pure,
+    map: mapT(f),
+    flatMap: flatMapT(f),
+    apply: applyT(f),
 });

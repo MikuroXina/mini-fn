@@ -114,7 +114,6 @@ export interface StateHkt extends Hkt2 {
 
 export const functor = <S>(): Functor<Apply2Only<StateHkt, S>> => ({ map });
 export const monad = <S>(): Monad<Apply2Only<StateHkt, S>> => ({
-    product,
     map,
     apply,
     pure,

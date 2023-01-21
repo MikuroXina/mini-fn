@@ -259,7 +259,6 @@ export const monoid = <T>(): Monoid<Option<T>> => ({
 });
 
 export const monad: Monad<OptionHkt> = {
-    product: zip,
     pure: some,
     map,
     flatMap,

@@ -138,7 +138,6 @@ export interface WriterTHkt extends Hkt3 {
 export const functor: Functor<WriterTHkt> = { map };
 
 export const makeMonad = <W>(monoid: Monoid<W>): Monad<Apply3Only<WriterTHkt, W>> => ({
-    product: product(monoid),
     pure: pure(monoid),
     map,
     flatMap: flatMap(monoid),

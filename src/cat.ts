@@ -170,7 +170,6 @@ export const apply =
  * The monad implementation of `Cat`.
  */
 export const monad: Monad<CatHkt> = {
-    product,
     pure: cat,
     map,
     flatMap,

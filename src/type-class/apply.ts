@@ -2,10 +2,9 @@ import type { Get1, Hkt1 } from "../hkt.js";
 
 import type { Functor } from "./functor.js";
 import type { SemiGroup } from "./semi-group.js";
-import type { SemiGroupal } from "./semi-groupal.js";
 import { pipe } from "../func.js";
 
-export interface Apply<S extends Hkt1> extends Functor<S>, SemiGroupal<S> {
+export interface Apply<S extends Hkt1> extends Functor<S> {
     readonly apply: <T, U>(fn: Get1<S, (t: T) => U>) => (t: Get1<S, T>) => Get1<S, U>;
 }
 
