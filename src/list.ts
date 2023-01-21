@@ -12,6 +12,7 @@ import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
+import type { Reduce } from "./type-class/reduce.js";
 import type { Traversable } from "./type-class/traversable.js";
 import type { Tuple } from "./tuple.js";
 
@@ -148,6 +149,11 @@ export const fromOption = <T>(opt: Option.Option<T>): List<T> => ({
     current: () => opt,
     rest: empty,
 });
+
+export const fromReduce =
+    <F>(reduce: Reduce<F>) =>
+    <A>(fa: Get1<F, A>): List<A> =>
+        reduce.reduceR(appendToHead)(fa)(empty());
 
 export const foldL =
     <T, U>(f: (a: U) => (b: T) => U) =>
@@ -617,4 +623,9 @@ export const traversable: Traversable<ListHkt> = {
                     liftA2(app)(appendToHead)(visitor(x))(ys);
             return foldR(consF)(app.pure(empty()));
         },
+};
+
+export const reduce: Reduce<ListHkt> = {
+    reduceL: foldL,
+    reduceR: (reducer) => (fa) => (b) => foldR(reducer)(b)(fa),
 };
