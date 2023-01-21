@@ -2,7 +2,6 @@ import {
     FingerTree,
     Node,
     isEmpty,
-    size,
     deep,
     Digit,
     empty,
@@ -16,7 +15,16 @@ import type { Tuple } from "./tuple.js";
 
 export type Seq<A> = FingerTree<A>;
 
-export { isEmpty, size };
+export {
+    isEmpty,
+    size,
+    appendToHead,
+    appendManyToHead,
+    appendManyToTail,
+    appendToTail,
+    appendBetween,
+    concat,
+} from "./seq/finger-tree.js";
 
 export type ViewL<A> = Option<Tuple<A, Seq<A>>>;
 
@@ -55,3 +63,42 @@ export const headL = <A>(tree: Seq<A>): Option<A> =>
     mapOption(([head]: Tuple<A, Seq<A>>) => head)(viewL(tree));
 export const tailL = <A>(tree: Seq<A>): Option<Seq<A>> =>
     mapOption(([, tail]: Tuple<A, Seq<A>>) => tail)(viewL(tree));
+
+export type ViewR<A> = Option<Tuple<Seq<A>, A>>;
+
+const deepR =
+    <A>(viewer: (tree: Seq<Node<A>>) => ViewR<Node<A>>) =>
+    (left: Digit<A>) =>
+    (tree: Seq<Node<A>>) =>
+    (right: readonly A[]): Seq<A> => {
+        if (4 < right.length) {
+            throw new Error("digit overflow");
+        }
+        if (right.length === 0) {
+            const subView = viewer(tree);
+            if (isNone(subView)) {
+                return fromReduce(reduceDigit)(left);
+            }
+            const [subTree, last] = subView[1];
+            return deep(left)(subTree)(last);
+        }
+        return deep(left)(tree)(right as Digit<A>);
+    };
+
+export const viewR = <A>(tree: Seq<A>): ViewR<A> => {
+    if (isEmpty(tree)) {
+        return none();
+    }
+    if (isSingle(tree)) {
+        return some([empty, tree.data]);
+    }
+    const { left, nextTree, right } = tree;
+    const tail = right.at(-1) as A;
+    const rest = right.slice(0, -1) as A[];
+    return some([deepR(viewR<Node<A>>)(left)(nextTree)(rest), tail]);
+};
+
+export const headR = <A>(tree: Seq<A>): Option<A> =>
+    mapOption(([, head]: Tuple<Seq<A>, A>) => head)(viewR(tree));
+export const tailR = <A>(tree: Seq<A>): Option<Seq<A>> =>
+    mapOption(([tail]: Tuple<Seq<A>, A>) => tail)(viewR(tree));
