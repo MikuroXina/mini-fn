@@ -188,6 +188,7 @@ export const fromReduce =
     <F>(reduce: Reduce<F>) =>
     <A>(fa: Get1<F, A>): FingerTree<A> =>
         appendManyToHead(reduce)(fa)(empty);
+export const fromArray = fromReduce(reduceArray);
 
 const nodes = <A>(middle: readonly A[]): Node<A>[] => {
     if (middle.length < 2) {
