@@ -1,4 +1,5 @@
 import type { Apply2Only, Get1, Get2, Hkt1 } from "../hkt.js";
+import { FreeHkt, monad as monadF, node } from "../free.js";
 import { Monad, flat } from "../type-class/monad.js";
 import type { MonadTrans, MonadTransHkt } from "../trans.js";
 
@@ -25,3 +26,10 @@ export const wrapT = <F extends Hkt1, M extends Hkt1, T extends MonadTransHkt>(
             liftF(functor, monadFree),
         ),
     );
+
+export const functorMonadFree = <F extends Hkt1>(
+    functor: Functor<F>,
+): MonadFree<F, Apply2Only<FreeHkt, F>> => ({
+    ...monadF(functor),
+    wrap: node,
+});
