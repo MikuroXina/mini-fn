@@ -1,4 +1,4 @@
-import type { Get1, Get2, Hkt1, Hkt2 } from "src/hkt.js";
+import type { Get1, Get2, Hkt1, Hkt2 } from "../hkt.js";
 
 import { Functor, replace } from "./functor.js";
 import type { Representable } from "./representable.js";
