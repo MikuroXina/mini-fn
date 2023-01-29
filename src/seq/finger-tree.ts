@@ -24,6 +24,8 @@ export interface DigitHkt extends Hkt1 {
     readonly type: Digit<this["arg1"]>;
 }
 
+export const reduceDigit: Reduce<DigitHkt> = reduceArray;
+
 export type Node<A> = [A, A] | [A, A, A];
 
 export interface NodeHkt extends Hkt1 {

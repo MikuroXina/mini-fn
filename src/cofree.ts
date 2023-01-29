@@ -1,34 +1,37 @@
 import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
-import { Comonad, extend } from "./type-class/comonad.js";
-import { Eq, fromEquality } from "./type-class/eq.js";
 import {
-    Lazy,
-    force,
     defer as lazyDefer,
     eq as lazyEq,
+    force,
+    Lazy,
     map as lazyMap,
     ord as lazyOrd,
     partialEq as lazyPartialEq,
     partialOrd as lazyPartialOrd,
 } from "./lazy.js";
-import { Monad, kleisli, liftM } from "./type-class/monad.js";
-import { Ord, fromCmp } from "./type-class/ord.js";
-import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
-import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
-import { Traversable, mapM as mapMTraversable } from "./type-class/traversable.js";
 import {
-    Tuple,
     eq as tupleEq,
     map as tupleMap,
     ord as tupleOrd,
     partialEq as tuplePartialEq,
     partialOrd as tuplePartialOrd,
+    Tuple,
 } from "./tuple.js";
+import { Comonad, extend } from "./type-class/comonad.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
+import { kleisli, liftM, Monad } from "./type-class/monad.js";
+import { fromCmp, Ord } from "./type-class/ord.js";
+import { fromPartialEquality, PartialEq } from "./type-class/partial-eq.js";
+import { fromPartialCmp, PartialOrd } from "./type-class/partial-ord.js";
+import { mapM as mapMTraversable, Traversable } from "./type-class/traversable.js";
 
-import type { Functor } from "./type-class/functor.js";
-import type { Option } from "./option.js";
+import { compose, pipe } from "./func.js";
+import { mapOr, Option } from "./option.js";
 import type { Ordering } from "./ordering.js";
-import { compose } from "./func.js";
+import { appendToHead, empty, Seq, viewL } from "./seq.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Representable } from "./type-class/representable.js";
+import type { ComonadCofree } from "./cofree/comonad.js";
 
 export interface CofreeHkt extends Hkt2 {
     readonly type: Cofree<this["arg2"], this["arg1"]>;
@@ -106,6 +109,9 @@ export const head = <F, A>(c: Cofree<F, A>): A => force(c)[0];
 
 export const tail = <F, A>(c: Cofree<F, A>): Get1<F, Cofree<F, A>> => force(c)[1];
 
+export const unwrap = <F extends Hkt1, A>(cofree: Cofree<F, A>): Get1<F, Cofree<F, A>> =>
+    force(cofree)[1];
+
 export const map =
     <F extends Hkt1>(f: Functor<F>) =>
     <A, B>(fn: (a: A) => B) =>
@@ -174,3 +180,41 @@ export const section =
 export const functor = <F extends Hkt1>(f: Functor<F>): Functor<Apply2Only<CofreeHkt, F>> => ({
     map: map(f),
 });
+
+export const comonad = <F extends Hkt1>(f: Functor<F>): Comonad<Apply2Only<CofreeHkt, F>> => {
+    const duplicate = <A>(w: Cofree<F, A>): Cofree<F, Cofree<F, A>> =>
+        make(w)(f.map(duplicate)(unwrap(w)));
+    return {
+        map: map(f),
+        duplicate,
+        extract,
+    };
+};
+
+export const comonadCofree = <F extends Hkt1>(
+    f: Functor<F>,
+): ComonadCofree<F, Apply2Only<CofreeHkt, F>> => ({
+    ...comonad(f),
+    functor: f,
+    unwrap,
+});
+
+export const representable = <F extends Hkt1, Rep>(
+    rep: Representable<F, Rep>,
+): Representable<Apply2Only<CofreeHkt, F>, Seq<Rep>> => {
+    const index =
+        <A>(cofree: Cofree<F, A>) =>
+        (key: Seq<Rep>): A => {
+            const [a, as] = force(cofree);
+            return mapOr(a)(([k, ks]: Tuple<Rep, Seq<Rep>>) => index(rep.index(as)(k))(ks))(
+                viewL(key),
+            );
+        };
+    const tabulate = <A>(f: (key: Seq<Rep>) => A): Cofree<F, A> =>
+        make(f(empty))(rep.tabulate((k) => tabulate(pipe(appendToHead(k))(f))));
+    return {
+        map: map(rep),
+        index,
+        tabulate,
+    };
+};
