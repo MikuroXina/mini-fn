@@ -31,6 +31,7 @@ import type { Ordering } from "./ordering.js";
 import { appendToHead, empty, Seq, viewL } from "./seq.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Representable } from "./type-class/representable.js";
+import type { ComonadCofree } from "./cofree/comonad.js";
 
 export interface CofreeHkt extends Hkt2 {
     readonly type: Cofree<this["arg2"], this["arg1"]>;
@@ -108,6 +109,9 @@ export const head = <F, A>(c: Cofree<F, A>): A => force(c)[0];
 
 export const tail = <F, A>(c: Cofree<F, A>): Get1<F, Cofree<F, A>> => force(c)[1];
 
+export const unwrap = <F extends Hkt1, A>(cofree: Cofree<F, A>): Get1<F, Cofree<F, A>> =>
+    force(cofree)[1];
+
 export const map =
     <F extends Hkt1>(f: Functor<F>) =>
     <A, B>(fn: (a: A) => B) =>
@@ -175,6 +179,24 @@ export const section =
 
 export const functor = <F extends Hkt1>(f: Functor<F>): Functor<Apply2Only<CofreeHkt, F>> => ({
     map: map(f),
+});
+
+export const comonad = <F extends Hkt1>(f: Functor<F>): Comonad<Apply2Only<CofreeHkt, F>> => {
+    const duplicate = <A>(w: Cofree<F, A>): Cofree<F, Cofree<F, A>> =>
+        make(w)(f.map(duplicate)(unwrap(w)));
+    return {
+        map: map(f),
+        duplicate,
+        extract,
+    };
+};
+
+export const comonadCofree = <F extends Hkt1>(
+    f: Functor<F>,
+): ComonadCofree<F, Apply2Only<CofreeHkt, F>> => ({
+    ...comonad(f),
+    functor: f,
+    unwrap,
 });
 
 export const representable = <F extends Hkt1, Rep>(
