@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.0.0](https://github.com/MikuroXina/mini-fn/compare/v1.0.0...v2.0.0) (2023-01-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* Add Adjunction and Remove Semigroupal from Apply ([#49](https://github.com/MikuroXina/mini-fn/issues/49))
+* Add natural transformations and profunctors ([#48](https://github.com/MikuroXina/mini-fn/issues/48))
+* New higher kinded types system ([#46](https://github.com/MikuroXina/mini-fn/issues/46))
+
+### Features
+
+* Add Adjunction and Remove Semigroupal from Apply ([#49](https://github.com/MikuroXina/mini-fn/issues/49)) ([368ed8f](https://github.com/MikuroXina/mini-fn/commit/368ed8f213bc3cddd86fde89ff97ce77532b7adb))
+* Add adjunction for Free ([#51](https://github.com/MikuroXina/mini-fn/issues/51)) ([a8be37d](https://github.com/MikuroXina/mini-fn/commit/a8be37d3c0bdeb16141a064889bc3bf96f7b4a39))
+* Add natural transformations and profunctors ([#48](https://github.com/MikuroXina/mini-fn/issues/48)) ([cfc1652](https://github.com/MikuroXina/mini-fn/commit/cfc1652339bbe26553cfae6bb24a4c4c6299bd08))
+* Add Seq and FingerTree ([#50](https://github.com/MikuroXina/mini-fn/issues/50)) ([2908578](https://github.com/MikuroXina/mini-fn/commit/29085786e2ce44029d6c98d39e2436cd95826b6e))
+* New higher kinded types system ([#46](https://github.com/MikuroXina/mini-fn/issues/46)) ([524b5c3](https://github.com/MikuroXina/mini-fn/commit/524b5c36a03c5f206809c710d4f1a4a9df02f58e))
+
 ## [1.0.0](https://github.com/MikuroXina/mini-fn/compare/v0.3.0...v1.0.0) (2022-12-25)
 
 
