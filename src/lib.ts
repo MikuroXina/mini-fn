@@ -26,6 +26,7 @@ export * as MonadPromise from "./promise/monad.js";
 export * as Reader from "./reader.js";
 export * as MonadReader from "./reader/monad.js";
 export * as Result from "./result.js";
+export * as Seq from "./seq.js";
 export * as State from "./state.js";
 export * as StateMonad from "./state/monad.js";
 export * as Store from "./store.js";
