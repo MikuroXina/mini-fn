@@ -31,6 +31,7 @@ export * as Star from "./star.js";
 export * as State from "./state.js";
 export * as StateMonad from "./state/monad.js";
 export * as Store from "./store.js";
+export * as String from "./string.js";
 export * as Trans from "./trans.js";
 export * as TupleN from "./tuple-n.js";
 export * as Tuple from "./tuple.js";
