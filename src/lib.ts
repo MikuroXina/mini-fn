@@ -19,6 +19,7 @@ export * as List from "./list.js";
 export * as Number from "./number.js";
 export * as Option from "./option.js";
 export * as Ordering from "./ordering.js";
+export * as Predicate from "./predicate.js";
 export * as Promise from "./promise.js";
 export * as MonadPromise from "./promise/monad.js";
 export * as Reader from "./reader.js";
