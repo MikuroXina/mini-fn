@@ -4,6 +4,7 @@ import { Ordering, isEq } from "../ordering.js";
 
 import type { PartialOrd } from "./partial-ord.js";
 import { some } from "../option.js";
+import type { Contravariant } from "./variance.js";
 
 /**
  * All instances of `Ord` must satisfy following conditions:
@@ -40,3 +41,16 @@ export const reversed = <Lhs, Rhs>(ord: Ord<Lhs, Rhs>): Ord<Lhs, Rhs> => ({
         return some(-ord.cmp(lhs, rhs) as Ordering);
     },
 });
+
+export interface OrdHkt extends Hkt1 {
+    readonly type: Ord<this["arg1"]>;
+}
+
+export const contra: Contravariant<OrdHkt> = {
+    contraMap: (f) => (ordB) => ({
+        cmp: (l, r) => ordB.cmp(f(l), f(r)),
+        partialCmp: (l, r) => ordB.partialCmp(f(l), f(r)),
+        eq: (l, r) => ordB.eq(f(l), f(r)),
+        [eqSymbol]: true,
+    }),
+};
