@@ -13,6 +13,7 @@ specifiers:
   eslint-import-resolver-typescript: ^3.5.2
   eslint-plugin-import: ^2.26.0
   eslint-plugin-prettier: ^4.2.1
+  eslint-plugin-tsdoc: ^0.2.17
   prettier: ^2.8.1
   ts-node: ^10.9.1
   tsup: ^6.5.0
@@ -34,6 +35,7 @@ devDependencies:
   eslint-import-resolver-typescript: 3.5.2_2lbwmhbr7bncddqbzzpg77o75m
   eslint-plugin-import: 2.26.0_p6eswnf3xl3aaa2djfyukgz5eq
   eslint-plugin-prettier: 4.2.1_kl4pe43v5b43npmso5hoplpbyi
+  eslint-plugin-tsdoc: 0.2.17
   prettier: 2.8.1
   ts-node: 10.9.1_moeqx3xmzxqxagf2sz6mqkbb7m
   tsup: 6.5.0_z6wznmtyb6ovnulj6iujpct7um
@@ -448,6 +450,19 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.4.14
+    dev: true
+
+  /@microsoft/tsdoc-config/0.16.2:
+    resolution: {integrity: sha512-OGiIzzoBLgWWR0UdRJX98oYO+XKGf7tiK4Zk6tQ/E4IJqGCe7dvkTvgDZV5cFJUzLGDOjeAXrnZoA6QkVySuxw==}
+    dependencies:
+      '@microsoft/tsdoc': 0.14.2
+      ajv: 6.12.6
+      jju: 1.4.0
+      resolve: 1.19.0
+    dev: true
+
+  /@microsoft/tsdoc/0.14.2:
+    resolution: {integrity: sha512-9b8mPpKrfeGRuhFH5iO1iwCLeIIsV6+H1sRfxbkoGXIyQE2BTsPd9zqSqQJ+pv5sJ/hT5M1zvOFL02MnEezFug==}
     dev: true
 
   /@nodelib/fs.scandir/2.1.5:
@@ -1524,6 +1539,13 @@ packages:
       prettier-linter-helpers: 1.0.0
     dev: true
 
+  /eslint-plugin-tsdoc/0.2.17:
+    resolution: {integrity: sha512-xRmVi7Zx44lOBuYqG8vzTXuL6IdGOeF9nHX17bjJ8+VE6fsxpdGem0/SBTmAwgYMKYB1WBkqRJVQ+n8GK041pA==}
+    dependencies:
+      '@microsoft/tsdoc': 0.14.2
+      '@microsoft/tsdoc-config': 0.16.2
+    dev: true
+
   /eslint-scope/5.1.1:
     resolution: {integrity: sha512-2NxwbF/hZ0KpepYN0cNbo+FN6XoK7GaHlQhgx/hIZl6Va0bF45RQOOwhLIy8lQDbuCiadSLCBnH2CFYquit5bw==}
     engines: {node: '>=8.0.0'}
@@ -2139,6 +2161,10 @@ packages:
     resolution: {integrity: sha512-nO6jcEfZWQXDhOiBtG2KvKyEptz7RVbpGP4vTD2hLBdmNQSsCiicO2Ioinv6UI4y9ukqnBpy+XZ9H6uLNgJTlw==}
     dev: true
 
+  /jju/1.4.0:
+    resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
+    dev: true
+
   /joycon/3.1.1:
     resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
     engines: {node: '>=10'}
@@ -2600,6 +2626,13 @@ packages:
   /resolve-from/5.0.0:
     resolution: {integrity: sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==}
     engines: {node: '>=8'}
+    dev: true
+
+  /resolve/1.19.0:
+    resolution: {integrity: sha512-rArEXAgsBG4UgRGcynxWIWKFvh/XZCcS8UJdHhwy91zwAvCZIbcs+vAbflgBnNjYMs/i/i+/Ux6IZhML1yPvxg==}
+    dependencies:
+      is-core-module: 2.11.0
+      path-parse: 1.0.7
     dev: true
 
   /resolve/1.22.1:
