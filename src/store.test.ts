@@ -1,3 +1,6 @@
+import { expect, test } from "vitest";
+
+import { constant } from "./func.js";
 import {
     List,
     filter,
@@ -10,9 +13,6 @@ import {
     zip,
 } from "./list.js";
 import { Store, experiment, extend, extract } from "./store.js";
-import { expect, test } from "vitest";
-
-import { constant } from "./func.js";
 
 test("store with life game", () => {
     type Coord = [number, number];

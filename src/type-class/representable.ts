@@ -1,10 +1,10 @@
-import type { Get1, Get2, Hkt1, Hkt2 } from "../hkt.js";
 import { compose, constant, id } from "../func.js";
+import type { Get1, Get2, Hkt1, Hkt2 } from "../hkt.js";
 import { applyWeak, functor as functorReader } from "../reader.js";
 import type { Functor } from "./functor.js";
+import type { Monoid } from "./monoid.js";
 import type { Profunctor } from "./profunctor.js";
 import type { SemiGroup } from "./semi-group.js";
-import type { Monoid } from "./monoid.js";
 
 export interface Representable<F extends Hkt1, Rep> extends Functor<F> {
     readonly index: <T>(f: Get1<F, T>) => (rep: Rep) => T;

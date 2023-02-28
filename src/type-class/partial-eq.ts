@@ -1,7 +1,6 @@
 import type { Get1, Hkt1 } from "../hkt.js";
-
-import type { Contravariant } from "./variance.js";
 import type { Monoid } from "./monoid.js";
+import type { Contravariant } from "./variance.js";
 
 /**
  * All instances of `PartialEq` must satisfy the following conditions:

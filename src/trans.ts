@@ -1,5 +1,4 @@
 import type { Get1, Get2, Hkt1, Hkt2 } from "./hkt.js";
-
 import type { Monad } from "./type-class/monad.js";
 
 export interface MonadTransHkt extends Hkt2 {

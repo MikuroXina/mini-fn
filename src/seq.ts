@@ -1,16 +1,15 @@
+import { Option, isNone, map as mapOption, none, some } from "./option.js";
 import {
-    deep,
     Digit,
-    empty,
     FingerTree,
+    Node,
+    deep,
+    empty,
     fromReduce,
     isEmpty,
     isSingle,
-    Node,
     reduceDigit,
 } from "./seq/finger-tree.js";
-
-import { isNone, map as mapOption, none, Option, some } from "./option.js";
 import type { Tuple } from "./tuple.js";
 
 export type Seq<A> = FingerTree<A>;

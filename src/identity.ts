@@ -1,9 +1,8 @@
 import { constant, flip, id } from "./func.js";
-
+import type { Hkt1 } from "./hkt.js";
 import type { Adjunction } from "./type-class/adjunction.js";
 import type { Distributive } from "./type-class/distributive.js";
 import type { Functor } from "./type-class/functor.js";
-import type { Hkt1 } from "./hkt.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Representable } from "./type-class/representable.js";
 import type { Settable } from "./type-class/settable.js";

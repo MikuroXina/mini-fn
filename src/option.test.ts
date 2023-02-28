@@ -1,7 +1,7 @@
+import { describe, expect, test } from "vitest";
+
 import * as Option from "./option.js";
 import * as Result from "./result.js";
-
-import { describe, expect, test } from "vitest";
 
 describe("Option", () => {
     test("isSome", () => {

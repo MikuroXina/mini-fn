@@ -1,5 +1,5 @@
-import type { Monoid } from "./monoid.js";
 import { compose } from "../func.js";
+import type { Monoid } from "./monoid.js";
 
 export type Endo<T> = (t: T) => T;
 

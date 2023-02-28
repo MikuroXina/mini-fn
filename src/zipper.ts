@@ -1,4 +1,4 @@
-import { Eq, fromEquality } from "./type-class/eq.js";
+import type { Hkt1 } from "./hkt.js";
 import {
     List,
     appendToHead,
@@ -15,14 +15,13 @@ import {
     unCons,
 } from "./list.js";
 import { Option, andThen, isNone, map as optionMap, unwrap } from "./option.js";
-import { Ord, fromCmp } from "./type-class/ord.js";
 import { Ordering, andThen as thenWith } from "./ordering.js";
+import type { Comonad } from "./type-class/comonad.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
+import type { Functor } from "./type-class/functor.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
 import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
-
-import type { Comonad } from "./type-class/comonad.js";
-import type { Functor } from "./type-class/functor.js";
-import type { Hkt1 } from "./hkt.js";
 
 export interface Zipper<T> {
     readonly left: List<T>;

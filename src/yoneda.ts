@@ -1,6 +1,5 @@
-import type { Get1, Hkt1, Hkt2 } from "./hkt.js";
 import { compose, id } from "./func.js";
-
+import type { Get1, Hkt1, Hkt2 } from "./hkt.js";
 import type { Functor } from "./type-class/functor.js";
 
 export interface Yoneda<F, A> {

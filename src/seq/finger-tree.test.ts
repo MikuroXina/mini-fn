@@ -1,3 +1,6 @@
+import { expect, test } from "vitest";
+
+import { fromReduce } from "../array.js";
 import {
     appendToHead,
     appendToTail,
@@ -10,9 +13,6 @@ import {
     reduceTree,
     size,
 } from "./finger-tree.js";
-import { expect, test } from "vitest";
-
-import { fromReduce } from "../array.js";
 
 test("type check", () => {
     const emptiness = empty;

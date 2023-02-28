@@ -1,10 +1,8 @@
-import * as Identity from "./identity.js";
-
-import type { Apply2Only, Apply3Only, Get1, Hkt1, Hkt2, Hkt3 } from "./hkt.js";
 import { absurd, constant } from "./func.js";
-
-import type { Monad } from "./type-class/monad.js";
+import type { Apply2Only, Apply3Only, Get1, Hkt1, Hkt2, Hkt3 } from "./hkt.js";
+import * as Identity from "./identity.js";
 import type { MonadPromise1 } from "./promise/monad.js";
+import type { Monad } from "./type-class/monad.js";
 
 export interface ContT<R, M, A> {
     (callback: (a: A) => Get1<M, R>): Get1<M, R>;

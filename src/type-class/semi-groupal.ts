@@ -1,5 +1,4 @@
 import type { Get1, Get2, Hkt1 } from "../hkt.js";
-
 import type { Tuple } from "../tuple.js";
 import type { Associative } from "./associative.js";
 

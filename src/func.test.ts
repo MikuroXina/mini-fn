@@ -1,5 +1,6 @@
-import { absurd, constant, flip, id, until } from "./func.js";
 import { expect, test } from "vitest";
+
+import { absurd, constant, flip, id, until } from "./func.js";
 
 test("id", () => {
     expect(id(2)).toBe(2);

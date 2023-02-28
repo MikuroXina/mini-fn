@@ -1,7 +1,6 @@
-import type { Get1, Hkt1 } from "../hkt.js";
-
-import type { Invariant } from "./variance.js";
 import { constant } from "../func.js";
+import type { Get1, Hkt1 } from "../hkt.js";
+import type { Invariant } from "./variance.js";
 
 export interface Functor<F> {
     readonly map: <T, U>(fn: (t: T) => U) => (t: Get1<F, T>) => Get1<F, U>;

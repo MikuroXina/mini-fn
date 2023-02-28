@@ -1,9 +1,8 @@
+import { id } from "../func.js";
 import type { Get1, Hkt2 } from "../hkt.js";
-
 import type { Category } from "./category.js";
 import type { Monoid } from "./monoid.js";
 import type { SemiGroup } from "./semi-group.js";
-import { id } from "../func.js";
 
 export type NaturalTransformation<F, G> = <T>(f: Get1<F, T>) => Get1<G, T>;
 

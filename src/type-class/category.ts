@@ -1,5 +1,4 @@
 import type { Get2, Hkt2 } from "../hkt.js";
-
 import type { SemiGroupoid } from "./semi-groupoid.js";
 
 export interface Category<S> extends SemiGroupoid<S> {

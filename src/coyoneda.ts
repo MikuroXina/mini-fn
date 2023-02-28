@@ -1,6 +1,5 @@
-import type { Get1, Hkt1, Hkt3 } from "./hkt.js";
 import { compose, id } from "./func.js";
-
+import type { Get1, Hkt1, Hkt3 } from "./hkt.js";
 import type { Contravariant } from "./type-class/variance.js";
 
 export interface Coyoneda<F, B, A> {

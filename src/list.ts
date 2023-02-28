@@ -1,20 +1,18 @@
 import * as Cat from "./cat.js";
+import type { Get1, Hkt1 } from "./hkt.js";
 import * as Option from "./option.js";
-
+import { Ordering, andThen } from "./ordering.js";
+import type { Tuple } from "./tuple.js";
 import { Applicative, liftA2 } from "./type-class/applicative.js";
 import { Eq, fromEquality } from "./type-class/eq.js";
-import type { Get1, Hkt1 } from "./hkt.js";
-import { Ord, fromCmp } from "./type-class/ord.js";
-import { Ordering, andThen } from "./ordering.js";
-import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
-import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
-
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 import type { Reduce } from "./type-class/reduce.js";
 import type { Traversable } from "./type-class/traversable.js";
-import type { Tuple } from "./tuple.js";
 
 export interface List<T> {
     readonly current: () => Option.Option<T>;

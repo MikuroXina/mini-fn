@@ -1,3 +1,6 @@
+import { expect, test, vitest } from "vitest";
+
+import { cat } from "./cat.js";
 import {
     Cont,
     callCC,
@@ -10,11 +13,8 @@ import {
     when,
     withCont,
 } from "./cont.js";
-import { expect, test, vitest } from "vitest";
-
-import type { IdentityHkt } from "./identity.js";
-import { cat } from "./cat.js";
 import { id } from "./func.js";
+import type { IdentityHkt } from "./identity.js";
 
 test("eval", () => {
     const actual = evalCont<number>(pure(42));

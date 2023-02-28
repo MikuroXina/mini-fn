@@ -1,5 +1,4 @@
 import type { Get1, Hkt1 } from "../hkt.js";
-
 import type { Applicative } from "./applicative.js";
 import type { Foldable } from "./foldable.js";
 import type { Functor } from "./functor.js";

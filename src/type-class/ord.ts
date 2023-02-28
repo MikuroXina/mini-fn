@@ -1,9 +1,8 @@
-import { Eq, eqSymbol } from "./eq.js";
 import type { Get1, Hkt1 } from "../hkt.js";
-import { Ordering, isEq } from "../ordering.js";
-
-import type { PartialOrd } from "./partial-ord.js";
 import { some } from "../option.js";
+import { Ordering, isEq } from "../ordering.js";
+import { Eq, eqSymbol } from "./eq.js";
+import type { PartialOrd } from "./partial-ord.js";
 import type { Contravariant } from "./variance.js";
 
 /**

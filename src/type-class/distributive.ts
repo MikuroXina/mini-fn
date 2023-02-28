@@ -1,5 +1,4 @@
 import type { Get1, Hkt1 } from "../hkt.js";
-
 import type { Functor } from "./functor.js";
 import type { Monad } from "./monad.js";
 
