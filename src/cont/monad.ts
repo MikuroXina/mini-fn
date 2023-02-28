@@ -1,5 +1,4 @@
 import type { Get1, Hkt1 } from "../hkt.js";
-
 import type { Monad } from "../type-class/monad.js";
 
 export type CallCC<M> = <A, B>(

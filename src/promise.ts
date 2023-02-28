@@ -1,9 +1,8 @@
-import { absurd, id } from "./func.js";
-
-import type { Hkt1 } from "./hkt.js";
-import type { Monad } from "./type-class/monad.js";
 import type { MonadCont } from "./cont/monad.js";
+import { absurd, id } from "./func.js";
+import type { Hkt1 } from "./hkt.js";
 import type { MonadPromise1 } from "./promise/monad.js";
+import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
 
 export const pure = Promise.resolve;

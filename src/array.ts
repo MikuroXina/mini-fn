@@ -1,5 +1,4 @@
 import type { Get1, Hkt1 } from "./hkt.js";
-
 import type { Reduce } from "./type-class/reduce.js";
 
 export interface ArrayHkt extends Hkt1 {

@@ -1,5 +1,4 @@
 import * as List from "../list.js";
-
 import type { SemiGroup } from "./semi-group.js";
 
 /**

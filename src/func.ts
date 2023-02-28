@@ -1,5 +1,4 @@
 import type { Apply2Only, Hkt2 } from "./hkt.js";
-
 import type { Arrow } from "./type-class/arrow.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Representable } from "./type-class/representable.js";

@@ -1,14 +1,13 @@
-import { Eq, fromEquality } from "./type-class/eq.js";
 import type { Get1, Hkt1 } from "./hkt.js";
-import { Ord, fromCmp } from "./type-class/ord.js";
 import { Ordering, equal, greater, less } from "./ordering.js";
-import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
-import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 import { Result, err, isOk, ok } from "./result.js";
-
 import type { Applicative } from "./type-class/applicative.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 import type { Traversable } from "./type-class/traversable.js";
 
 const someSymbol = Symbol("OptionSome");

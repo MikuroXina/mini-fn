@@ -1,14 +1,13 @@
-import { Eq, fromEquality } from "./type-class/eq.js";
 import type { Get1, Hkt1, Hkt2 } from "./hkt.js";
 import { Lazy, force, defer as lazyDefer } from "./lazy.js";
 import { Option, andThen } from "./option.js";
-import { Ord, fromCmp } from "./type-class/ord.js";
 import { Ordering, andThen as thenWith } from "./ordering.js";
-import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
-import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
-
+import { Eq, fromEquality } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monoid } from "./type-class/monoid.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 import type { Representable } from "./type-class/representable.js";
 import type { SemiGroup } from "./type-class/semi-group.js";
 import type { SemiGroupal } from "./type-class/semi-groupal.js";

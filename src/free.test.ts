@@ -1,10 +1,10 @@
-import { Eq, fromEquality } from "./type-class/eq.js";
-import { Free, eq, flatMapT, isPure, liftF, node } from "./free.js";
 import { describe, expect, test } from "vitest";
 
-import type { Functor } from "./type-class/functor.js";
-import type { Hkt1 } from "./hkt.js";
 import { cat } from "./cat.js";
+import { Free, eq, flatMapT, isPure, liftF, node } from "./free.js";
+import type { Hkt1 } from "./hkt.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
+import type { Functor } from "./type-class/functor.js";
 
 type Hello<T> = {
     type: "Hello";

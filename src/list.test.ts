@@ -1,4 +1,5 @@
-import { Option, none, map as optionMap, some } from "./option.js";
+import { expect, test } from "vitest";
+
 import {
     appendToHead,
     appendToTail,
@@ -51,8 +52,7 @@ import {
     zip4,
     zipWith,
 } from "./list.js";
-import { expect, test } from "vitest";
-
+import { Option, none, map as optionMap, some } from "./option.js";
 import { strict } from "./type-class/partial-eq.js";
 
 test("isNull", () => {

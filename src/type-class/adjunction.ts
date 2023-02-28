@@ -1,11 +1,10 @@
-import type { Get1, Get2, Hkt1, Hkt2 } from "../hkt.js";
-
-import { Functor, replace } from "./functor.js";
-import type { Representable } from "./representable.js";
 import { absurd, compose, constant, flip, fnArrow } from "../func.js";
-import type { Profunctor } from "./profunctor.js";
-import { first, second, Tuple } from "../tuple.js";
+import type { Get1, Get2, Hkt1, Hkt2 } from "../hkt.js";
+import { Tuple, first, second } from "../tuple.js";
 import { fanOut } from "./arrow.js";
+import { Functor, replace } from "./functor.js";
+import type { Profunctor } from "./profunctor.js";
+import type { Representable } from "./representable.js";
 
 export interface Adjunction<F extends Hkt1, U extends Hkt1, Rep> {
     readonly functor: Functor<F>;

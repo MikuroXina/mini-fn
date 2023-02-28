@@ -1,7 +1,6 @@
-import type { Get1, Hkt1 } from "../hkt.js";
-
-import type { Functor } from "./functor.js";
 import { compose } from "../func.js";
+import type { Get1, Hkt1 } from "../hkt.js";
+import type { Functor } from "./functor.js";
 
 export interface Comonad<W extends Hkt1> extends Functor<W> {
     readonly extract: <A>(wa: Get1<W, A>) => A;

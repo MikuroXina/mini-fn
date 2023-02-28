@@ -1,5 +1,5 @@
-import type { Monoid } from "./type-class/monoid.js";
 import { fromEquality } from "./type-class/eq.js";
+import type { Monoid } from "./type-class/monoid.js";
 
 export const andMonoid: Monoid<boolean> = {
     identity: true,

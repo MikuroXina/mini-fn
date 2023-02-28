@@ -1,37 +1,36 @@
+import type { ComonadCofree } from "./cofree/comonad.js";
+import { compose, pipe } from "./func.js";
 import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
 import {
+    Lazy,
+    force,
     defer as lazyDefer,
     eq as lazyEq,
-    force,
-    Lazy,
     map as lazyMap,
     ord as lazyOrd,
     partialEq as lazyPartialEq,
     partialOrd as lazyPartialOrd,
 } from "./lazy.js";
+import { Option, mapOr } from "./option.js";
+import type { Ordering } from "./ordering.js";
+import { Seq, appendToHead, empty, viewL } from "./seq.js";
 import {
+    Tuple,
     eq as tupleEq,
     map as tupleMap,
     ord as tupleOrd,
     partialEq as tuplePartialEq,
     partialOrd as tuplePartialOrd,
-    Tuple,
 } from "./tuple.js";
 import { Comonad, extend } from "./type-class/comonad.js";
 import { Eq, fromEquality } from "./type-class/eq.js";
-import { kleisli, liftM, Monad } from "./type-class/monad.js";
-import { fromCmp, Ord } from "./type-class/ord.js";
-import { fromPartialEquality, PartialEq } from "./type-class/partial-eq.js";
-import { fromPartialCmp, PartialOrd } from "./type-class/partial-ord.js";
-import { mapM as mapMTraversable, Traversable } from "./type-class/traversable.js";
-
-import { compose, pipe } from "./func.js";
-import { mapOr, Option } from "./option.js";
-import type { Ordering } from "./ordering.js";
-import { appendToHead, empty, Seq, viewL } from "./seq.js";
 import type { Functor } from "./type-class/functor.js";
+import { Monad, kleisli, liftM } from "./type-class/monad.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 import type { Representable } from "./type-class/representable.js";
-import type { ComonadCofree } from "./cofree/comonad.js";
+import { Traversable, mapM as mapMTraversable } from "./type-class/traversable.js";
 
 export interface CofreeHkt extends Hkt2 {
     readonly type: Cofree<this["arg2"], this["arg1"]>;

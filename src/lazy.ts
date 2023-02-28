@@ -1,13 +1,12 @@
 import type { Get1, Hkt1 } from "./hkt.js";
-
 import type { Applicative } from "./type-class/applicative.js";
+import { fromProjection as eqFromProjection } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
-import type { Traversable } from "./type-class/traversable.js";
-import { fromProjection as eqFromProjection } from "./type-class/eq.js";
 import { fromProjection as ordFromProjection } from "./type-class/ord.js";
 import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.js";
 import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.js";
+import type { Traversable } from "./type-class/traversable.js";
 
 const lazyNominal = Symbol("Lazy");
 

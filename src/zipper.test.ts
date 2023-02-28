@@ -1,8 +1,8 @@
-import { end, fromList, left, right, start, top } from "./zipper.js";
 import { expect, test } from "vitest";
-import { none, some, unwrap } from "./option.js";
 
 import { range } from "./list.js";
+import { none, some, unwrap } from "./option.js";
+import { end, fromList, left, right, start, top } from "./zipper.js";
 
 test("seeking", () => {
     const zipper = unwrap(fromList(range(0, 8)));

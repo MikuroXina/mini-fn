@@ -1,10 +1,9 @@
-import type { Apply2Only, Get1, Get2, Hkt1 } from "../hkt.js";
 import { FreeHkt, monad as monadF, node } from "../free.js";
-import { Monad, flat } from "../type-class/monad.js";
-import type { MonadTrans, MonadTransHkt } from "../trans.js";
-
-import type { Functor } from "../type-class/functor.js";
 import { compose } from "../func.js";
+import type { Apply2Only, Get1, Get2, Hkt1 } from "../hkt.js";
+import type { MonadTrans, MonadTransHkt } from "../trans.js";
+import type { Functor } from "../type-class/functor.js";
+import { Monad, flat } from "../type-class/monad.js";
 
 export interface MonadFree<F, M extends Hkt1> extends Monad<M> {
     readonly wrap: <A>(fma: Get1<F, Get1<M, A>>) => Get1<M, A>;

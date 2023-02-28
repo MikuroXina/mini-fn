@@ -1,7 +1,6 @@
 import type { Get2, Hkt2 } from "../hkt.js";
-import { Profunctor, rightMap } from "./profunctor.js";
-
 import type { Category } from "./category.js";
+import { Profunctor, rightMap } from "./profunctor.js";
 
 export interface Strong<S extends Hkt2> extends Profunctor<S> {
     readonly first: <A, B, C>(m: Get2<S, A, B>) => Get2<S, [A, C], [B, C]>;

@@ -1,9 +1,8 @@
-import { Apply, makeSemiGroup } from "./apply.js";
+import { pipe } from "../func.js";
 import type { Get1, Hkt1 } from "../hkt.js";
-
+import { Apply, makeSemiGroup } from "./apply.js";
 import type { Monoid } from "./monoid.js";
 import type { Pure } from "./pure.js";
-import { pipe } from "../func.js";
 
 export interface Applicative<S extends Hkt1> extends Apply<S>, Pure<S> {}
 

@@ -1,14 +1,13 @@
 import type { Get1, Get2, Hkt1, Hkt2 } from "./hkt.js";
-import { Profunctor, fnPro, leftMap } from "./type-class/profunctor.js";
-import { Settable, taintedDot, untaintedDot } from "./type-class/settable.js";
-
+import type { IdentityHkt } from "./identity.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Apply } from "./type-class/apply.js";
 import type { Bifunctor } from "./type-class/bifunctor.js";
 import type { Choice } from "./type-class/choice.js";
-import type { Contravariant } from "./type-class/variance.js";
 import type { Functor } from "./type-class/functor.js";
-import type { IdentityHkt } from "./identity.js";
+import { Profunctor, fnPro, leftMap } from "./type-class/profunctor.js";
+import { Settable, taintedDot, untaintedDot } from "./type-class/settable.js";
+import type { Contravariant } from "./type-class/variance.js";
 
 export type LensLike<F, S, T, A, B> = (outer: (a: A) => Get1<F, B>) => (s: S) => Get1<F, T>;
 export type LensLikeSimple<F, S, A> = LensLike<F, S, S, A, A>;

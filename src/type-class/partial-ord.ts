@@ -1,10 +1,9 @@
 import type { Get1, Hkt1 } from "../hkt.js";
 import { Option, flatMap, map, mapOr, some } from "../option.js";
 import { Ordering, and, equal, isEq } from "../ordering.js";
-
-import type { Contravariant } from "./variance.js";
 import type { Monoid } from "./monoid.js";
 import type { PartialEq } from "./partial-eq.js";
+import type { Contravariant } from "./variance.js";
 
 /**
  * All instances of `PartialOrd` must satisfy following conditions:

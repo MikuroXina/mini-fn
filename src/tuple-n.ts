@@ -1,6 +1,6 @@
 import { Option, isNone, none, some } from "./option.js";
-import { Ord, fromCmp } from "./type-class/ord.js";
 import { Ordering, and, equal } from "./ordering.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
 export type TupleN<T extends unknown[]> = {

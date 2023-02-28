@@ -1,15 +1,15 @@
 import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
 import { id } from "./identity.js";
-import { appendToHead, either, empty, List } from "./list.js";
+import { List, appendToHead, either, empty } from "./list.js";
 import { Tuple, make as makeTuple } from "./tuple.js";
-import type { Foldable } from "./type-class/foldable.js";
-import type { Bifunctor } from "./type-class/bifunctor.js";
-import type { Functor } from "./type-class/functor.js";
-import type { SemiGroup } from "./type-class/semi-group.js";
 import type { Applicative } from "./type-class/applicative.js";
+import type { Bifunctor } from "./type-class/bifunctor.js";
+import { Eq, eqSymbol } from "./type-class/eq.js";
+import type { Foldable } from "./type-class/foldable.js";
+import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
 import type { PartialEq } from "./type-class/partial-eq.js";
-import { Eq, eqSymbol } from "./type-class/eq.js";
+import type { SemiGroup } from "./type-class/semi-group.js";
 
 const thisSymbol = Symbol("TheseThis");
 export type This<A> = readonly [typeof thisSymbol, A];

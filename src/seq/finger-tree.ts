@@ -1,8 +1,7 @@
-import type { Get1, Hkt1 } from "../hkt.js";
-import { flip, id } from "../func.js";
-
-import type { Reduce } from "../type-class/reduce.js";
 import { reduce as reduceArray } from "../array.js";
+import { flip, id } from "../func.js";
+import type { Get1, Hkt1 } from "../hkt.js";
+import type { Reduce } from "../type-class/reduce.js";
 
 const emptyNominal = Symbol("FingerTreeEmpty");
 export interface Empty {

@@ -1,10 +1,9 @@
-import type { Get1, Hkt1 } from "../hkt.js";
-import { List, build } from "../list.js";
-import { Monoid, append } from "./monoid.js";
-import { Option, isNone, none, some, unwrapOrElse } from "../option.js";
 import { andMonoid, orMonoid } from "../bool.js";
 import { compose, id } from "../func.js";
-
+import type { Get1, Hkt1 } from "../hkt.js";
+import { List, build } from "../list.js";
+import { Option, isNone, none, some, unwrapOrElse } from "../option.js";
+import { Monoid, append } from "./monoid.js";
 import type { PartialEq } from "./partial-eq.js";
 
 export interface Foldable<T extends Hkt1> {

@@ -1,9 +1,8 @@
-import type { Get1, Hkt1 } from "../hkt.js";
 import { id, pipe } from "../func.js";
-
+import type { Get1, Hkt1 } from "../hkt.js";
+import { monad as idMonad } from "../identity.js";
 import type { Applicative } from "./applicative.js";
 import type { FlatMap } from "./flat-map.js";
-import { monad as idMonad } from "../identity.js";
 
 export interface Monad<S extends Hkt1> extends Applicative<S>, FlatMap<S> {}
 

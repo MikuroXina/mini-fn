@@ -1,9 +1,8 @@
 import type { Apply2Only, Get1, Hkt1, Hkt2, Hkt3 } from "./hkt.js";
-
-import type { Functor } from "./type-class/functor.js";
 import type { IdentityHkt } from "./identity.js";
-import type { Monad } from "./type-class/monad.js";
 import type { Tuple } from "./tuple.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
 
 export interface StateT<S, M, A> {
     (state: S): Get1<M, [A, S]>;

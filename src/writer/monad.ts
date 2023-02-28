@@ -1,5 +1,4 @@
 import type { Get1, Hkt1 } from "../hkt.js";
-
 import type { Monad } from "../type-class/monad.js";
 import type { Monoid } from "../type-class/monoid.js";
 

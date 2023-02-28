@@ -1,16 +1,9 @@
-import * as Option from "./option.js";
-import * as Result from "./result.js";
-
-import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
-import { greater, less, Ordering } from "./ordering.js";
-import { Eq, fromEquality } from "./type-class/eq.js";
-import { kleisli, Monad } from "./type-class/monad.js";
-import { fromCmp, Ord } from "./type-class/ord.js";
-import { fromPartialEquality, PartialEq } from "./type-class/partial-eq.js";
-import { fromPartialCmp, PartialOrd } from "./type-class/partial-ord.js";
-
 import { Cofree, CofreeHkt, extract, make, representable, unwrap } from "./cofree.js";
 import { pipe } from "./func.js";
+import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
+import * as Option from "./option.js";
+import { Ordering, greater, less } from "./ordering.js";
+import * as Result from "./result.js";
 import type { Seq } from "./seq.js";
 import type { Tuple } from "./tuple.js";
 import {
@@ -23,7 +16,12 @@ import {
     unsplitL,
 } from "./type-class/adjunction.js";
 import type { Applicative } from "./type-class/applicative.js";
+import { Eq, fromEquality } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
+import { Monad, kleisli } from "./type-class/monad.js";
+import { Ord, fromCmp } from "./type-class/ord.js";
+import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 import type { Traversable } from "./type-class/traversable.js";
 
 const pureNominal = Symbol("FreePure");

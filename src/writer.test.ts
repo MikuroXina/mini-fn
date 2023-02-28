@@ -1,3 +1,7 @@
+import { expect, test } from "vitest";
+
+import { cat } from "./cat.js";
+import type { Monoid } from "./type-class/monoid.js";
 import {
     Writer,
     censor,
@@ -9,10 +13,6 @@ import {
     pure,
     tell,
 } from "./writer.js";
-import { expect, test } from "vitest";
-
-import type { Monoid } from "./type-class/monoid.js";
-import { cat } from "./cat.js";
 
 const monoidArray = <T>(): Monoid<T[]> => ({
     identity: [],

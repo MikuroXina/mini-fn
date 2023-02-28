@@ -5,10 +5,9 @@
  *
  * @packageDocumentation
  */
-
 import type { Hkt1 } from "./hkt.js";
-import type { Monad } from "./type-class/monad.js";
 import { fromProjection as eqFromProjection } from "./type-class/eq.js";
+import type { Monad } from "./type-class/monad.js";
 import { fromProjection as ordFromProjection } from "./type-class/ord.js";
 import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.js";
 import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.js";

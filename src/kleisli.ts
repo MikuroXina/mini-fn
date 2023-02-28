@@ -1,5 +1,5 @@
-import type { Category } from "./type-class/category.js";
 import type { Apply3Only, Get1, Hkt1, Hkt3 } from "./hkt.js";
+import type { Category } from "./type-class/category.js";
 import type { Monad } from "./type-class/monad.js";
 
 export interface Kleisli<M, A, B> {
