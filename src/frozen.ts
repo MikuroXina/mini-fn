@@ -8,6 +8,9 @@ import { Ord, fromCmp } from "./type-class/ord.js";
 import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
+/**
+ * The frozen type makes `T` type `readonly` recursively.
+ */
 export type Frozen<T> = T & {
     readonly [K in keyof T]: T[K] extends Frozen<infer I>
         ? I
@@ -69,6 +72,12 @@ export const cmp =
             .reduce((prev, curr) => then(curr)(prev));
 export const ord = fromCmp(cmp);
 
+/**
+ * Freeze the value by casting as a `Frozen`.
+ *
+ * @param x - The value to be converted.
+ * @returns The frozen value.
+ */
 export const freeze = <T>(x: T): Frozen<T> => x as Frozen<T>;
 
 export const product =
@@ -87,6 +96,9 @@ export interface FrozenHkt extends Hkt1 {
     readonly type: Frozen<this["arg1"]>;
 }
 
+/**
+ * The instance of `Monad` for `Frozen`.
+ */
 export const monad: Monad<FrozenHkt> = {
     pure,
     map,
