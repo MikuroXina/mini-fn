@@ -14,14 +14,26 @@ export interface IdentityHkt extends Hkt1 {
     readonly type: this["arg1"];
 }
 
+/**
+ * The identity functor which is same as the type parameter.
+ */
 export type Identity<T> = T;
 
+/**
+ * Gets the value of `Identity`. It is same as the identity function.
+ */
 export const run = id;
 
+/**
+ * The instance of `Functor` for `Identity`.
+ */
 export const functor: Functor<IdentityHkt> = {
     map: id,
 };
 
+/**
+ * The instance of `Monad` for `Identity`.
+ */
 export const monad: Monad<IdentityHkt> = {
     pure: id,
     map: id,
@@ -29,17 +41,26 @@ export const monad: Monad<IdentityHkt> = {
     apply: id,
 };
 
+/**
+ * The instance of `Traversable` for `Identity`.
+ */
 export const traversable: Traversable<IdentityHkt> = {
     map: id,
     foldR: flip,
     traverse: () => id,
 };
 
+/**
+ * The instance of `Functor` for `Identity`.
+ */
 export const distributive: Distributive<IdentityHkt> = {
     map: id,
     distribute: () => id,
 };
 
+/**
+ * The instance of `Settable` for `Identity`.
+ */
 export const settable: Settable<IdentityHkt> = {
     ...traversable,
     ...monad,
@@ -47,12 +68,18 @@ export const settable: Settable<IdentityHkt> = {
     untainted: id,
 };
 
+/**
+ * The instance of `Representable` for `Identity` with `[]` representation.
+ */
 export const representable: Representable<IdentityHkt, []> = {
     ...functor,
     index: constant,
     tabulate: (f) => f([]),
 };
 
+/**
+ * The instance of `Adjunction` for `Identity` against to itself with `[]` representation..
+ */
 export const adjunction: Adjunction<IdentityHkt, IdentityHkt, []> = {
     functor,
     representable,
