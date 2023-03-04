@@ -32,6 +32,7 @@ import {
     repeat,
     replicate,
     reverse,
+    scanL,
     singleton,
     span,
     spanNot,
@@ -184,6 +185,12 @@ test("concat", () => {
     const cList = fromArray([5, 4, 1, 2]);
     const listList = fromArray([aList, bList, cList]);
     expect(toArray(concat(listList))).toEqual([42, 5, 4, 1, 2]);
+});
+
+test("scanL", () => {
+    const aList = fromArray([1, 2, 2, 4, 4, 3]);
+    const partialSum = scanL((a: number) => (b: number) => a + b)(0)(aList);
+    expect(toArray(partialSum)).toEqual([0, 1, 3, 5, 9, 13, 16]);
 });
 
 test("head", () => {
