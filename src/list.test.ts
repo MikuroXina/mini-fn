@@ -45,6 +45,7 @@ import {
     toArray,
     toIterator,
     toString,
+    transpose,
     unCons,
     unfoldR,
     unzip,
@@ -279,6 +280,17 @@ test("intercalate", () => {
         fromArray([fromString("foo"), fromString("bar"), fromString("bee")]),
     );
     expect(toString(joined)).toEqual("foo, bar, bee");
+});
+
+test("transpose", () => {
+    const matrix = fromArray([fromArray([1, 2, 3]), fromArray([4, 5, 6])]);
+    const transposed = transpose(matrix);
+    const actual = toArray(transposed).map((col) => toArray(col));
+    expect(actual).toEqual([
+        [1, 4],
+        [2, 5],
+        [3, 6],
+    ]);
 });
 
 test("subsequences", () => {
