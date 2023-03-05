@@ -4,6 +4,7 @@ import {
     appendToHead,
     appendToTail,
     atMay,
+    choices,
     concat,
     digits,
     drop,
@@ -492,4 +493,20 @@ test("group", () => {
         toString(list),
     );
     expect(grouped).toEqual(["M", "i", "ss", "i", "ss", "i", "pp", "i"]);
+});
+
+test("choices", () => {
+    const choice = choices(fromArray([range(0, 3), range(3, 6)]));
+    const sequences = toArray(choice).map((seq) => toArray(seq));
+    expect(sequences).toEqual([
+        [0, 3],
+        [0, 4],
+        [1, 3],
+        [0, 5],
+        [1, 4],
+        [2, 3],
+        [1, 5],
+        [2, 4],
+        [2, 5],
+    ]);
 });
