@@ -10,7 +10,16 @@ const emptyNominal = Symbol("FingerTreeEmpty");
 export interface Empty {
     readonly type: typeof emptyNominal;
 }
+/**
+ * Checks whether the tree is an `Empty`.
+ *
+ * @param tree - The tree to be checked.
+ * @returns Whether the tree is an `Empty`.
+ */
 export const isEmpty = <A>(tree: FingerTree<A>): tree is Empty => tree.type === emptyNominal;
+/**
+ * A new empty tree.
+ */
 export const empty: Empty = { type: emptyNominal } as const;
 
 const singleNominal = Symbol("FingerTreeSingle");
@@ -21,7 +30,20 @@ export interface Single<A> {
     readonly type: typeof singleNominal;
     data: A;
 }
+/**
+ * Checks whether the tree is a `Single`.
+ *
+ * @param tree - The tree to be checked.
+ * @returns Whether the tree is a `Single`.
+ */
 export const isSingle = <A>(tree: FingerTree<A>): tree is Single<A> => tree.type === singleNominal;
+/**
+ * Creates a new single tree contains only one element.
+ *
+ * @param data - The data to be contained.
+ * @returns The new `Single`.
+ */
+export const single = <A>(data: A): Single<A> => ({ type: singleNominal, data });
 
 /**
  * A root of subtree.
@@ -32,6 +54,9 @@ export interface DigitHkt extends Hkt1 {
     readonly type: Digit<this["arg1"]>;
 }
 
+/**
+ * The instance of `Reduce` for `Digit`.
+ */
 export const reduceDigit: Reduce<DigitHkt> = reduceArray;
 
 /**
@@ -43,6 +68,9 @@ export interface NodeHkt extends Hkt1 {
     readonly type: Node<this["arg1"]>;
 }
 
+/**
+ * The instance of `Reduce` for `Node`.
+ */
 export const reduceNode: Reduce<NodeHkt> = {
     reduceR: (red) => (a) => (b) =>
         a.length === 2 ? red(a[0])(red(a[1])(b)) : red(a[0])(red(a[1])(red(a[2])(b))),
@@ -60,24 +88,13 @@ export interface Deep<A> {
     nextTree: FingerTree<Node<A>>;
     right: Digit<A>;
 }
-export const isDeep = <A>(tree: FingerTree<A>): tree is Deep<A> => tree.type === deepNominal;
-
 /**
- * Counts the number of elements in the tree.
+ * Checks whether the tree is a `Deep`.
  *
- * @param tree - to count elements.
- * @returns The number of elements in the tree.
+ * @param tree - The tree to be checked.
+ * @returns Whether the tree is a `Deep`.
  */
-export const size = <A>(tree: FingerTree<A>): number => {
-    if (isEmpty(tree)) {
-        return 0;
-    }
-    if (isSingle(tree)) {
-        return 1;
-    }
-    return tree.left.length + size(tree.nextTree) + tree.right.length;
-};
-
+export const isDeep = <A>(tree: FingerTree<A>): tree is Deep<A> => tree.type === deepNominal;
 /**
  * Creates the tree from subtrees.
  *
@@ -97,6 +114,22 @@ export const deep =
     });
 
 /**
+ * Counts the number of elements in the tree.
+ *
+ * @param tree - to count elements.
+ * @returns The number of elements in the tree.
+ */
+export const size = <A>(tree: FingerTree<A>): number => {
+    if (isEmpty(tree)) {
+        return 0;
+    }
+    if (isSingle(tree)) {
+        return 1;
+    }
+    return tree.left.length + size(tree.nextTree) + tree.right.length;
+};
+
+/**
  * A tree data structure that can be accessed to the *fingers* in amortized constant time. Concatenating and splitting the data will be done in logarithmic time.
  */
 export type FingerTree<A> = Empty | Single<A> | Deep<A>;
@@ -105,6 +138,9 @@ export interface FingerTreeHkt extends Hkt1 {
     readonly type: FingerTree<this["arg1"]>;
 }
 
+/**
+ * The instance of `Reduce` for `FingerTree`.
+ */
 export const reduceTree: Reduce<FingerTreeHkt> = {
     reduceR:
         <A, B>(reducer: (a: A) => (b: B) => B) =>
@@ -148,7 +184,7 @@ export const appendToHead =
     <A>(elem: A) =>
     (tree: FingerTree<A>): FingerTree<A> => {
         if (isEmpty(tree)) {
-            return { type: singleNominal, data: elem };
+            return single(elem);
         }
         if (isSingle(tree)) {
             return deep([elem])(empty)([tree.data]);
@@ -199,7 +235,7 @@ export const appendToTail =
     <A>(elem: A) =>
     (tree: FingerTree<A>): FingerTree<A> => {
         if (isEmpty(tree)) {
-            return { type: singleNominal, data: elem };
+            return single(elem);
         }
         if (isSingle(tree)) {
             return deep([tree.data])(empty)([elem]);
