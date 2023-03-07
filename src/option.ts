@@ -440,7 +440,7 @@ export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Op
 export const okOr =
     <E>(e: E) =>
     <T>(opt: Option<T>): Result<E, T> =>
-        mapOrElse(() => err<E, T>(e))((t: T) => ok(t))(opt);
+        mapOrElse<Result<E, T>>(() => err<E>(e))((t: T) => ok(t))(opt);
 /**
  * Transforms the optional value into `Result` with the error `e()`.
  *
@@ -451,7 +451,7 @@ export const okOr =
 export const okOrElse =
     <E>(e: () => E) =>
     <T>(opt: Option<T>): Result<E, T> =>
-        mapOrElse(() => err<E, T>(e()))((t: T) => ok(t))(opt);
+        mapOrElse<Result<E, T>>(() => err<E>(e()))((t: T) => ok(t))(opt);
 
 /**
  * The alias of `andThen`.
