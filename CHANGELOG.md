@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.0.0](https://github.com/MikuroXina/mini-fn/compare/v2.0.0...v3.0.0) (2023-03-08)
+
+
+### ⚠ BREAKING CHANGES
+
+* Add more docs and Fix incomplete typings ([#56](https://github.com/MikuroXina/mini-fn/issues/56))
+
+### Features
+
+* Add ComonadStore ([#57](https://github.com/MikuroXina/mini-fn/issues/57)) ([a6ba201](https://github.com/MikuroXina/mini-fn/commit/a6ba20108f35619e4333076c7dd6b57112a86bf1))
+* Add monoidal categories ([#52](https://github.com/MikuroXina/mini-fn/issues/52)) ([5f927fb](https://github.com/MikuroXina/mini-fn/commit/5f927fb64942cee390f6590863262cbb95e6908a))
+
+
+### Bug Fixes
+
+* Add more docs and Fix incomplete typings ([#56](https://github.com/MikuroXina/mini-fn/issues/56)) ([b451909](https://github.com/MikuroXina/mini-fn/commit/b4519094f6fa47725b63cbd82cf8697c837838ee))
+* Add writer for MonadWriter ([#58](https://github.com/MikuroXina/mini-fn/issues/58)) ([4e5f1a0](https://github.com/MikuroXina/mini-fn/commit/4e5f1a0fd66eff54a06553e1e86ee308d40de87a))
+
 ## [2.0.0](https://github.com/MikuroXina/mini-fn/compare/v1.0.0...v2.0.0) (2023-01-29)
 
 
