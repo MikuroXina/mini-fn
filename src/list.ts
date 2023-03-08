@@ -467,7 +467,7 @@ export const last = <T>(list: List<T>): Option.Option<T> => {
  */
 export const tail = <T>(list: List<T>): List<T> => list.rest();
 /**
- * Reverses the list.
+ * Reverses the list. If the list is infinite, it will hang forever.
  *
  * @param list - The source list.
  * @returns The reversed list.
