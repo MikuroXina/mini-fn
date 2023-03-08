@@ -1,4 +1,4 @@
-import type { Apply2Only, Get1, Hkt1, Hkt2, Hkt3 } from "./hkt.js";
+import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
 import type { IdentityHkt } from "./identity.js";
 import type { Tuple } from "./tuple.js";
 import type { Functor } from "./type-class/functor.js";
@@ -28,7 +28,7 @@ export const runStateT = <S, M, A>(s: StateT<S, M, A>): ((state: S) => Get1<M, [
  * @returns The evaluation of the computation.
  */
 export const evaluateStateT =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <S, A>(s: StateT<S, M, A>) =>
     (state: S): Get1<M, A> =>
         monad.map(([nextA]: [A, S]) => nextA)(s(state));
@@ -41,7 +41,7 @@ export const evaluateStateT =
  * @returns The execution of the computation.
  */
 export const executeStateT =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <S, A>(s: StateT<S, M, A>) =>
     (state: S): Get1<M, S> =>
         monad.map(([, nextS]: [A, S]) => nextS)(s(state));

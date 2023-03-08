@@ -1,8 +1,8 @@
-import type { Get1, Get2, Hkt1 } from "../hkt.js";
+import type { Get1, Get2 } from "../hkt.js";
 import type { Tuple } from "../tuple.js";
 import type { Associative } from "./associative.js";
 
-export interface SemiGroupal<F extends Hkt1> {
+export interface SemiGroupal<F> {
     readonly product: <A, B>(fa: Get1<F, A>) => (fb: Get1<F, B>) => Get1<F, Tuple<A, B>>;
 }
 

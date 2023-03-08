@@ -29,7 +29,7 @@ export const fromPartialEquality =
     });
 
 export const fromProjection =
-    <F extends Hkt1>(projection: <X>(structure: Get1<F, X>) => X) =>
+    <F>(projection: <X>(structure: Get1<F, X>) => X) =>
     <T>(equality: PartialEq<T>): PartialEq<Get1<F, T>> => ({
         eq: (l, r) => equality.eq(projection(l), projection(r)),
     });

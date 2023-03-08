@@ -1,4 +1,4 @@
-import type { Get1, Hkt1, Hkt2 } from "./hkt.js";
+import type { Get1, Hkt2 } from "./hkt.js";
 import { Option, isSome, none, toArray as optionToArray, some } from "./option.js";
 import { Ordering, greater, less } from "./ordering.js";
 import type { Applicative } from "./type-class/applicative.js";
@@ -353,7 +353,7 @@ export const foldR: <X, A, B>(
  * @returns The traversed data.
  */
 export const traverse =
-    <F extends Hkt1>(app: Applicative<F>) =>
+    <F>(app: Applicative<F>) =>
     <A, B>(visitor: (a: A) => Get1<F, B>) =>
     <X>(res: Result<X, A>): Get1<F, Result<X, B>> => {
         if (isErr(res)) {

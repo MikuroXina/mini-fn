@@ -1,5 +1,5 @@
 import { constant } from "../func.js";
-import type { Get1, Hkt1 } from "../hkt.js";
+import type { Get1 } from "../hkt.js";
 import { Functor, replace as replaceFunctor } from "./functor.js";
 
 export interface Invariant<S> {
@@ -24,10 +24,10 @@ export const replaceFlipped =
         contra.contraMap(constant(b))(fb);
 
 export const phantom =
-    <F extends Hkt1>(functor: Functor<F>, contra: Contravariant<F>) =>
+    <F>(functor: Functor<F>, contra: Contravariant<F>) =>
     <A, B>(fa: Get1<F, A>): Get1<F, B> =>
         replaceFlipped(contra)(replaceFunctor(functor)([])(fa))([]);
 
-export const contraAsIn = <S extends Hkt1>(contra: Contravariant<S>): Invariant<S> => ({
+export const contraAsIn = <S>(contra: Contravariant<S>): Invariant<S> => ({
     inMap: () => contra.contraMap,
 });

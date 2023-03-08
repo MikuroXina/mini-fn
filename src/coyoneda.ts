@@ -1,5 +1,5 @@
 import { compose, id } from "./func.js";
-import type { Get1, Hkt1, Hkt3 } from "./hkt.js";
+import type { Get1, Hkt3 } from "./hkt.js";
 import type { Contravariant } from "./type-class/variance.js";
 
 /**
@@ -44,7 +44,7 @@ export const lift = <F, A>(fa: Get1<F, A>): Coyoneda<F, A, A> => coyoneda<A>()(i
  * @returns The reduction on a presheaf.
  */
 export const lower =
-    <F extends Hkt1>(contra: Contravariant<F>) =>
+    <F>(contra: Contravariant<F>) =>
     <B, A>(coy: Coyoneda<F, B, A>): Get1<F, A> =>
         contra.contraMap(coy.hom)(coy.map);
 

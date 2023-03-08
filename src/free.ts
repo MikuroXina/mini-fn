@@ -1,6 +1,6 @@
 import { Cofree, CofreeHkt, extract, make, representable, unwrap } from "./cofree.js";
 import { pipe } from "./func.js";
-import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import * as Option from "./option.js";
 import { Ordering, greater, less } from "./ordering.js";
 import * as Result from "./result.js";
@@ -152,7 +152,7 @@ export const ord = fromCmp(cmp);
  * @returns The reduction of `F`.
  */
 export const retract =
-    <F extends Hkt1>(monad: Monad<F>) =>
+    <F>(monad: Monad<F>) =>
     <T>(fr: Free<F, T>): Get1<F, T> => {
         if (isPure(fr)) {
             return monad.pure(fr[1]);
@@ -169,7 +169,7 @@ export const retract =
  * @returns The reduction of `F`.
  */
 export const iter =
-    <F extends Hkt1>(functor: Functor<F>) =>
+    <F>(functor: Functor<F>) =>
     <T>(fn: (m: Get1<F, T>) => T) =>
     (fr: Free<F, T>): T => {
         if (isPure(fr)) {
@@ -187,7 +187,7 @@ export const iter =
  * @returns The reduction of `F`.
  */
 export const iterA =
-    <A extends Hkt1, F extends Hkt1>(app: Applicative<A>, functor: Functor<F>) =>
+    <A, F>(app: Applicative<A>, functor: Functor<F>) =>
     <T>(fn: (m: Get1<F, Get1<A, T>>) => Get1<A, T>) =>
     (fr: Free<F, T>): Get1<A, T> => {
         if (isPure(fr)) {
@@ -205,7 +205,7 @@ export const iterA =
  * @returns The reduction of `F`.
  */
 export const iterM =
-    <M extends Hkt1, F extends Hkt1>(monad: Monad<M>, functor: Functor<F>) =>
+    <M, F>(monad: Monad<M>, functor: Functor<F>) =>
     <A>(fn: (fma: Get1<F, Get1<M, A>>) => Get1<M, A>) =>
     (fr: Free<F, A>): Get1<M, A> => {
         if (isPure(fr)) {
@@ -222,7 +222,7 @@ export const iterM =
  * @returns The lifted transformation of `Free`.
  */
 export const hoistFree =
-    <G extends Hkt1>(functor: Functor<G>) =>
+    <G>(functor: Functor<G>) =>
     <F>(nat: <T>(f: Get1<F, T>) => Get1<G, T>) =>
     <T>(fr: Free<F, T>): Free<G, T> => {
         if (isPure(fr)) {
@@ -240,7 +240,7 @@ export const hoistFree =
  * @returns The product of two `Free`s.
  */
 export const productT =
-    <F extends Hkt1>(app: Applicative<F>) =>
+    <F>(app: Applicative<F>) =>
     <A>(a: Free<F, A>) =>
     <B>(b: Free<F, B>): Free<F, Tuple<A, B>> => {
         if (isNode(a)) {
@@ -263,7 +263,7 @@ export const productT =
  * @returns The folded value contained by `M`.
  */
 export const foldFree =
-    <M extends Hkt1>(m: Monad<M>) =>
+    <M>(m: Monad<M>) =>
     <F>(fn: <T>(f: Get1<F, T>) => Get1<M, T>) =>
     <T>(fr: Free<F, T>): Get1<M, T> => {
         if (isPure(fr)) {
@@ -280,7 +280,7 @@ export const foldFree =
  * @returns The new `Free`.
  */
 export const liftF =
-    <F extends Hkt1>(func: Functor<F>) =>
+    <F>(func: Functor<F>) =>
     <T>(ft: Get1<F, T>): Free<F, T> =>
         node(func.map<T, Free<F, T>>(pure)(ft));
 
@@ -292,7 +292,7 @@ export const liftF =
  * @returns The mapped function between `Free`s.
  */
 export const mapT =
-    <F extends Hkt1>(functor: Functor<F>) =>
+    <F>(functor: Functor<F>) =>
     <T, U>(f: (t: T) => U) =>
     (t: Free<F, T>): Free<F, U> => {
         if (isPure(t)) {
@@ -309,7 +309,7 @@ export const mapT =
  * @returns The mapped function between `Free`s.
  */
 export const flatMapT =
-    <F extends Hkt1>(functor: Functor<F>) =>
+    <F>(functor: Functor<F>) =>
     <T, U>(mf: (t: T) => Free<F, U>) =>
     (t: Free<F, T>): Free<F, U> => {
         if (isPure(t)) {
@@ -327,7 +327,7 @@ export const flatMapT =
  * @returns The applied instance.
  */
 export const applyT =
-    <F extends Hkt1>(functor: Functor<F>) =>
+    <F>(functor: Functor<F>) =>
     <T, U>(mf: Free<F, (t: T) => U>) =>
     (t: Free<F, T>): Free<F, U> => {
         if (isPure(t)) {
@@ -349,7 +349,7 @@ export const applyT =
  * @returns The cut off instance.
  */
 export const cutoff =
-    <F extends Hkt1>(functor: Functor<F>) =>
+    <F>(functor: Functor<F>) =>
     (n: number) =>
     <T>(fr: Free<F, T>): Free<F, Option.Option<T>> => {
         if (n <= 0) {
@@ -371,7 +371,7 @@ export const cutoff =
  * @returns The new instance as an unfolded tree.
  */
 export const unfold =
-    <F extends Hkt1>(functor: Functor<F>) =>
+    <F>(functor: Functor<F>) =>
     <A, B>(fn: (b: B) => Result.Result<A, Get1<F, B>>) =>
     (seed: B): Free<F, A> =>
         Result.either((a: A): Free<F, A> => pure(a))((fb: Get1<F, B>) =>
@@ -387,7 +387,7 @@ export const unfold =
  * @returns The new instance as an unfolded tree.
  */
 export const unfoldM =
-    <F extends Hkt1, M extends Hkt1>(traversable: Traversable<F>, monad: Monad<M>) =>
+    <F, M>(traversable: Traversable<F>, monad: Monad<M>) =>
     <A, B>(f: (b: B) => Get1<M, Result.Result<A, Get1<F, B>>>): ((b: B) => Get1<M, Free<F, A>>) => {
         return kleisli(monad)(f)(
             Result.either((a: A) => monad.pure(pure(a) as Free<F, A>))((fb) =>
@@ -405,7 +405,7 @@ export interface FreeHkt extends Hkt2 {
 /**
  * The instance of `Functor` for `Free<F, _>` from a functor `F`.
  */
-export const functor = <F extends Hkt1>(f: Functor<F>): Monad<Apply2Only<FreeHkt, F>> => ({
+export const functor = <F>(f: Functor<F>): Monad<Apply2Only<FreeHkt, F>> => ({
     map: mapT(f),
     pure,
     flatMap: <T1, U1>(fn: (t: T1) => Free<F, U1>): ((free: Free<F, T1>) => Free<F, U1>) => {
@@ -419,7 +419,7 @@ export const functor = <F extends Hkt1>(f: Functor<F>): Monad<Apply2Only<FreeHkt
 /**
  * The instance of `Monad` for `Free<F, _>` from a functor `F`.
  */
-export const monad = <F extends Hkt1>(f: Functor<F>): Monad<Apply2Only<FreeHkt, F>> => ({
+export const monad = <F>(f: Functor<F>): Monad<Apply2Only<FreeHkt, F>> => ({
     pure,
     map: mapT(f),
     flatMap: flatMapT(f),
@@ -429,7 +429,7 @@ export const monad = <F extends Hkt1>(f: Functor<F>): Monad<Apply2Only<FreeHkt, 
 /**
  * The instance of `Adjunction` for `Free<F, _>` against to `Cofree<U, _>`.
  */
-export const adjunction = <F extends Hkt1, U extends Hkt1, Rep>(
+export const adjunction = <F, U, Rep>(
     adj: Adjunction<F, U, Rep>,
 ): Adjunction<Apply2Only<FreeHkt, F>, Apply2Only<CofreeHkt, U>, Seq<Rep>> => ({
     functor: functor(adj.functor),

@@ -112,7 +112,7 @@ export const foldR =
  * @returns The traversed value.
  */
 export const traverse =
-    <F extends Hkt1>(app: Applicative<F>) =>
+    <F>(app: Applicative<F>) =>
     <A, B>(visitor: (a: A) => Get1<F, B>) =>
     (data: Lazy<A>): Get1<F, Lazy<B>> =>
         app.map(pure)(visitor(force(data)));

@@ -1,4 +1,4 @@
-import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import { id } from "./identity.js";
 import { List, appendToHead, either, empty } from "./list.js";
 import { Tuple, make as makeTuple } from "./tuple.js";
@@ -372,7 +372,7 @@ export const foldR =
  * @returns The traversed `These` on `F`.
  */
 export const traverse =
-    <F extends Hkt1>(app: Applicative<F>) =>
+    <F>(app: Applicative<F>) =>
     <A, B>(visitor: (a: A) => Get1<F, B>) =>
     <X>(data: These<X, A>): Get1<F, These<X, B>> =>
         these<X, Get1<F, These<X, B>>>((x) => app.pure(newThis(x)))<A>((b) =>

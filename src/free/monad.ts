@@ -1,20 +1,20 @@
 import { FreeHkt, monad as monadF, node } from "../free.js";
 import { compose } from "../func.js";
-import type { Apply2Only, Get1, Get2, Hkt1 } from "../hkt.js";
+import type { Apply2Only, Get1, Get2 } from "../hkt.js";
 import type { MonadTrans, MonadTransHkt } from "../trans.js";
 import type { Functor } from "../type-class/functor.js";
 import { Monad, flat } from "../type-class/monad.js";
 
-export interface MonadFree<F, M extends Hkt1> extends Monad<M> {
+export interface MonadFree<F, M> extends Monad<M> {
     readonly wrap: <A>(fma: Get1<F, Get1<M, A>>) => Get1<M, A>;
 }
 
 export const liftF =
-    <F extends Hkt1, M extends Hkt1>(functor: Functor<F>, monadFree: MonadFree<F, M>) =>
+    <F, M>(functor: Functor<F>, monadFree: MonadFree<F, M>) =>
     <A>(fa: Get1<F, A>): Get1<M, A> =>
         monadFree.wrap(functor.map(monadFree.pure)(fa));
 
-export const wrapT = <F extends Hkt1, M extends Hkt1, T extends MonadTransHkt>(
+export const wrapT = <F, M, T extends MonadTransHkt>(
     functor: Functor<F>,
     monadFree: MonadFree<F, M>,
     trans: MonadTrans<T>,
@@ -26,9 +26,7 @@ export const wrapT = <F extends Hkt1, M extends Hkt1, T extends MonadTransHkt>(
         ),
     );
 
-export const functorMonadFree = <F extends Hkt1>(
-    functor: Functor<F>,
-): MonadFree<F, Apply2Only<FreeHkt, F>> => ({
+export const functorMonadFree = <F>(functor: Functor<F>): MonadFree<F, Apply2Only<FreeHkt, F>> => ({
     ...monadF(functor),
     wrap: node,
 });

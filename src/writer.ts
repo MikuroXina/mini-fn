@@ -1,4 +1,4 @@
-import type { Apply2Only, Get1, Hkt1, Hkt2, Hkt3 } from "./hkt.js";
+import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
 import type { IdentityHkt } from "./identity.js";
 import type { Tuple } from "./tuple.js";
 import type { Functor } from "./type-class/functor.js";
@@ -21,7 +21,7 @@ export interface WriterT<W, M, A> {
  * @returns The output of `w`.
  */
 export const executeWriterT =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <W, A>(w: WriterT<W, M, A>): Get1<M, W> =>
         monad.map(([, nextWriter]: [A, W]) => nextWriter)(w());
 /**
@@ -45,7 +45,7 @@ export const mapWriterT =
  * @returns The computation which puts the output.
  */
 export const tellM =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <W>(w: W): WriterT<W, M, []> =>
     () =>
         monad.pure([[], w]);
@@ -57,7 +57,7 @@ export const tellM =
  * @returns The computation that adds its output to the value.
  */
 export const listenM =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <W, A>(writer: WriterT<W, M, A>): WriterT<W, M, [A, W]> =>
     () =>
         monad.map(([a, w]: [A, W]): [[A, W], W] => [[a, w], w])(writer());
@@ -70,7 +70,7 @@ export const listenM =
  * @returns The computation that adds its output to the value.
  */
 export const listensM =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <W, B>(mapper: (w: W) => B) =>
     <A>(writer: WriterT<W, M, A>): WriterT<W, M, [A, B]> =>
     () =>
@@ -83,7 +83,7 @@ export const listensM =
  * @returns The computation with a passed state.
  */
 export const passM =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <W, A>(writer: WriterT<W, M, [A, (w: W) => W]>): WriterT<W, M, A> =>
     () =>
         monad.map(([[a, f], w]: [[A, (w: W) => W], W]): [A, W] => [a, f(w)])(writer());
@@ -97,7 +97,7 @@ export const passM =
  * @returns The censored computation.
  */
 export const censorM =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <W>(cense: (w: W) => W) =>
     <A>(writer: WriterT<W, M, A>): WriterT<W, M, A> =>
     () =>

@@ -22,7 +22,7 @@ export const fromPartialCmp =
     });
 
 export const fromProjection =
-    <F extends Hkt1>(projection: <X>(structure: Get1<F, X>) => X) =>
+    <F>(projection: <X>(structure: Get1<F, X>) => X) =>
     <T>(order: PartialOrd<T>): PartialOrd<Get1<F, T>> => ({
         eq: (l, r) => order.eq(projection(l), projection(r)),
         partialCmp: (l, r) => order.partialCmp(projection(l), projection(r)),

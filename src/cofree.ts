@@ -1,6 +1,6 @@
 import type { ComonadCofree } from "./cofree/comonad.js";
 import { compose, pipe } from "./func.js";
-import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import {
     Lazy,
     force,
@@ -142,8 +142,7 @@ export const tail = <F, A>(c: Cofree<F, A>): Get1<F, Cofree<F, A>> => force(c)[1
  * @param c - The instance of `Cofree`.
  * @returns The tail elements contained by the functor `F`.
  */
-export const unwrap = <F extends Hkt1, A>(cofree: Cofree<F, A>): Get1<F, Cofree<F, A>> =>
-    force(cofree)[1];
+export const unwrap = <F, A>(cofree: Cofree<F, A>): Get1<F, Cofree<F, A>> => force(cofree)[1];
 
 /**
  * Maps the function for `Cofree`.
@@ -153,7 +152,7 @@ export const unwrap = <F extends Hkt1, A>(cofree: Cofree<F, A>): Get1<F, Cofree<
  * @returns - The lifted function from `Cofree<F, A>` to `Cofree<F, B>`.
  */
 export const map =
-    <F extends Hkt1>(f: Functor<F>) =>
+    <F>(f: Functor<F>) =>
     <A, B>(fn: (a: A) => B): ((c: Cofree<F, A>) => Cofree<F, B>) =>
         lazyMap(([a, fa]: readonly [A, Get1<F, Cofree<F, A>>]): [B, Get1<F, Cofree<F, B>>] => [
             fn(a),
@@ -176,7 +175,7 @@ export const extract = head;
  * @returns The hoisted instance.
  */
 export const hoist =
-    <F extends Hkt1>(f: Functor<F>) =>
+    <F>(f: Functor<F>) =>
     <G>(nat: <T>(a: Get1<F, T>) => Get1<G, T>) =>
     <A>(c: Cofree<F, A>): Cofree<G, A> =>
         lazyMap<Tuple<A, Get1<F, Cofree<F, A>>>, Tuple<A, Get1<G, Cofree<G, A>>>>(
@@ -194,7 +193,7 @@ export const hoist =
  * @returns The new instance.
  */
 export const build =
-    <F extends Hkt1>(f: Functor<F>) =>
+    <F>(f: Functor<F>) =>
     <S, A>(builder: (s: S) => [A, Get1<F, S>]) =>
     (init: S): Cofree<F, A> =>
         lazyDefer(() => tupleMap(f.map(build(f)(builder)))(builder(init)));
@@ -208,7 +207,7 @@ export const build =
  * @returns The new instance.
  */
 export const coiter =
-    <F extends Hkt1>(functor: Functor<F>) =>
+    <F>(functor: Functor<F>) =>
     <A>(psi: (a: A) => Get1<F, A>) =>
     (a: A): Cofree<F, A> =>
         make(a)(functor.map(coiter(functor)(psi))(psi(a)));
@@ -223,7 +222,7 @@ export const coiter =
  * @returns The new instance.
  */
 export const coiterW =
-    <W extends Hkt1, F extends Hkt1>(comonad: Comonad<W>, functor: Functor<F>) =>
+    <W, F>(comonad: Comonad<W>, functor: Functor<F>) =>
     <A>(psi: (wa: Get1<W, A>) => Get1<F, Get1<W, A>>) =>
     (a: Get1<W, A>): Cofree<F, A> =>
         make(comonad.extract(a))(functor.map(coiterW(comonad, functor)(psi))(psi(a)));
@@ -237,7 +236,7 @@ export const coiterW =
  * @returns The new instance.
  */
 export const unfold =
-    <F extends Hkt1>(f: Functor<F>) =>
+    <F>(f: Functor<F>) =>
     <S, A>(unfolder: (s: S) => Tuple<A, Get1<F, S>>) =>
     (init: S): Cofree<F, A> => {
         const [headS, tailS] = unfolder(init);
@@ -253,10 +252,7 @@ export const unfold =
  * @param init - The seed for `unfolder`.
  * @returns The new instance.
  */
-export const unfoldM = <F extends Hkt1, M extends Hkt1>(
-    traversable: Traversable<F>,
-    monad: Monad<M>,
-) => {
+export const unfoldM = <F, M>(traversable: Traversable<F>, monad: Monad<M>) => {
     const partial = <B, A>(
         unfolder: (b: B) => Get1<M, Lazy<Tuple<A, Get1<F, B>>>>,
     ): ((init: B) => Get1<M, Cofree<F, A>>) =>
@@ -277,7 +273,7 @@ export const unfoldM = <F extends Hkt1, M extends Hkt1>(
  * @returns The new instance.
  */
 export const section =
-    <F extends Hkt1>(comonad: Comonad<F>) =>
+    <F>(comonad: Comonad<F>) =>
     <A>(as: Get1<F, A>): Cofree<F, A> =>
         make(comonad.extract(as))(extend(comonad)(section(comonad))(as));
 
@@ -287,7 +283,7 @@ export const section =
  * @param f - The instance of `Functor` for `F`.
  * @returns The instance of `Functor` for `Cofree<F, _>`.
  */
-export const functor = <F extends Hkt1>(f: Functor<F>): Functor<Apply2Only<CofreeHkt, F>> => ({
+export const functor = <F>(f: Functor<F>): Functor<Apply2Only<CofreeHkt, F>> => ({
     map: map(f),
 });
 
@@ -297,7 +293,7 @@ export const functor = <F extends Hkt1>(f: Functor<F>): Functor<Apply2Only<Cofre
  * @param f - The instance of `Functor` for `F`.
  * @returns The instance of `Comonad` for `Cofree<F, _>`.
  */
-export const comonad = <F extends Hkt1>(f: Functor<F>): Comonad<Apply2Only<CofreeHkt, F>> => {
+export const comonad = <F>(f: Functor<F>): Comonad<Apply2Only<CofreeHkt, F>> => {
     const duplicate = <A>(w: Cofree<F, A>): Cofree<F, Cofree<F, A>> =>
         make(w)(f.map(duplicate)(unwrap(w)));
     return {
@@ -313,9 +309,7 @@ export const comonad = <F extends Hkt1>(f: Functor<F>): Comonad<Apply2Only<Cofre
  * @param f - The instance of `Functor` for `F`.
  * @returns The instance of `ComonadCofree` for `Cofree<F, _>`.
  */
-export const comonadCofree = <F extends Hkt1>(
-    f: Functor<F>,
-): ComonadCofree<F, Apply2Only<CofreeHkt, F>> => ({
+export const comonadCofree = <F>(f: Functor<F>): ComonadCofree<F, Apply2Only<CofreeHkt, F>> => ({
     ...comonad(f),
     functor: f,
     unwrap,
@@ -327,7 +321,7 @@ export const comonadCofree = <F extends Hkt1>(
  * @param rep - The instance of `Representable` for `F`.
  * @returns The instance of `Representable` for `Cofree<F, _>`.
  */
-export const representable = <F extends Hkt1, Rep>(
+export const representable = <F, Rep>(
     rep: Representable<F, Rep>,
 ): Representable<Apply2Only<CofreeHkt, F>, Seq<Rep>> => {
     const index =
