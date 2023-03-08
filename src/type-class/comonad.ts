@@ -2,7 +2,7 @@ import { compose } from "../func.js";
 import type { Get1, Hkt1 } from "../hkt.js";
 import type { Functor } from "./functor.js";
 
-export interface Comonad<W extends Hkt1> extends Functor<W> {
+export interface Comonad<W> extends Functor<W> {
     readonly extract: <A>(wa: Get1<W, A>) => A;
     readonly duplicate: <A>(wa: Get1<W, A>) => Get1<W, Get1<W, A>>;
 }
