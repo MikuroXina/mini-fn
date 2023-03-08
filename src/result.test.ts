@@ -25,14 +25,14 @@ describe("Result", () => {
         expect(Result.mergeOkErr(Result.err(4))).toBe(4);
     });
     test("and", () => {
-        const success = Result.ok<string, number>(2);
+        const success = Result.ok<number>(2);
         const failure = Result.err("not a 2");
         const lateError = Result.err("late error");
         const earlyError = Result.err("early error");
         const anotherSuccess = Result.ok("different result");
 
         expect(Result.and(lateError)(success)).toStrictEqual(lateError);
-        expect(Result.and(success)(earlyError)).toStrictEqual(earlyError);
+        expect(Result.and<number, string>(success)(earlyError)).toStrictEqual(earlyError);
         expect(Result.and(lateError)(failure)).toStrictEqual(failure);
         expect(Result.and(anotherSuccess)(success)).toStrictEqual(anotherSuccess);
     });
@@ -53,20 +53,20 @@ describe("Result", () => {
         );
     });
     test("or", () => {
-        const success = Result.ok<string, number>(2);
-        const failure = Result.err<string, number>("not a 2");
-        const lateError = Result.err<string, number>("late error");
-        const earlyError = Result.err<string, number>("early error");
-        const anotherSuccess = Result.ok<string, number>(100);
+        const success = Result.ok<number>(2);
+        const failure = Result.err<string>("not a 2");
+        const lateError = Result.err<string>("late error");
+        const earlyError = Result.err<string>("early error");
+        const anotherSuccess = Result.ok<number>(100);
 
-        expect(Result.or(lateError)(success)).toStrictEqual(success);
-        expect(Result.or(success)(earlyError)).toStrictEqual(success);
+        expect(Result.or<string, number>(lateError)(success)).toStrictEqual(success);
+        expect(Result.or<string, number>(success)(earlyError)).toStrictEqual(success);
         expect(Result.or(lateError)(failure)).toStrictEqual(lateError);
         expect(Result.or(anotherSuccess)(success)).toStrictEqual(success);
     });
     test("orElse", () => {
-        const sq = Result.orElse((x: number) => Result.ok<number, number>(x * x));
-        const err = Result.orElse((x: number) => Result.err<number, number>(x));
+        const sq = Result.orElse((x: number) => Result.ok<number>(x * x));
+        const err = Result.orElse((x: number) => Result.err<number>(x));
 
         expect(sq(sq(Result.ok(2)))).toStrictEqual(Result.ok(2));
         expect(sq(err(Result.ok(2)))).toStrictEqual(Result.ok(2));
