@@ -1,5 +1,5 @@
 import { apply as applyFn } from "./func.js";
-import type { Apply2Only, Apply3Only, Get1, Hkt1, Hkt2, Hkt3 } from "./hkt.js";
+import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
 import type { IdentityHkt } from "./identity.js";
 import type { ComonadStore } from "./store/comonad.js";
 import type { Tuple } from "./tuple.js";
@@ -312,7 +312,7 @@ export const extend =
  * @returns The fetched data on `F`.
  */
 export const experiment =
-    <F extends Hkt1>(functor: Functor<F>) =>
+    <F>(functor: Functor<F>) =>
     <S>(mapper: (s: S) => Get1<F, S>) =>
     <A>(store: Store<S, A>): Get1<F, A> =>
         functor.map(store.accessor)(mapper(store.index));

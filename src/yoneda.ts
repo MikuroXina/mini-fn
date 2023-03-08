@@ -1,5 +1,5 @@
 import { compose, id } from "./func.js";
-import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import type { Functor } from "./type-class/functor.js";
 
 /**
@@ -17,7 +17,7 @@ export interface Yoneda<F, A> {
  * @returns The partial application of `functor.map`.
  */
 export const lift =
-    <F extends Hkt1>(functor: Functor<F>) =>
+    <F>(functor: Functor<F>) =>
     <A>(a: Get1<F, A>): Yoneda<F, A> => ({
         yoneda: (f) => functor.map(f)(a),
     });

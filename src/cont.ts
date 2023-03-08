@@ -1,5 +1,5 @@
 import { absurd, constant } from "./func.js";
-import type { Apply2Only, Apply3Only, Get1, Hkt1, Hkt2, Hkt3 } from "./hkt.js";
+import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
 import * as Identity from "./identity.js";
 import type { MonadPromise } from "./promise/monad.js";
 import type { Monad } from "./type-class/monad.js";
@@ -28,7 +28,7 @@ export const runContT: <R, M, A>(
  * @returns The final continuation.
  */
 export const evalContT =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <R>(contT: ContT<R, M, R>): Get1<M, R> =>
         contT(monad.pure);
 /**
@@ -81,7 +81,7 @@ export const callCC =
  * @returns The delimited continuation.
  */
 export const resetT =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <R, S>(contT: ContT<R, M, R>): ContT<S, M, R> =>
     (c) =>
         monad.flatMap(c)(evalContT(monad)(contT));
@@ -93,7 +93,7 @@ export const resetT =
  * @returns The limited continuation.
  */
 export const shiftT =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <R, A>(computation: (exit: (a: A) => Get1<M, R>) => ContT<R, M, R>): ContT<R, M, A> =>
     (fn) =>
         evalContT(monad)(computation(fn));
@@ -109,7 +109,7 @@ export const shiftT =
  * @returns The lifted computation.
  */
 export const liftLocal =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <S>(ask: Get1<M, S>) =>
     <R>(local: (callback: (s: S) => S) => (mr: Get1<M, R>) => Get1<M, R>) =>
     (f: (s: S) => S) =>
@@ -228,7 +228,7 @@ export const product =
  * @returns The computation wraps `m`.
  */
 export const lift =
-    <M extends Hkt1>(monad: Monad<M>) =>
+    <M>(monad: Monad<M>) =>
     <R, A>(m: Get1<M, A>): ContT<R, M, A> =>
     (mapper) =>
         monad.flatMap(mapper)(m);
@@ -241,7 +241,7 @@ export const lift =
  * @returns The computation wraps `p`.
  */
 export const liftPromise =
-    <M extends Hkt1>(monad: MonadPromise<M>) =>
+    <M>(monad: MonadPromise<M>) =>
     <R, A>(p: Promise<A>): ContT<R, M, A> =>
         lift(monad)(monad.liftPromise(p));
 

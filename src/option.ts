@@ -495,7 +495,7 @@ export const traversable: Traversable<OptionHkt> = {
         return folder(data[1])(init);
     },
     traverse:
-        <F extends Hkt1>(app: Applicative<F>) =>
+        <F>(app: Applicative<F>) =>
         <A, B>(visitor: (a: A) => Get1<F, B>) =>
         (opt: Option<A>): Get1<F, Option<B>> => {
             if (isNone(opt)) {

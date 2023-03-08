@@ -1,4 +1,4 @@
-import type { Get1, Hkt1 } from "../hkt.js";
+import type { Get1 } from "../hkt.js";
 import type { PartialEq } from "./partial-eq.js";
 
 export const eqSymbol = Symbol("ImplEq");
@@ -27,7 +27,7 @@ export const fromEquality =
     });
 
 export const fromProjection =
-    <F extends Hkt1>(projection: <X>(structure: Get1<F, X>) => X) =>
+    <F>(projection: <X>(structure: Get1<F, X>) => X) =>
     <T>(equality: Eq<T>): Eq<Get1<F, T>> => ({
         eq: (l, r) => equality.eq(projection(l), projection(r)),
         [eqSymbol]: true,

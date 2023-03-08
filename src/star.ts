@@ -1,4 +1,4 @@
-import type { Apply3Only, Get1, Hkt1, Hkt3 } from "./hkt.js";
+import type { Apply3Only, Get1, Hkt3 } from "./hkt.js";
 import type { Functor } from "./type-class/functor.js";
 import { Profunctor, rightMap } from "./type-class/profunctor.js";
 
@@ -10,8 +10,8 @@ export interface StarHkt extends Hkt3 {
     readonly type: Star<this["arg3"], this["arg2"], this["arg1"]>;
 }
 
-export const pro = <F extends Hkt1>(functor: Functor<F>): Profunctor<Apply3Only<StarHkt, F>> => ({
+export const pro = <F>(functor: Functor<F>): Profunctor<Apply3Only<StarHkt, F>> => ({
     diMap: (f) => (g) => (m) => (d) => functor.map(g)(m(f(d))),
 });
 
-export const map = <F extends Hkt1>(functor: Functor<F>) => rightMap(pro(functor));
+export const map = <F>(functor: Functor<F>) => rightMap(pro(functor));

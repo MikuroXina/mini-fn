@@ -1201,7 +1201,7 @@ export const traversable: Traversable<ListHkt> = {
     map,
     foldR,
     traverse:
-        <F extends Hkt1>(app: Applicative<F>) =>
+        <F>(app: Applicative<F>) =>
         <A, B>(visitor: (a: A) => Get1<F, B>): ((list: List<A>) => Get1<F, List<B>>) => {
             const consF =
                 (x: A) =>

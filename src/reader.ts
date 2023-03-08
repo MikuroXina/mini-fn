@@ -1,4 +1,4 @@
-import type { Apply2Only, Get1, Hkt1, Hkt2, Hkt3 } from "./hkt.js";
+import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
 import { IdentityHkt, id, monad as identityMonad } from "./identity.js";
 import type { Tuple } from "./tuple.js";
 import type { Functor } from "./type-class/functor.js";
@@ -58,7 +58,7 @@ export const run =
 /**
  * Fetches the record of the environment with monad `S`.
  */
-export const askM = <R, S extends Hkt1>(m: Monad<S>): Get1<S, Reader<R, R>> => m.pure((x) => x);
+export const askM = <R, S>(m: Monad<S>): Get1<S, Reader<R, R>> => m.pure((x) => x);
 /**
  * Fetches the record of the environment.
  */

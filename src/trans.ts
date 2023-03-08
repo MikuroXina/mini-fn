@@ -6,5 +6,5 @@ export interface MonadTransHkt extends Hkt2 {
 }
 
 export interface MonadTrans<T extends MonadTransHkt> {
-    readonly lift: <M extends Hkt1>(monad: Monad<M>) => <A>(ma: Get1<M, A>) => Get2<T, M, A>;
+    readonly lift: <M>(monad: Monad<M>) => <A>(ma: Get1<M, A>) => Get2<T, M, A>;
 }

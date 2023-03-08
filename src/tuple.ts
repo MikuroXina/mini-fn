@@ -191,7 +191,7 @@ export const foldR: <A, B>(
  * @returns The traversed tuple on `F`.
  */
 export const traverse =
-    <F extends Hkt1>(semi: SemiGroupal<F>) =>
+    <F>(semi: SemiGroupal<F>) =>
     <A, B>(visitor: (a: A) => Get1<F, B>) =>
     ([a1, a2]: [A, A]): Get1<F, Tuple<B, B>> =>
         semi.product<B, B>(visitor(a1))(visitor(a2));

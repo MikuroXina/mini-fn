@@ -1,4 +1,4 @@
-import type { Apply3Only, Get1, Hkt1, Hkt3 } from "./hkt.js";
+import type { Apply3Only, Get1, Hkt3 } from "./hkt.js";
 import type { Category } from "./type-class/category.js";
 import type { Monad } from "./type-class/monad.js";
 
@@ -16,7 +16,7 @@ export interface KleisliHkt extends Hkt3 {
 /**
  * The instance of `Category` for `Kleisli<M, _, _>` from monad `M`.
  */
-export const category = <M extends Hkt1>(monad: Monad<M>): Category<Apply3Only<KleisliHkt, M>> => ({
+export const category = <M>(monad: Monad<M>): Category<Apply3Only<KleisliHkt, M>> => ({
     identity: <A>() => ({
         runKleisli: monad.pure<A>,
     }),
