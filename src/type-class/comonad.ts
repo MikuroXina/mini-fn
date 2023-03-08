@@ -1,5 +1,5 @@
 import { compose } from "../func.js";
-import type { Get1, Hkt1 } from "../hkt.js";
+import type { Get1 } from "../hkt.js";
 import type { Functor } from "./functor.js";
 
 export interface Comonad<W> extends Functor<W> {
@@ -8,6 +8,6 @@ export interface Comonad<W> extends Functor<W> {
 }
 
 export const extend =
-    <W extends Hkt1>(comonad: Comonad<W>) =>
+    <W>(comonad: Comonad<W>) =>
     <A1, A2>(extension: (wa: Get1<W, A1>) => A2): ((wa: Get1<W, A1>) => Get1<W, A2>) =>
         compose(comonad.map(extension))(comonad.duplicate);
