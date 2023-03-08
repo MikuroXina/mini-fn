@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/MikuroXina/mini-fn/compare/v3.0.0...v3.0.1) (2023-03-08)
+
+
+### Bug Fixes
+
+* Remove needless extends ([#60](https://github.com/MikuroXina/mini-fn/issues/60)) ([82d85a2](https://github.com/MikuroXina/mini-fn/commit/82d85a21adefd875abd7d9a98ab6d2d7f30f75b0))
+
 ## [3.0.0](https://github.com/MikuroXina/mini-fn/compare/v2.0.0...v3.0.0) (2023-03-08)
 
 
