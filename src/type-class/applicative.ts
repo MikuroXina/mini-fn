@@ -4,7 +4,7 @@ import { Apply, makeSemiGroup } from "./apply.js";
 import type { Monoid } from "./monoid.js";
 import type { Pure } from "./pure.js";
 
-export interface Applicative<S extends Hkt1> extends Apply<S>, Pure<S> {}
+export interface Applicative<S> extends Apply<S>, Pure<S> {}
 
 export const makeMonoid = <S extends Hkt1>(app: Applicative<S>) => {
     const semi = makeSemiGroup(app);

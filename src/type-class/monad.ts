@@ -4,7 +4,7 @@ import { monad as idMonad } from "../identity.js";
 import type { Applicative } from "./applicative.js";
 import type { FlatMap } from "./flat-map.js";
 
-export interface Monad<S extends Hkt1> extends Applicative<S>, FlatMap<S> {}
+export interface Monad<S> extends Applicative<S>, FlatMap<S> {}
 
 export const flat = <S extends Hkt1>(m: Monad<S>): (<A>(a: Get1<S, Get1<S, A>>) => Get1<S, A>) =>
     m.flatMap(id);
