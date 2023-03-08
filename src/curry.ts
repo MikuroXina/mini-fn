@@ -48,7 +48,7 @@ export const curryAdjunction = <E>(): Adjunction<
     Apply2Only<FnHkt, E>,
     E
 > => ({
-    functor: functorTuple,
+    functor: functorTuple(),
     representable: representableFn<E>(),
     unit: (a) => (e) => [e, a],
     counit: ([e, f]) => f(e),
