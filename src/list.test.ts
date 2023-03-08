@@ -4,6 +4,7 @@ import {
     appendToHead,
     appendToTail,
     atMay,
+    choices,
     concat,
     digits,
     drop,
@@ -32,6 +33,7 @@ import {
     repeat,
     replicate,
     reverse,
+    scanL,
     singleton,
     span,
     spanNot,
@@ -44,6 +46,7 @@ import {
     toArray,
     toIterator,
     toString,
+    transpose,
     unCons,
     unfoldR,
     unzip,
@@ -186,6 +189,12 @@ test("concat", () => {
     expect(toArray(concat(listList))).toEqual([42, 5, 4, 1, 2]);
 });
 
+test("scanL", () => {
+    const aList = fromArray([1, 2, 2, 4, 4, 3]);
+    const partialSum = scanL((a: number) => (b: number) => a + b)(0)(aList);
+    expect(toArray(partialSum)).toEqual([0, 1, 3, 5, 9, 13, 16]);
+});
+
 test("head", () => {
     expect(head(empty())).toEqual(none());
     expect(head(fromString("hoge"))).toEqual(some("h"));
@@ -272,6 +281,17 @@ test("intercalate", () => {
         fromArray([fromString("foo"), fromString("bar"), fromString("bee")]),
     );
     expect(toString(joined)).toEqual("foo, bar, bee");
+});
+
+test("transpose", () => {
+    const matrix = fromArray([fromArray([1, 2, 3]), fromArray([4, 5, 6])]);
+    const transposed = transpose(matrix);
+    const actual = toArray(transposed).map((col) => toArray(col));
+    expect(actual).toEqual([
+        [1, 4],
+        [2, 5],
+        [3, 6],
+    ]);
 });
 
 test("subsequences", () => {
@@ -473,4 +493,20 @@ test("group", () => {
         toString(list),
     );
     expect(grouped).toEqual(["M", "i", "ss", "i", "ss", "i", "pp", "i"]);
+});
+
+test("choices", () => {
+    const choice = choices(fromArray([range(0, 3), range(3, 6)]));
+    const sequences = toArray(choice).map((seq) => toArray(seq));
+    expect(sequences).toEqual([
+        [0, 3],
+        [0, 4],
+        [1, 3],
+        [0, 5],
+        [1, 4],
+        [2, 3],
+        [1, 5],
+        [2, 4],
+        [2, 5],
+    ]);
 });

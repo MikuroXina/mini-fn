@@ -29,7 +29,7 @@ export interface Cat<T> {
     /**
      * Feeds a function to the `Cat`, then `Cat` creates a new `Cat` by calling it.
      *
-     * @param fn A map function for `value`, having referential-transparency is expected.
+     * @param fn - A map function for `value`, having referential-transparency is expected.
      * @returns A new `Cat` transformed from `value` by `fn`.
      */
     readonly feed: <U>(fn: (t: T) => U) => Cat<U>;
@@ -37,7 +37,7 @@ export interface Cat<T> {
 /**
  * Creates a new `Cat` contained `value`.
  *
- * @param value A value will be contained.
+ * @param value - A value will be contained.
  * @returns A new created `Cat`.
  */
 export const cat = <T>(value: T): Cat<T> => ({
@@ -48,7 +48,7 @@ export const cat = <T>(value: T): Cat<T> => ({
 /**
  * Gets the contained value from `Cat`. It is convenient to apply the getter for projection to some functor.
  *
- * @param cat Source `Cat`.
+ * @param cat - Source `Cat`.
  * @returns Contained value.
  */
 export const get = <T>({ value }: Cat<T>): T => value;
@@ -73,7 +73,7 @@ export const ord = ordFromProjection<CatHkt>(get);
 /**
  * Inspects the passing value with an inspector. It is useful for using some side effects.
  *
- * @param inspector An inspector to see the passing value.
+ * @param inspector - An inspector to see the passing value.
  * @returns An identity function.
  */
 export const inspect =
@@ -118,7 +118,7 @@ export const table = <T>(t: T) => inspect<T>(console.table)(t);
 /**
  * Flattens a nested `Cat`. Only it extracts the contained `value`.
  *
- * @param catCat A nested `Cat`.
+ * @param catCat - A nested `Cat`.
  * @returns A flattened `Cat`.
  */
 export const flatten = <T>(catCat: Cat<Cat<T>>): Cat<T> => catCat.value;
@@ -126,8 +126,8 @@ export const flatten = <T>(catCat: Cat<Cat<T>>): Cat<T> => catCat.value;
 /**
  * Makes tuples from two `Cat`s.
  *
- * @param a A `Cat` to be placed at left.
- * @param b A `Cat` to be placed at right.
+ * @param a - A `Cat` to be placed at left.
+ * @param b - A `Cat` to be placed at right.
  * @returns A composed `Cat`.
  */
 export const product =
@@ -137,7 +137,7 @@ export const product =
 /**
  * Maps an inner value of a `Cat` into another one by applying a function. It is useful to lift a function for `Cat`.
  *
- * @param fn A function which maps from `T` to `U`.
+ * @param fn - A function which maps from `T` to `U`.
  * @returns A lifted function which maps from `Cat<T>` to `Cat<U>`.
  */
 export const map =
@@ -147,7 +147,7 @@ export const map =
 /**
  * Maps an inner value of `Cat` into another `Cat` by applying a function. It is useful to lift a subroutine with `Cat`.
  *
- * @param fn A function which maps from `T` to `Cat<U>`.
+ * @param fn - A function which maps from `T` to `Cat<U>`.
  * @returns A lifted function which maps from `Cat<T>` to `Cat<U>`.
  */
 export const flatMap =
@@ -157,7 +157,7 @@ export const flatMap =
 /**
  * Lifts down a `Cat` which contains a mapping function. It is useful to decompose a function in `Cat`.
  *
- * @param fn A `Cat` which contains a mapping function.
+ * @param fn - A `Cat` which contains a mapping function.
  * @returns An applied function which maps from `Cat<T>` to `Cat<U>`.
  */
 export const apply =

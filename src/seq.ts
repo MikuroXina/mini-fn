@@ -12,6 +12,9 @@ import {
 } from "./seq/finger-tree.js";
 import type { Tuple } from "./tuple.js";
 
+/**
+ * The sequence of `A`, the homogenous data structure to store finite data. This is an alias of `FingerTree`.
+ */
 export type Seq<A> = FingerTree<A>;
 
 export {
@@ -29,6 +32,9 @@ export {
     size,
 } from "./seq/finger-tree.js";
 
+/**
+ * The view of the left end of a `Seq`.
+ */
 export type ViewL<A> = Option<Tuple<A, Seq<A>>>;
 
 const deepL =
@@ -50,6 +56,12 @@ const deepL =
         return deep(left as Digit<A>)(tree)(right);
     };
 
+/**
+ * Creates the new view of the left end of `tree`.
+ *
+ * @param tree - The source tree.
+ * @returns The view of the left end.
+ */
 export const viewL = <A>(tree: Seq<A>): ViewL<A> => {
     if (isEmpty(tree)) {
         return none();
@@ -62,11 +74,26 @@ export const viewL = <A>(tree: Seq<A>): ViewL<A> => {
     return some([head, deepL(viewL<Node<A>>)(rest)(nextTree)(right)]);
 };
 
+/**
+ * Gets the leftmost head of the tree.
+ *
+ * @param tree - The tree to get the head.
+ * @returns The leftmost head.
+ */
 export const headL = <A>(tree: Seq<A>): Option<A> =>
     mapOption(([head]: Tuple<A, Seq<A>>) => head)(viewL(tree));
+/**
+ * Gets the tree without the leftmost head.
+ *
+ * @param tree - The tree to get the tail.
+ * @returns The tree without the leftmost head.
+ */
 export const tailL = <A>(tree: Seq<A>): Option<Seq<A>> =>
     mapOption(([, tail]: Tuple<A, Seq<A>>) => tail)(viewL(tree));
 
+/**
+ * The view of the right end of a `Seq`.
+ */
 export type ViewR<A> = Option<Tuple<Seq<A>, A>>;
 
 const deepR =
@@ -88,6 +115,12 @@ const deepR =
         return deep(left)(tree)(right as Digit<A>);
     };
 
+/**
+ * Creates the new view of the right end of `tree`.
+ *
+ * @param tree - The source tree.
+ * @returns The view of the right end.
+ */
 export const viewR = <A>(tree: Seq<A>): ViewR<A> => {
     if (isEmpty(tree)) {
         return none();
@@ -101,7 +134,19 @@ export const viewR = <A>(tree: Seq<A>): ViewR<A> => {
     return some([deepR(viewR<Node<A>>)(left)(nextTree)(rest), tail]);
 };
 
+/**
+ * Gets the rightmost head of the tree.
+ *
+ * @param tree - The tree to get the head.
+ * @returns The rightmost head.
+ */
 export const headR = <A>(tree: Seq<A>): Option<A> =>
     mapOption(([, head]: Tuple<Seq<A>, A>) => head)(viewR(tree));
+/**
+ * Gets the tree without the rightmost head.
+ *
+ * @param tree - The tree to get the tail.
+ * @returns The tree without the rightmost head.
+ */
 export const tailR = <A>(tree: Seq<A>): Option<Seq<A>> =>
     mapOption(([tail]: Tuple<Seq<A>, A>) => tail)(viewR(tree));

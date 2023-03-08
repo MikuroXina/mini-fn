@@ -27,15 +27,36 @@ import type { Traversable } from "./type-class/traversable.js";
 const pureNominal = Symbol("FreePure");
 const nodeNominal = Symbol("FreeNode");
 
+/**
+ * The leaf node of `Free`.
+ */
 export type Pure<A> = readonly [typeof pureNominal, A];
+/**
+ * The intermediate node of `Free`.
+ */
 export type Node<F, A> = readonly [typeof nodeNominal, Get1<F, Free<F, A>>];
 
+/**
+ * Creates the leaf node of `Free`.
+ *
+ * @param a - The value to be contained.
+ * @returns The new node.
+ */
 export const pure = <A>(a: A): Pure<A> => [pureNominal, a];
+/**
+ * Create the intermediate node of `Free`.
+ *
+ * @param f - The value wrapped with `F` to be contained.
+ * @returns The new node.
+ */
 export const node = <F, A>(f: Get1<F, Free<F, A>>): Node<F, A> => [nodeNominal, f];
 
 export const isPure = <F, A>(free: Free<F, A>): free is Pure<A> => free[0] === pureNominal;
 export const isNode = <F, A>(free: Free<F, A>): free is Node<F, A> => free[0] === nodeNominal;
 
+/**
+ * `Free` makes `Monad` instance from the functor `F`. It is left adjoint to some *forgetful* functor.
+ */
 export type Free<F, A> = Pure<A> | Node<F, A>;
 
 export const partialEquality = <F, A>({
@@ -123,6 +144,13 @@ export const cmp = <F, A>({
 };
 export const ord = fromCmp(cmp);
 
+/**
+ * Reduces `Free` with the internal items.
+ *
+ * @param monad - The instance of `Monad` for `F`.
+ * @param fr - The instance of `Free`.
+ * @returns The reduction of `F`.
+ */
 export const retract =
     <F extends Hkt1>(monad: Monad<F>) =>
     <T>(fr: Free<F, T>): Get1<F, T> => {
@@ -132,6 +160,14 @@ export const retract =
         return monad.flatMap(retract(monad))(fr[1]);
     };
 
+/**
+ * Reduces `Free` with the internal items.
+ *
+ * @param functor - The instance of `Functor` for `F`.
+ * @param fn - The function to be applied.
+ * @param fr - The instance of `Free`.
+ * @returns The reduction of `F`.
+ */
 export const iter =
     <F extends Hkt1>(functor: Functor<F>) =>
     <T>(fn: (m: Get1<F, T>) => T) =>
@@ -141,6 +177,15 @@ export const iter =
         }
         return fn(functor.map(iter(functor)(fn))(fr[1]));
     };
+/**
+ * Reduces `Free` with the internal items.
+ *
+ * @param app - The instance of `Applicative` for `F`.
+ * @param functor - The instance of `Functor` for `F`.
+ * @param fn - The function to be applied on `A`.
+ * @param fr - The instance of `Free`.
+ * @returns The reduction of `F`.
+ */
 export const iterA =
     <A extends Hkt1, F extends Hkt1>(app: Applicative<A>, functor: Functor<F>) =>
     <T>(fn: (m: Get1<F, Get1<A, T>>) => Get1<A, T>) =>
@@ -150,26 +195,50 @@ export const iterA =
         }
         return fn(functor.map(iterA(app, functor)(fn))(fr[1]));
     };
+/**
+ * Reduces `Free` with the internal items.
+ *
+ * @param monad - The instance of `Monad` for `M`.
+ * @param functor - The instance of `Functor` for `F`.
+ * @param fn - The function to be applied on `M`.
+ * @param fr - The instance of `Free`.
+ * @returns The reduction of `F`.
+ */
 export const iterM =
     <M extends Hkt1, F extends Hkt1>(monad: Monad<M>, functor: Functor<F>) =>
     <A>(fn: (fma: Get1<F, Get1<M, A>>) => Get1<M, A>) =>
-    (f: Free<F, A>): Get1<M, A> => {
-        if (isPure(f)) {
-            return monad.pure(f[1]);
+    (fr: Free<F, A>): Get1<M, A> => {
+        if (isPure(fr)) {
+            return monad.pure(fr[1]);
         }
-        return fn(functor.map(iterM(monad, functor)(fn))(f[1]));
+        return fn(functor.map(iterM(monad, functor)(fn))(fr[1]));
     };
 
+/**
+ * Hoists the items of `Free` by the natural transformation.
+ *
+ * @param functor - The instance of `Functor` for `G`.
+ * @param nat - The natural transformation.
+ * @returns The lifted transformation of `Free`.
+ */
 export const hoistFree =
     <G extends Hkt1>(functor: Functor<G>) =>
-    <F>(fn: <T>(f: Get1<F, T>) => Get1<G, T>) =>
+    <F>(nat: <T>(f: Get1<F, T>) => Get1<G, T>) =>
     <T>(fr: Free<F, T>): Free<G, T> => {
         if (isPure(fr)) {
             return fr;
         }
-        return node(functor.map(hoistFree(functor)(fn))(fn(fr[1])));
+        return node(functor.map(hoistFree(functor)(nat))(nat(fr[1])));
     };
 
+/**
+ * Make a product from two `Free`s.
+ *
+ * @param app - The instance of `Applicative` for `F`.
+ * @param a - The left-side of a product.
+ * @param b - The right-side of a product.
+ * @returns The product of two `Free`s.
+ */
 export const productT =
     <F extends Hkt1>(app: Applicative<F>) =>
     <A>(a: Free<F, A>) =>
@@ -185,6 +254,14 @@ export const productT =
         return pure<[A, B]>([a[1], b[1]]);
     };
 
+/**
+ * Folds all the values in `Free` with monad `M`.
+ *
+ * @param m - The instance of `Monad` for `M`.
+ * @param fn - The folder for `M`.
+ * @param fr - The instance of `Free`.
+ * @returns The folded value contained by `M`.
+ */
 export const foldFree =
     <M extends Hkt1>(m: Monad<M>) =>
     <F>(fn: <T>(f: Get1<F, T>) => Get1<M, T>) =>
@@ -195,11 +272,25 @@ export const foldFree =
         return m.flatMap(foldFree(m)(fn))(fn(fr[1]));
     };
 
+/**
+ * Lifts up the functor item into a `Free`.
+ *
+ * @param func - The instance of `Functor` for `F`.
+ * @param ft - The instance of `F` to be lifted.
+ * @returns The new `Free`.
+ */
 export const liftF =
     <F extends Hkt1>(func: Functor<F>) =>
     <T>(ft: Get1<F, T>): Free<F, T> =>
         node(func.map<T, Free<F, T>>(pure)(ft));
 
+/**
+ * Maps the function on `Free`.
+ *
+ * @param functor - The instance of `Functor` for `F`.
+ * @param f - The function to be mapped.
+ * @returns The mapped function between `Free`s.
+ */
 export const mapT =
     <F extends Hkt1>(functor: Functor<F>) =>
     <T, U>(f: (t: T) => U) =>
@@ -210,6 +301,13 @@ export const mapT =
         return node(functor.map(mapT(functor)(f))(t[1]));
     };
 
+/**
+ * Maps and flatten the function on `Free`.
+ *
+ * @param functor - The instance of `Functor` for `F`.
+ * @param mf - The function to be mapped and flattened.
+ * @returns The mapped function between `Free`s.
+ */
 export const flatMapT =
     <F extends Hkt1>(functor: Functor<F>) =>
     <T, U>(mf: (t: T) => Free<F, U>) =>
@@ -220,6 +318,14 @@ export const flatMapT =
         return node(functor.map(flatMapT(functor)(mf))(t[1]));
     };
 
+/**
+ * Applies the function on `Free`.
+ *
+ * @param functor - The instance of `Functor` for `F`.
+ * @param mf - The function wrapped with `Free`.
+ * @param t - The instance of `Free` to be applied.
+ * @returns The applied instance.
+ */
 export const applyT =
     <F extends Hkt1>(functor: Functor<F>) =>
     <T, U>(mf: Free<F, (t: T) => U>) =>
@@ -234,6 +340,14 @@ export const applyT =
         return node(functor.map(applyT(functor)(mf))(t[1]));
     };
 
+/**
+ * Cuts off the tree of computations at n-th index. If `n` is zero or less, the empty operation will be returned.
+ *
+ * @param functor - The instance of `Functor` for `F`.
+ * @param n - The depths to cut.
+ * @param fr - The `Free` instance as a tree of computations.
+ * @returns The cut off instance.
+ */
 export const cutoff =
     <F extends Hkt1>(functor: Functor<F>) =>
     (n: number) =>
@@ -248,6 +362,14 @@ export const cutoff =
         return mapT(functor)(some)(fr);
     };
 
+/**
+ * Unfolds into a `Free` from `seed`.
+ *
+ * @param functor - The instance of `Functor` for `F`.
+ * @param fn - The folder which returns `Result` as an accumulated result.
+ * @param seed - The seed of unfolding.
+ * @returns The new instance as an unfolded tree.
+ */
 export const unfold =
     <F extends Hkt1>(functor: Functor<F>) =>
     <A, B>(fn: (b: B) => Result.Result<A, Get1<F, B>>) =>
@@ -255,6 +377,15 @@ export const unfold =
         Result.either((a: A): Free<F, A> => pure(a))((fb: Get1<F, B>) =>
             node(functor.map(unfold(functor)(fn))(fb)),
         )(fn(seed));
+/**
+ * Unfolds into a `Free` from `seed` with monad `M`.
+ *
+ * @param traversable - The instance of `Traversable` for `F`.
+ * @param monad - The instance of `Monad` for `M`.
+ * @param fn - The folder which returns `Result` as an accumulated result.
+ * @param seed - The seed of unfolding.
+ * @returns The new instance as an unfolded tree.
+ */
 export const unfoldM =
     <F extends Hkt1, M extends Hkt1>(traversable: Traversable<F>, monad: Monad<M>) =>
     <A, B>(f: (b: B) => Get1<M, Result.Result<A, Get1<F, B>>>): ((b: B) => Get1<M, Free<F, A>>) => {
@@ -271,6 +402,9 @@ export interface FreeHkt extends Hkt2 {
     readonly type: Free<this["arg2"], this["arg1"]>;
 }
 
+/**
+ * The instance of `Functor` for `Free<F, _>` from a functor `F`.
+ */
 export const functor = <F extends Hkt1>(f: Functor<F>): Monad<Apply2Only<FreeHkt, F>> => ({
     map: mapT(f),
     pure,
@@ -282,6 +416,9 @@ export const functor = <F extends Hkt1>(f: Functor<F>): Monad<Apply2Only<FreeHkt
     apply: applyT(f),
 });
 
+/**
+ * The instance of `Monad` for `Free<F, _>` from a functor `F`.
+ */
 export const monad = <F extends Hkt1>(f: Functor<F>): Monad<Apply2Only<FreeHkt, F>> => ({
     pure,
     map: mapT(f),
@@ -289,6 +426,9 @@ export const monad = <F extends Hkt1>(f: Functor<F>): Monad<Apply2Only<FreeHkt, 
     apply: applyT(f),
 });
 
+/**
+ * The instance of `Adjunction` for `Free<F, _>` against to `Cofree<U, _>`.
+ */
 export const adjunction = <F extends Hkt1, U extends Hkt1, Rep>(
     adj: Adjunction<F, U, Rep>,
 ): Adjunction<Apply2Only<FreeHkt, F>, Apply2Only<CofreeHkt, U>, Seq<Rep>> => ({

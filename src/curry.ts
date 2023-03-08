@@ -7,6 +7,9 @@ type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ?
     ? true
     : false;
 
+/**
+ * Curried form of the function type `F`.
+ */
 export type Curried<F> = F extends (...args: infer A) => infer R
     ? Equal<F, () => R> extends true
         ? () => R
@@ -15,6 +18,12 @@ export type Curried<F> = F extends (...args: infer A) => infer R
         : R
     : never;
 
+/**
+ * Curries the n-ary function.
+ *
+ * @param fn - The function to be curried.
+ * @returns The curried function.
+ */
 export function curry<F extends (...args: unknown[]) => unknown>(fn: F): Curried<F> {
     if (fn.length === 0) {
         return (() => fn()) as Curried<F>;
@@ -31,12 +40,15 @@ export function curry<F extends (...args: unknown[]) => unknown>(fn: F): Curried
     return curried(fn) as Curried<F>;
 }
 
+/**
+ * The instance of `Adjunction` for currying.
+ */
 export const curryAdjunction = <E>(): Adjunction<
     Apply2Only<TupleHkt, E>,
     Apply2Only<FnHkt, E>,
     E
 > => ({
-    functor: functorTuple,
+    functor: functorTuple(),
     representable: representableFn<E>(),
     unit: (a) => (e) => [e, a],
     counit: ([e, f]) => f(e),

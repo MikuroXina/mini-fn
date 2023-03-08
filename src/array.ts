@@ -5,11 +5,25 @@ export interface ArrayHkt extends Hkt1 {
     readonly type: readonly this["arg1"][];
 }
 
+/**
+ * Crates a new array from elements in `fa`.
+ *
+ * @param reduce - The instance of `Reduce` for `F`.
+ * @param fa - The container having elements of `A`.
+ * @returns The new array.
+ */
 export const fromReduce =
     <F>(reduce: Reduce<F>) =>
     <A>(fa: Get1<F, A>): readonly A[] =>
         reduce.reduceL((arr: readonly A[]) => (elem: A) => [...arr, elem])([])(fa);
 
+/**
+ * Reduces the elements of array by `reducer` from right-side.
+ *
+ * @param reducer - The reducer called with `A` and `B`.
+ * @param fa - The array to be folded.
+ * @returns The folded value.
+ */
 export const reduceR: <A, B>(reducer: (a: A) => (b: B) => B) => (fa: readonly A[]) => (b: B) => B =
     (reducer) => (as) => (b) => {
         const reversed = [...as].reverse();
@@ -18,14 +32,20 @@ export const reduceR: <A, B>(reducer: (a: A) => (b: B) => B) => (fa: readonly A[
         }
         return b;
     };
+/**
+ * Reduces the elements of array by `reducer` from left-side.
+ *
+ * @param reducer - The reducer called with `B` and `A`.
+ * @param fa - The array to be folded.
+ * @returns The folded value.
+ */
 export const reduceL: <A, B>(reducer: (b: B) => (a: A) => B) => (b: B) => (fa: readonly A[]) => B =
-    (reducer) => (b) => (as) => {
-        for (const a of as) {
-            b = reducer(b)(a);
-        }
-        return b;
-    };
+    (reducer) => (b) => (as) =>
+        as.reduce((acc, a) => reducer(acc)(a), b);
 
+/**
+ * The instance of `Reduce` for `Array`.
+ */
 export const reduce: Reduce<ArrayHkt> = {
     reduceR,
     reduceL,

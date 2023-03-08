@@ -12,23 +12,78 @@ import type { PartialEq } from "./type-class/partial-eq.js";
 import type { SemiGroup } from "./type-class/semi-group.js";
 
 const thisSymbol = Symbol("TheseThis");
+/**
+ * The variant of `These` represents there is only the left value.
+ */
 export type This<A> = readonly [typeof thisSymbol, A];
+/**
+ * Creates a new `This` with the value.
+ *
+ * @param a - The value to be contained.
+ * @returns The new `This`.
+ */
 export const newThis = <A>(a: A): This<A> => [thisSymbol, a];
+/**
+ * Checks whether the `These` is a `This`.
+ *
+ * @param these - The `These` to be checked.
+ * @returns Whether the `These` is a `This`.
+ */
 export const isThis = <A, B>(these: These<A, B>): these is This<A> => these[0] === thisSymbol;
 
 const thatSymbol = Symbol("TheseThat");
+/**
+ * The variant of `These` represents there is only the right value.
+ */
 export type That<B> = readonly [typeof thatSymbol, B];
+/**
+ * Creates a new `That` with the value.
+ *
+ * @param a - The value to be contained.
+ * @returns The new `That`.
+ */
 export const newThat = <B>(b: B): That<B> => [thatSymbol, b];
+/**
+ * Checks whether the `These` is a `That`.
+ *
+ * @param these - The `These` to be checked.
+ * @returns Whether the `These` is a `That`.
+ */
 export const isThat = <A, B>(these: These<A, B>): these is That<B> => these[0] === thatSymbol;
 
 const bothSymbol = Symbol("TheseBoth");
+/**
+ * The variant of `These` represents there are both of the values.
+ */
 export type Both<A, B> = readonly [typeof bothSymbol, A, B];
+/**
+ * Creates a new `Both` with the values.
+ *
+ * @param a - The first value to be contained.
+ * @param b - The second value to be contained.
+ * @returns The new `Both`.
+ */
 export const newBoth =
     <A>(a: A) =>
     <B>(b: B): Both<A, B> =>
         [bothSymbol, a, b];
+/**
+ * Checks whether the `These` is a `Both`.
+ *
+ * @param these - The `These` to be checked.
+ * @returns Whether the `These` is a `Both`.
+ */
 export const isBoth = <A, B>(these: These<A, B>): these is Both<A, B> => these[0] === bothSymbol;
 
+/**
+ * The type of three variants:
+ *
+ * - `This`: there is only the left value.
+ * - `That`: there is only the right value.
+ * - `Both`: there are both of the left and right values.
+ *
+ * This can be useful to represent combinations of two values.
+ */
 export type These<A, B> = This<A> | That<B> | Both<A, B>;
 
 export interface TheseHkt extends Hkt2 {
@@ -57,6 +112,14 @@ export const eq = <A, B>(equalityA: Eq<A>, equalityB: Eq<B>): Eq<These<A, B>> =>
     [eqSymbol]: true,
 });
 
+/**
+ * Exhausts the all patterns of `These`.
+ *
+ * @param onThis - The case of `This`.
+ * @param onThat - The case of `That`.
+ * @param onBoth - The case of `Both`.
+ * @returns The value calculated by either of three functions.
+ */
 export const these =
     <A, C>(onThis: (a: A) => C) =>
     <B>(onThat: (b: B) => C) =>
@@ -72,11 +135,27 @@ export const these =
         }
     };
 
+/**
+ * Converts the `These` into a tuple with provided default values.
+ *
+ * @param defaultA - The default value for left side.
+ * @param defaultB - The default value for right side.
+ * @param t - The source `These`.
+ * @returns The converted tuple.
+ */
 export const intoTuple =
     <A>(defaultA: A) =>
     <B>(defaultB: B): ((t: These<A, B>) => Tuple<A, B>) =>
         these((a: A) => makeTuple(a)(defaultB))(makeTuple(defaultA)<B>)(makeTuple);
 
+/**
+ * Maps both over `These` by two mappers.
+ *
+ * @param first - The mapper for left value.
+ * @param second - The mapper for right value.
+ * @param curr - The source `These`.
+ * @returns The mapped `These`.
+ */
 export const biMap =
     <A, B>(first: (a: A) => B) =>
     <C, D>(second: (c: C) => D): ((curr: These<A, C>) => These<B, D>) =>
@@ -84,9 +163,23 @@ export const biMap =
             (c: C) => newThat(second(c)) as These<B, D>,
         )((a) => (c) => newBoth(first(a))(second(c)) as These<B, D>);
 
+/**
+ * Merges the `These` having same types in the type parameters with `merger`.
+ *
+ * @param merger - The function used on `Both` case to merge its values.
+ * @returns The contained value on cases of either `This` or `That`, or merged value by `merge` on case of `Both`.
+ */
 export const merge = <A>(merger: (thisA: A) => (thatA: A) => A): ((t: These<A, A>) => A) =>
     these(id<A>)(id<A>)(merger);
 
+/**
+ * Maps and merges the `These`'s value with the provided functions.
+ *
+ * @param f - The mapper on `This` case.
+ * @param g - The mapper on `That` case.
+ * @param merge - The function used to merge the mapped values.
+ * @returns The mapped and merged value.
+ */
 export const mergeWith =
     <A, C>(f: (a: A) => C) =>
     <B>(g: (b: B) => C) =>
@@ -94,6 +187,12 @@ export const mergeWith =
     (t: These<A, B>): C =>
         merge(merger)(biMap(f)(g)(t));
 
+/**
+ * Sorts out the list of `These`s into the lists of `This`, `That` and `Both` values.
+ *
+ * @param list - The list of `These`s.
+ * @returns The tuple of the list of values contained by `This`, `That` and `Both` respectively.
+ */
 export const partition = <A, B>(list: List<These<A, B>>): [List<A>, List<B>, List<Tuple<A, B>>] =>
     either<[List<A>, List<B>, List<Tuple<A, B>>]>(() => [empty(), empty(), empty()])(
         (t: These<A, B>, ts: List<These<A, B>>) => {
@@ -110,6 +209,12 @@ export const partition = <A, B>(list: List<These<A, B>>): [List<A>, List<B>, Lis
         },
     )(list);
 
+/**
+ * Sorts out the list of `These`s into the lists of left and right values.
+ *
+ * @param list - The list of `These`s.
+ * @returns The tuple of list of values of left and right respectively.
+ */
 export const partitionHere = <A, B>(list: List<These<A, B>>): [List<A>, List<B>] =>
     either<[List<A>, List<B>]>(() => [empty(), empty()])(
         (t: These<A, B>, ts: List<These<A, B>>) => {
@@ -120,6 +225,12 @@ export const partitionHere = <A, B>(list: List<These<A, B>>): [List<A>, List<B>]
         },
     )(list);
 
+/**
+ * Distributes `Tuple` in `These`.
+ *
+ * @param t - The `These` having a tuple on left.
+ * @returns The distributed tuple of `These`s.
+ */
 export const distributeTheseTuple = <A, B, C>(
     t: These<Tuple<A, B>, C>,
 ): Tuple<These<A, C>, These<B, C>> =>
@@ -131,6 +242,12 @@ export const distributeTheseTuple = <A, B, C>(
                 makeTuple(newBoth(a)(c))(newBoth(b)(c)),
     )(t);
 
+/**
+ * Undistributes `Tuple` in `These`.
+ *
+ * @param t - The tuple having `These`s.
+ * @returns The undistributed `These` of tuples.
+ */
 export const undistributeTheseTuple = <A, B, C>([t1, t2]: Tuple<These<A, C>, These<B, C>>): These<
     Tuple<A, B>,
     C
@@ -154,6 +271,12 @@ export const undistributeTheseTuple = <A, B, C>([t1, t2]: Tuple<These<A, C>, The
     return newBoth(makeTuple(t1[1])(b))(t1[2]);
 };
 
+/**
+ * Distributes `These` in `Tuple`.
+ *
+ * @param t - The tuple having a `These` on left.
+ * @returns The distributed `These` of tuples.
+ */
 export const distributeTupleThese = <A, B, C>([t, c]: Tuple<These<A, B>, C>): These<
     Tuple<A, C>,
     Tuple<B, C>
@@ -162,6 +285,12 @@ export const distributeTupleThese = <A, B, C>([t, c]: Tuple<These<A, B>, C>): Th
         newThat(makeTuple(b)(c)),
     )((a) => (b) => newBoth(makeTuple(a)(c))(makeTuple(b)(c)))(t);
 
+/**
+ * Undistributes `These` in `Tuple`.
+ *
+ * @param t - The `These` having `Tuple`s.
+ * @returns The undistributed `These` in `Tuple`.
+ */
 export const undistributeTupleThese = <A, B, C>(
     t: These<Tuple<A, C>, Tuple<B, C>>,
 ): Tuple<These<A, B>, C> =>
@@ -173,6 +302,15 @@ export const undistributeTupleThese = <A, B, C>(
                 makeTuple(newBoth(a)(b))(c),
     )(t);
 
+/**
+ * Combines two `These`s with the instances of `SemiGroup` for `A` and `B`.
+ *
+ * @param semiA - The instance of `SemiGroup` for `A`.
+ * @param semiB - The instance of `SemiGroup` for `B`.
+ * @param l - The left-side `These`.
+ * @param r - The right-side `These`.
+ * @returns The combined `These`
+ */
 export const combine =
     <A, B>(semiA: SemiGroup<A>, semiB: SemiGroup<B>) =>
     (l: These<A, B>, r: These<A, B>): These<A, B> => {
@@ -197,6 +335,13 @@ export const combine =
         )(r);
     };
 
+/**
+ * Maps the right value of `These` with `fn`.
+ *
+ * @param fn - The function to map.
+ * @param t - The `These` to be mapped.
+ * @returns The mapped `These`.
+ */
 export const map =
     <B, C>(fn: (b: B) => C) =>
     <A>(t: These<A, B>): These<A, C> =>
@@ -204,12 +349,28 @@ export const map =
             (a) => (b) => newBoth(a)(fn(b)),
         )(t);
 
+/**
+ * Folds the value in the right of `These`. The left value will be ignored and `init` will be used.
+ *
+ * @param folder - The function to fold the contained value.
+ * @param init - The seed of folding.
+ * @param data - The `These` to fold.
+ * @returns The folded value.
+ */
 export const foldR =
     <A, B>(folder: (a: A) => (b: B) => B) =>
     (init: B) =>
     <X>(data: These<X, A>): B =>
         these<X, B>(() => init)<A>((a) => folder(a)(init))(() => (a) => folder(a)(init))(data);
 
+/**
+ * Traverses the `These` with `visitor` on an applicative `F`.
+ *
+ * @param app - The instance of `Applicative` for `F`.
+ * @param visitor - The function to traverse the right value.
+ * @param data - The `These` to be traversed.
+ * @returns The traversed `These` on `F`.
+ */
 export const traverse =
     <F extends Hkt1>(app: Applicative<F>) =>
     <A, B>(visitor: (a: A) => Get1<F, B>) =>
@@ -218,6 +379,14 @@ export const traverse =
             app.map(newThat)(visitor(b)),
         )((x) => (b) => app.map(newBoth(x))(visitor(b)))(data);
 
+/**
+ * Applies the function to the value over `These<A, _>` with semi-group `A`.
+ *
+ * @param semi - The instance of `SemiGroup` for `A`.
+ * @param fn - The function to apply in a `These`.
+ * @param t - The `These` to be applied.
+ * @returns The applied `These`.
+ */
 export const apply =
     <A>(semi: SemiGroup<A>) =>
     <T, U>(fn: These<A, (t: T) => U>) =>
@@ -243,6 +412,14 @@ export const apply =
         return newBoth(semi.combine(fn[1], t[1]))(fn[2](t[2]));
     };
 
+/**
+ * Maps and flattens the `These` by `fn` over `These<A, _>` with semi-group `A`.
+ *
+ * @param semi - The instance of `SemiGroup` for `A`.
+ * @param fn - The function to map from `T`.
+ * @param t - The `These` to be mapped.
+ * @returns The mapped and flattened `These`.
+ */
 export const flatMap =
     <A>(semi: SemiGroup<A>) =>
     <T, U>(fn: (t: T) => These<A, U>) =>
@@ -263,6 +440,13 @@ export const flatMap =
         return newBoth(semi.combine(t[1], mapped[1]))(mapped[2]);
     };
 
+/**
+ * Creates the instance of `SemiGroup` from the instances of `A` and `B`.
+ *
+ * @param semiA - The instance of `SemiGroup` for `A`.
+ * @param semiB - The instance of `SemiGroup` for `B`.
+ * @returns The instance of `SemiGroup` for `These<A, B>`.
+ */
 export const semiGroup = <A, B>(
     semiA: SemiGroup<A>,
     semiB: SemiGroup<B>,
@@ -270,18 +454,33 @@ export const semiGroup = <A, B>(
     combine: combine(semiA, semiB),
 });
 
-export const functor: Functor<TheseHkt> = { map };
+/**
+ * The instance of `Functor` for `These<A, _>`.
+ */
+export const functor = <A>(): Functor<Apply2Only<TheseHkt, A>> => ({ map });
 
-export const foldable: Foldable<TheseHkt> = { foldR };
+/**
+ * The instance of `Foldable` for `These<X, _>`.
+ */
+export const foldable = <X>(): Foldable<Apply2Only<TheseHkt, X>> => ({ foldR });
 
+/**
+ * The instance of `Bifunctor` for `These`.
+ */
 export const bifunctor: Bifunctor<TheseHkt> = { biMap };
 
+/**
+ * The instance of `Applicative` for `These<A, _>` from `SemiGroup` for `A`.
+ */
 export const app = <A>(semi: SemiGroup<A>): Applicative<Apply2Only<TheseHkt, A>> => ({
     map,
     pure: newThat,
     apply: apply(semi),
 });
 
+/**
+ * The instance of `Monad` for `These<A, _>` from `SemiGroup` for `A`.
+ */
 export const monad = <A>(semi: SemiGroup<A>): Monad<Apply2Only<TheseHkt, A>> => ({
     ...app(semi),
     flatMap: flatMap(semi),

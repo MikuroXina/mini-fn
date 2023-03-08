@@ -18,6 +18,7 @@
     },
     "sideEffects": false,
     "repository": "https://github.com/MikuroXina/mini-fn.git",
+    "homepage": "https://mikuroxina.github.io/mini-fn/",
     "author": "MikuroXina",
     "license": "Apache-2.0",
     "scripts": {
