@@ -1,6 +1,7 @@
 import { constant, flip, id } from "./func.js";
 import type { Hkt1 } from "./hkt.js";
 import type { Adjunction } from "./type-class/adjunction.js";
+import type { Comonad } from "./type-class/comonad.js";
 import type { Distributive } from "./type-class/distributive.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
@@ -39,6 +40,15 @@ export const monad: Monad<IdentityHkt> = {
     map: id,
     flatMap: id,
     apply: id,
+};
+
+/**
+ * The instance of `Comonad` for `Identity`.
+ */
+export const comonad: Comonad<IdentityHkt> = {
+    map: id,
+    extract: id,
+    duplicate: id,
 };
 
 /**
