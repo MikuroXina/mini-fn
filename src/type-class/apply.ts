@@ -3,7 +3,7 @@ import type { Get1, Hkt1 } from "../hkt.js";
 import type { Functor } from "./functor.js";
 import type { SemiGroup } from "./semi-group.js";
 
-export interface Apply<S extends Hkt1> extends Functor<S> {
+export interface Apply<S> extends Functor<S> {
     readonly apply: <T, U>(fn: Get1<S, (t: T) => U>) => (t: Get1<S, T>) => Get1<S, U>;
 }
 
