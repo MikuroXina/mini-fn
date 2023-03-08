@@ -16,7 +16,7 @@
 <li><a href="MonadReader.html">MonadReader</a></li></ul>
 <h1>Namespace MonadReader</h1></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MikuroXina/mini-fn/blob/5a5b574/src/reader/monad.ts#L1">src/reader/monad.ts:1</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/MikuroXina/mini-fn/blob/1171724/src/reader/monad.ts#L1">src/reader/monad.ts:1</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <h3 class="tsd-index-heading uppercase">Index</h3>
@@ -53,9 +53,11 @@
 <li class="tsd-kind-namespace"><a href="Cat.html">Cat</a></li>
 <li class="tsd-kind-namespace"><a href="Cofree.html">Cofree</a></li>
 <li class="tsd-kind-namespace"><a href="ComonadCofree.html">Comonad<wbr/>Cofree</a></li>
+<li class="tsd-kind-namespace"><a href="ComonadStore.html">Comonad<wbr/>Store</a></li>
 <li class="tsd-kind-namespace"><a href="Cont.html">Cont</a></li>
 <li class="tsd-kind-namespace"><a href="Coyoneda.html">Coyoneda</a></li>
 <li class="tsd-kind-namespace"><a href="Curry.html">Curry</a></li>
+<li class="tsd-kind-namespace"><a href="Dual.html">Dual</a></li>
 <li class="tsd-kind-namespace"><a href="Free.html">Free</a></li>
 <li class="tsd-kind-namespace"><a href="Frozen.html">Frozen</a></li>
 <li class="tsd-kind-namespace"><a href="Func.html">Func</a></li>
@@ -72,12 +74,17 @@
 <li class="tsd-kind-namespace"><a href="Number.html">Number</a></li>
 <li class="tsd-kind-namespace"><a href="Option.html">Option</a></li>
 <li class="tsd-kind-namespace"><a href="Ordering.html">Ordering</a></li>
+<li class="tsd-kind-namespace"><a href="Predicate.html">Predicate</a></li>
 <li class="tsd-kind-namespace"><a href="Promise.html">Promise</a></li>
 <li class="tsd-kind-namespace"><a href="Reader.html">Reader</a></li>
 <li class="tsd-kind-namespace"><a href="Result.html">Result</a></li>
+<li class="tsd-kind-namespace"><a href="Seq.html">Seq</a></li>
+<li class="tsd-kind-namespace"><a href="Star.html">Star</a></li>
 <li class="tsd-kind-namespace"><a href="State.html">State</a></li>
 <li class="tsd-kind-namespace"><a href="StateMonad.html">State<wbr/>Monad</a></li>
 <li class="tsd-kind-namespace"><a href="Store.html">Store</a></li>
+<li class="tsd-kind-namespace"><a href="String.html">String</a></li>
+<li class="tsd-kind-namespace"><a href="These.html">These</a></li>
 <li class="tsd-kind-namespace"><a href="Trans.html">Trans</a></li>
 <li class="tsd-kind-namespace"><a href="Tuple.html">Tuple</a></li>
 <li class="tsd-kind-namespace"><a href="TupleN.html">TupleN</a></li>
@@ -86,6 +93,8 @@
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Adjunction.html">Adjunction</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Applicative.html">Applicative</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Apply.html">Apply</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Arrow.html">Arrow</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Associative.html">Associative</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Bifunctor.html">Bifunctor</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Category.html">Category</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Choice.html">Choice</a></li>
@@ -96,8 +105,10 @@
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.FlatMap.html">Flat<wbr/>Map</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Foldable.html">Foldable</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Functor.html">Functor</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Iso.html">Iso</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Monad.html">Monad</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Monoid.html">Monoid</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Monoidal.html">Monoidal</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Nt.html">Nt</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Ord.html">Ord</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.PartialEq.html">Partial<wbr/>Eq</a></li>
@@ -111,7 +122,10 @@
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.SemiGroupoid.html">Semi<wbr/>Groupoid</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Settable.html">Settable</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Strong.html">Strong</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Symmetric.html">Symmetric</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Tensor.html">Tensor</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Traversable.html">Traversable</a></li>
+<li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Unital.html">Unital</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="TypeClass.Variance.html">Variance</a></li></ul></li>
 <li class="tsd-kind-namespace"><a href="Writer.html">Writer</a></li>
 <li class="tsd-kind-namespace"><a href="Yoneda.html">Yoneda</a></li>
