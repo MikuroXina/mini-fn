@@ -1,6 +1,8 @@
 import type { Apply2Only, Hkt2 } from "./hkt.js";
+import type { Applicative } from "./type-class/applicative.js";
 import type { Arrow } from "./type-class/arrow.js";
 import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
 import type { Representable } from "./type-class/representable.js";
 
 /**
@@ -88,6 +90,63 @@ export interface Fn<A, B> {
     (a: A): B;
 }
 
+/**
+ * Maps the hom `X => A` with `f`.
+ *
+ * @param f - The function to map from `A`.
+ * @param a - The hom to be mapped.
+ * @returns The mapped hom.
+ */
+export const map =
+    <X>() =>
+    <A, B>(f: (a: A) => B) =>
+    (a: (x: X) => A): ((x: X) => B) =>
+        pipe(a)(f);
+
+/**
+ * Applies the hom `X => A => B` to another hom `X => A`.
+ *
+ * @param f - The hom returns the function to apply.
+ * @param g - The hom to be applied.
+ * @returns The applied hom.
+ */
+export const apply =
+    <X>() =>
+    <A, B>(f: (x: X) => (a: A) => B) =>
+    (g: (x: X) => A): ((x: X) => B) =>
+    (x) =>
+        f(x)(g(x));
+
+/**
+ * Lifts the binary operation `q` over the hom `X => _`.
+ *
+ * @param q - The binary operation takes `A` and `B`.
+ * @param f - The hom `X => A`.
+ * @param g - The hom `X => B`.
+ * @returns The lifted hom `X => C`.
+ */
+export const liftBinary =
+    <X>() =>
+    <A, B, C>(q: (a: A) => (b: B) => C) =>
+    (f: (x: X) => A) =>
+    (g: (x: X) => B): ((x: X) => C) =>
+    (x) =>
+        q(f(x))(g(x));
+
+/**
+ * Maps and flattens the hom with `fn`.
+ *
+ * @param fn - The function which maps from `A` to the hom `X => B`.
+ * @param a - The hom `X => A`.
+ * @returns The mapped hom `X => B`.
+ */
+export const flatMap =
+    <X>() =>
+    <A, B>(fn: (a: A) => (x: X) => B) =>
+    (a: (x: X) => A): ((x: X) => B) =>
+    (x) =>
+        fn(a(x))(x);
+
 export interface FnHkt extends Hkt2 {
     readonly type: Fn<this["arg2"], this["arg1"]>;
 }
@@ -97,6 +156,23 @@ export interface FnHkt extends Hkt2 {
  */
 export const functor = <E>(): Functor<Apply2Only<FnHkt, E>> => ({
     map: compose,
+});
+
+/**
+ * The instance of `Applicative` for `Fn<X, _>`.
+ */
+export const applicative = <X>(): Applicative<Apply2Only<FnHkt, X>> => ({
+    map: map(),
+    pure: constant,
+    apply: apply(),
+});
+
+/**
+ * The instance of `Monad` for `Fn<X, _>`.
+ */
+export const monad = <X>(): Monad<Apply2Only<FnHkt, X>> => ({
+    ...applicative(),
+    flatMap: flatMap(),
 });
 
 /**
