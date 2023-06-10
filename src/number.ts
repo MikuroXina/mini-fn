@@ -2,6 +2,7 @@ import { Option, none, some } from "./option.js";
 import { Ordering, equal, greater, less } from "./ordering.js";
 import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.js";
 import { fromPartialCmp } from "./type-class/partial-ord.js";
+import type { Ring } from "./type-class/ring.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
@@ -32,4 +33,9 @@ export const mulAbelianGroup: AbelianGroup<number> = {
     invert: (g) => 1 / g,
     [semiGroupSymbol]: true,
     [abelSymbol]: true,
+};
+
+export const ring: Ring<number> = {
+    additive: addAbelianGroup,
+    multiplication: mulAbelianGroup,
 };
