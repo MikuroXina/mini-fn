@@ -1,7 +1,14 @@
-import type { Group } from "./group.js";
+import { type Group, type GroupExceptZero, includeZeroSymbol } from "./group.js";
 import { semiGroupSymbol } from "./semi-group.js";
 
 export const abelSymbol = Symbol("ImplAbel");
+
+/**
+ * A commutative group except zero.
+ */
+export interface AbelianGroupExceptZero<G> extends GroupExceptZero<G> {
+    readonly [abelSymbol]: true;
+}
 
 /**
  * A commutative group.
@@ -15,5 +22,6 @@ export const trivialAbelianGroup: AbelianGroup<[]> = {
     identity: [],
     invert: () => [],
     [semiGroupSymbol]: true,
+    [includeZeroSymbol]: true,
     [abelSymbol]: true,
 };

@@ -2,24 +2,37 @@ import type { Monoid } from "./monoid.js";
 import { semiGroupSymbol } from "./semi-group.js";
 
 /**
+ * A structure of 2-term operation `combine` and 1-term operation `invert`, which must satisfy following conditions **except zero element**:
+ *
+ * - Associative: for all `x`, `y` and `z`; `combine(combine(x, y), z)` equals to `combine(x, combine(y, z))`.
+ * - Identity: for all `x`; `combine(x, identity)` equals to `combine(identity, x)` and `x`.
+ * - Inverse: for all `x`; `combine(x, invert(x))` equals to `combine(invert(x), x)` and `identity`.
+ */
+export interface GroupExceptZero<G> extends Monoid<G> {
+    readonly invert: (g: G) => G;
+}
+
+export const includeZeroSymbol = Symbol("ImplGroup");
+
+/**
  * A structure of 2-term operation `combine` and 1-term operation `invert`, which must satisfy following conditions:
  *
  * - Associative: for all `x`, `y` and `z`; `combine(combine(x, y), z)` equals to `combine(x, combine(y, z))`.
  * - Identity: for all `x`; `combine(x, identity)` equals to `combine(identity, x)` and `x`.
  * - Inverse: for all `x`; `combine(x, invert(x))` equals to `combine(invert(x), x)` and `identity`.
  */
-export interface Group<G> extends Monoid<G> {
-    readonly invert: (g: G) => G;
+export interface Group<G> extends GroupExceptZero<G> {
+    [includeZeroSymbol]: true;
 }
 
 export const subtract =
-    <G>(group: Group<G>) =>
+    <G>(group: GroupExceptZero<G>) =>
     (l: G) =>
     (r: G): G =>
         group.combine(l, group.invert(r));
 
 export const powi =
-    <G>(group: Group<G>) =>
+    <G>(group: GroupExceptZero<G>) =>
     (base: G) =>
     (exp: number): G => {
         if (!Number.isInteger(exp)) {
@@ -57,4 +70,5 @@ export const trivialGroup: Group<[]> = {
     identity: [],
     invert: () => [],
     [semiGroupSymbol]: true,
+    [includeZeroSymbol]: true,
 };

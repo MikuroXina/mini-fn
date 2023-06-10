@@ -1,6 +1,11 @@
 import { Option, none, some } from "./option.js";
 import { Ordering, equal, greater, less } from "./ordering.js";
-import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.js";
+import {
+    type AbelianGroup,
+    AbelianGroupExceptZero,
+    abelSymbol,
+} from "./type-class/abelian-group.js";
+import { includeZeroSymbol } from "./type-class/group.js";
 import { fromPartialCmp } from "./type-class/partial-ord.js";
 import type { Ring } from "./type-class/ring.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
@@ -25,9 +30,10 @@ export const addAbelianGroup: AbelianGroup<number> = {
     invert: (g) => -g,
     [semiGroupSymbol]: true,
     [abelSymbol]: true,
+    [includeZeroSymbol]: true,
 };
 
-export const mulAbelianGroup: AbelianGroup<number> = {
+export const mulAbelianGroup: AbelianGroupExceptZero<number> = {
     combine: (l, r) => l * r,
     identity: 1,
     invert: (g) => 1 / g,
