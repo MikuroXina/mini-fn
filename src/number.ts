@@ -1,6 +1,8 @@
 import { Option, none, some } from "./option.js";
 import { Ordering, equal, greater, less } from "./ordering.js";
+import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.js";
 import { fromPartialCmp } from "./type-class/partial-ord.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
     if (Number.isNaN(lhs) || Number.isNaN(rhs)) {
@@ -15,3 +17,19 @@ export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
     return some(greater);
 };
 export const partialOrd = fromPartialCmp(() => partialCmp)();
+
+export const addAbelianGroup: AbelianGroup<number> = {
+    combine: (l, r) => l + r,
+    identity: 0,
+    invert: (g) => -g,
+    [semiGroupSymbol]: true,
+    [abelSymbol]: true,
+};
+
+export const mulAbelianGroup: AbelianGroup<number> = {
+    combine: (l, r) => l * r,
+    identity: 1,
+    invert: (g) => 1 / g,
+    [semiGroupSymbol]: true,
+    [abelSymbol]: true,
+};
