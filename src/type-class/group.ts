@@ -1,4 +1,4 @@
-import { type Option, map, some } from "../option.js";
+import { type Option, map, some, unwrap } from "../option.js";
 import type { Monoid } from "./monoid.js";
 import { semiGroupSymbol } from "./semi-group.js";
 
@@ -78,36 +78,8 @@ export const subtract =
 export const powi =
     <G>(group: Group<G>) =>
     (base: G) =>
-    (exp: number): G => {
-        if (!Number.isInteger(exp)) {
-            throw new Error("`exp` must be an integer");
-        }
-        const g = (x: G, n: number, c: G): G => {
-            if (n % 2 == 0) {
-                return g(group.combine(x, x), Math.floor(n / 2), c);
-            }
-            if (n == 1) {
-                return group.combine(x, c);
-            }
-            return g(group.combine(x, x), Math.floor(n / 2), group.combine(x, c));
-        };
-        const f = (x: G, n: number): G => {
-            if (n % 2 == 0) {
-                return f(group.combine(x, x), Math.floor(n / 2));
-            }
-            if (n == 1) {
-                return x;
-            }
-            return g(group.combine(x, x), Math.floor(n / 2), x);
-        };
-        if (exp == 0) {
-            return group.identity;
-        }
-        if (exp < 0) {
-            return group.invert(f(base, -exp));
-        }
-        return f(base, exp);
-    };
+    (exp: number): G =>
+        unwrap(powiEZ(toGroupExceptZero(group))(base)(exp));
 
 export const trivialGroup: Group<[]> = {
     combine: () => [],
