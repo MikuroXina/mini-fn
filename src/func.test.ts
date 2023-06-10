@@ -4,11 +4,17 @@ import {
     abelianGroup,
     abelianGroupExceptZero,
     absurd,
+    apply,
+    compose,
     constant,
+    flatMap,
     flip,
     group,
     groupExceptZero,
     id,
+    liftBinary,
+    map,
+    pipe,
     until,
 } from "./func.js";
 import { addAbelianGroup } from "./number.js";
@@ -31,6 +37,14 @@ test("absurd", () => {
     }).toThrowError("PANIC: absurd must not be called");
 });
 
+test("pipe", () => {
+    expect(pipe((x: number) => x + 1)((x) => x * 2)(3)).toBe(8);
+});
+
+test("compose", () => {
+    expect(compose((x: number) => x + 1)((x: number) => x * 2)(3)).toBe(7);
+});
+
 test("flip", () => {
     const fn = flip((a: string) => (b: string) => a + b);
     expect(fn("a")("b")).toEqual("ba");
@@ -45,6 +59,26 @@ test("until", () => {
     expect(padLeft("131")).toBe("0131");
     expect(padLeft("1316")).toBe("1316");
     expect(padLeft("1316534")).toBe("1316534");
+});
+
+test("map", () => {
+    const mapper = map<string>()((x: number) => x * 2);
+    expect(mapper(parseInt)("20")).toBe(40);
+});
+
+test("apply", () => {
+    const applier = apply<string>()((str) => (radix: number) => parseInt(str, radix));
+    expect(applier(parseInt)("11")).toBe(12);
+});
+
+test("liftBinary", () => {
+    const lifter = liftBinary<void>()((a: number) => (b: number) => a + b);
+    expect(lifter(() => 1)(() => 2)()).toBe(3);
+});
+
+test("flatMap", () => {
+    const mapper = flatMap<number>()((x: number) => (y: number) => x * y);
+    expect(mapper((x) => x + 1)(3)).toBe(12);
 });
 
 test("group", () => {
