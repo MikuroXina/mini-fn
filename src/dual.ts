@@ -2,6 +2,7 @@ import type { FnHkt } from "./func.js";
 import type { Get2, Hkt2 } from "./hkt.js";
 import type { GenericBifunctor } from "./type-class/bifunctor.js";
 import type { Category } from "./type-class/category.js";
+import type { Group } from "./type-class/group.js";
 import type { Monoid } from "./type-class/monoid.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 import type { Contravariant } from "./type-class/variance.js";
@@ -64,4 +65,15 @@ export const bifunctor = <T>(
         <A, B>(f: Dual<A, B>) =>
         <C, D>(g: Dual<C, D>): Dual<Get2<T, A, C>, Get2<T, B, D>> =>
             bf.genericBiMap(f)(g),
+});
+
+/**
+ * @param group - The instance of `Group` for `A`.
+ * @returns The instance of `Group` for `Dual<A, B>`.
+ */
+export const group = <A, B>(group: Group<A>): Group<Dual<A, B>> => ({
+    combine: (l, r) => (b) => group.combine(l(b), r(b)),
+    identity: () => group.identity,
+    invert: (g) => (b) => group.invert(g(b)),
+    [semiGroupSymbol]: true,
 });
