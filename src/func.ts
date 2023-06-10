@@ -2,8 +2,10 @@ import type { Apply2Only, Hkt2 } from "./hkt.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Arrow } from "./type-class/arrow.js";
 import type { Functor } from "./type-class/functor.js";
+import type { Group } from "./type-class/group.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Representable } from "./type-class/representable.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 /**
  * The identity function which returns the passed value as is.
@@ -197,3 +199,14 @@ export const fnArrow: Arrow<FnHkt> = {
         ([b1, b2]) =>
             [arrow1(b1), arrow2(b2)],
 };
+
+/**
+ * @param group - The instance of `Group` for `B`.
+ * @returns The instance of `Group` for `Fn<A, B>`.
+ */
+export const group = <A, B>(group: Group<B>): Group<Fn<A, B>> => ({
+    combine: (l, r) => (a) => group.combine(l(a), r(a)),
+    identity: () => group.identity,
+    invert: (g) => (a) => group.invert(g(a)),
+    [semiGroupSymbol]: true,
+});
