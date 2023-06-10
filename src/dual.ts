@@ -1,5 +1,6 @@
-import type { FnHkt } from "./func.js";
+import type { Fn, FnHkt } from "./func.js";
 import type { Get2, Hkt2 } from "./hkt.js";
+import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.js";
 import type { GenericBifunctor } from "./type-class/bifunctor.js";
 import type { Category } from "./type-class/category.js";
 import type { Group } from "./type-class/group.js";
@@ -76,4 +77,16 @@ export const group = <A, B>(group: Group<A>): Group<Dual<A, B>> => ({
     identity: () => group.identity,
     invert: (g) => (b) => group.invert(g(b)),
     [semiGroupSymbol]: true,
+});
+
+/**
+ * @param group - The instance of `AbelianGroup` for `A`.
+ * @returns The instance of `AbelianGroup` for `Dual<A, B>`.
+ */
+export const abelianGroup = <A, B>(group: AbelianGroup<B>): AbelianGroup<Fn<A, B>> => ({
+    combine: (l, r) => (a) => group.combine(l(a), r(a)),
+    identity: () => group.identity,
+    invert: (g) => (a) => group.invert(g(a)),
+    [semiGroupSymbol]: true,
+    [abelSymbol]: true,
 });

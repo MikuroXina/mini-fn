@@ -1,4 +1,5 @@
 import type { Apply2Only, Hkt2 } from "./hkt.js";
+import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Arrow } from "./type-class/arrow.js";
 import type { Functor } from "./type-class/functor.js";
@@ -209,4 +210,16 @@ export const group = <A, B>(group: Group<B>): Group<Fn<A, B>> => ({
     identity: () => group.identity,
     invert: (g) => (a) => group.invert(g(a)),
     [semiGroupSymbol]: true,
+});
+
+/**
+ * @param group - The instance of `AbelianGroup` for `B`.
+ * @returns The instance of `AbelianGroup` for `Fn<A, B>`.
+ */
+export const abelianGroup = <A, B>(group: AbelianGroup<B>): AbelianGroup<Fn<A, B>> => ({
+    combine: (l, r) => (a) => group.combine(l(a), r(a)),
+    identity: () => group.identity,
+    invert: (g) => (a) => group.invert(g(a)),
+    [semiGroupSymbol]: true,
+    [abelSymbol]: true,
 });
