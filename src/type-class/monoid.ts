@@ -1,10 +1,11 @@
 import * as List from "../list.js";
-import type { SemiGroup } from "./semi-group.js";
+import { type SemiGroup, semiGroupSymbol } from "./semi-group.js";
 
 /**
  * All instances of `Monoid` must satisfy following conditions:
- * - Associative: If `M` is a `Monoid`, for all `x`, `y` and `z`; `M.combine(M.combine(x, y), z)` equals to `M.combine(x, M.combine(y, z))`.
- * - Identity: If `M` is a `Monoid`, for all `x`; `M.combine(x, M.identity)` equals to `M.combine(M.identity, x)` and `x`.
+ *
+ * - Associative: for all `x`, `y` and `z`; `combine(combine(x, y), z)` equals to `combine(x, combine(y, z))`.
+ * - Identity: for all `x`; `combine(x, identity)` equals to `combine(identity, x)` and `x`.
  */
 export interface Monoid<T> extends SemiGroup<T> {
     readonly identity: T;
@@ -19,11 +20,18 @@ export const append =
 export const concat = <T>(monoid: Monoid<T>): ((list: List.List<T>) => T) =>
     List.foldL(append(monoid))(monoid.identity);
 
+export const trivialMonoid: Monoid<[]> = {
+    combine: () => [],
+    identity: [],
+    [semiGroupSymbol]: true,
+};
+
 export const minMonoid = (infinity: number): Monoid<number> => ({
     combine(l, r) {
         return Math.min(l, r);
     },
     identity: infinity,
+    [semiGroupSymbol]: true,
 });
 
 export const maxMonoid = (negativeInfinity: number): Monoid<number> => ({
@@ -31,4 +39,5 @@ export const maxMonoid = (negativeInfinity: number): Monoid<number> => ({
         return Math.max(l, r);
     },
     identity: negativeInfinity,
+    [semiGroupSymbol]: true,
 });

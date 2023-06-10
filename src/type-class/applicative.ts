@@ -3,6 +3,7 @@ import type { Get1 } from "../hkt.js";
 import { type Apply, makeSemiGroup } from "./apply.js";
 import type { Monoid } from "./monoid.js";
 import type { Pure } from "./pure.js";
+import { semiGroupSymbol } from "./semi-group.js";
 
 export interface Applicative<S> extends Apply<S>, Pure<S> {}
 
@@ -11,6 +12,7 @@ export const makeMonoid = <S>(app: Applicative<S>) => {
     return <T>(m: Monoid<T>): Monoid<Get1<S, T>> => ({
         combine: semi(m).combine,
         identity: app.pure(m.identity),
+        [semiGroupSymbol]: true,
     });
 };
 

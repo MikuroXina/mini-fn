@@ -1,9 +1,23 @@
 import type { Apply2Only, Hkt2 } from "./hkt.js";
+import {
+    type AbelianGroup,
+    type AbelianGroupExceptZero,
+    abelSymbol,
+} from "./type-class/abelian-group.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Arrow } from "./type-class/arrow.js";
 import type { Functor } from "./type-class/functor.js";
+import { type Group, type GroupExceptZero } from "./type-class/group.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Representable } from "./type-class/representable.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
+
+/**
+ * The type of function from `A` to `B`.
+ */
+export interface Fn<A, B> {
+    (a: A): B;
+}
 
 /**
  * The identity function which returns the passed value as is.
@@ -33,8 +47,8 @@ export const absurd = <T>(): T => {
  * @returns The composed function.
  */
 export const pipe =
-    <T, U>(firstDo: (t: T) => U) =>
-    <V>(secondDo: (u: U) => V) =>
+    <T, U>(firstDo: Fn<T, U>) =>
+    <V>(secondDo: Fn<U, V>) =>
     (t: T) =>
         secondDo(firstDo(t));
 
@@ -46,8 +60,8 @@ export const pipe =
  * @returns The composed function.
  */
 export const compose =
-    <U, V>(f: (u: U) => V) =>
-    <T>(g: (t: T) => U) =>
+    <U, V>(f: Fn<U, V>) =>
+    <T>(g: Fn<T, U>) =>
     (t: T) =>
         f(g(t));
 
@@ -58,9 +72,9 @@ export const compose =
  * @returns The function flipped the arguments.
  */
 export const flip =
-    <T, U, V>(f: (t: T) => (u: U) => V) =>
-    (u: U) =>
-    (t: T): V =>
+    <T, U, V>(f: Fn<T, Fn<U, V>>): Fn<U, Fn<T, V>> =>
+    (u) =>
+    (t) =>
         f(t)(u);
 
 /**
@@ -84,13 +98,6 @@ export const until =
     };
 
 /**
- * The type of function from `A` to `B`.
- */
-export interface Fn<A, B> {
-    (a: A): B;
-}
-
-/**
  * Maps the hom `X => A` with `f`.
  *
  * @param f - The function to map from `A`.
@@ -100,7 +107,7 @@ export interface Fn<A, B> {
 export const map =
     <X>() =>
     <A, B>(f: (a: A) => B) =>
-    (a: (x: X) => A): ((x: X) => B) =>
+    (a: Fn<X, A>): Fn<X, B> =>
         pipe(a)(f);
 
 /**
@@ -112,8 +119,8 @@ export const map =
  */
 export const apply =
     <X>() =>
-    <A, B>(f: (x: X) => (a: A) => B) =>
-    (g: (x: X) => A): ((x: X) => B) =>
+    <A, B>(f: Fn<X, (a: A) => B>) =>
+    (g: Fn<X, A>): Fn<X, B> =>
     (x) =>
         f(x)(g(x));
 
@@ -128,8 +135,8 @@ export const apply =
 export const liftBinary =
     <X>() =>
     <A, B, C>(q: (a: A) => (b: B) => C) =>
-    (f: (x: X) => A) =>
-    (g: (x: X) => B): ((x: X) => C) =>
+    (f: Fn<X, A>) =>
+    (g: Fn<X, B>): Fn<X, C> =>
     (x) =>
         q(f(x))(g(x));
 
@@ -142,8 +149,8 @@ export const liftBinary =
  */
 export const flatMap =
     <X>() =>
-    <A, B>(fn: (a: A) => (x: X) => B) =>
-    (a: (x: X) => A): ((x: X) => B) =>
+    <A, B>(fn: (a: A) => Fn<X, B>) =>
+    (a: Fn<X, A>): Fn<X, B> =>
     (x) =>
         fn(a(x))(x);
 
@@ -197,3 +204,26 @@ export const fnArrow: Arrow<FnHkt> = {
         ([b1, b2]) =>
             [arrow1(b1), arrow2(b2)],
 };
+
+/**
+ * @param group - The instance of `Group` for `B`.
+ * @returns The instance of `Group` for `Fn<A, B>`.
+ */
+export const group = <A, B>(group: Group<B>): Group<Fn<A, B>> => ({
+    combine: (l, r) => (a) => group.combine(l(a), r(a)),
+    identity: () => group.identity,
+    invert: (g) => (a) => group.invert(g(a)),
+    [semiGroupSymbol]: true,
+});
+
+/**
+ * @param group - The instance of `AbelianGroup` for `B`.
+ * @returns The instance of `AbelianGroup` for `Fn<A, B>`.
+ */
+export const abelianGroup = <A, B>(group: AbelianGroup<B>): AbelianGroup<Fn<A, B>> => ({
+    combine: (l, r) => (a) => group.combine(l(a), r(a)),
+    identity: () => group.identity,
+    invert: (g) => (a) => group.invert(g(a)),
+    [semiGroupSymbol]: true,
+    [abelSymbol]: true,
+});

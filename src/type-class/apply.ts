@@ -1,7 +1,7 @@
 import { pipe } from "../func.js";
 import type { Get1 } from "../hkt.js";
 import type { Functor } from "./functor.js";
-import type { SemiGroup } from "./semi-group.js";
+import { type SemiGroup, semiGroupSymbol } from "./semi-group.js";
 
 export interface Apply<S> extends Functor<S> {
     readonly apply: <T, U>(fn: Get1<S, (t: T) => U>) => (t: Get1<S, T>) => Get1<S, U>;
@@ -55,4 +55,5 @@ export const makeSemiGroup =
     <T>(semi: SemiGroup<T>): SemiGroup<Get1<S, T>> => ({
         combine: (l, r) =>
             apply.apply(apply.map((left: T) => (right: T) => semi.combine(left, right))(l))(r),
+        [semiGroupSymbol]: true,
     });
