@@ -16,7 +16,7 @@ export * as Foldable from "./type-class/foldable.js";
 export * as Functor from "./type-class/functor.js";
 export * as Group from "./type-class/group.js";
 export * as HasInf from "./type-class/has-inf.js";
-export * as HasNegIng from "./type-class/has-neg-inf.js";
+export * as HasNegInf from "./type-class/has-neg-inf.js";
 export * as Iso from "./type-class/iso.js";
 export * as Magma from "./type-class/magma.js";
 export * as Monad from "./type-class/monad.js";
