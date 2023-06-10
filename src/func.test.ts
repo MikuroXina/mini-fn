@@ -1,6 +1,17 @@
 import { expect, test } from "vitest";
 
-import { absurd, constant, flip, id, until } from "./func.js";
+import {
+    abelianGroup,
+    abelianGroupExceptZero,
+    absurd,
+    constant,
+    flip,
+    group,
+    groupExceptZero,
+    id,
+    until,
+} from "./func.js";
+import { addAbelianGroup } from "./number.js";
 
 test("id", () => {
     expect(id(2)).toBe(2);
@@ -34,4 +45,18 @@ test("until", () => {
     expect(padLeft("131")).toBe("0131");
     expect(padLeft("1316")).toBe("1316");
     expect(padLeft("1316534")).toBe("1316534");
+});
+
+test("group", () => {
+    for (const make of [groupExceptZero, group, abelianGroupExceptZero, abelianGroup]) {
+        const groupForFn = make<void, number>(addAbelianGroup);
+        expect(groupForFn.identity()).toBe(0);
+        expect(
+            groupForFn.combine(
+                () => 1,
+                () => 2,
+            )(),
+        ).toBe(3);
+        expect(groupForFn.invert(() => 1)()).toBe(-1);
+    }
 });
