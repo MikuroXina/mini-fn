@@ -2,7 +2,6 @@ import { expect, test } from "vitest";
 
 import {
     abelianGroup,
-    abelianGroupExceptZero,
     absurd,
     apply,
     compose,
@@ -10,7 +9,6 @@ import {
     flatMap,
     flip,
     group,
-    groupExceptZero,
     id,
     liftBinary,
     map,
@@ -82,7 +80,7 @@ test("flatMap", () => {
 });
 
 test("group", () => {
-    for (const make of [groupExceptZero, group, abelianGroupExceptZero, abelianGroup]) {
+    for (const make of [group, abelianGroup]) {
         const groupForFn = make<void, number>(addAbelianGroup);
         expect(groupForFn.identity()).toBe(0);
         expect(
