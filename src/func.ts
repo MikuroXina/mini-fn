@@ -13,6 +13,13 @@ import type { Representable } from "./type-class/representable.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 /**
+ * The type of function from `A` to `B`.
+ */
+export interface Fn<A, B> {
+    (a: A): B;
+}
+
+/**
  * The identity function which returns the passed value as is.
  */
 export const id = <T>(x: T) => x;
@@ -40,8 +47,8 @@ export const absurd = <T>(): T => {
  * @returns The composed function.
  */
 export const pipe =
-    <T, U>(firstDo: (t: T) => U) =>
-    <V>(secondDo: (u: U) => V) =>
+    <T, U>(firstDo: Fn<T, U>) =>
+    <V>(secondDo: Fn<U, V>) =>
     (t: T) =>
         secondDo(firstDo(t));
 
@@ -53,8 +60,8 @@ export const pipe =
  * @returns The composed function.
  */
 export const compose =
-    <U, V>(f: (u: U) => V) =>
-    <T>(g: (t: T) => U) =>
+    <U, V>(f: Fn<U, V>) =>
+    <T>(g: Fn<T, U>) =>
     (t: T) =>
         f(g(t));
 
@@ -65,9 +72,9 @@ export const compose =
  * @returns The function flipped the arguments.
  */
 export const flip =
-    <T, U, V>(f: (t: T) => (u: U) => V) =>
-    (u: U) =>
-    (t: T): V =>
+    <T, U, V>(f: Fn<T, Fn<U, V>>): Fn<U, Fn<T, V>> =>
+    (u) =>
+    (t) =>
         f(t)(u);
 
 /**
@@ -91,13 +98,6 @@ export const until =
     };
 
 /**
- * The type of function from `A` to `B`.
- */
-export interface Fn<A, B> {
-    (a: A): B;
-}
-
-/**
  * Maps the hom `X => A` with `f`.
  *
  * @param f - The function to map from `A`.
@@ -107,7 +107,7 @@ export interface Fn<A, B> {
 export const map =
     <X>() =>
     <A, B>(f: (a: A) => B) =>
-    (a: (x: X) => A): ((x: X) => B) =>
+    (a: Fn<X, A>): Fn<X, B> =>
         pipe(a)(f);
 
 /**
@@ -119,8 +119,8 @@ export const map =
  */
 export const apply =
     <X>() =>
-    <A, B>(f: (x: X) => (a: A) => B) =>
-    (g: (x: X) => A): ((x: X) => B) =>
+    <A, B>(f: Fn<X, (a: A) => B>) =>
+    (g: Fn<X, A>): Fn<X, B> =>
     (x) =>
         f(x)(g(x));
 
@@ -135,8 +135,8 @@ export const apply =
 export const liftBinary =
     <X>() =>
     <A, B, C>(q: (a: A) => (b: B) => C) =>
-    (f: (x: X) => A) =>
-    (g: (x: X) => B): ((x: X) => C) =>
+    (f: Fn<X, A>) =>
+    (g: Fn<X, B>): Fn<X, C> =>
     (x) =>
         q(f(x))(g(x));
 
@@ -149,8 +149,8 @@ export const liftBinary =
  */
 export const flatMap =
     <X>() =>
-    <A, B>(fn: (a: A) => (x: X) => B) =>
-    (a: (x: X) => A): ((x: X) => B) =>
+    <A, B>(fn: (a: A) => Fn<X, B>) =>
+    (a: Fn<X, A>): Fn<X, B> =>
     (x) =>
         fn(a(x))(x);
 
