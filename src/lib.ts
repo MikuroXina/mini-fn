@@ -24,6 +24,7 @@ export * as Predicate from "./predicate.js";
 export * as Promise from "./promise.js";
 export * as MonadPromise from "./promise/monad.js";
 export * as Reader from "./reader.js";
+export * as Reverse from "./reverse.js";
 export * as MonadReader from "./reader/monad.js";
 export * as Result from "./result.js";
 export * as Seq from "./seq.js";
