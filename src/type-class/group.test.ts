@@ -39,4 +39,7 @@ test("powi", () => {
     expect(powiEZ(matrixGroup)([1, 2, 3, 4])(-9)).toEqual(
         some([-1418567 / 256, 648891 / 256, 1946673 / 512, -890461 / 512]),
     );
+    expect(() => {
+        powiEZ(matrixGroup)([1, 2, 3, 4])(0.5);
+    }).toThrowError("`exp` must be an integer");
 });
