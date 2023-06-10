@@ -1,6 +1,6 @@
 import type { Get2 } from "../hkt.js";
 import type { Tuple } from "../tuple.js";
-import { Category, pipe } from "./category.js";
+import { type Category, pipe } from "./category.js";
 
 export interface Arrow<A> extends Category<A> {
     readonly arr: <B, C>(fn: (b: B) => C) => Get2<A, B, C>;

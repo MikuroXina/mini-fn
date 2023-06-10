@@ -1,6 +1,6 @@
 import type { Apply3Only, Get1, Hkt3 } from "./hkt.js";
 import type { Functor } from "./type-class/functor.js";
-import { Profunctor, rightMap } from "./type-class/profunctor.js";
+import { type Profunctor, rightMap } from "./type-class/profunctor.js";
 
 export interface Star<F, D, C> {
     (d: D): Get1<F, C>;

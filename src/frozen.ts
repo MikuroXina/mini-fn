@@ -1,12 +1,12 @@
 import { id } from "./func.js";
 import type { Hkt1 } from "./hkt.js";
-import { Option, andThen, none, some } from "./option.js";
-import { Ordering, isEq, and as then } from "./ordering.js";
-import { Eq, fromEquality } from "./type-class/eq.js";
+import { type Option, andThen, none, some } from "./option.js";
+import { type Ordering, isEq, and as then } from "./ordering.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Monad } from "./type-class/monad.js";
-import { Ord, fromCmp } from "./type-class/ord.js";
-import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
-import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
+import { type Ord, fromCmp } from "./type-class/ord.js";
+import { type PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { type PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
 /**
  * The frozen type makes `T` type `readonly` recursively.

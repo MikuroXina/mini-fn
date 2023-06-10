@@ -1,6 +1,6 @@
 import { pipe } from "../func.js";
 import type { Get1 } from "../hkt.js";
-import { Apply, makeSemiGroup } from "./apply.js";
+import { type Apply, makeSemiGroup } from "./apply.js";
 import type { Monoid } from "./monoid.js";
 import type { Pure } from "./pure.js";
 

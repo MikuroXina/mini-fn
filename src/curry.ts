@@ -1,6 +1,6 @@
-import { FnHkt, representable as representableFn } from "./func.js";
+import { type FnHkt, representable as representableFn } from "./func.js";
 import type { Apply2Only } from "./hkt.js";
-import { TupleHkt, functor as functorTuple } from "./tuple.js";
+import { type TupleHkt, functor as functorTuple } from "./tuple.js";
 import type { Adjunction } from "./type-class/adjunction.js";
 
 type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2

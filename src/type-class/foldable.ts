@@ -1,9 +1,9 @@
 import { andMonoid, orMonoid } from "../bool.js";
 import { compose, id } from "../func.js";
 import type { Get1 } from "../hkt.js";
-import { List, build } from "../list.js";
-import { Option, isNone, none, some, unwrapOrElse } from "../option.js";
-import { Monoid, append } from "./monoid.js";
+import { type List, build } from "../list.js";
+import { type Option, isNone, none, some, unwrapOrElse } from "../option.js";
+import { type Monoid, append } from "./monoid.js";
 import type { PartialEq } from "./partial-eq.js";
 
 /**

@@ -1,4 +1,4 @@
-import { FnHkt, id } from "../func.js";
+import { type FnHkt, id } from "../func.js";
 import type { Get2 } from "../hkt.js";
 
 export interface Profunctor<S> {

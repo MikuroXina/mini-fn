@@ -1,8 +1,8 @@
-import { Option, isNone, map as mapOption, none, some } from "./option.js";
+import { type Option, isNone, map as mapOption, none, some } from "./option.js";
 import {
-    Digit,
-    FingerTree,
-    Node,
+    type Digit,
+    type FingerTree,
+    type Node,
     deep,
     empty,
     fromReduce,
