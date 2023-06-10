@@ -11,6 +11,7 @@ export * as Comonad from "./type-class/comonad.js";
 export * as Distributive from "./type-class/distributive.js";
 export * as Endo from "./type-class/endo.js";
 export * as Eq from "./type-class/eq.js";
+export * as Field from "./type-class/field.js";
 export * as FlatMap from "./type-class/flat-map.js";
 export * as Foldable from "./type-class/foldable.js";
 export * as Functor from "./type-class/functor.js";
