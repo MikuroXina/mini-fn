@@ -1,4 +1,4 @@
-export * as Abel from "./type-class/abel.js";
+export * as AbelianGroup from "./type-class/abelian-group.js";
 export * as Adjunction from "./type-class/adjunction.js";
 export * as Applicative from "./type-class/applicative.js";
 export * as Apply from "./type-class/apply.js";
