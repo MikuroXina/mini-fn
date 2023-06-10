@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.0](https://github.com/MikuroXina/mini-fn/compare/v3.0.1...v3.1.0) (2023-06-10)
+
+
+### Features
+
+* Add Group and something ([#63](https://github.com/MikuroXina/mini-fn/issues/63)) ([6ca2b70](https://github.com/MikuroXina/mini-fn/commit/6ca2b70ba8114460ce5857cee9363c0f453f0ef2))
+* Add Reverse ([#66](https://github.com/MikuroXina/mini-fn/issues/66)) ([74b68b9](https://github.com/MikuroXina/mini-fn/commit/74b68b92f04504efa9509a12e00896dbfd85a8bf))
+
 ## [3.0.1](https://github.com/MikuroXina/mini-fn/compare/v3.0.0...v3.0.1) (2023-03-08)
 
 
