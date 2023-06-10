@@ -5,8 +5,8 @@ import type { Apply } from "./type-class/apply.js";
 import type { Bifunctor } from "./type-class/bifunctor.js";
 import type { Choice } from "./type-class/choice.js";
 import type { Functor } from "./type-class/functor.js";
-import { Profunctor, fnPro, leftMap } from "./type-class/profunctor.js";
-import { Settable, taintedDot, untaintedDot } from "./type-class/settable.js";
+import { type Profunctor, fnPro, leftMap } from "./type-class/profunctor.js";
+import { type Settable, taintedDot, untaintedDot } from "./type-class/settable.js";
 import type { Contravariant } from "./type-class/variance.js";
 
 export type LensLike<F, S, T, A, B> = (outer: (a: A) => Get1<F, B>) => (s: S) => Get1<F, T>;

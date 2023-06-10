@@ -1,6 +1,6 @@
 import type { Hkt1 } from "./hkt.js";
 import {
-    List,
+    type List,
     appendToHead,
     drop,
     empty,
@@ -14,14 +14,14 @@ import {
     reverse,
     unCons,
 } from "./list.js";
-import { Option, andThen, isNone, map as optionMap, unwrap } from "./option.js";
-import { Ordering, andThen as thenWith } from "./ordering.js";
+import { type Option, andThen, isNone, map as optionMap, unwrap } from "./option.js";
+import { type Ordering, andThen as thenWith } from "./ordering.js";
 import type { Comonad } from "./type-class/comonad.js";
-import { Eq, fromEquality } from "./type-class/eq.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
-import { Ord, fromCmp } from "./type-class/ord.js";
-import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
-import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
+import { type Ord, fromCmp } from "./type-class/ord.js";
+import { type PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
+import { type PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
 
 /**
  * The zipper represents the cursor of non-empty list.

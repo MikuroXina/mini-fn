@@ -1,5 +1,5 @@
 import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
-import { IdentityHkt, id, monad as identityMonad } from "./identity.js";
+import { type IdentityHkt, id, monad as identityMonad } from "./identity.js";
 import type { Tuple } from "./tuple.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
