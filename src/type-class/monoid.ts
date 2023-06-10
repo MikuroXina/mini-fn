@@ -20,6 +20,12 @@ export const append =
 export const concat = <T>(monoid: Monoid<T>): ((list: List.List<T>) => T) =>
     List.foldL(append(monoid))(monoid.identity);
 
+export const trivialMonoid: Monoid<[]> = {
+    combine: () => [],
+    identity: [],
+    [semiGroupSymbol]: true,
+};
+
 export const minMonoid = (infinity: number): Monoid<number> => ({
     combine(l, r) {
         return Math.min(l, r);
