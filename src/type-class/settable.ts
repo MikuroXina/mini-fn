@@ -1,7 +1,7 @@
 import type { Get1, Get2 } from "../hkt.js";
 import type { Applicative } from "./applicative.js";
 import type { Distributive } from "./distributive.js";
-import { Profunctor, rightMap } from "./profunctor.js";
+import { type Profunctor, rightMap } from "./profunctor.js";
 import type { Traversable } from "./traversable.js";
 
 export interface Settable<F> extends Applicative<F>, Distributive<F>, Traversable<F> {

@@ -1,10 +1,10 @@
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import { id } from "./identity.js";
-import { List, appendToHead, either, empty } from "./list.js";
-import { Tuple, make as makeTuple } from "./tuple.js";
+import { type List, appendToHead, either, empty } from "./list.js";
+import { type Tuple, make as makeTuple } from "./tuple.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Bifunctor } from "./type-class/bifunctor.js";
-import { Eq, eqSymbol } from "./type-class/eq.js";
+import { type Eq, eqSymbol } from "./type-class/eq.js";
 import type { Foldable } from "./type-class/foldable.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";

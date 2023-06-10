@@ -1,6 +1,6 @@
 import { constant } from "../func.js";
 import type { Get1 } from "../hkt.js";
-import { Functor, replace as replaceFunctor } from "./functor.js";
+import { type Functor, replace as replaceFunctor } from "./functor.js";
 
 export interface Invariant<S> {
     readonly inMap: <T1, U1>(

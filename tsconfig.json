@@ -14,7 +14,7 @@
         "noImplicitReturns": true,
         "declaration": true,
         "emitDeclarationOnly": true,
-        "importsNotUsedAsValues": "error",
+        "verbatimModuleSyntax": true,
         "outDir": "./dist",
         "declarationDir": "./dist",
         "baseUrl": "."

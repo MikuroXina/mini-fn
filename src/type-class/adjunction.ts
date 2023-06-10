@@ -1,8 +1,8 @@
 import { absurd, compose, constant, flip, fnArrow } from "../func.js";
 import type { Get1, Get2 } from "../hkt.js";
-import { Tuple, first, second } from "../tuple.js";
+import { type Tuple, first, second } from "../tuple.js";
 import { fanOut } from "./arrow.js";
-import { Functor, replace } from "./functor.js";
+import { type Functor, replace } from "./functor.js";
 import type { Profunctor } from "./profunctor.js";
 import type { Representable } from "./representable.js";
 

@@ -4,7 +4,7 @@ import type { IdentityHkt } from "./identity.js";
 import type { ComonadStore } from "./store/comonad.js";
 import type { Tuple } from "./tuple.js";
 import type { Apply } from "./type-class/apply.js";
-import { Comonad, extend as extendComonad } from "./type-class/comonad.js";
+import { type Comonad, extend as extendComonad } from "./type-class/comonad.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { Pure } from "./type-class/pure.js";

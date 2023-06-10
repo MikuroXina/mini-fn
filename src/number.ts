@@ -1,8 +1,8 @@
-import { Option, none, some } from "./option.js";
-import { Ordering, equal, greater, less } from "./ordering.js";
+import { type Option, none, some } from "./option.js";
+import { type Ordering, equal, greater, less } from "./ordering.js";
 import {
     type AbelianGroup,
-    AbelianGroupExceptZero,
+    type AbelianGroupExceptZero,
     abelSymbol,
 } from "./type-class/abelian-group.js";
 import type { Field } from "./type-class/field.js";
