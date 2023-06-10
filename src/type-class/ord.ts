@@ -1,6 +1,6 @@
 import type { Get1, Hkt1 } from "../hkt.js";
 import { some } from "../option.js";
-import { Ordering, isEq } from "../ordering.js";
+import { Ordering, isEq, isLe } from "../ordering.js";
 import { Eq, eqSymbol } from "./eq.js";
 import type { PartialOrd } from "./partial-ord.js";
 import type { Contravariant } from "./variance.js";
@@ -53,3 +53,23 @@ export const contra: Contravariant<OrdHkt> = {
         [eqSymbol]: true,
     }),
 };
+
+export const max =
+    <A>(order: Ord<A>) =>
+    (l: A) =>
+    (r: A): A => {
+        if (isLe(order.cmp(l, r))) {
+            return r;
+        }
+        return l;
+    };
+
+export const min =
+    <A>(order: Ord<A>) =>
+    (l: A) =>
+    (r: A): A => {
+        if (isLe(order.cmp(l, r))) {
+            return l;
+        }
+        return r;
+    };
