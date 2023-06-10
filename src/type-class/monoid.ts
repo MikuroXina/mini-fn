@@ -3,8 +3,9 @@ import { type SemiGroup, semiGroupSymbol } from "./semi-group.js";
 
 /**
  * All instances of `Monoid` must satisfy following conditions:
- * - Associative: If `M` is a `Monoid`, for all `x`, `y` and `z`; `M.combine(M.combine(x, y), z)` equals to `M.combine(x, M.combine(y, z))`.
- * - Identity: If `M` is a `Monoid`, for all `x`; `M.combine(x, M.identity)` equals to `M.combine(M.identity, x)` and `x`.
+ *
+ * - Associative: for all `x`, `y` and `z`; `combine(combine(x, y), z)` equals to `combine(x, combine(y, z))`.
+ * - Identity: for all `x`; `combine(x, identity)` equals to `combine(identity, x)` and `x`.
  */
 export interface Monoid<T> extends SemiGroup<T> {
     readonly identity: T;
