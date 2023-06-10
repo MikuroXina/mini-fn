@@ -30,6 +30,7 @@ export * as Profunctor from "./type-class/profunctor.js";
 export * as Pure from "./type-class/pure.js";
 export * as Reduce from "./type-class/reduce.js";
 export * as Representable from "./type-class/representable.js";
+export * as Ring from "./type-class/ring.js";
 export * as SemiGroup from "./type-class/semi-group.js";
 export * as SemiGroupoid from "./type-class/semi-groupoid.js";
 export * as SemiGroupal from "./type-class/semi-groupal.js";
