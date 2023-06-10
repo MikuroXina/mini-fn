@@ -38,23 +38,23 @@ export const powi =
         if (!Number.isInteger(exp)) {
             throw new Error("`exp` must be an integer");
         }
-        const f = (base: G, exp: number): G => {
-            if (exp % 2 == 0) {
-                return f(group.combine(base, base), Math.floor(exp / 2));
+        const g = (x: G, n: number, c: G): G => {
+            if (n % 2 == 0) {
+                return g(group.combine(x, x), Math.floor(n / 2), c);
             }
-            if (exp == 1) {
-                return base;
+            if (n == 1) {
+                return group.combine(x, c);
             }
-            return g(group.combine(base, base), Math.floor(exp / 2), base);
+            return g(group.combine(x, x), Math.floor(n / 2), group.combine(x, c));
         };
-        const g = (base: G, exp: number, c: G): G => {
-            if (exp % 2 == 0) {
-                return g(group.combine(base, base), Math.floor(exp / 2), c);
+        const f = (x: G, n: number): G => {
+            if (n % 2 == 0) {
+                return f(group.combine(x, x), Math.floor(n / 2));
             }
-            if (exp == 1) {
-                return group.combine(base, c);
+            if (n == 1) {
+                return x;
             }
-            return g(group.combine(base, base), Math.floor(exp / 2), group.combine(base, c));
+            return g(group.combine(x, x), Math.floor(n / 2), x);
         };
         if (exp == 0) {
             return group.identity;
