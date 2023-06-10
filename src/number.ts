@@ -5,6 +5,7 @@ import {
     AbelianGroupExceptZero,
     abelSymbol,
 } from "./type-class/abelian-group.js";
+import type { Field } from "./type-class/field.js";
 import { includeZeroSymbol } from "./type-class/group.js";
 import { fromPartialCmp } from "./type-class/partial-ord.js";
 import type { Ring } from "./type-class/ring.js";
@@ -42,6 +43,11 @@ export const mulAbelianGroup: AbelianGroupExceptZero<number> = {
 };
 
 export const ring: Ring<number> = {
+    additive: addAbelianGroup,
+    multiplication: mulAbelianGroup,
+};
+
+export const field: Field<number> = {
     additive: addAbelianGroup,
     multiplication: mulAbelianGroup,
 };
