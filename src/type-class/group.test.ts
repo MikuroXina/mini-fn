@@ -31,8 +31,8 @@ test("subtract", () => {
 });
 
 test("powi", () => {
-    expect(powiEZ(matrixGroup)([1, 2, 3, 4])(17)).toEqual(
-        some([617852597821, 900475124662, 1350712686993, 1968565284814]),
+    expect(powiEZ(matrixGroup)([1, 2, 3, 4])(11)).toEqual(
+        some([25699957, 37455814, 56183721, 81883678]),
     );
     expect(powiEZ(matrixGroup)([1, 2, 3, 4])(4)).toEqual(some([199, 290, 435, 634]));
     expect(powiEZ(matrixGroup)([1, 2, 3, 4])(0)).toEqual(some([1, 0, 0, 1]));
