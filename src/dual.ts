@@ -3,7 +3,7 @@ import type { Get2, Hkt2 } from "./hkt.js";
 import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.js";
 import type { GenericBifunctor } from "./type-class/bifunctor.js";
 import type { Category } from "./type-class/category.js";
-import { type Group, includeZeroSymbol } from "./type-class/group.js";
+import type { Group } from "./type-class/group.js";
 import type { Monoid } from "./type-class/monoid.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 import type { Contravariant } from "./type-class/variance.js";
@@ -77,7 +77,6 @@ export const group = <A, B>(group: Group<A>): Group<Dual<A, B>> => ({
     identity: () => group.identity,
     invert: (g) => (b) => group.invert(g(b)),
     [semiGroupSymbol]: true,
-    [includeZeroSymbol]: true,
 });
 
 /**
@@ -90,5 +89,4 @@ export const abelianGroup = <A, B>(group: AbelianGroup<B>): AbelianGroup<Fn<A, B
     invert: (g) => (a) => group.invert(g(a)),
     [semiGroupSymbol]: true,
     [abelSymbol]: true,
-    [includeZeroSymbol]: true,
 });

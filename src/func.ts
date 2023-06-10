@@ -1,13 +1,13 @@
 import type { Apply2Only, Hkt2 } from "./hkt.js";
 import {
     type AbelianGroup,
-    AbelianGroupExceptZero,
+    type AbelianGroupExceptZero,
     abelSymbol,
 } from "./type-class/abelian-group.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Arrow } from "./type-class/arrow.js";
 import type { Functor } from "./type-class/functor.js";
-import { type Group, type GroupExceptZero, includeZeroSymbol } from "./type-class/group.js";
+import { type Group, type GroupExceptZero } from "./type-class/group.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Representable } from "./type-class/representable.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
@@ -206,17 +206,6 @@ export const fnArrow: Arrow<FnHkt> = {
 };
 
 /**
- * @param group - The instance of `GroupExceptZero` for `B`.
- * @returns The instance of `GroupExceptZero` for `Fn<A, B>`.
- */
-export const groupExceptZero = <A, B>(group: GroupExceptZero<B>): GroupExceptZero<Fn<A, B>> => ({
-    combine: (l, r) => (a) => group.combine(l(a), r(a)),
-    identity: () => group.identity,
-    invert: (g) => (a) => group.invert(g(a)),
-    [semiGroupSymbol]: true,
-});
-
-/**
  * @param group - The instance of `Group` for `B`.
  * @returns The instance of `Group` for `Fn<A, B>`.
  */
@@ -225,21 +214,6 @@ export const group = <A, B>(group: Group<B>): Group<Fn<A, B>> => ({
     identity: () => group.identity,
     invert: (g) => (a) => group.invert(g(a)),
     [semiGroupSymbol]: true,
-    [includeZeroSymbol]: true,
-});
-
-/**
- * @param group - The instance of `AbelianGroupExceptZero` for `B`.
- * @returns The instance of `AbelianGroupExceptZero` for `Fn<A, B>`.
- */
-export const abelianGroupExceptZero = <A, B>(
-    group: AbelianGroupExceptZero<B>,
-): AbelianGroupExceptZero<Fn<A, B>> => ({
-    combine: (l, r) => (a) => group.combine(l(a), r(a)),
-    identity: () => group.identity,
-    invert: (g) => (a) => group.invert(g(a)),
-    [semiGroupSymbol]: true,
-    [abelSymbol]: true,
 });
 
 /**
@@ -252,5 +226,4 @@ export const abelianGroup = <A, B>(group: AbelianGroup<B>): AbelianGroup<Fn<A, B
     invert: (g) => (a) => group.invert(g(a)),
     [semiGroupSymbol]: true,
     [abelSymbol]: true,
-    [includeZeroSymbol]: true,
 });
