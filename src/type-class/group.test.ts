@@ -2,6 +2,7 @@ import { expect, test } from "vitest";
 
 import { none, some } from "../option.js";
 import { type GroupExceptZero, powiEZ, subtractEZ } from "./group.js";
+import { semiGroupSymbol } from "./semi-group.js";
 
 type Matrix = [a: number, b: number, c: number, d: number];
 
@@ -22,6 +23,7 @@ const matrixGroup: GroupExceptZero<Matrix> = {
         }
         return some([m22 / det, -m12 / det, -m21 / det, m11 / det]);
     },
+    [semiGroupSymbol]: true,
 };
 
 test("subtract", () => {
@@ -29,5 +31,7 @@ test("subtract", () => {
 });
 
 test("powi", () => {
-    expect(powiEZ(matrixGroup)([1, 2, 3, 4])(3)).toEqual(some([37, 54, 81, 118]));
+    expect(powiEZ(matrixGroup)([1, 2, 3, 4])(17)).toEqual(
+        some([617852597821, 900475124662, 1350712686993, 1968565284814]),
+    );
 });
