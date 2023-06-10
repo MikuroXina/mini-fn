@@ -1,4 +1,5 @@
 import type { Monoid } from "./type-class/monoid.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 /**
  * Means that the left term is less than the right term.
@@ -69,4 +70,5 @@ export const andThen = (secondFn: () => Ordering) => (first: Ordering) =>
 export const monoid: Monoid<Ordering> = {
     combine: (l, r) => and(r)(l),
     identity: equal,
+    [semiGroupSymbol]: true,
 };

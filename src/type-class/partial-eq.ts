@@ -1,5 +1,6 @@
 import type { Get1, Hkt1 } from "../hkt.js";
 import type { Monoid } from "./monoid.js";
+import { semiGroupSymbol } from "./semi-group.js";
 import type { Contravariant } from "./variance.js";
 
 /**
@@ -41,4 +42,5 @@ export const identity = fromPartialEquality(() => () => true)();
 export const monoid = <Lhs, Rhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
     combine: (x, y) => ({ eq: (l, r) => x.eq(l, r) && y.eq(l, r) }),
     identity,
+    [semiGroupSymbol]: true,
 });

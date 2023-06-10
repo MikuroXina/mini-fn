@@ -9,7 +9,7 @@ import type { Foldable } from "./type-class/foldable.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
 import type { PartialEq } from "./type-class/partial-eq.js";
-import type { SemiGroup } from "./type-class/semi-group.js";
+import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.js";
 
 const thisSymbol = Symbol("TheseThis");
 /**
@@ -452,6 +452,7 @@ export const semiGroup = <A, B>(
     semiB: SemiGroup<B>,
 ): SemiGroup<These<A, B>> => ({
     combine: combine(semiA, semiB),
+    [semiGroupSymbol]: true,
 });
 
 /**

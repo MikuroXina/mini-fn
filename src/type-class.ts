@@ -1,3 +1,4 @@
+export * as Abel from "./type-class/abel.js";
 export * as Adjunction from "./type-class/adjunction.js";
 export * as Applicative from "./type-class/applicative.js";
 export * as Apply from "./type-class/apply.js";
@@ -13,7 +14,11 @@ export * as Eq from "./type-class/eq.js";
 export * as FlatMap from "./type-class/flat-map.js";
 export * as Foldable from "./type-class/foldable.js";
 export * as Functor from "./type-class/functor.js";
+export * as Group from "./type-class/group.js";
+export * as HasInf from "./type-class/has-inf.js";
+export * as HasNegIng from "./type-class/has-neg-inf.js";
 export * as Iso from "./type-class/iso.js";
+export * as Magma from "./type-class/magma.js";
 export * as Monad from "./type-class/monad.js";
 export * as Monoid from "./type-class/monoid.js";
 export * as Monoidal from "./type-class/monoidal.js";

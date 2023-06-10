@@ -4,6 +4,7 @@ import type { Hkt1 } from "./hkt.js";
 import type { MonadPromise } from "./promise/monad.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 /**
  * Wraps the value into `Promise`. This is the alias of `Promise.resolve`.
@@ -85,6 +86,7 @@ export interface PromiseHkt extends Hkt1 {
 export const monoid = <T>(identity: T): Monoid<Promise<T>> => ({
     combine: (l, r) => l.then(() => r),
     identity: Promise.resolve(identity),
+    [semiGroupSymbol]: true,
 });
 
 /**

@@ -2,7 +2,7 @@ import { id } from "../func.js";
 import type { Get1, Hkt2 } from "../hkt.js";
 import type { Category } from "./category.js";
 import type { Monoid } from "./monoid.js";
-import type { SemiGroup } from "./semi-group.js";
+import { type SemiGroup, semiGroupSymbol } from "./semi-group.js";
 
 export type NaturalTransformation<F, G> = <T>(f: Get1<F, T>) => Get1<G, T>;
 
@@ -25,6 +25,7 @@ export const semiGroup = <F>(): SemiGroup<Nt<F, F>> => ({
     combine: ({ nt: ntA }, { nt: ntB }) => ({
         nt: (f) => ntB(ntA(f)),
     }),
+    [semiGroupSymbol]: true,
 });
 
 export const monoid = <F>(): Monoid<Nt<F, F>> => ({
@@ -32,6 +33,7 @@ export const monoid = <F>(): Monoid<Nt<F, F>> => ({
         nt: (f) => ntB(ntA(f)),
     }),
     identity: { nt: id },
+    [semiGroupSymbol]: true,
 });
 
 export interface Transformation<F, G, T> {

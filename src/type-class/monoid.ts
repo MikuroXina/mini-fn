@@ -1,5 +1,5 @@
 import * as List from "../list.js";
-import type { SemiGroup } from "./semi-group.js";
+import { type SemiGroup, semiGroupSymbol } from "./semi-group.js";
 
 /**
  * All instances of `Monoid` must satisfy following conditions:
@@ -24,6 +24,7 @@ export const minMonoid = (infinity: number): Monoid<number> => ({
         return Math.min(l, r);
     },
     identity: infinity,
+    [semiGroupSymbol]: true,
 });
 
 export const maxMonoid = (negativeInfinity: number): Monoid<number> => ({
@@ -31,4 +32,5 @@ export const maxMonoid = (negativeInfinity: number): Monoid<number> => ({
         return Math.max(l, r);
     },
     identity: negativeInfinity,
+    [semiGroupSymbol]: true,
 });

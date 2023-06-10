@@ -3,6 +3,7 @@ import { Option, flatMap, map, mapOr, some } from "../option.js";
 import { Ordering, and, equal, isEq } from "../ordering.js";
 import type { Monoid } from "./monoid.js";
 import type { PartialEq } from "./partial-eq.js";
+import { semiGroupSymbol } from "./semi-group.js";
 import type { Contravariant } from "./variance.js";
 
 /**
@@ -50,4 +51,5 @@ export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
         eq: (l, r) => x.eq(l, r) && y.eq(l, r),
     }),
     identity,
+    [semiGroupSymbol]: true,
 });

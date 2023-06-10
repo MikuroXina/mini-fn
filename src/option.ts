@@ -21,6 +21,7 @@ import type { Monoid } from "./type-class/monoid.js";
 import { Ord, fromCmp } from "./type-class/ord.js";
 import { PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
 import { PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 import type { Traversable } from "./type-class/traversable.js";
 
 const someSymbol = Symbol("OptionSome");
@@ -468,6 +469,7 @@ export interface OptionHkt extends Hkt1 {
 export const monoid = <T>(): Monoid<Option<T>> => ({
     combine: (l, r) => or(l)(r),
     identity: none(),
+    [semiGroupSymbol]: true,
 });
 
 /**

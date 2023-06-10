@@ -3,6 +3,7 @@ import type { Get2, Hkt2 } from "./hkt.js";
 import type { GenericBifunctor } from "./type-class/bifunctor.js";
 import type { Category } from "./type-class/category.js";
 import type { Monoid } from "./type-class/monoid.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 import type { Contravariant } from "./type-class/variance.js";
 
 /**
@@ -44,6 +45,7 @@ export const contra: Contravariant<DualHkt> = {
 export const monoid = <A, B>(m: Monoid<A>): Monoid<Dual<A, B>> => ({
     identity: () => m.identity,
     combine: (f, g) => (b) => m.combine(f(b), g(b)),
+    [semiGroupSymbol]: true,
 });
 
 /**

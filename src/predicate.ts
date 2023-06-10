@@ -1,5 +1,6 @@
 import type { Hkt1 } from "./hkt.js";
 import type { Monoid } from "./type-class/monoid.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 import type { Contravariant } from "./type-class/variance.js";
 
 /**
@@ -26,4 +27,5 @@ export const contra: Contravariant<PredicateHkt> = {
 export const monoid = <A>(): Monoid<Predicate<A>> => ({
     identity: () => true,
     combine: (predL, predR) => (a) => predL(a) && predR(a),
+    [semiGroupSymbol]: true,
 });
