@@ -2,7 +2,7 @@ import { expect, test, vitest } from "vitest";
 
 import { cat } from "./cat.js";
 import {
-    Cont,
+    type Cont,
     callCC,
     evalCont,
     flatMap,

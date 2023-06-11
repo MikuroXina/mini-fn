@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 
 import { constant } from "./func.js";
 import {
-    List,
+    type List,
     filter,
     fromArray,
     length,
@@ -12,7 +12,7 @@ import {
     toIterator,
     zip,
 } from "./list.js";
-import { Store, experiment, extend, extract } from "./store.js";
+import { type Store, experiment, extend, extract } from "./store.js";
 
 test("store with life game", () => {
     type Coord = [number, number];
