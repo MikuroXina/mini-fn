@@ -2,8 +2,9 @@ import { expect, test } from "vitest";
 
 import { cat } from "./cat.js";
 import type { Monoid } from "./type-class/monoid.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 import {
-    Writer,
+    type Writer,
     censor,
     evaluateWriter,
     executeWriter,
@@ -17,6 +18,7 @@ import {
 const monoidArray = <T>(): Monoid<T[]> => ({
     identity: [],
     combine: (l, r) => [...l, ...r],
+    [semiGroupSymbol]: true,
 });
 
 test("tell with tower of hanoi", () => {

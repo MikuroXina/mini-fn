@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { Cat, apply, cat, flatMap, inspect, map, product } from "./cat.js";
+import { type Cat, apply, cat, flatMap, inspect, map, product } from "./cat.js";
 
 test("cat", () => {
     const result = cat(-3)
