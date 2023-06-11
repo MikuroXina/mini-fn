@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.1](https://github.com/MikuroXina/mini-fn/compare/v3.1.0...v3.1.1) (2023-06-11)
+
+
+### Bug Fixes
+
+* Fix typing in tests ([#67](https://github.com/MikuroXina/mini-fn/issues/67)) ([585873f](https://github.com/MikuroXina/mini-fn/commit/585873f26b0db7bff764129dd02e239f081c192f))
+
 ## [3.1.0](https://github.com/MikuroXina/mini-fn/compare/v3.0.1...v3.1.0) (2023-06-10)
 
 
