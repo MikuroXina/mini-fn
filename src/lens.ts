@@ -135,6 +135,11 @@ export const views =
     (fn: (a: A) => R): Get1<M, R> =>
         reader(mr)((s: S) => l(pipe(fn)(newConst))(s).getConst);
 
+export const get =
+    <S>(s: S) =>
+    <A>(l: Getting<A, S, A>): A =>
+        getConst(l(newConst)(s));
+
 export const mapped =
     <F, A, B>(functor: Functor<F>): Setter<Get1<F, A>, Get1<F, B>, A, B> =>
     (settable) =>
