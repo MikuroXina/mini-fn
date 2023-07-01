@@ -1,6 +1,8 @@
-import { type Const, get as getConst, newConst } from "./const.js";
-import type { Get1, Get2 } from "./hkt.js";
+import { type Const, type ConstHkt, get as getConst, newConst } from "./const.js";
+import { fnArrow, pipe } from "./func.js";
+import type { Apply2Only, Get1, Get2 } from "./hkt.js";
 import type { IdentityHkt } from "./identity.js";
+import { type MonadReader, reader } from "./reader/monad.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Apply } from "./type-class/apply.js";
 import type { Bifunctor } from "./type-class/bifunctor.js";
@@ -117,16 +119,22 @@ export const setSimple =
     (b: A): ((s: S) => S) =>
         l(() => b);
 
-export const get =
-    <S, A>(l: Getting<A, S, A>) =>
-    (s: S): A =>
-        getConst<A, A>(l(newConst<A, A>)(s));
-
 export const sets =
     <P, Q, F>(proP: Profunctor<P>, proQ: Profunctor<Q>, settable: Settable<F>) =>
     <S, T, A, B>(f: (pab: Get2<P, A, B>) => Get2<Q, S, T>): Optical<P, Q, F, S, T, A, B> =>
     (g) =>
         taintedDot(settable)(proQ)(f(untaintedDot(settable)(proP)(g)));
+
+export const get =
+    <S, M>(mr: MonadReader<S, M>) =>
+    <A>(l: Getting<A, S, A>): Get1<M, A> =>
+        reader(mr)(fnArrow.compose<Const<A, A>, A>(getConst)<S>(l(newConst)));
+
+export const gets =
+    <S, M>(mr: MonadReader<S, M>) =>
+    <R, A>(l: LensLikeSimple<Apply2Only<ConstHkt, R>, S, A>) =>
+    (fn: (a: A) => R): Get1<M, R> =>
+        reader(mr)((s: S) => l(pipe(fn)(newConst))(s).getConst);
 
 export const mapped =
     <F, A, B>(functor: Functor<F>): Setter<Get1<F, A>, Get1<F, B>, A, B> =>
