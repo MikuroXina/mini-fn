@@ -13,6 +13,7 @@ import { type Settable, taintedDot, untaintedDot } from "./type-class/settable.j
 import type { Contravariant } from "./type-class/variance.js";
 
 export * as Bizarre from "./lens/bizarre.js";
+export * as Differentiable from "./lens/differentiable.js";
 
 export type LensLike<F, S, T, A, B> = (outer: (a: A) => Get1<F, B>) => (s: S) => Get1<F, T>;
 export type LensLikeSimple<F, S, A> = LensLike<F, S, S, A, A>;
