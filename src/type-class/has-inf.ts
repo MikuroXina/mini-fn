@@ -1,5 +1,4 @@
-import { isLt } from "src/ordering.js";
-
+import { isLt } from "../ordering.js";
 import type { Monoid } from "./monoid.js";
 import type { Ord } from "./ord.js";
 import { semiGroupSymbol } from "./semi-group.js";

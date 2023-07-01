@@ -1,5 +1,4 @@
-import type { Apply2Only, Apply3Only, Apply4Only, Get1, Get2, Get3, Hkt4 } from "src/hkt.js";
-
+import type { Apply2Only, Apply3Only, Apply4Only, Get1, Get2, Get3, Hkt4 } from "../hkt.js";
 import type { Applicative } from "../type-class/applicative.js";
 import type { Functor } from "../type-class/functor.js";
 import type { Profunctor } from "../type-class/profunctor.js";
