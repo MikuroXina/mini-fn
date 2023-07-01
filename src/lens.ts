@@ -10,6 +10,8 @@ import { type Profunctor, fnPro, leftMap } from "./type-class/profunctor.js";
 import { type Settable, taintedDot, untaintedDot } from "./type-class/settable.js";
 import type { Contravariant } from "./type-class/variance.js";
 
+export * as Bizarre from "./lens/bizarre.js";
+
 export type LensLike<F, S, T, A, B> = (outer: (a: A) => Get1<F, B>) => (s: S) => Get1<F, T>;
 export type LensLikeSimple<F, S, A> = LensLike<F, S, S, A, A>;
 
