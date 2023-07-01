@@ -1,3 +1,4 @@
+import { id } from "../func.js";
 import type { Get2 } from "../hkt.js";
 import type { Category } from "./category.js";
 
@@ -6,6 +7,15 @@ export interface Bifunctor<P> {
         first: (a: A) => B,
     ) => <C, D>(second: (c: C) => D) => (curr: Get2<P, A, C>) => Get2<P, B, D>;
 }
+
+export const first =
+    <P>(bi: Bifunctor<P>) =>
+    <A, B>(fn: (a: A) => B): (<C>(curr: Get2<P, A, C>) => Get2<P, B, C>) =>
+        bi.biMap(fn)(id);
+
+export const second = <P>(
+    bi: Bifunctor<P>,
+): (<B, C>(fn: (a: B) => C) => <A>(curr: Get2<P, A, B>) => Get2<P, A, C>) => bi.biMap(id);
 
 export interface GenericBifunctor<C1, C2, C3, T> {
     readonly cat1: Category<C1>;
