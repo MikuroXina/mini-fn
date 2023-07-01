@@ -17,6 +17,7 @@ export * as Identity from "./identity.js";
 export * as Kleisli from "./kleisli.js";
 export * as Lazy from "./lazy.js";
 export * as Lens from "./lens.js";
+export * as Differentiable from "./lens/differentiable.js";
 export * as List from "./list.js";
 export * as Number from "./number.js";
 export * as Option from "./option.js";
