@@ -10,6 +10,7 @@ import type { Apply2Only, Get1, Get2 } from "./hkt.js";
 import { type IdentityHkt, functor as identityFunctor } from "./identity.js";
 import { type MonadReader, reader } from "./reader/monad.js";
 import { type MonadState, gets as monadStateGets } from "./state/monad.js";
+import type { Tuple } from "./tuple.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Apply } from "./type-class/apply.js";
 import type { Bifunctor } from "./type-class/bifunctor.js";
@@ -18,6 +19,7 @@ import type { Functor } from "./type-class/functor.js";
 import { type Profunctor, fnPro, leftMap } from "./type-class/profunctor.js";
 import { type Settable, taintedDot, untaintedDot } from "./type-class/settable.js";
 import type { Contravariant } from "./type-class/variance.js";
+import type { MonadWriter } from "./writer/monad.js";
 
 export * as Bizarre from "./lens/bizarre.js";
 
@@ -162,6 +164,23 @@ export const uses =
     <R, A>(l: LensLikeSimple<Apply2Only<ConstHkt, R>, S, A>) =>
     (fn: (a: A) => R): Get1<M, R> =>
         monadStateGets(ms)(views(fnMonadReader<S>())(l)(fn));
+
+export const listening =
+    <W, M>(mw: MonadWriter<W, M>) =>
+    <U>(l: Getting<U, W, U>) =>
+    <A>(m: Get1<M, A>): Get1<M, Tuple<A, U>> =>
+        mw.map(([a, w]: Tuple<A, W>): Tuple<A, U> => [a, view(fnMonadReader<W>())(l)(w)])(
+            mw.listen(m),
+        );
+
+export const listenings =
+    <W, M>(mw: MonadWriter<W, M>) =>
+    <V, U>(l: Getting<V, W, U>) =>
+    (uv: (u: U) => V) =>
+    <A>(m: Get1<M, A>): Get1<M, Tuple<A, V>> =>
+        mw.map(([a, w]: Tuple<A, W>): Tuple<A, V> => [a, views(fnMonadReader<W>())(l)(uv)(w)])(
+            mw.listen(m),
+        );
 
 export const mapped =
     <F, A, B>(functor: Functor<F>): Setter<Get1<F, A>, Get1<F, B>, A, B> =>
