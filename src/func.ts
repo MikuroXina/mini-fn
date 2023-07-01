@@ -1,4 +1,5 @@
 import type { Apply2Only, Hkt2 } from "./hkt.js";
+import type { MonadReader } from "./reader/monad.js";
 import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Arrow } from "./type-class/arrow.js";
@@ -176,6 +177,15 @@ export const applicative = <X>(): Applicative<Apply2Only<FnHkt, X>> => ({
 export const monad = <X>(): Monad<Apply2Only<FnHkt, X>> => ({
     ...applicative(),
     flatMap: flatMap(),
+});
+
+/**
+ * The instance of `MonadReader` for `Fn<R, _>`.
+ */
+export const monadReader = <R>(): MonadReader<R, Apply2Only<FnHkt, R>> => ({
+    ...monad(),
+    ask: () => id,
+    local: pipe,
 });
 
 /**
