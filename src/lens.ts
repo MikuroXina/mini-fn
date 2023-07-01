@@ -125,12 +125,12 @@ export const sets =
     (g) =>
         taintedDot(settable)(proQ)(f(untaintedDot(settable)(proP)(g)));
 
-export const get =
+export const view =
     <S, M>(mr: MonadReader<S, M>) =>
     <A>(l: Getting<A, S, A>): Get1<M, A> =>
         reader(mr)(fnArrow.compose<Const<A, A>, A>(getConst)<S>(l(newConst)));
 
-export const gets =
+export const views =
     <S, M>(mr: MonadReader<S, M>) =>
     <R, A>(l: LensLikeSimple<Apply2Only<ConstHkt, R>, S, A>) =>
     (fn: (a: A) => R): Get1<M, R> =>
