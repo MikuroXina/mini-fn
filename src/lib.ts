@@ -2,6 +2,7 @@ export * as Bool from "./bool.js";
 export * as Cat from "./cat.js";
 export * as Cofree from "./cofree.js";
 export * as ComonadCofree from "./cofree/comonad.js";
+export * as Const from "./const.js";
 export * as Cont from "./cont.js";
 export * as MonadCont from "./cont/monad.js";
 export * as Coyoneda from "./coyoneda.js";
