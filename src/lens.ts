@@ -5,10 +5,11 @@ import {
     get as getConst,
     newConst,
 } from "./const.js";
-import { fnArrow, pipe } from "./func.js";
+import { fnArrow, monadReader as fnMonadReader, pipe } from "./func.js";
 import type { Apply2Only, Get1, Get2 } from "./hkt.js";
 import { type IdentityHkt, functor as identityFunctor } from "./identity.js";
 import { type MonadReader, reader } from "./reader/monad.js";
+import { type MonadState, gets as monadStateGets } from "./state/monad.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Apply } from "./type-class/apply.js";
 import type { Bifunctor } from "./type-class/bifunctor.js";
@@ -150,6 +151,17 @@ export const get =
     <S, A>(l: Getting<A, S, A>) =>
     (s: S): A =>
         getConst(l(newConst)(s));
+
+export const use =
+    <S, M>(ms: MonadState<S, M>) =>
+    <A>(l: Getting<A, S, A>): Get1<M, A> =>
+        monadStateGets(ms)(view(fnMonadReader<S>())(l));
+
+export const uses =
+    <S, M>(ms: MonadState<S, M>) =>
+    <R, A>(l: LensLikeSimple<Apply2Only<ConstHkt, R>, S, A>) =>
+    (fn: (a: A) => R): Get1<M, R> =>
+        monadStateGets(ms)(views(fnMonadReader<S>())(l)(fn));
 
 export const mapped =
     <F, A, B>(functor: Functor<F>): Setter<Get1<F, A>, Get1<F, B>, A, B> =>
