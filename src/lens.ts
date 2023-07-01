@@ -100,6 +100,14 @@ export interface Optical<P, Q, F, S, T, A, B> {
 }
 export type OpticalSimple<P, Q, F, S, A> = Optical<P, Q, F, S, S, A, A>;
 
+export const fromGetSet =
+    <S, A>(getter: (store: S) => A) =>
+    (setter: (store: S) => (newValue: A) => S): LensSimple<S, A> =>
+    <F>(functor: Functor<F>): LensLikeSimple<F, S, A> =>
+    (fn) =>
+    (store) =>
+        functor.map(setter(store))(fn(getter(store)));
+
 export const set =
     <S, T, A, B>(l: ASetter<S, T, A, B>) =>
     (b: B): ((s: S) => T) =>
