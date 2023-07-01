@@ -1,3 +1,4 @@
+import { type Const, get as getConst, newConst } from "./const.js";
 import type { Get1, Get2 } from "./hkt.js";
 import type { IdentityHkt } from "./identity.js";
 import type { Applicative } from "./type-class/applicative.js";
@@ -40,6 +41,9 @@ export interface Setter<S, T, A, B> {
 }
 export type SetterSimple<S, A> = Setter<S, S, A, A>;
 
+export type ASetter<S, T, A, B> = (map: (a: A) => B) => (s: S) => T;
+export type ASetterSimple<S, A> = ASetter<S, S, A, A>;
+
 export interface Iso<S, T, A, B> {
     <P, F>(pro: Profunctor<P>, functor: Functor<F>): (
         g: Get2<P, A, Get1<F, B>>,
@@ -72,6 +76,9 @@ export interface Getter<S, A> {
     ) => (s: S) => Get1<F, S>;
 }
 
+export type Getting<R, S, A> = (outer: (a: A) => Const<R, A>) => (s: S) => Const<R, S>;
+export type Accessing<P, M, S, A> = (outer: Get2<P, A, Const<M, A>>) => (s: S) => Const<M, S>;
+
 export interface Fold<S, A> {
     <F>(contra: Contravariant<F>, app: Applicative<F>): (
         g: (a: A) => Get1<F, A>,
@@ -90,6 +97,20 @@ export interface Optical<P, Q, F, S, T, A, B> {
     (g: Get2<P, A, Get1<F, B>>): Get2<Q, S, Get1<F, T>>;
 }
 export type OpticalSimple<P, Q, F, S, A> = Optical<P, Q, F, S, S, A, A>;
+
+export const set =
+    <S, T, A, B>(l: ASetter<S, T, A, B>) =>
+    (b: B): ((s: S) => T) =>
+        l(() => b);
+export const setSimple =
+    <S, A>(l: ASetterSimple<S, A>) =>
+    (b: A): ((s: S) => S) =>
+        l(() => b);
+
+export const get =
+    <S, A>(l: Getting<A, S, A>) =>
+    (s: S): A =>
+        getConst<A, A>(l(newConst<A, A>)(s));
 
 export const sets =
     <P, Q, F>(proP: Profunctor<P>, proQ: Profunctor<Q>, settable: Settable<F>) =>
