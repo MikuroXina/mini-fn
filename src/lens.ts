@@ -1,7 +1,13 @@
-import { type Const, type ConstHkt, get as getConst, newConst } from "./const.js";
+import {
+    type Const,
+    type ConstHkt,
+    functor as constFunctor,
+    get as getConst,
+    newConst,
+} from "./const.js";
 import { fnArrow, pipe } from "./func.js";
 import type { Apply2Only, Get1, Get2 } from "./hkt.js";
-import type { IdentityHkt } from "./identity.js";
+import { type IdentityHkt, functor as identityFunctor } from "./identity.js";
 import { type MonadReader, reader } from "./reader/monad.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Apply } from "./type-class/apply.js";
@@ -48,6 +54,9 @@ export type SetterSimple<S, A> = Setter<S, S, A, A>;
 export type ASetter<S, T, A, B> = LensLike<IdentityHkt, S, T, A, B>;
 export type ASetterSimple<S, A> = ASetter<S, S, A, A>;
 
+export const asASetter = <S, T, A, B>(lens: Lens<S, T, A, B>): ASetter<S, T, A, B> =>
+    lens(identityFunctor);
+
 export interface Iso<S, T, A, B> {
     <P, F>(pro: Profunctor<P>, functor: Functor<F>): (
         g: Get2<P, A, Get1<F, B>>,
@@ -80,6 +89,9 @@ export interface Getter<S, A> {
 
 export type Getting<R, S, A> = LensLikeSimple<Apply2Only<ConstHkt, R>, S, A>;
 export type Accessing<P, M, S, A> = (outer: Get2<P, A, Const<M, A>>) => (s: S) => Const<M, S>;
+
+export const asGetting = <S, T, A, B>(lens: Lens<S, T, A, B>): Getting<A, S, A> =>
+    lens(constFunctor<A>());
 
 export interface Fold<S, A> {
     <F>(contra: Contravariant<F>, app: Applicative<F>): (
@@ -135,8 +147,8 @@ export const views =
         reader(mr)((s: S) => l(pipe(fn)(newConst))(s).getConst);
 
 export const get =
-    <S>(s: S) =>
-    <A>(l: Getting<A, S, A>): A =>
+    <S, A>(l: Getting<A, S, A>) =>
+    (s: S): A =>
         getConst(l(newConst)(s));
 
 export const mapped =
