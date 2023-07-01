@@ -46,7 +46,7 @@ export interface Setter<S, T, A, B> {
 }
 export type SetterSimple<S, A> = Setter<S, S, A, A>;
 
-export type ASetter<S, T, A, B> = (map: (a: A) => B) => (s: S) => T;
+export type ASetter<S, T, A, B> = LensLike<IdentityHkt, S, T, A, B>;
 export type ASetterSimple<S, A> = ASetter<S, S, A, A>;
 
 export interface Iso<S, T, A, B> {
@@ -76,12 +76,10 @@ export type EqualitySimple<K, S extends K, A extends K> = Equality<K, K, S, S, A
 export type As<K, A extends K> = EqualitySimple<K, A, A>;
 
 export interface Getter<S, A> {
-    <F>(contra: Contravariant<F>, functor: Functor<F>): (
-        g: (a: A) => Get1<F, A>,
-    ) => (s: S) => Get1<F, S>;
+    <F>(contra: Contravariant<F>, functor: Functor<F>): LensLikeSimple<F, S, A>;
 }
 
-export type Getting<R, S, A> = (outer: (a: A) => Const<R, A>) => (s: S) => Const<R, S>;
+export type Getting<R, S, A> = LensLikeSimple<Apply2Only<ConstHkt, R>, S, A>;
 export type Accessing<P, M, S, A> = (outer: Get2<P, A, Const<M, A>>) => (s: S) => Const<M, S>;
 
 export interface Fold<S, A> {
