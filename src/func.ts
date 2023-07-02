@@ -1,13 +1,10 @@
 import type { Apply2Only, Hkt2 } from "./hkt.js";
-import {
-    type AbelianGroup,
-    type AbelianGroupExceptZero,
-    abelSymbol,
-} from "./type-class/abelian-group.js";
+import type { MonadReader } from "./reader/monad.js";
+import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Arrow } from "./type-class/arrow.js";
 import type { Functor } from "./type-class/functor.js";
-import { type Group, type GroupExceptZero } from "./type-class/group.js";
+import { type Group } from "./type-class/group.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Representable } from "./type-class/representable.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
@@ -183,6 +180,15 @@ export const monad = <X>(): Monad<Apply2Only<FnHkt, X>> => ({
 });
 
 /**
+ * The instance of `MonadReader` for `Fn<R, _>`.
+ */
+export const monadReader = <R>(): MonadReader<R, Apply2Only<FnHkt, R>> => ({
+    ...monad(),
+    ask: () => id,
+    local: pipe,
+});
+
+/**
  * The instance of `Representable` for `Fn<E, _>`.
  */
 export const representable = <E>(): Representable<Apply2Only<FnHkt, E>, E> => ({
@@ -206,24 +212,24 @@ export const fnArrow: Arrow<FnHkt> = {
 };
 
 /**
- * @param group - The instance of `Group` for `B`.
+ * @param gr - The instance of `Group` for `B`.
  * @returns The instance of `Group` for `Fn<A, B>`.
  */
-export const group = <A, B>(group: Group<B>): Group<Fn<A, B>> => ({
-    combine: (l, r) => (a) => group.combine(l(a), r(a)),
-    identity: () => group.identity,
-    invert: (g) => (a) => group.invert(g(a)),
+export const group = <A, B>(gr: Group<B>): Group<Fn<A, B>> => ({
+    combine: (l, r) => (a) => gr.combine(l(a), r(a)),
+    identity: () => gr.identity,
+    invert: (g) => (a) => gr.invert(g(a)),
     [semiGroupSymbol]: true,
 });
 
 /**
- * @param group - The instance of `AbelianGroup` for `B`.
+ * @param gr - The instance of `AbelianGroup` for `B`.
  * @returns The instance of `AbelianGroup` for `Fn<A, B>`.
  */
-export const abelianGroup = <A, B>(group: AbelianGroup<B>): AbelianGroup<Fn<A, B>> => ({
-    combine: (l, r) => (a) => group.combine(l(a), r(a)),
-    identity: () => group.identity,
-    invert: (g) => (a) => group.invert(g(a)),
+export const abelianGroup = <A, B>(gr: AbelianGroup<B>): AbelianGroup<Fn<A, B>> => ({
+    combine: (l, r) => (a) => gr.combine(l(a), r(a)),
+    identity: () => gr.identity,
+    invert: (g) => (a) => gr.invert(g(a)),
     [semiGroupSymbol]: true,
     [abelSymbol]: true,
 });

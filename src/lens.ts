@@ -1,5 +1,16 @@
-import type { Get1, Get2 } from "./hkt.js";
-import type { IdentityHkt } from "./identity.js";
+import {
+    type Const,
+    type ConstHkt,
+    functor as constFunctor,
+    get as getConst,
+    newConst,
+} from "./const.js";
+import { fnArrow, monadReader as fnMonadReader, pipe } from "./func.js";
+import type { Apply2Only, Get1, Get2 } from "./hkt.js";
+import { type IdentityHkt, functor as identityFunctor } from "./identity.js";
+import { type MonadReader, reader } from "./reader/monad.js";
+import { type MonadState, gets as monadStateGets } from "./state/monad.js";
+import type { Tuple } from "./tuple.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Apply } from "./type-class/apply.js";
 import type { Bifunctor } from "./type-class/bifunctor.js";
@@ -8,6 +19,9 @@ import type { Functor } from "./type-class/functor.js";
 import { type Profunctor, fnPro, leftMap } from "./type-class/profunctor.js";
 import { type Settable, taintedDot, untaintedDot } from "./type-class/settable.js";
 import type { Contravariant } from "./type-class/variance.js";
+import type { MonadWriter } from "./writer/monad.js";
+
+export * as Bizarre from "./lens/bizarre.js";
 
 export type LensLike<F, S, T, A, B> = (outer: (a: A) => Get1<F, B>) => (s: S) => Get1<F, T>;
 export type LensLikeSimple<F, S, A> = LensLike<F, S, S, A, A>;
@@ -40,6 +54,12 @@ export interface Setter<S, T, A, B> {
 }
 export type SetterSimple<S, A> = Setter<S, S, A, A>;
 
+export type ASetter<S, T, A, B> = LensLike<IdentityHkt, S, T, A, B>;
+export type ASetterSimple<S, A> = ASetter<S, S, A, A>;
+
+export const asASetter = <S, T, A, B>(lens: Lens<S, T, A, B>): ASetter<S, T, A, B> =>
+    lens(identityFunctor);
+
 export interface Iso<S, T, A, B> {
     <P, F>(pro: Profunctor<P>, functor: Functor<F>): (
         g: Get2<P, A, Get1<F, B>>,
@@ -67,10 +87,14 @@ export type EqualitySimple<K, S extends K, A extends K> = Equality<K, K, S, S, A
 export type As<K, A extends K> = EqualitySimple<K, A, A>;
 
 export interface Getter<S, A> {
-    <F>(contra: Contravariant<F>, functor: Functor<F>): (
-        g: (a: A) => Get1<F, A>,
-    ) => (s: S) => Get1<F, S>;
+    <F>(contra: Contravariant<F>, functor: Functor<F>): LensLikeSimple<F, S, A>;
 }
+
+export type Getting<R, S, A> = LensLikeSimple<Apply2Only<ConstHkt, R>, S, A>;
+export type Accessing<P, M, S, A> = (outer: Get2<P, A, Const<M, A>>) => (s: S) => Const<M, S>;
+
+export const asGetting = <S, T, A, B>(lens: Lens<S, T, A, B>): Getting<A, S, A> =>
+    lens(constFunctor<A>());
 
 export interface Fold<S, A> {
     <F>(contra: Contravariant<F>, app: Applicative<F>): (
@@ -91,11 +115,72 @@ export interface Optical<P, Q, F, S, T, A, B> {
 }
 export type OpticalSimple<P, Q, F, S, A> = Optical<P, Q, F, S, S, A, A>;
 
+export const fromGetSet =
+    <S, A>(getter: (store: S) => A) =>
+    (setter: (store: S) => (newValue: A) => S): LensSimple<S, A> =>
+    <F>(functor: Functor<F>): LensLikeSimple<F, S, A> =>
+    (fn) =>
+    (store) =>
+        functor.map(setter(store))(fn(getter(store)));
+
+export const set =
+    <S, T, A, B>(l: ASetter<S, T, A, B>) =>
+    (b: B): ((s: S) => T) =>
+        l(() => b);
+export const setSimple =
+    <S, A>(l: ASetterSimple<S, A>) =>
+    (b: A): ((s: S) => S) =>
+        l(() => b);
+
 export const sets =
     <P, Q, F>(proP: Profunctor<P>, proQ: Profunctor<Q>, settable: Settable<F>) =>
     <S, T, A, B>(f: (pab: Get2<P, A, B>) => Get2<Q, S, T>): Optical<P, Q, F, S, T, A, B> =>
     (g) =>
         taintedDot(settable)(proQ)(f(untaintedDot(settable)(proP)(g)));
+
+export const view =
+    <S, M>(mr: MonadReader<S, M>) =>
+    <A>(l: Getting<A, S, A>): Get1<M, A> =>
+        reader(mr)(fnArrow.compose<Const<A, A>, A>(getConst)<S>(l(newConst)));
+
+export const views =
+    <S, M>(mr: MonadReader<S, M>) =>
+    <R, A>(l: LensLikeSimple<Apply2Only<ConstHkt, R>, S, A>) =>
+    (fn: (a: A) => R): Get1<M, R> =>
+        reader(mr)((s: S) => l(pipe(fn)(newConst))(s).getConst);
+
+export const get =
+    <S, A>(l: Getting<A, S, A>) =>
+    (s: S): A =>
+        getConst(l(newConst)(s));
+
+export const use =
+    <S, M>(ms: MonadState<S, M>) =>
+    <A>(l: Getting<A, S, A>): Get1<M, A> =>
+        monadStateGets(ms)(view(fnMonadReader<S>())(l));
+
+export const uses =
+    <S, M>(ms: MonadState<S, M>) =>
+    <R, A>(l: LensLikeSimple<Apply2Only<ConstHkt, R>, S, A>) =>
+    (fn: (a: A) => R): Get1<M, R> =>
+        monadStateGets(ms)(views(fnMonadReader<S>())(l)(fn));
+
+export const listening =
+    <W, M>(mw: MonadWriter<W, M>) =>
+    <U>(l: Getting<U, W, U>) =>
+    <A>(m: Get1<M, A>): Get1<M, Tuple<A, U>> =>
+        mw.map(([a, w]: Tuple<A, W>): Tuple<A, U> => [a, view(fnMonadReader<W>())(l)(w)])(
+            mw.listen(m),
+        );
+
+export const listenings =
+    <W, M>(mw: MonadWriter<W, M>) =>
+    <V, U>(l: Getting<V, W, U>) =>
+    (uv: (u: U) => V) =>
+    <A>(m: Get1<M, A>): Get1<M, Tuple<A, V>> =>
+        mw.map(([a, w]: Tuple<A, W>): Tuple<A, V> => [a, views(fnMonadReader<W>())(l)(uv)(w)])(
+            mw.listen(m),
+        );
 
 export const mapped =
     <F, A, B>(functor: Functor<F>): Setter<Get1<F, A>, Get1<F, B>, A, B> =>
