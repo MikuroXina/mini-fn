@@ -57,7 +57,7 @@
 <h5><span class="tsd-kind-parameter">s</span>: <span class="tsd-signature-type tsd-kind-type-parameter">S</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Hkt.Get1.html" class="tsd-signature-type tsd-kind-type-alias">Get1</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">F</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/MikuroXina/mini-fn/blob/26741a7/src/lens.ts#L15">src/lens.ts:15</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/MikuroXina/mini-fn/blob/0dc1c82/src/lens.ts#L29">src/lens.ts:29</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -82,9 +82,11 @@
 <li><a href="../modules/Cofree.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Cofree</span></a></li>
 <li><a href="../modules/ComonadCofree.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Comonad<wbr/>Cofree</span></a></li>
 <li><a href="../modules/ComonadStore.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Comonad<wbr/>Store</span></a></li>
+<li><a href="../modules/Const.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Const</span></a></li>
 <li><a href="../modules/Cont.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Cont</span></a></li>
 <li><a href="../modules/Coyoneda.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Coyoneda</span></a></li>
 <li><a href="../modules/Curry.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Curry</span></a></li>
+<li><a href="../modules/Differentiable.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Differentiable</span></a></li>
 <li><a href="../modules/Dual.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Dual</span></a></li>
 <li><a href="../modules/Free.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Free</span></a></li>
 <li><a href="../modules/Frozen.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Frozen</span></a></li>
@@ -97,6 +99,7 @@
 <details class="tsd-index-accordion" open data-key="Lens"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="../modules/Lens.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Lens</span></a></summary>
 <div class="tsd-accordion-details">
 <ul class="tsd-nested-navigation">
+<li><a href="../modules/Lens.Bizarre.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Bizarre</span></a></li>
 <li><a href="../interfaces/Lens.Equality.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-256"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)"></path></g></svg><span>Equality</span></a></li>
 <li><a href="../interfaces/Lens.Fold.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Fold</span></a></li>
 <li><a href="../interfaces/Lens.Fold1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Fold1</span></a></li>
@@ -111,8 +114,12 @@
 <li><a href="../interfaces/Lens.Setting.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Setting</span></a></li>
 <li><a href="../interfaces/Lens.Traversal.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Traversal</span></a></li>
 <li><a href="../interfaces/Lens.Traversal1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Traversal1</span></a></li>
-<li><a href="Lens.As.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4194304"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-type-alias)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)"></path></g></svg><span>As</span></a></li>
+<li><a href="Lens.ASetter.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4194304"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-type-alias)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)"></path></g></svg><span>ASetter</span></a></li>
+<li><a href="Lens.ASetterSimple.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>ASetter<wbr/>Simple</span></a></li>
+<li><a href="Lens.Accessing.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Accessing</span></a></li>
+<li><a href="Lens.As.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>As</span></a></li>
 <li><a href="Lens.EqualitySimple.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Equality<wbr/>Simple</span></a></li>
+<li><a href="Lens.Getting.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Getting</span></a></li>
 <li><a href="Lens.IsoSimple.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Iso<wbr/>Simple</span></a></li>
 <li><a href="Lens.LensLike.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Lens<wbr/>Like</span></a></li>
 <li><a href="Lens.LensLikeSimple.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Lens<wbr/>Like<wbr/>Simple</span></a></li>
@@ -127,9 +134,21 @@
 <li><a href="Lens.Traversal1Simple.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Traversal1<wbr/>Simple</span></a></li>
 <li><a href="Lens.TraversalSimple.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Traversal<wbr/>Simple</span></a></li>
 <li><a href="../functions/Lens.argument.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-64"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)"></path></g></svg><span>argument</span></a></li>
+<li><a href="../functions/Lens.asASetter.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>asASetter</span></a></li>
+<li><a href="../functions/Lens.asGetting.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>as<wbr/>Getting</span></a></li>
 <li><a href="../functions/Lens.contraMapped.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>contra<wbr/>Mapped</span></a></li>
+<li><a href="../functions/Lens.fromGetSet.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>from<wbr/>Get<wbr/>Set</span></a></li>
+<li><a href="../functions/Lens.get.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>get</span></a></li>
+<li><a href="../functions/Lens.listening.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>listening</span></a></li>
+<li><a href="../functions/Lens.listenings.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>listenings</span></a></li>
 <li><a href="../functions/Lens.mapped.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>mapped</span></a></li>
-<li><a href="../functions/Lens.sets.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>sets</span></a></li></ul></div></details></li>
+<li><a href="../functions/Lens.set.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>set</span></a></li>
+<li><a href="../functions/Lens.setSimple.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>set<wbr/>Simple</span></a></li>
+<li><a href="../functions/Lens.sets.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>sets</span></a></li>
+<li><a href="../functions/Lens.use.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>use</span></a></li>
+<li><a href="../functions/Lens.uses.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>uses</span></a></li>
+<li><a href="../functions/Lens.view.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>view</span></a></li>
+<li><a href="../functions/Lens.views.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>views</span></a></li></ul></div></details></li>
 <li><a href="../modules/List.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>List</span></a></li>
 <li><a href="../modules/MonadCont.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Monad<wbr/>Cont</span></a></li>
 <li><a href="../modules/MonadFree.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Monad<wbr/>Free</span></a></li>
