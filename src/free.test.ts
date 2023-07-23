@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { cat } from "./cat.js";
-import { type Free, eq, flatMapT, isPure, liftF, node } from "./free.js";
+import { type Free, eq, flatMapT, isPure, liftF, node, pure } from "./free.js";
 import type { Hkt1 } from "./hkt.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
@@ -92,6 +92,7 @@ describe("hello language", () => {
     });
 
     test("syntax tree", () => {
+        const empty: Free<HelloLangHkt, unknown> = pure({} as unknown);
         const example: Free<HelloLangHkt, unknown> = node<HelloLangHkt, HelloLang<unknown>>({
             type: "Hello",
             next: node<HelloLangHkt, HelloLang<unknown>>({
@@ -102,6 +103,9 @@ describe("hello language", () => {
             }),
         });
         expect(comparator.eq(example, example)).toBe(true);
+        expect(comparator.eq(example, empty)).toBe(false);
+        expect(comparator.eq(empty, example)).toBe(false);
+        expect(comparator.eq(empty, empty)).toBe(true);
         expect(runProgram(example)).toEqual("Hello.\nHello.\nBye.\n");
 
         const exampleCode: Free<HelloLangHkt, []> = cat(hello)
