@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.0.0](https://github.com/MikuroXina/mini-fn/compare/v3.1.1...v4.0.0) (2023-07-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* Enforce Lens ([#69](https://github.com/MikuroXina/mini-fn/issues/69))
+
+### Features
+
+* Enforce Lens ([#69](https://github.com/MikuroXina/mini-fn/issues/69)) ([5b81106](https://github.com/MikuroXina/mini-fn/commit/5b811068e2d99814cca12d44145ee3f55e9fb99c))
+
 ## [3.1.1](https://github.com/MikuroXina/mini-fn/compare/v3.1.0...v3.1.1) (2023-06-11)
 
 
