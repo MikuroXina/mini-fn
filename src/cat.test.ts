@@ -1,6 +1,31 @@
 import { expect, test } from "vitest";
 
-import { type Cat, apply, cat, flatMap, inspect, map, product } from "./cat.js";
+import { type Cat, apply, cat, doT, flatMap, inspect, map, product } from "./cat.js";
+import { monad, none, some } from "./option.js";
+
+test("doT", () => {
+    const optionA = some(1);
+    const optionB = some(2);
+    const optionC = some(3);
+
+    const computation = doT(monad)
+        .let("a", optionA)
+        .let("b", optionB)
+        .thenLet("bSquared", ({ b }) => b * b)
+        .let("c", optionC);
+
+    expect(
+        computation
+            .flatLet("cSqrt", ({ c }) => {
+                const sqrt = Math.sqrt(c);
+                return Number.isInteger(sqrt) ? some(sqrt) : none();
+            })
+            .finish(({ bSquared, cSqrt }) => bSquared + cSqrt),
+    ).toStrictEqual(none());
+
+    const result = computation.finish(({ a, b, c }) => a + b + c);
+    expect(result).toStrictEqual(some(6));
+});
 
 test("cat", () => {
     const result = cat(-3)
