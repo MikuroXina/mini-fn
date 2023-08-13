@@ -5,12 +5,125 @@
  *
  * @packageDocumentation
  */
-import type { Hkt1 } from "./hkt.js";
+import type { Get1, Hkt1 } from "./hkt.js";
 import { fromProjection as eqFromProjection } from "./type-class/eq.js";
 import type { Monad } from "./type-class/monad.js";
 import { fromProjection as ordFromProjection } from "./type-class/ord.js";
 import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.js";
 import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.js";
+
+/**
+ * Contains a `ctx` and can be transformed into another one by some methods.
+ *
+ * @typeParam M - Monad implementation which wraps `ctx`.
+ * @typeParam CTX - Passing context type.
+ */
+export interface CatT<M, CTX extends Record<PropertyKey, unknown> = Record<string, never>> {
+    /**
+     * Contained context. Altering an interior value must be abstained, or may occurs unsound behaviors.
+     */
+    readonly ctx: Get1<M, CTX>;
+
+    /**
+     * Binds a new value wrapped by the monad.
+     *
+     * @param key - The new property key for context
+     * @param value - The wrapped value to bind.
+     * @returns A new `CatT` containing the value at the key.
+     */
+    readonly let: <const K extends PropertyKey, A>(
+        key: K,
+        value: Get1<M, A>,
+    ) => CatT<M, Record<K, A> & CTX>;
+
+    /**
+     * Appends a new value calculated from `ctx` by `fn`.
+     *
+     * @param key - The new property key for context
+     * @param fn - The calculation.
+     * @returns A new `CatT` containing the value at the key.
+     */
+    readonly thenLet: <const K extends PropertyKey, A>(
+        key: K,
+        fn: (ctx: CTX) => A,
+    ) => CatT<M, Record<K, A> & CTX>;
+
+    /**
+     * Binds a new value wrapped by the monad, calculated from `ctx` by `fn`.
+     *
+     * @param key - The new property key for context
+     * @param fn - The calculation which returns the wrapped value.
+     * @returns A new `CatT` containing the value at the key.
+     */
+    readonly flatLet: <const K extends PropertyKey, A>(
+        key: K,
+        fn: (ctx: CTX) => Get1<M, A>,
+    ) => CatT<M, Record<K, A> & CTX>;
+
+    /**
+     * Reduces the context into a value by `fn`.
+     *
+     * @param fn - The finishing computation.
+     * @returns A reduced value.
+     */
+    readonly finish: <R>(fn: (ctx: CTX) => R) => Get1<M, R>;
+}
+
+/**
+ * Creates a new `CatT` with the wrapped context.
+ *
+ * @param monad - The monad implementation for `M`.
+ * @param ctx - The base context wrapped with `M`.
+ * @returns A new `CatT`.
+ */
+export const catT =
+    <M>(monad: Monad<M>) =>
+    <CTX extends Record<PropertyKey, unknown>>(ctx: Get1<M, CTX>): CatT<M, CTX> => ({
+        ctx,
+        let: <const K extends PropertyKey, A>(key: K, value: Get1<M, A>) =>
+            catT(monad)(
+                monad.flatMap((c: CTX) =>
+                    monad.map((v: A) => ({ ...c, [key]: v } as Record<K, A> & CTX))(value),
+                )(ctx),
+            ),
+        thenLet: <const K extends PropertyKey, A>(key: K, fn: (ctx: CTX) => A) =>
+            catT(monad)(
+                monad.map(
+                    (c: CTX) =>
+                        ({
+                            ...c,
+                            [key]: fn(c),
+                        } as Record<K, A> & CTX),
+                )(ctx),
+            ),
+        flatLet: <const K extends PropertyKey, A>(key: K, fn: (ctx: CTX) => Get1<M, A>) =>
+            catT(monad)(
+                monad.flatMap((c: CTX) =>
+                    monad.map((v: A) => ({ ...c, [key]: v } as Record<K, A> & CTX))(fn(c)),
+                )(ctx),
+            ),
+        finish: <R>(fn: (ctx: CTX) => R) => monad.map(fn)(ctx),
+    });
+
+/**
+ * Creates a new `CatT` with an empty context.
+ *
+ * @param monad - The monad implementation for `M`.
+ * @returns A new `CatT`.
+ */
+export const doT = <M>(monad: Monad<M>): CatT<M> => catT(monad)(monad.pure({}));
+
+/**
+ * Creates a new `CatT` with the context.
+ *
+ * @param monad - The monad implementation for `M`.
+ * @param ctx - The context object.
+ * @returns A new `CatT`.
+ */
+export const withT =
+    <M>(monad: Monad<M>) =>
+    <CTX extends Record<PropertyKey, unknown>>(ctx: CTX): CatT<M, CTX> =>
+        catT(monad)(monad.pure(ctx));
 
 export interface CatHkt extends Hkt1 {
     readonly type: Cat<this["arg1"]>;
@@ -142,8 +255,8 @@ export const product =
  */
 export const map =
     <T, U>(fn: (t: T) => U) =>
-    (catT: Cat<T>): Cat<U> =>
-        catT.feed(fn);
+    (c: Cat<T>): Cat<U> =>
+        c.feed(fn);
 /**
  * Maps an inner value of `Cat` into another `Cat` by applying a function. It is useful to lift a subroutine with `Cat`.
  *
@@ -152,8 +265,8 @@ export const map =
  */
 export const flatMap =
     <T, U>(fn: (t: T) => Cat<U>) =>
-    (catT: Cat<T>): Cat<U> =>
-        flatten(map(fn)(catT));
+    (c: Cat<T>): Cat<U> =>
+        flatten(map(fn)(c));
 /**
  * Lifts down a `Cat` which contains a mapping function. It is useful to decompose a function in `Cat`.
  *
