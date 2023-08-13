@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.0](https://github.com/MikuroXina/mini-fn/compare/v4.0.0...v4.1.0) (2023-08-13)
+
+
+### Features
+
+* Add CatT, monad chaining gadget ([#74](https://github.com/MikuroXina/mini-fn/issues/74)) ([2335008](https://github.com/MikuroXina/mini-fn/commit/2335008c06d699b2a63ac5b9f891e7773188cc70))
+
 ## [4.0.0](https://github.com/MikuroXina/mini-fn/compare/v3.1.1...v4.0.0) (2023-07-23)
 
 
