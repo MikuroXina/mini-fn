@@ -1,17 +1,29 @@
 import { expect, test } from "vitest";
 
 import { type Cat, apply, cat, doT, flatMap, inspect, map, product } from "./cat.js";
-import { monad, some } from "./option.js";
+import { monad, none, some } from "./option.js";
 
 test("doT", () => {
     const optionA = some(1);
     const optionB = some(2);
     const optionC = some(3);
-    const result = doT(monad)
+
+    const computation = doT(monad)
         .let("a", optionA)
         .let("b", optionB)
-        .let("c", optionC)
-        .finish(({ a, b, c }) => a + b + c);
+        .thenLet("bSquared", ({ b }) => b * b)
+        .let("c", optionC);
+
+    expect(
+        computation
+            .flatLet("cSqrt", ({ c }) => {
+                const sqrt = Math.sqrt(c);
+                return Number.isInteger(sqrt) ? some(sqrt) : none();
+            })
+            .finish(({ bSquared, cSqrt }) => bSquared + cSqrt),
+    ).toStrictEqual(none());
+
+    const result = computation.finish(({ a, b, c }) => a + b + c);
     expect(result).toStrictEqual(some(6));
 });
 
