@@ -1,3 +1,4 @@
+export * as Array from "./array.js";
 export * as Bool from "./bool.js";
 export * as Cat from "./cat.js";
 export * as Cofree from "./cofree.js";
@@ -26,10 +27,11 @@ export * as Predicate from "./predicate.js";
 export * as Promise from "./promise.js";
 export * as MonadPromise from "./promise/monad.js";
 export * as Reader from "./reader.js";
-export * as Reverse from "./reverse.js";
 export * as MonadReader from "./reader/monad.js";
 export * as Result from "./result.js";
+export * as Reverse from "./reverse.js";
 export * as Seq from "./seq.js";
+export * as FingerTree from "./seq/finger-tree.js";
 export * as Star from "./star.js";
 export * as State from "./state.js";
 export * as StateMonad from "./state/monad.js";
