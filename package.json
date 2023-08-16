@@ -48,7 +48,7 @@
         "typedoc": "^0.24.8",
         "typescript": "^5.1.6",
         "vite": "^4.3.9",
-        "vitest": "^0.32.2"
+        "vitest": "^0.34.0"
     },
     "packageManager": "pnpm@8.6.12"
 }
