@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.1](https://github.com/MikuroXina/mini-fn/compare/v4.1.0...v4.1.1) (2023-08-16)
+
+
+### Bug Fixes
+
+* Fix exports in lib ([#81](https://github.com/MikuroXina/mini-fn/issues/81)) ([011fedd](https://github.com/MikuroXina/mini-fn/commit/011fedd03f9d2be836b638a7936e1f9273cc71a9))
+
 ## [4.1.0](https://github.com/MikuroXina/mini-fn/compare/v4.0.0...v4.1.0) (2023-08-13)
 
 
