@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
 
 import { cat } from "./cat.js";
-import { type Free, eq, flatMapT, isPure, iter, liftF, node, pure, retract } from "./free.js";
+import { eq, flatMapT, type Free, isPure, iter, liftF, node, pure, retract } from "./free.js";
 import type { Hkt1 } from "./hkt.js";
-import { type OptionHkt, isNone, monad, none, some, unwrap } from "./option.js";
+import { isNone, monad, none, type OptionHkt, some, unwrap } from "./option.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
 

@@ -1,7 +1,7 @@
-import { type Option, isNone, none, some } from "./option.js";
-import { type Ordering, and, equal } from "./ordering.js";
-import { type Ord, fromCmp } from "./type-class/ord.js";
-import { type PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
+import { isNone, none, type Option, some } from "./option.js";
+import { and, equal, type Ordering } from "./ordering.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
 
 export type TupleN<T extends unknown[]> = {
     readonly [K in keyof T]: PartialOrd<T[K]>;

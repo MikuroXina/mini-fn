@@ -69,7 +69,7 @@ export const flap =
 export const bindTo =
     <S>(func: Functor<S>) =>
     <N extends PropertyKey>(name: N) =>
-        func.map(<T>(a: T) => ({ [name]: a } as Record<N, T>));
+        func.map(<T>(a: T) => ({ [name]: a }) as Record<N, T>);
 
 /**
  * @param func - The instance of `Functor` for `S`.

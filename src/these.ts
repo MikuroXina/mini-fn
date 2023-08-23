@@ -1,7 +1,7 @@
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import { id } from "./identity.js";
-import { type List, appendToHead, either, empty } from "./list.js";
-import { type Tuple, make as makeTuple } from "./tuple.js";
+import { appendToHead, either, empty, type List } from "./list.js";
+import { make as makeTuple, type Tuple } from "./tuple.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Bifunctor } from "./type-class/bifunctor.js";
 import { type Eq, eqSymbol } from "./type-class/eq.js";
@@ -65,8 +65,7 @@ export type Both<A, B> = readonly [typeof bothSymbol, A, B];
  */
 export const newBoth =
     <A>(a: A) =>
-    <B>(b: B): Both<A, B> =>
-        [bothSymbol, a, b];
+    <B>(b: B): Both<A, B> => [bothSymbol, a, b];
 /**
  * Checks whether the `These` is a `Both`.
  *

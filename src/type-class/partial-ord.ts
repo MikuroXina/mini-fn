@@ -1,6 +1,6 @@
 import type { Get1, Hkt1 } from "../hkt.js";
-import { type Option, flatMap, map, mapOr, some } from "../option.js";
-import { type Ordering, and, equal, isEq } from "../ordering.js";
+import { flatMap, map, mapOr, type Option, some } from "../option.js";
+import { and, equal, isEq, type Ordering } from "../ordering.js";
 import type { Monoid } from "./monoid.js";
 import type { PartialEq } from "./partial-eq.js";
 import { semiGroupSymbol } from "./semi-group.js";

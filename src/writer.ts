@@ -143,8 +143,7 @@ export const mapWriter =
  */
 export const tell =
     <W>(w: W): Writer<W, []> =>
-    () =>
-        [[], w];
+    () => [[], w];
 /**
  * Creates an action that executes `writer` and adds its output to the value of the computation.
  *
@@ -226,8 +225,7 @@ export const product =
 export const pure =
     <W>(monoid: Monoid<W>) =>
     <T>(a: T): Writer<W, T> =>
-    () =>
-        [a, monoid.identity];
+    () => [a, monoid.identity];
 /**
  * Maps the result of computation with `f`.
  *

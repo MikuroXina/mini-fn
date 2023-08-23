@@ -1,6 +1,6 @@
 import { absurd, compose, constant, flip, fnArrow } from "../func.js";
 import type { Get1, Get2 } from "../hkt.js";
-import { type Tuple, first, second } from "../tuple.js";
+import { first, second, type Tuple } from "../tuple.js";
 import { fanOut } from "./arrow.js";
 import { type Functor, replace } from "./functor.js";
 import type { Profunctor } from "./profunctor.js";

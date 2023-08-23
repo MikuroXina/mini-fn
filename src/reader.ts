@@ -1,5 +1,5 @@
 import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
-import { type IdentityHkt, id, monad as identityMonad } from "./identity.js";
+import { id, type IdentityHkt, monad as identityMonad } from "./identity.js";
 import type { Tuple } from "./tuple.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
@@ -86,8 +86,7 @@ export const local =
 export const product =
     <R, A>(a: Reader<R, A>) =>
     <B>(b: Reader<R, B>): Reader<R, Tuple<A, B>> =>
-    (r: R) =>
-        [a(r), b(r)];
+    (r: R) => [a(r), b(r)];
 
 /**
  * Constructs a new reader from the computation `reader`.

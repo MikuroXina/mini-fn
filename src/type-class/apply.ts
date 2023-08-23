@@ -39,9 +39,9 @@ export const apSelective =
             apply.map(
                 (t: T) =>
                     <U>(u: U) =>
-                        ({ ...t, [name]: u } as {
+                        ({ ...t, [name]: u }) as {
                             [K in keyof T | N]: K extends keyof T ? T[K] : U;
-                        }),
+                        },
             )(funcT),
         );
 

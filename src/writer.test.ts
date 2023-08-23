@@ -4,7 +4,6 @@ import { cat } from "./cat.js";
 import type { Monoid } from "./type-class/monoid.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 import {
-    type Writer,
     censor,
     evaluateWriter,
     executeWriter,
@@ -13,6 +12,7 @@ import {
     map,
     pure,
     tell,
+    type Writer,
 } from "./writer.js";
 
 const monoidArray = <T>(): Monoid<T[]> => ({

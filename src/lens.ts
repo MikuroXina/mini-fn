@@ -7,16 +7,16 @@ import {
 } from "./const.js";
 import { fnArrow, monadReader as fnMonadReader, pipe } from "./func.js";
 import type { Apply2Only, Get1, Get2 } from "./hkt.js";
-import { type IdentityHkt, functor as identityFunctor } from "./identity.js";
+import { functor as identityFunctor, type IdentityHkt } from "./identity.js";
 import { type MonadReader, reader } from "./reader/monad.js";
-import { type MonadState, gets as monadStateGets } from "./state/monad.js";
+import { gets as monadStateGets, type MonadState } from "./state/monad.js";
 import type { Tuple } from "./tuple.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Apply } from "./type-class/apply.js";
 import type { Bifunctor } from "./type-class/bifunctor.js";
 import type { Choice } from "./type-class/choice.js";
 import type { Functor } from "./type-class/functor.js";
-import { type Profunctor, fnPro, leftMap } from "./type-class/profunctor.js";
+import { fnPro, leftMap, type Profunctor } from "./type-class/profunctor.js";
 import { type Settable, taintedDot, untaintedDot } from "./type-class/settable.js";
 import type { Contravariant } from "./type-class/variance.js";
 import type { MonadWriter } from "./writer/monad.js";
@@ -61,9 +61,10 @@ export const asASetter = <S, T, A, B>(lens: Lens<S, T, A, B>): ASetter<S, T, A, 
     lens(identityFunctor);
 
 export interface Iso<S, T, A, B> {
-    <P, F>(pro: Profunctor<P>, functor: Functor<F>): (
-        g: Get2<P, A, Get1<F, B>>,
-    ) => Get2<P, S, Get1<F, T>>;
+    <P, F>(
+        pro: Profunctor<P>,
+        functor: Functor<F>,
+    ): (g: Get2<P, A, Get1<F, B>>) => Get2<P, S, Get1<F, T>>;
 }
 export type IsoSimple<S, A> = Iso<S, S, A, A>;
 
@@ -72,16 +73,18 @@ export interface Review<T, B> {
 }
 
 export interface Prism<S, T, A, B> {
-    <P, F>(choice: Choice<P>, app: Applicative<F>): (
-        g: Get2<P, A, Get1<F, B>>,
-    ) => Get2<P, S, Get1<F, T>>;
+    <P, F>(
+        choice: Choice<P>,
+        app: Applicative<F>,
+    ): (g: Get2<P, A, Get1<F, B>>) => Get2<P, S, Get1<F, T>>;
 }
 export type PrismSimple<S, A> = Prism<S, S, A, A>;
 
 export interface Equality<K1, K2, S extends K1, T extends K2, A extends K1, B extends K2> {
-    <K3, P, F>(setter: (k1: K1) => (k3: K3) => void, getter: (k2: K2) => K3): (
-        g: Get2<P, A, Get1<F, B>>,
-    ) => Get2<P, S, Get1<F, T>>;
+    <K3, P, F>(
+        setter: (k1: K1) => (k3: K3) => void,
+        getter: (k2: K2) => K3,
+    ): (g: Get2<P, A, Get1<F, B>>) => Get2<P, S, Get1<F, T>>;
 }
 export type EqualitySimple<K, S extends K, A extends K> = Equality<K, K, S, S, A, A>;
 export type As<K, A extends K> = EqualitySimple<K, A, A>;
@@ -97,9 +100,10 @@ export const asGetting = <S, T, A, B>(lens: Lens<S, T, A, B>): Getting<A, S, A> 
     lens(constFunctor<A>());
 
 export interface Fold<S, A> {
-    <F>(contra: Contravariant<F>, app: Applicative<F>): (
-        g: (a: A) => Get1<F, A>,
-    ) => (s: S) => Get1<F, S>;
+    <F>(
+        contra: Contravariant<F>,
+        app: Applicative<F>,
+    ): (g: (a: A) => Get1<F, A>) => (s: S) => Get1<F, S>;
 }
 export interface Fold1<S, A> {
     <F>(contra: Contravariant<F>, app: Apply<F>): (g: (a: A) => Get1<F, A>) => (s: S) => Get1<F, S>;

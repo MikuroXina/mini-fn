@@ -26,17 +26,15 @@ export type LensSimple<S, A> = Lens<S, S, A, A>;
  */
 export const compose =
     <S, T, A, B>(l: Lens<S, T, A, B>) =>
-    <U, V>(r: Lens<A, B, U, V>): Lens<S, T, U, V> =>
-        [
-            (store) => r[0](l[0](store)),
-            (store) => (v) => {
-                const a = l[0](store);
-                const b = r[1](a)(v);
-                return l[1](store)(b);
-            },
-        ];
+    <U, V>(r: Lens<A, B, U, V>): Lens<S, T, U, V> => [
+        (store) => r[0](l[0](store)),
+        (store) => (v) => {
+            const a = l[0](store);
+            const b = r[1](a)(v);
+            return l[1](store)(b);
+        },
+    ];
 
 export const fromGetSet =
     <S, A>(getter: (store: S) => A) =>
-    <T, B>(setter: (store: S) => (newValue: B) => T): Lens<S, T, A, B> =>
-        [getter, setter];
+    <T, B>(setter: (store: S) => (newValue: B) => T): Lens<S, T, A, B> => [getter, setter];

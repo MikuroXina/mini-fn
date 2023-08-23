@@ -83,7 +83,7 @@ export const catT =
         let: <const K extends PropertyKey, A>(key: K, value: Get1<M, A>) =>
             catT(monad)(
                 monad.flatMap((c: CTX) =>
-                    monad.map((v: A) => ({ ...c, [key]: v } as Record<K, A> & CTX))(value),
+                    monad.map((v: A) => ({ ...c, [key]: v }) as Record<K, A> & CTX)(value),
                 )(ctx),
             ),
         thenLet: <const K extends PropertyKey, A>(key: K, fn: (ctx: CTX) => A) =>
@@ -93,13 +93,13 @@ export const catT =
                         ({
                             ...c,
                             [key]: fn(c),
-                        } as Record<K, A> & CTX),
+                        }) as Record<K, A> & CTX,
                 )(ctx),
             ),
         flatLet: <const K extends PropertyKey, A>(key: K, fn: (ctx: CTX) => Get1<M, A>) =>
             catT(monad)(
                 monad.flatMap((c: CTX) =>
-                    monad.map((v: A) => ({ ...c, [key]: v } as Record<K, A> & CTX))(fn(c)),
+                    monad.map((v: A) => ({ ...c, [key]: v }) as Record<K, A> & CTX)(fn(c)),
                 )(ctx),
             ),
         finish: <R>(fn: (ctx: CTX) => R) => monad.map(fn)(ctx),

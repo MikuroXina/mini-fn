@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 
 import { cat } from "./cat.js";
 import type { Apply2Only } from "./hkt.js";
-import { type State, type StateHkt, type StateTHkt, get, monad, put } from "./state.js";
+import { get, monad, put, type State, type StateHkt, type StateTHkt } from "./state.js";
 import { begin, bindT } from "./type-class/monad.js";
 
 const xorShiftRng =

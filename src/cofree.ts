@@ -2,35 +2,35 @@ import type { ComonadCofree } from "./cofree/comonad.js";
 import { compose, pipe } from "./func.js";
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import {
-    type Lazy,
-    force,
     defer as lazyDefer,
     eq as lazyEq,
+    force,
+    type Lazy,
     map as lazyMap,
     ord as lazyOrd,
     partialEq as lazyPartialEq,
     partialOrd as lazyPartialOrd,
 } from "./lazy.js";
-import { type Option, mapOr } from "./option.js";
+import { mapOr, type Option } from "./option.js";
 import type { Ordering } from "./ordering.js";
-import { type Seq, appendToHead, empty, viewL } from "./seq.js";
+import { appendToHead, empty, type Seq, viewL } from "./seq.js";
 import {
-    type Tuple,
     eq as tupleEq,
     map as tupleMap,
     ord as tupleOrd,
     partialEq as tuplePartialEq,
     partialOrd as tuplePartialOrd,
+    type Tuple,
 } from "./tuple.js";
 import { type Comonad, extend } from "./type-class/comonad.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
-import { type Monad, kleisli, liftM } from "./type-class/monad.js";
-import { type Ord, fromCmp } from "./type-class/ord.js";
-import { type PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
-import { type PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
+import { kleisli, liftM, type Monad } from "./type-class/monad.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
+import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
 import type { Representable } from "./type-class/representable.js";
-import { type Traversable, mapM as mapMTraversable } from "./type-class/traversable.js";
+import { mapM as mapMTraversable, type Traversable } from "./type-class/traversable.js";
 
 export interface CofreeHkt extends Hkt2 {
     readonly type: Cofree<this["arg2"], this["arg1"]>;

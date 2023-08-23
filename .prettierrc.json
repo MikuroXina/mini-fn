@@ -1,10 +1,6 @@
 {
-    "plugins": ["@trivago/prettier-plugin-sort-imports"],
     "arrowParens": "always",
     "printWidth": 100,
     "tabWidth": 4,
-    "trailingComma": "all",
-    "importOrder": ["^[./]"],
-    "importOrderSeparation": true,
-    "importOrderSortSpecifiers": true
+    "trailingComma": "all"
 }

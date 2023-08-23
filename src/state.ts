@@ -137,8 +137,7 @@ export const withState =
  */
 export const get =
     <S>(): State<S, S> =>
-    (state: S) =>
-        [state, state];
+    (state: S) => [state, state];
 /**
  * Creates a computation that sets the new state in the monad.
  *
@@ -147,8 +146,7 @@ export const get =
  */
 export const put =
     <S>(state: S): State<S, []> =>
-    () =>
-        [[], state];
+    () => [[], state];
 
 /**
  * Makes two computations into a product about the result type.
@@ -202,8 +200,7 @@ export const apply =
  */
 export const pure =
     <S, A>(a: A): State<S, A> =>
-    (s: S) =>
-        [a, s];
+    (s: S) => [a, s];
 /**
  * Maps and flattens the computation by `fn` over `State<S, _>`.
  *
