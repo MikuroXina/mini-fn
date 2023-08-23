@@ -1,3 +1,4 @@
+import type { Hkt1 } from "./hkt.js";
 import { isNone, map as mapOption, none, type Option, some } from "./option.js";
 import {
     deep,
@@ -16,6 +17,10 @@ import type { Tuple } from "./tuple.js";
  * The sequence of `A`, the homogenous data structure to store finite data. This is an alias of `FingerTree`.
  */
 export type Seq<A> = FingerTree<A>;
+
+export interface SeqHkt extends Hkt1 {
+    readonly type: Seq<this["arg1"]>;
+}
 
 export {
     appendBetween,
