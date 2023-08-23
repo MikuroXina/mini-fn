@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { type Cat, apply, cat, doT, flatMap, inspect, map, product } from "./cat.js";
+import { apply, type Cat, cat, doT, flatMap, inspect, map, product } from "./cat.js";
 import { monad, none, some } from "./option.js";
 
 test("doT", () => {

@@ -1,13 +1,13 @@
 import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
-import { type Lazy, force, defer as lazyDefer } from "./lazy.js";
-import { type Option, andThen } from "./option.js";
-import { type Ordering, andThen as thenWith } from "./ordering.js";
+import { defer as lazyDefer, force, type Lazy } from "./lazy.js";
+import { andThen, type Option } from "./option.js";
+import { andThen as thenWith, type Ordering } from "./ordering.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monoid } from "./type-class/monoid.js";
-import { type Ord, fromCmp } from "./type-class/ord.js";
-import { type PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
-import { type PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
+import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
 import type { Representable } from "./type-class/representable.js";
 import type { SemiGroup } from "./type-class/semi-group.js";
 import type { SemiGroupal } from "./type-class/semi-groupal.js";
@@ -47,8 +47,7 @@ export const ord = fromCmp(cmp);
  */
 export const make =
     <A>(a: A) =>
-    <B>(b: B): Tuple<A, B> =>
-        [a, b];
+    <B>(b: B): Tuple<A, B> => [a, b];
 
 /**
  * Gets the first element of the tuple.
@@ -105,8 +104,7 @@ export const swap = <A, B>([a, b]: Tuple<A, B>): Tuple<B, A> => [b, a];
  */
 export const map =
     <A, B>(f: (a: A) => B) =>
-    <C>([c, a]: Tuple<C, A>): Tuple<C, B> =>
-        [c, f(a)];
+    <C>([c, a]: Tuple<C, A>): Tuple<C, B> => [c, f(a)];
 /**
  * Applies the function in the tuple to another tuple.
  *
@@ -118,8 +116,7 @@ export const map =
 export const apply =
     <A>(sg: SemiGroup<A>) =>
     <T, U>([a1, f]: Tuple<A, (t: T) => U>) =>
-    ([a2, x]: Tuple<A, T>): Tuple<A, U> =>
-        [sg.combine(a1, a2), f(x)];
+    ([a2, x]: Tuple<A, T>): Tuple<A, U> => [sg.combine(a1, a2), f(x)];
 /**
  * Wraps the value into a tuple with monoid `A`.
  *
@@ -129,8 +126,7 @@ export const apply =
  */
 export const pure =
     <A>(monoid: Monoid<A>) =>
-    <B>(b: B): Tuple<A, B> =>
-        [monoid.identity, b];
+    <B>(b: B): Tuple<A, B> => [monoid.identity, b];
 /**
  * Binds the tuple to the function which returns a tuple.
  *
@@ -149,8 +145,7 @@ export const bind =
 
 export const extend =
     <A>(f: <B>(tuple: Tuple<A, B>) => B) =>
-    <B>(tuple: Tuple<A, B>): Tuple<A, B> =>
-        [tuple[0], f(tuple)];
+    <B>(tuple: Tuple<A, B>): Tuple<A, B> => [tuple[0], f(tuple)];
 /**
  * Extracts the value which has a type of the second type parameter `B`. It is equivalent to `second`.
  */
@@ -204,8 +199,7 @@ export const traverse =
  */
 export const mapD =
     <A, B>(f: (a: A) => B) =>
-    ([a1, a2]: Tuple<A, A>): Tuple<B, B> =>
-        [f(a1), f(a2)];
+    ([a1, a2]: Tuple<A, A>): Tuple<B, B> => [f(a1), f(a2)];
 
 export interface TupleHkt extends Hkt2 {
     readonly type: Tuple<this["arg2"], this["arg1"]>;
@@ -232,6 +226,6 @@ export const functorD: Functor<TupleDHkt> = { map: mapD };
  */
 export const representableD: Representable<TupleDHkt, number> = {
     ...functorD,
-    index: (tuple) => (index) => index == 0 ? tuple[0] : tuple[1],
+    index: (tuple) => (index) => (index == 0 ? tuple[0] : tuple[1]),
     tabulate: (get) => [get(0), get(1)],
 };

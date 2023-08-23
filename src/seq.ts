@@ -1,13 +1,13 @@
-import { type Option, isNone, map as mapOption, none, some } from "./option.js";
+import { isNone, map as mapOption, none, type Option, some } from "./option.js";
 import {
-    type Digit,
-    type FingerTree,
-    type Node,
     deep,
+    type Digit,
     empty,
+    type FingerTree,
     fromReduce,
     isEmpty,
     isSingle,
+    type Node,
     reduceDigit,
 } from "./seq/finger-tree.js";
 import type { Tuple } from "./tuple.js";

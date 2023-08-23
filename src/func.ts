@@ -207,8 +207,7 @@ export const fnArrow: Arrow<FnHkt> = {
     split:
         (arrow1) =>
         (arrow2) =>
-        ([b1, b2]) =>
-            [arrow1(b1), arrow2(b2)],
+        ([b1, b2]) => [arrow1(b1), arrow2(b2)],
 };
 
 /**

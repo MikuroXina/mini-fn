@@ -1,16 +1,16 @@
 import * as Cat from "./cat.js";
 import type { Get1, Hkt1 } from "./hkt.js";
 import * as Option from "./option.js";
-import { type Ordering, andThen } from "./ordering.js";
+import { andThen, type Ordering } from "./ordering.js";
 import type { Tuple } from "./tuple.js";
 import { type Applicative, liftA2 } from "./type-class/applicative.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
-import { type Ord, fromCmp } from "./type-class/ord.js";
-import { type PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
-import { type PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
+import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
 import type { Reduce } from "./type-class/reduce.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 import type { Traversable } from "./type-class/traversable.js";
@@ -853,8 +853,7 @@ export const drop =
  */
 export const splitAt =
     (index: number) =>
-    <T>(list: List<T>): [List<T>, List<T>] =>
-        [take(index)(list), drop(index)(list)];
+    <T>(list: List<T>): [List<T>, List<T>] => [take(index)(list), drop(index)(list)];
 
 /**
  * Repeats `value` at `count` times as a list.
@@ -992,7 +991,7 @@ export const dropWhile =
  * @returns The list dropped the matched suffix.
  */
 export const dropWhileEnd = <T>(pred: (t: T) => boolean): ((list: List<T>) => List<T>) =>
-    foldR<T, List<T>>((x) => (xs) => pred(x) && isNull(xs) ? empty() : appendToHead(x)(xs))(
+    foldR<T, List<T>>((x) => (xs) => (pred(x) && isNull(xs) ? empty() : appendToHead(x)(xs)))(
         empty(),
     );
 
@@ -1125,8 +1124,7 @@ export const tupleCartesian =
     <B>(ys: List<B>): List<Tuple<A, B>> =>
         cartesianProduct(
             (a: A) =>
-                (b: B): Tuple<A, B> =>
-                    [a, b],
+                (b: B): Tuple<A, B> => [a, b],
         )(xs)(ys);
 /**
  * Applies the parameters to the functions with all combinations.

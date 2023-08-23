@@ -25,7 +25,7 @@ export const bindT =
     ): (<A extends object>(ma: Get1<S, A>) => Get1<S, Append<A, NK, B>>) =>
         m.flatMap(
             <A extends object>(a: A): Get1<S, Append<A, NK, B>> =>
-                m.map((b: B): Append<A, NK, B> => ({ ...a, [name]: b } as Append<A, NK, B>))(f()),
+                m.map((b: B): Append<A, NK, B> => ({ ...a, [name]: b }) as Append<A, NK, B>)(f()),
         );
 
 export const bind = bindT(idMonad);

@@ -12,15 +12,15 @@
  * @packageDocumentation
  */
 import type { Get1, Hkt1 } from "./hkt.js";
-import { type Ordering, equal, greater, less } from "./ordering.js";
-import { type Result, err, isOk, ok } from "./result.js";
+import { equal, greater, less, type Ordering } from "./ordering.js";
+import { err, isOk, ok, type Result } from "./result.js";
 import type { Applicative } from "./type-class/applicative.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
-import { type Ord, fromCmp } from "./type-class/ord.js";
-import { type PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
-import { type PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
+import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 import type { Traversable } from "./type-class/traversable.js";
 

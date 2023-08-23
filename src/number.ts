@@ -1,5 +1,5 @@
-import { type Option, none, some } from "./option.js";
-import { type Ordering, equal, greater, less } from "./ordering.js";
+import { none, type Option, some } from "./option.js";
+import { equal, greater, less, type Ordering } from "./ordering.js";
 import {
     type AbelianGroup,
     type AbelianGroupExceptZero,

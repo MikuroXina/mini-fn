@@ -53,7 +53,7 @@ export const reverse = <O extends Ordering>(order: O): Reversed<O> => (0 - order
  * @param first - The first order.
  * @returns The transited order.
  */
-export const and = (second: Ordering) => (first: Ordering) => first === equal ? second : first;
+export const and = (second: Ordering) => (first: Ordering) => (first === equal ? second : first);
 /**
  * Transits two `Ordering`s. Returns `secondFn()` if `first` is `equal`, otherwise returns `first`. It is useful to implement `PartialOrd` for some object type. The order of arguments is reversed because of that it is useful for partial applying.
  *

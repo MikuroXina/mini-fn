@@ -1,13 +1,13 @@
 import type { Get1, Hkt2 } from "./hkt.js";
-import { type Option, isSome, none, toArray as optionToArray, some } from "./option.js";
-import { type Ordering, greater, less } from "./ordering.js";
+import { isSome, none, type Option, some, toArray as optionToArray } from "./option.js";
+import { greater, less, type Ordering } from "./ordering.js";
 import type { Applicative } from "./type-class/applicative.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
-import { type Ord, fromCmp } from "./type-class/ord.js";
-import { type PartialEq, fromPartialEquality } from "./type-class/partial-eq.js";
-import { type PartialOrd, fromPartialCmp } from "./type-class/partial-ord.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
+import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 import type { Traversable } from "./type-class/traversable.js";
 

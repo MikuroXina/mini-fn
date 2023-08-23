@@ -55,7 +55,7 @@ import {
     zip4,
     zipWith,
 } from "./list.js";
-import { type Option, none, map as optionMap, some } from "./option.js";
+import { map as optionMap, none, type Option, some } from "./option.js";
 import { strict } from "./type-class/partial-eq.js";
 
 test("isNull", () => {

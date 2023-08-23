@@ -69,24 +69,24 @@ export const bifunctor = <T>(
 });
 
 /**
- * @param group - The instance of `Group` for `A`.
+ * @param g - The instance of `Group` for `A`.
  * @returns The instance of `Group` for `Dual<A, B>`.
  */
-export const group = <A, B>(group: Group<A>): Group<Dual<A, B>> => ({
-    combine: (l, r) => (b) => group.combine(l(b), r(b)),
-    identity: () => group.identity,
-    invert: (g) => (b) => group.invert(g(b)),
+export const group = <A, B>(g: Group<A>): Group<Dual<A, B>> => ({
+    combine: (l, r) => (b) => g.combine(l(b), r(b)),
+    identity: () => g.identity,
+    invert: (f) => (b) => g.invert(f(b)),
     [semiGroupSymbol]: true,
 });
 
 /**
- * @param group - The instance of `AbelianGroup` for `A`.
+ * @param g - The instance of `AbelianGroup` for `A`.
  * @returns The instance of `AbelianGroup` for `Dual<A, B>`.
  */
-export const abelianGroup = <A, B>(group: AbelianGroup<B>): AbelianGroup<Fn<A, B>> => ({
-    combine: (l, r) => (a) => group.combine(l(a), r(a)),
-    identity: () => group.identity,
-    invert: (g) => (a) => group.invert(g(a)),
+export const abelianGroup = <A, B>(g: AbelianGroup<B>): AbelianGroup<Fn<A, B>> => ({
+    combine: (l, r) => (a) => g.combine(l(a), r(a)),
+    identity: () => g.identity,
+    invert: (f) => (a) => g.invert(f(a)),
     [semiGroupSymbol]: true,
     [abelSymbol]: true,
 });

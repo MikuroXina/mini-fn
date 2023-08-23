@@ -1,4 +1,4 @@
-import { type Option, map, some, unwrap } from "../option.js";
+import { map, type Option, some, unwrap } from "../option.js";
 import type { Monoid } from "./monoid.js";
 import { semiGroupSymbol } from "./semi-group.js";
 
