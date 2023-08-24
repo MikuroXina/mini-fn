@@ -1,5 +1,4 @@
-import type { Get2, Hkt1, Instance } from "src/hkt.js";
-
+import type { Get2, Hkt1, Instance } from "../hkt.js";
 import type { Profunctor } from "./profunctor.js";
 
 /**
