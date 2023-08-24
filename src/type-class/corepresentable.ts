@@ -1,4 +1,4 @@
-import type { Get2, Hkt1 } from "../hkt.js";
+import type { Get2, Hkt0 } from "../hkt.js";
 import type { Profunctor } from "./profunctor.js";
 
 /**
@@ -8,7 +8,7 @@ export interface HktCorep {
     readonly corep: unknown; // Representation type
 }
 
-export type ApplyCorep<F, R> = F extends Hkt1 ? F & { readonly corep: R } : never;
+export type ApplyCorep<F, R> = F extends Hkt0 ? F & { readonly corep: R } : never;
 
 export type GetCorep<F> = F extends HktCorep ? F["corep"] : never;
 
