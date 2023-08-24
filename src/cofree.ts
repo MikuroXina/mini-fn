@@ -29,7 +29,7 @@ import { kleisli, liftM, type Monad } from "./type-class/monad.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
 import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
-import type { Representable } from "./type-class/representable.js";
+import type { ApplyRep, GetRep, Representable } from "./type-class/representable.js";
 import { mapM as mapMTraversable, type Traversable } from "./type-class/traversable.js";
 
 export interface CofreeHkt extends Hkt2 {
@@ -321,18 +321,18 @@ export const comonadCofree = <F>(f: Functor<F>): ComonadCofree<F, Apply2Only<Cof
  * @param rep - The instance of `Representable` for `F`.
  * @returns The instance of `Representable` for `Cofree<F, _>`.
  */
-export const representable = <F, Rep>(
-    rep: Representable<F, Rep>,
-): Representable<Apply2Only<CofreeHkt, F>, Seq<Rep>> => {
+export const representable = <F>(
+    rep: Representable<F>,
+): Representable<ApplyRep<Apply2Only<CofreeHkt, F>, Seq<GetRep<F>>>> => {
     const index =
         <A>(cofree: Cofree<F, A>) =>
-        (key: Seq<Rep>): A => {
+        (key: Seq<GetRep<F>>): A => {
             const [a, as] = force(cofree);
-            return mapOr(a)(([k, ks]: Tuple<Rep, Seq<Rep>>) => index(rep.index(as)(k))(ks))(
-                viewL(key),
-            );
+            return mapOr(a)(([k, ks]: Tuple<GetRep<F>, Seq<GetRep<F>>>) =>
+                index(rep.index(as)(k))(ks),
+            )(viewL(key));
         };
-    const tabulate = <A>(f: (key: Seq<Rep>) => A): Cofree<F, A> =>
+    const tabulate = <A>(f: (key: Seq<GetRep<F>>) => A): Cofree<F, A> =>
         make(f(empty))(rep.tabulate((k) => tabulate(pipe(appendToHead(k))(f))));
     return {
         map: map(rep),

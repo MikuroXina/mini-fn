@@ -4,11 +4,11 @@ import { first, second, type Tuple } from "../tuple.js";
 import { fanOut } from "./arrow.js";
 import { type Functor, replace } from "./functor.js";
 import type { Profunctor } from "./profunctor.js";
-import type { Representable } from "./representable.js";
+import type { ApplyRep, Representable } from "./representable.js";
 
 export interface Adjunction<F, U, Rep> {
     readonly functor: Functor<F>;
-    readonly representable: Representable<U, Rep>;
+    readonly representable: Representable<ApplyRep<U, Rep>>;
     readonly unit: <A>(a: A) => Get1<U, Get1<F, A>>;
     readonly counit: <A>(ufa: Get1<F, Get1<U, A>>) => A;
 }

@@ -4,7 +4,7 @@ import type { Tuple } from "./tuple.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Profunctor } from "./type-class/profunctor.js";
-import type { Representable } from "./type-class/representable.js";
+import type { ApplyRep, Representable } from "./type-class/representable.js";
 
 /**
  * The reader monad transformer which expresses the environment for asking a record `R` and returning the computation `A` in `M`.
@@ -250,7 +250,7 @@ export const profunctor: Profunctor<ReaderHkt> = { diMap };
 /**
  * The instance of `Representable` for `Reader<R, _>` about computation.
  */
-export const representableId = <R>(): Representable<Apply2Only<ReaderHkt, R>, R> => ({
+export const representableId = <R>(): Representable<ApplyRep<Apply2Only<ReaderHkt, R>, R>> => ({
     ...functor<R>(),
     index: id,
     tabulate: id,
