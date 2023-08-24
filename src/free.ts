@@ -22,6 +22,7 @@ import { kleisli, type Monad } from "./type-class/monad.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
 import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
+import type { ApplyRep, GetRep } from "./type-class/representable.js";
 import type { Traversable } from "./type-class/traversable.js";
 
 const pureNominal = Symbol("FreePure");
@@ -429,9 +430,9 @@ export const monad = <F>(f: Functor<F>): Monad<Apply2Only<FreeHkt, F>> => ({
 /**
  * The instance of `Adjunction` for `Free<F, _>` against to `Cofree<U, _>`.
  */
-export const adjunction = <F, U, Rep>(
-    adj: Adjunction<F, U, Rep>,
-): Adjunction<Apply2Only<FreeHkt, F>, Apply2Only<CofreeHkt, U>, Seq<Rep>> => ({
+export const adjunction = <F, U>(
+    adj: Adjunction<F, U>,
+): Adjunction<Apply2Only<FreeHkt, F>, ApplyRep<Apply2Only<CofreeHkt, U>, Seq<GetRep<U>>>> => ({
     functor: functor(adj.functor),
     representable: representable(adj.representable),
     unit: <A>(a: A) =>

@@ -90,7 +90,7 @@ export const representable: Representable<ApplyRep<IdentityHkt, []>> = {
 /**
  * The instance of `Adjunction` for `Identity` against to itself with `[]` representation..
  */
-export const adjunction: Adjunction<IdentityHkt, IdentityHkt, []> = {
+export const adjunction: Adjunction<IdentityHkt, ApplyRep<IdentityHkt, []>> = {
     functor,
     representable,
     unit: id,
