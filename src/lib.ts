@@ -39,6 +39,7 @@ export * as MonadWriter from "./state/monad.js";
 export * as Store from "./store.js";
 export * as ComonadStore from "./store/comonad.js";
 export * as String from "./string.js";
+export * as Tagged from "./tagged.js";
 export * as These from "./these.js";
 export * as Trans from "./trans.js";
 export * as Tuple from "./tuple.js";
