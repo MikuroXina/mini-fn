@@ -5,6 +5,7 @@ import type { Functor } from "./functor.js";
 import type { Monoid } from "./monoid.js";
 import type { Profunctor } from "./profunctor.js";
 import type { SemiGroup } from "./semi-group.js";
+import type { Strong } from "./strong.js";
 
 /**
  * An HKT extension to provide associated type `Rep` for `Representable`.
@@ -25,7 +26,7 @@ export type GetRep<F> = F extends HktRep ? F["rep"] : never;
  * - `compose(index)(tabulate) == id`,
  * - `compose(tabulate)(index) == id`.
  */
-export interface Representable<F> extends Functor<F> {
+export interface Representable<F> extends Functor<F>, Strong<F> {
     readonly index: <T>(f: Get1<F, T>) => (rep: GetRep<F>) => T;
     readonly tabulate: <T>(f: (rep: GetRep<F>) => T) => Get1<F, T>;
 }
