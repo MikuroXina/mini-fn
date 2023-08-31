@@ -1,7 +1,6 @@
 import type { FnHkt } from "./func.js";
 import type { Get1, Get2, Hkt5 } from "./hkt.js";
 import type { Applicative } from "./type-class/applicative.js";
-import type { Choice } from "./type-class/choice.js";
 import type { Conjoined } from "./type-class/conjoined.js";
 import { type Functor } from "./type-class/functor.js";
 import type { Indexable } from "./type-class/indexable.js";
@@ -9,6 +8,8 @@ import { type Profunctor } from "./type-class/profunctor.js";
 import type { Contravariant } from "./type-class/variance.js";
 
 export * as Getting from "./optical/getting.js";
+export * as Market from "./optical/market.js";
+export * as Prism from "./optical/prism.js";
 export * as Review from "./optical/review.js";
 export * as Setter from "./optical/setter.js";
 
@@ -78,9 +79,6 @@ export type IndexedGetter<I, S, A> = <P, F>(
 export type IndexPreservingGetter<S, A> = <P, F>(
     f: Conjoined<P> & Contravariant<F> & Functor<F>,
 ) => Optic<P, F, S, S, A, A>;
-
-export type Prism<S, T, A, B> = <P, F>(f: Choice<P> & Applicative<F>) => Optic<P, F, S, T, A, B>;
-export type PrismSimple<S, A> = Prism<S, S, A, A>;
 
 export type Fold<S, A> = <F>(f: Contravariant<F> & Applicative<F>) => Optic<FnHkt, F, S, S, A, A>;
 export type IndexedFold<I, S, A> = <P, F>(
