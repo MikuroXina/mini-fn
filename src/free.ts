@@ -1,20 +1,8 @@
-import { type Cofree, type CofreeHkt, extract, make, representable, unwrap } from "./cofree.js";
-import { pipe } from "./func.js";
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import * as Option from "./option.js";
 import { greater, less, type Ordering } from "./ordering.js";
 import * as Result from "./result.js";
-import type { Seq } from "./seq.js";
 import type { Tuple } from "./tuple.js";
-import {
-    type Adjunction,
-    extractL,
-    indexAdjunction,
-    leftAdjunct,
-    rightAdjunct,
-    tabulateAdjunction,
-    unsplitL,
-} from "./type-class/adjunction.js";
 import type { Applicative } from "./type-class/applicative.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
@@ -22,7 +10,6 @@ import { kleisli, type Monad } from "./type-class/monad.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
 import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
-import type { ApplyRep, GetRep } from "./type-class/representable.js";
 import type { Traversable } from "./type-class/traversable.js";
 
 const pureNominal = Symbol("FreePure");
@@ -425,33 +412,4 @@ export const monad = <F>(f: Functor<F>): Monad<Apply2Only<FreeHkt, F>> => ({
     map: mapT(f),
     flatMap: flatMapT(f),
     apply: applyT(f),
-});
-
-/**
- * The instance of `Adjunction` for `Free<F, _>` against to `Cofree<U, _>`.
- */
-export const adjunction = <F, U>(
-    adj: Adjunction<F, U>,
-): Adjunction<Apply2Only<FreeHkt, F>, ApplyRep<Apply2Only<CofreeHkt, U>, Seq<GetRep<U>>>> => ({
-    functor: functor(adj.functor),
-    representable: representable(adj.representable),
-    unit: <A>(a: A) =>
-        make(pure(a))(
-            tabulateAdjunction(adj)((k) =>
-                leftAdjunct(adjunction(adj))(
-                    pipe((x) => unsplitL(adj.functor)(x)(k))(
-                        node as (f: Get1<F, Free<F, A>>) => Free<F, A>,
-                    ),
-                )(a),
-            ),
-        ),
-    counit: <A>(free: Free<F, Cofree<U, A>>): A => {
-        if (isPure(free)) {
-            return extract(free[1]);
-        }
-        const extracted = extractL(adj)(free[1]);
-        return rightAdjunct(adjunction(adj))<Cofree<U, A>, A>(
-            (cofree: Cofree<U, A>): Cofree<U, A> => indexAdjunction(adj)(unwrap(cofree))(free[1]),
-        )(extracted);
-    },
 });
