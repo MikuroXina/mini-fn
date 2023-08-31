@@ -2,6 +2,7 @@ import type { Get1, Hkt2 } from "./hkt.js";
 import { isSome, none, type Option, some, toArray as optionToArray } from "./option.js";
 import { greater, less, type Ordering } from "./ordering.js";
 import type { Applicative } from "./type-class/applicative.js";
+import type { Bifunctor } from "./type-class/bifunctor.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
@@ -298,6 +299,19 @@ export const unwrapOrElse =
         isOk(res) ? res[1] : fallback(res[1]);
 
 /**
+ * Maps two types on same time by two mappers.
+ *
+ * @param mapE - The function maps `Ok` value.
+ * @param mapT - The function maps `Err` value.
+ * @returns The mapped value.
+ */
+export const biMap =
+    <E, D>(mapE: (err: E) => D) =>
+    <T, U>(mapT: (ok: T) => U) =>
+    (res: Result<E, T>): Result<D, U> =>
+        isOk(res) ? ok(mapT(res[1])) : err(mapE(res[1]));
+
+/**
  * Transforms `Result<E, Option<T>>` into `Option<Result<E, T>>` as:
  *
  * - `ok(some(x))` will be mapped to `some(ok(x))`
@@ -379,6 +393,12 @@ export const monoid = <E, T>(error: E): Monoid<Result<E, T>> => ({
     [semiGroupSymbol]: true,
 });
 
+export const applicative: Applicative<ResultHkt> = {
+    pure: ok,
+    map,
+    apply,
+};
+
 /**
  * The instance of `Monad` for `Result<E, _>`.
  */
@@ -397,3 +417,8 @@ export const traversable: Traversable<ResultHkt> = {
     foldR,
     traverse,
 };
+
+/**
+ * The instance of `Bifunctor` for `Result<_, _>`.
+ */
+export const bifunctor: Bifunctor<ResultHkt> = { biMap };

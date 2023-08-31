@@ -1,11 +1,9 @@
-import { constant, flip, id } from "./func.js";
+import { flip, id } from "./func.js";
 import type { Hkt1 } from "./hkt.js";
-import type { Adjunction } from "./type-class/adjunction.js";
 import type { Comonad } from "./type-class/comonad.js";
 import type { Distributive } from "./type-class/distributive.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
-import type { ApplyRep, Representable } from "./type-class/representable.js";
 import type { Settable } from "./type-class/settable.js";
 import type { Traversable } from "./type-class/traversable.js";
 
@@ -76,23 +74,4 @@ export const settable: Settable<IdentityHkt> = {
     ...monad,
     ...distributive,
     untainted: id,
-};
-
-/**
- * The instance of `Representable` for `Identity` with `[]` representation.
- */
-export const representable: Representable<ApplyRep<IdentityHkt, []>> = {
-    ...functor,
-    index: constant,
-    tabulate: (f) => f([]),
-};
-
-/**
- * The instance of `Adjunction` for `Identity` against to itself with `[]` representation..
- */
-export const adjunction: Adjunction<IdentityHkt, ApplyRep<IdentityHkt, []>> = {
-    functor,
-    representable,
-    unit: id,
-    counit: id,
 };

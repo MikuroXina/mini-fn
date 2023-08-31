@@ -1,5 +1,5 @@
 import type { ComonadCofree } from "./cofree/comonad.js";
-import { compose, pipe } from "./func.js";
+import { compose } from "./func.js";
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import {
     defer as lazyDefer,
@@ -11,9 +11,8 @@ import {
     partialEq as lazyPartialEq,
     partialOrd as lazyPartialOrd,
 } from "./lazy.js";
-import { mapOr, type Option } from "./option.js";
+import { type Option } from "./option.js";
 import type { Ordering } from "./ordering.js";
-import { appendToHead, empty, type Seq, viewL } from "./seq.js";
 import {
     eq as tupleEq,
     map as tupleMap,
@@ -29,7 +28,6 @@ import { kleisli, liftM, type Monad } from "./type-class/monad.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
 import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
-import type { ApplyRep, GetRep, Representable } from "./type-class/representable.js";
 import { mapM as mapMTraversable, type Traversable } from "./type-class/traversable.js";
 
 export interface CofreeHkt extends Hkt2 {
@@ -314,29 +312,3 @@ export const comonadCofree = <F>(f: Functor<F>): ComonadCofree<F, Apply2Only<Cof
     functor: f,
     unwrap,
 });
-
-/**
- * The instance of `Representable` for `Cofree<F, _>`, requires the `Representable` for `F`.
- *
- * @param rep - The instance of `Representable` for `F`.
- * @returns The instance of `Representable` for `Cofree<F, _>`.
- */
-export const representable = <F>(
-    rep: Representable<F>,
-): Representable<ApplyRep<Apply2Only<CofreeHkt, F>, Seq<GetRep<F>>>> => {
-    const index =
-        <A>(cofree: Cofree<F, A>) =>
-        (key: Seq<GetRep<F>>): A => {
-            const [a, as] = force(cofree);
-            return mapOr(a)(([k, ks]: Tuple<GetRep<F>, Seq<GetRep<F>>>) =>
-                index(rep.index(as)(k))(ks),
-            )(viewL(key));
-        };
-    const tabulate = <A>(f: (key: Seq<GetRep<F>>) => A): Cofree<F, A> =>
-        make(f(empty))(rep.tabulate((k) => tabulate(pipe(appendToHead(k))(f))));
-    return {
-        map: map(rep),
-        index,
-        tabulate,
-    };
-};

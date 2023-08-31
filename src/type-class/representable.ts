@@ -1,22 +1,18 @@
-import { compose, constant, id } from "../func.js";
-import type { Get1, Get2, Hkt0 } from "../hkt.js";
-import { applyWeak, functor as functorReader } from "../reader.js";
+import type { Get1, Get2, Hkt0, Hkt1 } from "../hkt.js";
+import type { Iso } from "../optical.js";
 import type { Functor } from "./functor.js";
-import type { Monoid } from "./monoid.js";
-import type { Profunctor } from "./profunctor.js";
-import type { SemiGroup } from "./semi-group.js";
 import type { Strong } from "./strong.js";
 
 /**
  * An HKT extension to provide associated type `Rep` for `Representable`.
  */
 export interface HktRep {
-    readonly rep: unknown; // Representation type
+    readonly rep: Hkt1; // Representation type
 }
 
-export type ApplyRep<F, R> = F extends Hkt0 ? F & { readonly rep: R } : never;
-
-export type GetRep<F> = F extends HktRep ? F["rep"] : never;
+export type ApplyRep<P, H> = P extends Hkt0 ? P & { readonly rep: H } : never;
+export type Rep<P> = P extends HktRep ? P["rep"] : never;
+export type GetRep<P, T> = Get1<Rep<P>, T>;
 
 /**
  * `F` should extend `HktRep` because functions below require `HktRep`.
@@ -26,92 +22,27 @@ export type GetRep<F> = F extends HktRep ? F["rep"] : never;
  * - `compose(index)(tabulate) == id`,
  * - `compose(tabulate)(index) == id`.
  */
-export interface Representable<F> extends Functor<F>, Strong<F> {
-    readonly index: <T>(f: Get1<F, T>) => (rep: GetRep<F>) => T;
-    readonly tabulate: <T>(f: (rep: GetRep<F>) => T) => Get1<F, T>;
+export interface Representable<P> extends Strong<P> {
+    readonly functor: Functor<Rep<P>>;
+    readonly index: <T, U>(f: Get2<P, T, U>) => (rep: T) => GetRep<P, U>;
+    readonly tabulate: <T, U>(f: (rep: T) => GetRep<P, U>) => Get2<P, T, U>;
 }
 
+export const first =
+    <P>(p: Representable<P>) =>
+    <A, B, C>(pab: Get2<P, A, B>): Get2<P, [A, C], [B, C]> =>
+        p.tabulate(([a, c]) => p.functor.map((b: B) => [b, c])(p.index(pab)(a)));
+
+export const second =
+    <P>(p: Representable<P>) =>
+    <A, B, C>(pab: Get2<P, A, B>): Get2<P, [C, A], [C, B]> =>
+        p.tabulate(([c, a]) => p.functor.map((b: B) => [c, b])(p.index(pab)(a)));
+
 export const tabulated =
-    <F, G, P, H>(
-        f: Representable<F>,
-        g: Representable<G>,
-        pro: Profunctor<P>,
-        functor: Functor<H>,
-    ) =>
-    <A, B>(p: Get2<P, Get1<F, A>, Get1<H, Get1<G, B>>>) =>
-        pro.diMap(f.tabulate<A>)(functor.map(g.index))(p);
-
-export const map =
-    <F>(f: Representable<F>) =>
-    <A, B>(fn: (a: A) => B): ((fa: Get1<F, A>) => Get1<F, B>) =>
-        compose(f.tabulate<B>)(compose(functorReader<GetRep<F>>().map(fn))(f.index<A>));
-
-export const pure =
-    <F>(f: Representable<F>) =>
-    <A>(a: A): Get1<F, A> =>
-        f.tabulate(constant(a));
-
-export const bind =
-    <F>(f: Representable<F>) =>
-    <A>(m: Get1<F, A>) =>
-    <B>(fn: (a: A) => Get1<F, B>): Get1<F, B> =>
-        f.tabulate((a) => f.index(fn(f.index(m)(a)))(a));
-
-export const ask = <F>(f: Representable<F>): Get1<F, GetRep<F>> => f.tabulate(id);
-
-export const local =
-    <F>(f: Representable<F>) =>
-    (fn: (rep: GetRep<F>) => GetRep<F>) =>
-    <A>(m: Get1<F, A>): Get1<F, A> =>
-        f.tabulate(compose(f.index(m))(fn));
-
-export const apply =
-    <F>(f: Representable<F>) =>
-    <A, B>(ab: Get1<F, (a: A) => B>) =>
-    (a: Get1<F, A>): Get1<F, B> =>
-        f.tabulate(applyWeak(f.index(ab))(f.index(a)));
-
-export const distribute =
-    <F, W>(f: Representable<F>, functor: Functor<W>) =>
-    <A>(wf: Get1<W, Get1<F, A>>): Get1<F, Get1<W, A>> =>
-        f.tabulate((rep) => functor.map((fa: Get1<F, A>) => f.index(fa)(rep))(wf));
-
-export const collect =
-    <F, W>(f: Representable<F>, functor: Functor<W>) =>
-    <A, B>(ab: (a: A) => Get1<F, B>) =>
-    (wa: Get1<W, A>): Get1<F, Get1<W, B>> =>
-        f.tabulate((rep) => functor.map(compose((fb: Get1<F, B>) => f.index(fb)(rep))(ab))(wa));
-
-export const duplicateBy =
-    <F>(f: Representable<F>) =>
-    (plus: (a: GetRep<F>) => (b: GetRep<F>) => GetRep<F>) =>
-    <A>(w: Get1<F, A>): Get1<F, Get1<F, A>> =>
-        f.tabulate((m) => f.tabulate(compose(f.index(w))(plus(m))));
-
-export const extendBy =
-    <F>(f: Representable<F>) =>
-    (plus: (a: GetRep<F>) => (b: GetRep<F>) => GetRep<F>) =>
-    <A, B>(ab: (fa: Get1<F, A>) => B) =>
-    (w: Get1<F, A>): Get1<F, B> =>
-        f.tabulate((m) => ab(f.tabulate(compose(f.index(w))(plus(m)))));
-
-export const extractBy =
-    <F>(f: Representable<F>) =>
-    (rep: GetRep<F>) =>
-    <A>(fa: Get1<F, A>): A =>
-        f.index(fa)(rep);
-
-export const duplicated = <F>(f: Representable<F>, semiGroup: SemiGroup<GetRep<F>>) =>
-    duplicateBy(f)((l) => (r) => semiGroup.combine(l, r));
-
-export const extended = <F>(f: Representable<F>, semiGroup: SemiGroup<GetRep<F>>) =>
-    extendBy(f)((l) => (r) => semiGroup.combine(l, r));
-
-export const duplicate = <F>(f: Representable<F>, monoid: Monoid<GetRep<F>>) =>
-    duplicateBy(f)((l) => (r) => monoid.combine(l, r));
-
-export const extend = <F>(f: Representable<F>, monoid: Monoid<GetRep<F>>) =>
-    extendBy(f)((l) => (r) => monoid.combine(l, r));
-
-export const extract = <F>(f: Representable<F>, monoid: Monoid<GetRep<F>>) =>
-    extractBy(f)(monoid.identity);
+    <P, Q, S, T, A, B>(
+        p: Representable<P>,
+        q: Representable<Q>,
+    ): Iso<(s: S) => GetRep<P, T>, (b: B) => GetRep<Q, A>, Get2<P, S, T>, Get2<Q, B, A>> =>
+    (functorProfunctor) =>
+    (paFb) =>
+        functorProfunctor.diMap(p.tabulate<S, T>)(functorProfunctor.map(q.index<B, A>))(paFb);

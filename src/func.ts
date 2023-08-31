@@ -6,7 +6,6 @@ import type { Arrow } from "./type-class/arrow.js";
 import type { Functor } from "./type-class/functor.js";
 import { type Group } from "./type-class/group.js";
 import type { Monad } from "./type-class/monad.js";
-import type { ApplyRep, Representable } from "./type-class/representable.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 /**
@@ -186,15 +185,6 @@ export const monadReader = <R>(): MonadReader<R, Apply2Only<FnHkt, R>> => ({
     ...monad(),
     ask: () => id,
     local: pipe,
-});
-
-/**
- * The instance of `Representable` for `Fn<E, _>`.
- */
-export const representable = <E>(): Representable<ApplyRep<Apply2Only<FnHkt, E>, E>> => ({
-    map: compose,
-    index: id,
-    tabulate: id,
 });
 
 /**
