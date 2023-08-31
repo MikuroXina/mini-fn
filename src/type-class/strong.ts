@@ -23,3 +23,8 @@ export const fanOut =
         return <C>(funcC: Get2<S, A, C>): Get2<S, A, [B, C]> =>
             cat.compose(splitSC(funcC))(rightMap(str)((a: A): [A, A] => [a, a])(cat.identity()));
     };
+
+export interface Costrong<S> {
+    readonly unFirst: <A, B, C>(m: Get2<S, [A, C], [B, C]>) => Get2<S, A, B>;
+    readonly unSecond: <A, B, C>(m: Get2<S, [C, A], [C, B]>) => Get2<S, A, B>;
+}

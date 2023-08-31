@@ -8,7 +8,6 @@ import type { Monoid } from "./type-class/monoid.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
 import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
-import type { Representable } from "./type-class/representable.js";
 import type { SemiGroup } from "./type-class/semi-group.js";
 import type { SemiGroupal } from "./type-class/semi-groupal.js";
 
@@ -218,14 +217,3 @@ export interface TupleDHkt extends Hkt1 {
  * The instance of `Functor` for `Tuple<_, _>`.
  */
 export const functorD: Functor<TupleDHkt> = { map: mapD };
-
-/**
- * The instance of `Representable` for `Tuple` about indexing with `number`.
- *
- * Accessing to `0` will return the first element, otherwise return the second element.
- */
-export const representableD: Representable<TupleDHkt, number> = {
-    ...functorD,
-    index: (tuple) => (index) => (index == 0 ? tuple[0] : tuple[1]),
-    tabulate: (get) => [get(0), get(1)],
-};

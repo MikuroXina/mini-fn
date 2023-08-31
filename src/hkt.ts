@@ -28,6 +28,12 @@ export interface Hkt3 extends Hkt2 {
 export interface Hkt4 extends Hkt3 {
     readonly arg4: unknown;
 }
+/**
+ * Type of order 5. `arg5 -> arg4 -> arg3 -> arg2 -> arg1 -> *`.
+ */
+export interface Hkt5 extends Hkt4 {
+    readonly arg5: unknown;
+}
 
 /**
  * Applies the first type parameter to HKT.
@@ -73,6 +79,18 @@ export type Apply4Only<S, A4> = S extends Hkt4
  * Applies the first, second, third and fourth type parameter to HKT.
  */
 export type Apply4<S, A1, A2, A3, A4> = Apply3<S, A1, A2, A3> & Apply4Only<S, A4>;
+/**
+ * Applies the fifth type parameter to HKT.
+ */
+export type Apply5Only<S, A5> = S extends Hkt5
+    ? S & {
+          readonly arg4: A5;
+      }
+    : never;
+/**
+ * Applies the first, second, third, fourth and fifth type parameter to HKT.
+ */
+export type Apply5<S, A1, A2, A3, A4, A5> = Apply4<S, A1, A2, A3, A4> & Apply5Only<S, A5>;
 
 /**
  * Gets the applied type of HKT.
@@ -95,3 +113,7 @@ export type Get3<S, A3, A2, A1> = Instance<Apply3<S, A1, A2, A3>>;
  * Applies four type parameters and gets the applied type of HKT.
  */
 export type Get4<S, A4, A3, A2, A1> = Instance<Apply4<S, A1, A2, A3, A4>>;
+/**
+ * Applies five type parameters and gets the applied type of HKT.
+ */
+export type Get5<S, A5, A4, A3, A2, A1> = Instance<Apply5<S, A1, A2, A3, A4, A5>>;

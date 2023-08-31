@@ -1,10 +1,9 @@
 import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
-import { id, type IdentityHkt, monad as identityMonad } from "./identity.js";
+import { type IdentityHkt, monad as identityMonad } from "./identity.js";
 import type { Tuple } from "./tuple.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Profunctor } from "./type-class/profunctor.js";
-import type { Representable } from "./type-class/representable.js";
 
 /**
  * The reader monad transformer which expresses the environment for asking a record `R` and returning the computation `A` in `M`.
@@ -246,12 +245,3 @@ export const monad = <R>(): Monad<Apply2Only<ReaderHkt, R>> => ({
  * The instance of `Profunctor` for `Reader`.
  */
 export const profunctor: Profunctor<ReaderHkt> = { diMap };
-
-/**
- * The instance of `Representable` for `Reader<R, _>` about computation.
- */
-export const representableId = <R>(): Representable<Apply2Only<ReaderHkt, R>, R> => ({
-    ...functor<R>(),
-    index: id,
-    tabulate: id,
-});
