@@ -26,8 +26,9 @@ jobs:
 
       - name: Generate coverage
         run: pnpm run coverage
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/clover.xml
           flags: unittests
           name: mini-fn
