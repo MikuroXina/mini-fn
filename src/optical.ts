@@ -46,6 +46,7 @@ export const arrow: Category<AccessorHkt> = {
 export interface Optical<T, Root = T> {
     readonly get: () => T;
     readonly set: (newValue: T) => Root;
+    readonly modify: (modifier: (t: T) => T) => Root;
     readonly focus: <U>(accessor: Accessor<T, U>) => Optical<U, Root>;
     readonly root: Root;
     readonly accessor: Accessor<Root, T>;
@@ -57,6 +58,8 @@ export const grow =
     <Root>(optical: Optical<T, Root>): Optical<U, Root> => ({
         get: () => next.map(data),
         set: (newValue) => optical.accessor.update(optical.root)(next.update(data)(newValue)),
+        modify: (modifier) =>
+            optical.accessor.update(optical.root)(next.update(data)(modifier(next.map(data)))),
         focus: <V>(accessor: Accessor<U, V>): Optical<V, Root> =>
             grow(next.map(data))(accessor)(grow(data)(next)(optical)),
         root: optical.root,
@@ -66,6 +69,7 @@ export const grow =
 export const newOptical = <T>(data: T): Optical<T> => ({
     get: () => data,
     set: (newValue) => newValue,
+    modify: (modifier) => modifier(data),
     focus: (accessor) => grow(data)(accessor)(newOptical(data)),
     root: data,
     accessor: identity(),
