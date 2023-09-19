@@ -12,6 +12,7 @@
  * @packageDocumentation
  */
 import type { Get1, Hkt1 } from "./hkt.js";
+import type { PrismSimple } from "./optical.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
 import { err, isOk, ok, type Result } from "./result.js";
 import type { Applicative } from "./type-class/applicative.js";
@@ -506,3 +507,8 @@ export const traversable: Traversable<OptionHkt> = {
             return app.map<B, Option<B>>(some)(visitor(opt[1]));
         },
 };
+
+export const ifSome = <T>(): PrismSimple<Option<T>, T> => ({
+    map: (source) => source,
+    update: (part) => some(part),
+});
