@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 
-import { key, keys, newOptical, nth } from "./optical.js";
+import { newOptical } from "../optical.js";
+import { key, keys, nth } from "./lens.js";
 
 test("deep structure", () => {
     const hoge = {
@@ -38,7 +39,11 @@ test("double both elements of coord", () => {
     const coord = { x: 1, y: 2 };
     expect(
         newOptical(coord)
-            .focus<number>(keys("x", "y"))
-            .modify((n) => 2 * n),
+            .focus(keys(["x", "y"]))
+            .modify((entries) => {
+                entries[0][1] *= 2;
+                entries[1][1] *= 2;
+                return entries;
+            }),
     ).toStrictEqual({ x: 2, y: 4 });
 });
