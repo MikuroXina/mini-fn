@@ -54,12 +54,6 @@ export const keyM =
     });
 export const key = keyM(identityMonad);
 
-export type ObjOrTuple<Keys> = Keys extends number[]
-    ? unknown[]
-    : Keys extends PropertyKey[]
-    ? Record<Keys[number], unknown>
-    : never;
-
 export type Entries<O, K> = K extends [infer H, ...infer R]
     ? H extends keyof O
         ? R extends [PropertyKey]
