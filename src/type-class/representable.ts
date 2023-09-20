@@ -1,5 +1,4 @@
 import type { Get1, Get2, Hkt0, Hkt1 } from "../hkt.js";
-import type { Iso } from "../optical.js";
 import type { Functor } from "./functor.js";
 import type { Strong } from "./strong.js";
 
@@ -37,12 +36,3 @@ export const second =
     <P>(p: Representable<P>) =>
     <A, B, C>(pab: Get2<P, A, B>): Get2<P, [C, A], [C, B]> =>
         p.tabulate(([c, a]) => p.functor.map((b: B) => [c, b])(p.index(pab)(a)));
-
-export const tabulated =
-    <P, Q, S, T, A, B>(
-        p: Representable<P>,
-        q: Representable<Q>,
-    ): Iso<(s: S) => GetRep<P, T>, (b: B) => GetRep<Q, A>, Get2<P, S, T>, Get2<Q, B, A>> =>
-    (functorProfunctor) =>
-    (paFb) =>
-        functorProfunctor.diMap(p.tabulate<S, T>)(functorProfunctor.map(q.index<B, A>))(paFb);
