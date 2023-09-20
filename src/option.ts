@@ -12,7 +12,7 @@
  * @packageDocumentation
  */
 import type { Get1, Hkt1 } from "./hkt.js";
-import type { Prism } from "./optical/prism.js";
+import { newPrismSimple } from "./optical/prism.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
 import { err, isOk, ok, type Result } from "./result.js";
 import type { Applicative } from "./type-class/applicative.js";
@@ -508,7 +508,7 @@ export const traversable: Traversable<OptionHkt> = {
         },
 };
 
-export const ifSome = <T>(): Prism<Option<T>, T> => ({
-    get: (source) => source,
-    set: (part) => some(part),
-});
+export const noneError = "expected Some, but None" as const;
+export type NoneError = typeof noneError;
+
+export const ifSome = <T>() => newPrismSimple<T, Option<T>>(some)((s) => s);

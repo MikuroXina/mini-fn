@@ -1,6 +1,6 @@
-import { newOptical } from "src/optical.js";
 import { expect, test } from "vitest";
 
+import { opticCat } from "../optical.js";
 import { ifSome, type Option, some } from "../option.js";
 import { key } from "./lens.js";
 
@@ -13,12 +13,7 @@ test("optional", () => {
         }) as Option<{ bar: number; fuga: Option<number> }>,
     };
     expect(
-        newOptical(obj)
-            .focus(key("hoge"))
-            .split(ifSome())
-            .focus(key("fuga"))
-            .split(ifSome())
-            .set(42),
+        opticCat(obj).feed(key("hoge")).feed(ifSome()).feed(key("fuga")).feed(ifSome()).set(42),
     ).toStrictEqual({
         foo: "x",
         hoge: some({

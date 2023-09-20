@@ -1,4 +1,29 @@
-import type { Optical } from "../optical.js";
-import type { Option } from "../option.js";
+/**
+ * @packageDocumentation
+ * Transformation combinator for a data enumerator.
+ * ```text
+ *                     ok
+ * S --[ downcast ]--|-------------> A
+ *                   |
+ *                   | err
+ *                   V
+ * T <---------------O<-[ upcast ]-- B
+ * ```
+ */
 
-export type Prism<State, Part> = Optical<State, Option<Part>, Part, State>;
+import type { Optic } from "../optical.js";
+import { okOr, type Option } from "../option.js";
+import { either, type Result } from "../result.js";
+
+export const newPrism =
+    <B, T>(upcast: (b: B) => T) =>
+    <S, A>(downcast: (s: S) => Result<T, A>): Optic<S, T, A, B> =>
+    (ab) =>
+    (s) =>
+    (tr) =>
+        either(tr)((a: A) => ab(a)((b) => tr(upcast(b))))(downcast(s));
+
+export const newPrismSimple =
+    <B, S>(upcast: (b: B) => S) =>
+    <A>(downcast: (s: S) => Option<A>): Optic<S, S, A, B> =>
+        newPrism(upcast)((s) => okOr(s)(downcast(s)));
