@@ -13,10 +13,10 @@ import { type Optic } from "../optical.js";
 export const newLens =
     <S, A>(get: (s: S) => A) =>
     <B, T>(set: (s: S) => (b: B) => T): Optic<S, T, A, B> =>
-    (ab) =>
-    (s) =>
-    (tr) =>
-        ab(get(s))((b) => tr(set(s)(b)));
+    (next) =>
+    (received) =>
+    (callback) =>
+        next(get(received))((b) => callback(set(received)(b)));
 
 export const nth = <const I extends number, Tuple extends readonly unknown[], V = Tuple[I]>(
     index: I,

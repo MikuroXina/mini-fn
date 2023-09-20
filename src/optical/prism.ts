@@ -19,10 +19,10 @@ import { either, err, type Result } from "../result.js";
 export const newPrism =
     <B, T>(upcast: (b: B) => T) =>
     <S, A>(downcast: (s: S) => Result<T, A>): Optic<S, T, A, B> =>
-    (ab) =>
-    (s) =>
-    (tr) =>
-        either(tr)((a: A) => ab(a)((b) => tr(upcast(b))))(downcast(s));
+    (next) =>
+    (received) =>
+    (callback) =>
+        either(callback)((a: A) => next(a)((b) => callback(upcast(b))))(downcast(received));
 
 export const newPrismSimple =
     <B, S>(upcast: (b: B) => S) =>
