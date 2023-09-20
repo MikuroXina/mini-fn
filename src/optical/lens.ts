@@ -10,6 +10,13 @@
 
 import { type Optic } from "../optical.js";
 
+/**
+ * Creates a new `Lens` optic from the two functions.
+ *
+ * @param get - The extraction process.
+ * @param set - The overwrite process.
+ * @returns The computation to focus the data.
+ */
 export const newLens =
     <S, A>(get: (s: S) => A) =>
     <B, T>(set: (s: S) => (b: B) => T): Optic<S, T, A, B> =>
@@ -18,6 +25,12 @@ export const newLens =
     (callback) =>
         next(get(received))((b) => callback(set(received)(b)));
 
+/**
+ * Focuses to the given index of array.
+ *
+ * @param index - The index of array to extract.
+ * @returns The lens for indexing.
+ */
 export const nth = <const I extends number, Tuple extends readonly unknown[], V = Tuple[I]>(
     index: I,
 ): Optic<Tuple, Tuple, Tuple[I], V> =>
@@ -26,6 +39,12 @@ export const nth = <const I extends number, Tuple extends readonly unknown[], V 
             [...source.slice(0, index), part, ...source.slice(index + 1)] as unknown as Tuple,
     );
 
+/**
+ * Focuses to the given key of object.
+ *
+ * @param k - The key of object to extract.
+ * @returns The lens for indexing.
+ */
 export const key = <const K extends PropertyKey, O extends Readonly<Record<K, unknown>>, V = O[K]>(
     k: K,
 ): Optic<O, O, O[K], V> =>
@@ -39,6 +58,12 @@ export type Entries<O, K> = K extends readonly [infer H, ...infer R]
         : never
     : [PropertyKey, unknown][];
 
+/**
+ * Focuses to the given keys of object.
+ *
+ * @param k - The keys array of object to extract.
+ * @returns The lens for indexing.
+ */
 export const keys = <
     const K extends readonly PropertyKey[],
     O extends Readonly<Record<K[number], unknown>>,
