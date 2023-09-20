@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.0.0](https://github.com/MikuroXina/mini-fn/compare/v4.1.1...v5.0.0) (2023-09-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* Improve Optical to be simpler ([#104](https://github.com/MikuroXina/mini-fn/issues/104))
+* Remake Lens as Optical ([#95](https://github.com/MikuroXina/mini-fn/issues/95))
+
+### Features
+
+* Add then for CatT ([#106](https://github.com/MikuroXina/mini-fn/issues/106)) ([9d2fb36](https://github.com/MikuroXina/mini-fn/commit/9d2fb3601b73f36d8c8a2d4ef20f1dc80294edd6))
+* Improve Optical to be simpler ([#104](https://github.com/MikuroXina/mini-fn/issues/104)) ([5c7b1af](https://github.com/MikuroXina/mini-fn/commit/5c7b1afd894e4b4af30aa0689b7bf18f8c09b1a9))
+* Remake Lens as Optical ([#95](https://github.com/MikuroXina/mini-fn/issues/95)) ([7d6a466](https://github.com/MikuroXina/mini-fn/commit/7d6a466dddc544cd0b45f2f918c38014b98f331d))
+
+
+### Bug Fixes
+
+* Add docs and Improve filter func ([#105](https://github.com/MikuroXina/mini-fn/issues/105)) ([b8629d1](https://github.com/MikuroXina/mini-fn/commit/b8629d13211435d9b713897e3cc0c2bf315bda60))
+
 ## [4.1.1](https://github.com/MikuroXina/mini-fn/compare/v4.1.0...v4.1.1) (2023-08-16)
 
 
