@@ -17,10 +17,10 @@ export const identity =
         x;
 
 export const compose =
-    <S, T, A, B>(left: Optic<S, T, A, B>) =>
-    <X, Y>(right: Optic<X, Y, S, T>): Optic<X, Y, A, B> =>
+    <X, Y, S, T>(left: Optic<X, Y, S, T>) =>
+    <A, B>(right: Optic<S, T, A, B>): Optic<X, Y, A, B> =>
     (ab) =>
-        right(left(ab));
+        left(right(ab));
 
 /**
  * Modifies the value of the focused entry.
@@ -70,7 +70,7 @@ export interface OpticCat<S, T, A, B> {
 export const focused =
     <S>(data: S) =>
     <T, A, B>(o: Optic<S, T, A, B>): OpticCat<S, T, A, B> => ({
-        feed: (right) => focused(data)(compose(right)(o)),
+        feed: (right) => focused(data)(compose(o)(right)),
         over: (modifier) => o<T>((a) => (br) => br(modifier(a)))(data)((t) => t),
         set: (value) => o<T>(() => (br) => br(value))(data)((t) => t),
         setWith: (setter) => o<T>((a) => (bt) => setter<T>(absurd)(a)(bt))(data)((t) => t),
@@ -82,7 +82,7 @@ export const focused =
     });
 
 export const opticCat = <S>(data: S): OpticCat<S, S, S, S> => ({
-    feed: (o) => focused(data)(compose(o)(identity<S>())),
+    feed: (o) => focused(data)(compose(identity<S>())(o)),
     over: (modifier) => modifier(data),
     set: (value) => value,
     setWith: (setter) => setter(() => () => data)(data)((s) => s),
