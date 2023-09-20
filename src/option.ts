@@ -18,6 +18,7 @@ import { equal, greater, less, type Ordering } from "./ordering.js";
 import { err, isOk, ok, type Result } from "./result.js";
 import type { Applicative } from "./type-class/applicative.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
@@ -473,6 +474,13 @@ export const monoid = <T>(): Monoid<Option<T>> => ({
     identity: none(),
     [semiGroupSymbol]: true,
 });
+
+/**
+ * The instance of `Functor` for `Option`.
+ */
+export const functor: Functor<OptionHkt> = {
+    map,
+};
 
 /**
  * The instance of `Monad` for `Option`.
