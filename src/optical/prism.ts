@@ -13,7 +13,7 @@
 
 import { absurd } from "../func.js";
 import type { Optic } from "../optical.js";
-import { okOr, type Option } from "../option.js";
+import { none, okOr, type Option, some } from "../option.js";
 import { either, err, type Result } from "../result.js";
 
 export const newPrism =
@@ -30,3 +30,11 @@ export const newPrismSimple =
         newPrism(upcast)((s) => okOr(s)(downcast(s)));
 
 export const unreachable = <S, A>(): Optic<S, S, A, never> => newPrism<never, S>(absurd)<S, A>(err);
+
+export const only = <A>(target: A): Optic<A, A, A, []> =>
+    newPrismSimple<[], A>(([]) => target)((x) => (x === target ? some(x) : none()));
+
+export const filter =
+    <A>(init: A) =>
+    (pred: (a: A) => boolean): Optic<A, A, A, []> =>
+        newPrismSimple<[], A>(([]) => init)((x) => (pred(x) ? some(x) : none()));

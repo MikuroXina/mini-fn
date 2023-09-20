@@ -1,8 +1,9 @@
 import { expect, test } from "vitest";
 
 import { opticCat } from "../optical.js";
-import { ifSome, type Option, some } from "../option.js";
+import { ifSome, none, type Option, some } from "../option.js";
 import { key } from "./lens.js";
+import { only } from "./prism.js";
 
 test("optional", () => {
     const obj = {
@@ -21,4 +22,9 @@ test("optional", () => {
             fuga: some(42),
         }),
     });
+});
+
+test("only", () => {
+    expect(opticCat(4).feed(only(4)).get()).toStrictEqual(some(4));
+    expect(opticCat(4).feed(only(5)).get()).toStrictEqual(none());
 });
