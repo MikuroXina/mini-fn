@@ -1,9 +1,22 @@
 import type { Get1, Hkt1 } from "./hkt.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
 import type { Reduce } from "./type-class/reduce.js";
 
 export interface ArrayHkt extends Hkt1 {
-    readonly type: readonly this["arg1"][];
+    readonly type: this["arg1"][];
 }
+
+export const functor: Functor<ArrayHkt> = {
+    map: (fn) => (t) => t.map(fn),
+};
+
+export const monad: Monad<ArrayHkt> = {
+    map: (fn) => (t) => t.map(fn),
+    pure: (t) => [t],
+    apply: (fns) => (ts) => fns.flatMap((fn) => ts.map((t) => fn(t))),
+    flatMap: (fn) => (t) => t.flatMap(fn),
+};
 
 /**
  * Crates a new array from elements in `fa`.

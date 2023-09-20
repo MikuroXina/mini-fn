@@ -1,9 +1,3 @@
-import { type FnHkt, representable as representableFn } from "./func.js";
-import type { Apply2Only } from "./hkt.js";
-import { functor as functorTuple, type TupleHkt } from "./tuple.js";
-import type { Adjunction } from "./type-class/adjunction.js";
-import type { ApplyRep } from "./type-class/representable.js";
-
 type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
     ? true
     : false;
@@ -40,16 +34,3 @@ export function curry<F extends (...args: unknown[]) => unknown>(fn: F): Curried
         };
     return curried(fn) as Curried<F>;
 }
-
-/**
- * The instance of `Adjunction` for currying.
- */
-export const curryAdjunction = <E>(): Adjunction<
-    Apply2Only<TupleHkt, E>,
-    ApplyRep<Apply2Only<FnHkt, E>, E>
-> => ({
-    functor: functorTuple(),
-    representable: representableFn<E>(),
-    unit: (a) => (e) => [e, a],
-    counit: ([e, f]) => f(e),
-});
