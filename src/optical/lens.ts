@@ -1,37 +1,43 @@
 import type { Hkt2 } from "../hkt.js";
+import type { Optical } from "../optical.js";
 import type { Category } from "../type-class/category.js";
 
-export interface Lens<T, U> {
-    readonly map: (source: T) => U;
-    readonly update: (source: T) => (part: U) => T;
-}
+/**
+ * Transformation combinator for a data structure.
+ * ```text
+ * State --[ get ]--|--> Part
+ *                  V
+ * Part  <-[ set ]--O<-- State
+ * ```
+ */
+export type Lens<State, Part> = Optical<State, Part, State, (part: Part) => State>;
 
 export const identity = <T>(): Lens<T, T> => ({
-    map: (source) => source,
-    update: () => (part) => part,
+    get: (source) => source,
+    set: () => (part) => part,
 });
 
 export const concat =
     <U, V>(uvAccessor: Lens<U, V>) =>
     <T>(tuAccessor: Lens<T, U>): Lens<T, V> => ({
-        map: (source) => uvAccessor.map(tuAccessor.map(source)),
-        update: (source) => (part) =>
-            tuAccessor.update(source)(uvAccessor.update(tuAccessor.map(source))(part)),
+        get: (source) => uvAccessor.get(tuAccessor.get(source)),
+        set: (source) => (part) =>
+            tuAccessor.set(source)(uvAccessor.set(tuAccessor.get(source))(part)),
     });
 
 export const nth = <const I extends number, Tuple extends unknown[]>(
     index: I,
 ): Lens<Tuple, Tuple[I]> => ({
-    map: (source) => source[index],
-    update: (source) => (part) =>
+    get: (source) => source[index],
+    set: (source) => (part) =>
         [...source.slice(0, index), part, ...source.slice(index + 1)] as Tuple,
 });
 
 export const key = <const K extends PropertyKey, O extends Record<K, unknown>>(
     k: K,
 ): Lens<O, O[K]> => ({
-    map: (source) => source[k],
-    update: (source) => (part) => ({ ...source, [k]: part }),
+    get: (source) => source[k],
+    set: (source) => (part) => ({ ...source, [k]: part }),
 });
 
 export type Entries<O, K> = K extends readonly [infer H, ...infer R]
@@ -45,8 +51,8 @@ export type Entries<O, K> = K extends readonly [infer H, ...infer R]
 export const keys = <const K extends readonly PropertyKey[], O extends Record<K[number], unknown>>(
     keysToUpdate: K,
 ): Lens<O, Entries<O, K>> => ({
-    map: (source) => keysToUpdate.map((k: K[number]) => [k, source[k]]) as Entries<O, K>,
-    update: (source) => (parts: Entries<O, K>) => {
+    get: (source) => keysToUpdate.map((k: K[number]) => [k, source[k]]) as Entries<O, K>,
+    set: (source) => (parts: Entries<O, K>) => {
         const obj = { ...source } as Record<PropertyKey, unknown>;
         for (const [k, v] of parts) {
             if (Object.hasOwn(obj, k)) {
