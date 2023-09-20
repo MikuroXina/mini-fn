@@ -1,11 +1,14 @@
+import { absurd } from "./func.js";
+import type { Setter } from "./optical/setter.js";
 import { none, type Option, some } from "./option.js";
 
 export * as Lens from "./optical/lens.js";
 export * as Prism from "./optical/prism.js";
+export * as Setter from "./optical/setter.js";
 
 export type Optic<in S, out T, out A, in B> = <R>(
-    ab: (a: A) => (br: (b: B) => R) => R,
-) => (s: S) => (tr: (t: T) => R) => R;
+    next: (sending: A) => (continuation: (returned: B) => R) => R,
+) => (received: S) => (callback: (t: T) => R) => R;
 export type OpticSimple<S, A> = Optic<S, S, A, A>;
 
 export const identity =
@@ -59,6 +62,7 @@ export interface OpticCat<S, T, A, B> {
     readonly feed: <X, Y>(o: Optic<A, B, X, Y>) => OpticCat<S, T, X, Y>;
     readonly over: (modifier: (a: A) => B) => T;
     readonly set: (value: B) => T;
+    readonly setWith: (setter: Setter<A, B>) => T;
     readonly get: () => Option<A>;
     readonly unwrap: () => A;
 }
@@ -69,6 +73,7 @@ export const focused =
         feed: (right) => focused(data)(compose(right)(o)),
         over: (modifier) => o<T>((a) => (br) => br(modifier(a)))(data)((t) => t),
         set: (value) => o<T>(() => (br) => br(value))(data)((t) => t),
+        setWith: (setter) => o<T>((a) => (bt) => setter<T>(absurd)(a)(bt))(data)((t) => t),
         get: () => o<Option<A>>((a) => () => some(a))(data)(none),
         unwrap: () =>
             o<A>((a) => () => a)(data)(() => {
@@ -80,6 +85,7 @@ export const opticCat = <S>(data: S): OpticCat<S, S, S, S> => ({
     feed: (o) => focused(data)(compose(o)(identity<S>())),
     over: (modifier) => modifier(data),
     set: (value) => value,
+    setWith: (setter) => setter(() => () => data)(data)((s) => s),
     get: () => some(data),
     unwrap: () => data,
 });
