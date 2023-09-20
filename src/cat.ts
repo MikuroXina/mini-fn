@@ -18,7 +18,7 @@ import { fromProjection as partialOrdFromProjection } from "./type-class/partial
  * @typeParam M - Monad implementation which wraps `ctx`.
  * @typeParam CTX - Passing context type.
  */
-export interface CatT<M, CTX extends Record<PropertyKey, unknown> = Record<string, never>> {
+export interface CatT<M, CTX> {
     /**
      * Contained context. Altering an interior value must be abstained, or may occurs unsound behaviors.
      */
@@ -47,6 +47,14 @@ export interface CatT<M, CTX extends Record<PropertyKey, unknown> = Record<strin
         key: K,
         fn: (ctx: CTX) => A,
     ) => CatT<M, Record<K, A> & CTX>;
+
+    /**
+     * Runs the computation but discards its return value.
+     *
+     * @param computation - The computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly then: (computation: Get1<M, CTX>) => CatT<M, CTX>;
 
     /**
      * Binds a new value wrapped by the monad, calculated from `ctx` by `fn`.
@@ -78,7 +86,7 @@ export interface CatT<M, CTX extends Record<PropertyKey, unknown> = Record<strin
  */
 export const catT =
     <M>(monad: Monad<M>) =>
-    <CTX extends Record<PropertyKey, unknown>>(ctx: Get1<M, CTX>): CatT<M, CTX> => ({
+    <CTX>(ctx: Get1<M, CTX>): CatT<M, CTX> => ({
         ctx,
         let: <const K extends PropertyKey, A>(key: K, value: Get1<M, A>) =>
             catT(monad)(
@@ -96,6 +104,7 @@ export const catT =
                         }) as Record<K, A> & CTX,
                 )(ctx),
             ),
+        then: (computation) => catT(monad)(monad.flatMap(() => computation)(ctx)),
         flatLet: <const K extends PropertyKey, A>(key: K, fn: (ctx: CTX) => Get1<M, A>) =>
             catT(monad)(
                 monad.flatMap((c: CTX) =>
@@ -111,7 +120,16 @@ export const catT =
  * @param monad - The monad implementation for `M`.
  * @returns A new `CatT`.
  */
-export const doT = <M>(monad: Monad<M>): CatT<M> => catT(monad)(monad.pure({}));
+export const doVoidT = <M>(monad: Monad<M>): CatT<M, []> => catT(monad)(monad.pure([]));
+
+/**
+ * Creates a new `CatT` with an empty context.
+ *
+ * @param monad - The monad implementation for `M`.
+ * @returns A new `CatT`.
+ */
+export const doT = <M>(monad: Monad<M>): CatT<M, Record<string, never>> =>
+    catT(monad)(monad.pure({}));
 
 /**
  * Creates a new `CatT` with the context.
