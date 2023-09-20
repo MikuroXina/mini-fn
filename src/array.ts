@@ -4,7 +4,7 @@ import type { Monad } from "./type-class/monad.js";
 import type { Reduce } from "./type-class/reduce.js";
 
 export interface ArrayHkt extends Hkt1 {
-    readonly type: readonly this["arg1"][];
+    readonly type: this["arg1"][];
 }
 
 export const functor: Functor<ArrayHkt> = {
