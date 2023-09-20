@@ -145,8 +145,8 @@ export const get =
  * @returns The computation which sets the new state.
  */
 export const put =
-    <S>(state: S): State<S, []> =>
-    () => [[], state];
+    <S>(state: S): State<S, void> =>
+    () => [undefined, state];
 
 /**
  * Makes two computations into a product about the result type.

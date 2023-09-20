@@ -49,12 +49,12 @@ export interface CatT<M, CTX> {
     ) => CatT<M, Record<K, A> & CTX>;
 
     /**
-     * Runs the computation but discards its return value.
+     * Runs the computation and overwrites the context with its return value.
      *
      * @param computation - The computation to run.
      * @returns A new `CatT` with modified environment.
      */
-    readonly then: (computation: Get1<M, CTX>) => CatT<M, CTX>;
+    readonly then: <T>(computation: Get1<M, T>) => CatT<M, T>;
 
     /**
      * Binds a new value wrapped by the monad, calculated from `ctx` by `fn`.
@@ -120,7 +120,7 @@ export const catT =
  * @param monad - The monad implementation for `M`.
  * @returns A new `CatT`.
  */
-export const doVoidT = <M>(monad: Monad<M>): CatT<M, []> => catT(monad)(monad.pure([]));
+export const doVoidT = <M>(monad: Monad<M>): CatT<M, void> => catT(monad)(monad.pure(undefined));
 
 /**
  * Creates a new `CatT` with an empty context.

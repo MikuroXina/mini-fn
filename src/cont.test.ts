@@ -35,7 +35,7 @@ test("with", () => {
 });
 
 test("simple usage", () => {
-    const calcLength = <A, R>(a: A[]): Cont<R, number> => pure(a.length);
+    const calcLength = <A, R>(a: readonly A[]): Cont<R, number> => pure(a.length);
     const double = <R>(num: number): Cont<R, number> => pure(num * 2);
     const callback = vitest.fn();
     cat([1, 2, 3]).feed(calcLength).feed(flatMap(double)).feed(runContT).value(callback);
@@ -45,10 +45,10 @@ test("simple usage", () => {
 test("using callCC", () => {
     const validateName =
         (name: string) =>
-        (exit: (a: string) => Cont<string, []>): Cont<string, []> =>
+        (exit: (a: string) => Cont<string, void>): Cont<string, void> =>
             when(name.length === 0)(exit("expected at least 1 character"));
     const whatYourName = (name: string): string => {
-        const cont = callCC<string, IdentityHkt, string, []>(
+        const cont = callCC<string, IdentityHkt, string, void>(
             (exit) =>
                 cat(validateName(name)(exit)).feed(flatMap(() => pure(`Welcome, ${name}!`))).value,
         );

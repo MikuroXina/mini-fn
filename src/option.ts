@@ -519,5 +519,5 @@ export const traversable: Traversable<OptionHkt> = {
 
 export const ifSome = <T, U>(): Optic<Option<T>, Option<U>, T, U> =>
     newPrism<U, Option<U>>(some)(mapOrElse<Result<Option<U>, T>>(() => err(none()))(ok));
-export const ifNone = <T>(): OpticSimple<Option<T>, []> =>
-    newPrismSimple<[], Option<T>>(none)(mapOrElse<Option<[]>>(() => some([]))(none));
+export const ifNone = <T>(): OpticSimple<Option<T>, void> =>
+    newPrismSimple<void, Option<T>>(none)(mapOrElse<Option<void>>(() => some(undefined))(none));
