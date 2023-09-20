@@ -18,17 +18,17 @@ export const newLens =
     (tr) =>
         ab(get(s))((b) => tr(set(s)(b)));
 
-export const nth = <const I extends number, Tuple extends unknown[]>(
+export const nth = <const I extends number, Tuple extends readonly unknown[], V = Tuple[I]>(
     index: I,
-): Optic<Tuple, Tuple, Tuple[I], Tuple[I]> =>
+): Optic<Tuple, Tuple, Tuple[I], V> =>
     newLens<Tuple, Tuple[I]>((source) => source[index])(
         (source) => (part) =>
-            [...source.slice(0, index), part, ...source.slice(index + 1)] as Tuple,
+            [...source.slice(0, index), part, ...source.slice(index + 1)] as unknown as Tuple,
     );
 
-export const key = <const K extends PropertyKey, O extends Record<K, unknown>>(
+export const key = <const K extends PropertyKey, O extends Readonly<Record<K, unknown>>, V = O[K]>(
     k: K,
-): Optic<O, O, O[K], O[K]> =>
+): Optic<O, O, O[K], V> =>
     newLens<O, O[K]>((source) => source[k])((source) => (part) => ({ ...source, [k]: part }));
 
 export type Entries<O, K> = K extends readonly [infer H, ...infer R]
@@ -39,7 +39,10 @@ export type Entries<O, K> = K extends readonly [infer H, ...infer R]
         : never
     : [PropertyKey, unknown][];
 
-export const keys = <const K extends readonly PropertyKey[], O extends Record<K[number], unknown>>(
+export const keys = <
+    const K extends readonly PropertyKey[],
+    O extends Readonly<Record<K[number], unknown>>,
+>(
     keysToUpdate: K,
 ) =>
     newLens<O, Entries<O, K>>(
