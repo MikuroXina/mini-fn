@@ -1,4 +1,6 @@
 import type { Get1, Hkt2 } from "./hkt.js";
+import type { Optic } from "./optical.js";
+import { newPrism } from "./optical/prism.js";
 import { isSome, none, type Option, some, toArray as optionToArray } from "./option.js";
 import { greater, less, type Ordering } from "./ordering.js";
 import type { Applicative } from "./type-class/applicative.js";
@@ -422,3 +424,8 @@ export const traversable: Traversable<ResultHkt> = {
  * The instance of `Bifunctor` for `Result<_, _>`.
  */
 export const bifunctor: Bifunctor<ResultHkt> = { biMap };
+
+export const ifErr = <E, F, T>(): Optic<Result<E, T>, Result<F, T>, E, F> =>
+    newPrism<F, Result<F, T>>(err)(either<E, Result<Result<F, T>, E>>(ok)((t) => err(ok(t))));
+export const ifOk = <E, T, U>(): Optic<Result<E, T>, Result<E, U>, T, U> =>
+    newPrism<U, Result<E, U>>(ok)(either<E, Result<Result<E, U>, T>>((e) => err(err(e)))(ok));

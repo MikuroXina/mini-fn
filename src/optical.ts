@@ -6,6 +6,7 @@ export * as Prism from "./optical/prism.js";
 export type Optic<in S, out T, out A, in B> = <R>(
     ab: (a: A) => (br: (b: B) => R) => R,
 ) => (s: S) => (tr: (t: T) => R) => R;
+export type OpticSimple<S, A> = Optic<S, S, A, A>;
 
 export const identity =
     <S>(): Optic<S, S, S, S> =>

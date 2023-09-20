@@ -12,7 +12,8 @@
  * @packageDocumentation
  */
 import type { Get1, Hkt1 } from "./hkt.js";
-import { newPrismSimple } from "./optical/prism.js";
+import type { Optic, OpticSimple } from "./optical.js";
+import { newPrism, newPrismSimple } from "./optical/prism.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
 import { err, isOk, ok, type Result } from "./result.js";
 import type { Applicative } from "./type-class/applicative.js";
@@ -508,7 +509,7 @@ export const traversable: Traversable<OptionHkt> = {
         },
 };
 
-export const noneError = "expected Some, but None" as const;
-export type NoneError = typeof noneError;
-
-export const ifSome = <T>() => newPrismSimple<T, Option<T>>(some)((s) => s);
+export const ifSome = <T, U>(): Optic<Option<T>, Option<U>, T, U> =>
+    newPrism<U, Option<U>>(some)(mapOrElse<Result<Option<U>, T>>(() => err(none()))(ok));
+export const ifNone = <T>(): OpticSimple<Option<T>, []> =>
+    newPrismSimple<[], Option<T>>(none)(mapOrElse<Option<[]>>(() => some([]))(none));
