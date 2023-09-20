@@ -80,11 +80,11 @@ describe("hello language", () => {
         }
     };
 
-    const hello: Free<HelloLangHkt, []> = liftF(functor)({ type: "Hello", next: [] });
-    const hey: Free<HelloLangHkt, []> = liftF(functor)({ type: "Hey", next: [] });
-    const yearsOld = (years: number): Free<HelloLangHkt, []> =>
-        liftF(functor)({ type: "YearsOld", years, next: [] });
-    const bye: Free<HelloLangHkt, []> = liftF(functor)({ type: "Bye" });
+    const hello: Free<HelloLangHkt, void> = liftF(functor)({ type: "Hello", next: undefined });
+    const hey: Free<HelloLangHkt, void> = liftF(functor)({ type: "Hey", next: undefined });
+    const yearsOld = (years: number): Free<HelloLangHkt, void> =>
+        liftF(functor)({ type: "YearsOld", years, next: undefined });
+    const bye: Free<HelloLangHkt, void> = liftF(functor)({ type: "Bye" });
 
     const m = freeMonad(functor);
 

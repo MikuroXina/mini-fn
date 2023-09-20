@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { cat } from "./cat.js";
+import { cat, doVoidT } from "./cat.js";
 import type { Monoid } from "./type-class/monoid.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 import {
@@ -9,6 +9,7 @@ import {
     executeWriter,
     flatMap,
     listen,
+    makeMonad,
     map,
     pure,
     tell,
@@ -29,9 +30,9 @@ test("tell with tower of hanoi", () => {
         from: string,
         to: string,
         another: string,
-    ): Writer<[string, string][], []> => {
+    ): Writer<[string, string][], void> => {
         if (height < 1) {
-            return pure(monoid)([]);
+            return pure(monoid)(undefined);
         }
         if (height === 1) {
             return tell([[from, to]]);
@@ -85,12 +86,13 @@ test("listen with collatz sequence", () => {
 });
 
 test("censor with log decoration", () => {
-    const monoid = monoidArray<string>();
+    const m = makeMonad(monoidArray<string>());
 
-    const hello = (): Writer<string[], []> =>
-        cat(tell(["Hello!"])).feed(flatMap(monoid)(() => tell(["What do you do?"]))).value;
+    const hello = doVoidT(m)
+        .then(tell(["Hello!"]))
+        .then(tell(["What do you do?"])).ctx;
     const log = censor((messages: string[]) => messages.map((message) => `[LOG] ${message}`))(
-        hello(),
+        hello,
     );
     expect(executeWriter(log)).toEqual(["[LOG] Hello!", "[LOG] What do you do?"]);
 });

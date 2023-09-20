@@ -4,7 +4,7 @@ import type { Monad } from "./type-class/monad.js";
 import type { Reduce } from "./type-class/reduce.js";
 
 export interface ArrayHkt extends Hkt1 {
-    readonly type: this["arg1"][];
+    readonly type: readonly this["arg1"][];
 }
 
 export const functor: Functor<ArrayHkt> = {
@@ -27,8 +27,8 @@ export const monad: Monad<ArrayHkt> = {
  */
 export const fromReduce =
     <F>(reduce: Reduce<F>) =>
-    <A>(fa: Get1<F, A>): readonly A[] =>
-        reduce.reduceL((arr: readonly A[]) => (elem: A) => [...arr, elem])([])(fa);
+    <A>(fa: Get1<F, A>): ReadonlyArray<A> =>
+        reduce.reduceL((arr: A[]) => (elem: A) => [...arr, elem])([])(fa);
 
 /**
  * Reduces the elements of array by `reducer` from right-side.
