@@ -1,9 +1,27 @@
 import { describe, expect, test } from "vitest";
 
-import { cat } from "./cat.js";
-import { eq, flatMapT, type Free, isPure, iter, liftF, node, pure, retract } from "./free.js";
+import { catT, doVoidT } from "./cat.js";
+import {
+    eq,
+    type Free,
+    isPure,
+    iter,
+    liftF,
+    monad as freeMonad,
+    node,
+    pure,
+    retract,
+} from "./free.js";
 import type { Hkt1 } from "./hkt.js";
-import { isNone, monad, none, type OptionHkt, some, unwrap } from "./option.js";
+import {
+    functor as optionFunctor,
+    isNone,
+    monad,
+    none,
+    type OptionHkt,
+    some,
+    unwrap,
+} from "./option.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
 
@@ -68,7 +86,7 @@ describe("hello language", () => {
         liftF(functor)({ type: "YearsOld", years, next: [] });
     const bye: Free<HelloLangHkt, []> = liftF(functor)({ type: "Bye" });
 
-    const flatMap = flatMapT(functor);
+    const m = freeMonad(functor);
 
     const comparator = eq<HelloLangHkt, unknown>({
         equalityA: fromEquality(() => () => true)(),
@@ -109,18 +127,13 @@ describe("hello language", () => {
         expect(comparator.eq(empty, empty)).toBe(true);
         expect(runProgram(example)).toEqual("Hello.\nHello.\nBye.\n");
 
-        const exampleCode: Free<HelloLangHkt, []> = cat(hello)
-            .feed(flatMap(() => hello))
-            .feed(flatMap(() => bye)).value;
+        const exampleCode = doVoidT(m).then(hello).then(hello).then(bye).ctx;
         expect(comparator.eq(example, exampleCode)).toBe(true);
     });
 
     test("program monad", () => {
-        const subRoutine = cat(hello).feed(flatMap(() => yearsOld(25))).value;
-        const program: Free<HelloLangHkt, []> = cat(hey)
-            .feed(flatMap(() => subRoutine))
-            .feed(flatMap(() => hey))
-            .feed(flatMap(() => bye)).value;
+        const subRoutine = doVoidT(m).then(hello).then(yearsOld(25)).ctx;
+        const program = doVoidT(m).then(hey).then(subRoutine).then(hey).then(bye).ctx;
 
         expect(runProgram(program)).toEqual("Hey.\nHello.\nI'm 25 years old.\nHey.\nBye.\n");
     });
@@ -128,25 +141,25 @@ describe("hello language", () => {
 
 test("retract", () => {
     const retractOption = retract(monad);
-    const flatMap = flatMapT<OptionHkt>(monad);
+    const m = freeMonad<OptionHkt>(optionFunctor);
     const lift = liftF<OptionHkt>(monad);
     const retracted = retractOption<string>(
-        cat(lift(some("hoge")))
-            .feed(flatMap(() => lift(some("fuga"))))
-            .feed(flatMap(() => lift<string>(none())))
-            .feed(flatMap(() => lift(some("foo")))).value,
+        catT(m)(lift(some("hoge")))
+            .then(lift(some("fuga")))
+            .then(lift<string>(none()))
+            .then(lift(some("foo"))).ctx,
     );
     expect(isNone(retracted)).toBe(true);
 });
 
 test("iter", () => {
     const iterOption = iter<OptionHkt>(monad)(unwrap);
-    const flatMap = flatMapT<OptionHkt>(monad);
+    const m = freeMonad<OptionHkt>(optionFunctor);
     const lift = liftF<OptionHkt>(monad);
     const iterated = iterOption<string>(
-        cat(lift(some("hoge")))
-            .feed(flatMap(() => lift(some("fuga"))))
-            .feed(flatMap(() => lift(some("foo")))).value,
+        catT(m)(lift(some("hoge")))
+            .then(lift(some("fuga")))
+            .then(lift(some("foo"))).ctx,
     );
     expect(iterated).toBe("foo");
 });
