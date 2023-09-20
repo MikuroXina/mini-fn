@@ -7,29 +7,29 @@ export interface Optical<I, G, A, S> {
 }
 
 export const shift =
-    <I>(modifier: (t: I) => I) =>
-    <G, A, S>(o: Optical<I, G, A, S>): Optical<I, G, A, S> => ({
+    <H, I>(modifier: (i: H) => I) =>
+    <G, A, S>(o: Optical<I, G, A, S>): Optical<H, G, A, S> => ({
         ...o,
         get: (index) => o.get(modifier(index)),
     });
 
 export const modify =
-    <G>(modifier: (t: G) => G) =>
-    <I, A, S>(o: Optical<I, G, A, S>): Optical<I, G, A, S> => ({
+    <G, H>(modifier: (g: G) => H) =>
+    <I, A, S>(o: Optical<I, G, A, S>): Optical<I, H, A, S> => ({
         ...o,
         get: (index) => modifier(o.get(index)),
     });
 
 export const override =
-    <A>(modifier: (t: A) => A) =>
-    <I, G, S>(o: Optical<I, G, A, S>): Optical<I, G, A, S> => ({
+    <Z, A>(modifier: (a: Z) => A) =>
+    <I, G, S>(o: Optical<I, G, A, S>): Optical<I, G, Z, S> => ({
         ...o,
         set: (action) => o.set(modifier(action)),
     });
 
 export const map =
-    <S>(modifier: (t: S) => S) =>
-    <I, G, A>(o: Optical<I, G, A, S>): Optical<I, G, A, S> => ({
+    <S, T>(modifier: (s: S) => T) =>
+    <I, G, A>(o: Optical<I, G, A, S>): Optical<I, G, A, T> => ({
         ...o,
         set: (action) => modifier(o.set(action)),
     });
