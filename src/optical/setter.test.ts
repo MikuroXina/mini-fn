@@ -6,7 +6,7 @@ import { key } from "./lens.js";
 import { setF } from "./setter.js";
 
 test("double both elements of coord", () => {
-    const coord = { hoge: 2, foo: [3, 1, 4, 1, 5, 9, 2] };
+    const coord = { hoge: 2, foo: [3, 1, 4, 1, 5, 9, 2] as readonly number[] };
     expect(
         opticCat(coord)
             .feed(key("foo"))
