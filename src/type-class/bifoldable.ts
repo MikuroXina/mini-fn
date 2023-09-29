@@ -12,6 +12,19 @@ export interface Bifoldable<P> {
     ) => <B>(bFolder: (b: B) => (c: C) => C) => (init: C) => (data: Get2<P, A, B>) => C;
 }
 
+export const fromBifoldMap = <P>(
+    f: <M>(
+        m: Monoid<M>,
+    ) => <A>(aMap: (a: A) => M) => <B>(bMap: (b: B) => M) => (data: Get2<P, A, B>) => M,
+): Bifoldable<P> => ({
+    bifoldR:
+        <A, C>(aMap: (a: A) => (c: C) => C) =>
+        <B>(bMap: (b: B) => (c: C) => C) =>
+        (init: C) =>
+        (data: Get2<P, A, B>) =>
+            f(monoid<C>())((a: A) => (c) => aMap(a)(c))((b: B) => (c) => bMap(b)(c))(data)(init),
+});
+
 export const bifoldMap =
     <P>(bi: Bifoldable<P>) =>
     <M>(m: Monoid<M>) =>
