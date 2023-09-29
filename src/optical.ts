@@ -2,6 +2,7 @@ import { absurd } from "./func.js";
 import type { Setter } from "./optical/setter.js";
 import { none, type Option, some } from "./option.js";
 
+export * as Getter from "./optical/getter.js";
 export * as Lens from "./optical/lens.js";
 export * as Prism from "./optical/prism.js";
 export * as Setter from "./optical/setter.js";
