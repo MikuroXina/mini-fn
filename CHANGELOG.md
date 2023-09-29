@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.0](https://github.com/MikuroXina/mini-fn/compare/v5.0.0...v5.1.0) (2023-09-29)
+
+
+### Features
+
+* Add Traversal and Bitraversal optical ([#118](https://github.com/MikuroXina/mini-fn/issues/118)) ([9c9558c](https://github.com/MikuroXina/mini-fn/commit/9c9558cbbdb9a1f9fb74c814867deec6edfffae6))
+
 ## [5.0.0](https://github.com/MikuroXina/mini-fn/compare/v5.0.0...v5.0.0) (2023-09-21)
 
 
