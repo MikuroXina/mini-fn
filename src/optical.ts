@@ -158,3 +158,14 @@ export const focused =
  * @returns The environment to compute.
  */
 export const opticCat = <S>(data: S): OpticCat<S, S, S, S> => focused(data)(identity());
+
+export interface OverCat<A, B> {
+    readonly on: <S, T>(o: Optic<S, T, A, B>) => OverCat<S, T>;
+    readonly from: (source: A) => B;
+}
+
+export const overCat = <A, B>(modifier: (a: A) => B): OverCat<A, B> => ({
+    on: <S, T>(o: Optic<S, T, A, B>) =>
+        overCat((s: S) => o<T>((a) => (bt) => bt(modifier(a)))(s)((t) => t)),
+    from: modifier,
+});
