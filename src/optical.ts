@@ -32,6 +32,13 @@ export const identity =
 
 /**
  * Composes two computations.
+ * ```text
+ *     |--------|       |---------|
+ * X ->|        |-> S ->|         |-> A
+ *     |  left  |       |  right  |
+ * Y <-|        |<- T <-|         |<- B
+ *     |--------|       |---------|
+ * ```
  *
  * @param left - The second process.
  * @param right - The first process.
