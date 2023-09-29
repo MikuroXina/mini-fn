@@ -5,6 +5,7 @@ import { none, type Option, some } from "./option.js";
 export * as Lens from "./optical/lens.js";
 export * as Prism from "./optical/prism.js";
 export * as Setter from "./optical/setter.js";
+export * as Traversal from "./optical/traversal.js";
 
 /**
  * Computation combinator with two-terminal pair.
