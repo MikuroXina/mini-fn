@@ -2,6 +2,10 @@ import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
 import { defer as lazyDefer, force, type Lazy } from "./lazy.js";
 import { andThen, type Option } from "./option.js";
 import { andThen as thenWith, type Ordering } from "./ordering.js";
+import { type Applicative, liftA2 } from "./type-class/applicative.js";
+import { fromBifoldMap } from "./type-class/bifoldable.js";
+import type { Bifunctor } from "./type-class/bifunctor.js";
+import type { Bitraversable } from "./type-class/bitraversable.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monoid } from "./type-class/monoid.js";
@@ -200,6 +204,41 @@ export const mapD =
     <A, B>(f: (a: A) => B) =>
     ([a1, a2]: Tuple<A, A>): Tuple<B, B> => [f(a1), f(a2)];
 
+/**
+ * Maps both elements by two each mapper function.
+ *
+ * @param first - The function which maps from `A`.
+ * @param second - The function which maps from `C`.
+ * @param curr - The source tuple.
+ * @returns The mapped tuple.
+ */
+export const biMap: <A, B>(
+    first: (a: A) => B,
+) => <C, D>(second: (c: C) => D) => (curr: Tuple<A, C>) => Tuple<B, D> =
+    (f) =>
+    (g) =>
+    ([a, c]) => [f(a), g(c)];
+
+/**
+ * Traverses both elements with an applicative functor.
+ *
+ * @param app - The instance of `Applicative`.
+ * @param f - The function which maps from `A`.
+ * @param g - The function which maps from `B`.
+ * @param data - The source tuple.
+ * @returns The mapped and lifted tuple.
+ */
+export const bitraverse: <F>(
+    app: Applicative<F>,
+) => <A, C>(
+    f: (a: A) => Get1<F, C>,
+) => <B, D>(g: (b: B) => Get1<F, D>) => (data: Tuple<A, B>) => Get1<F, Tuple<C, D>> =
+    (app) =>
+    (f) =>
+    (g) =>
+    ([a, b]) =>
+        liftA2(app)(make)(f(a))(g(b));
+
 export interface TupleHkt extends Hkt2 {
     readonly type: Tuple<this["arg2"], this["arg1"]>;
 }
@@ -217,3 +256,28 @@ export interface TupleDHkt extends Hkt1 {
  * The instance of `Functor` for `Tuple<_, _>`.
  */
 export const functorD: Functor<TupleDHkt> = { map: mapD };
+
+/**
+ * The instance of `Bifunctor` for `Tuple<_, _>`.
+ */
+export const bifunctor: Bifunctor<TupleHkt> = { biMap };
+
+/**
+ * The instance of `Bitraversal` for `Tuple<_, _>`.
+ */
+export const bifoldable = fromBifoldMap<TupleHkt>(
+    (m) =>
+        (aMap) =>
+        (bMap) =>
+        ([a, b]) =>
+            m.combine(aMap(a), bMap(b)),
+);
+
+/**
+ * The instance of `Bitraversable` for `Tuple<_, _>`.
+ */
+export const bitraversable: Bitraversable<TupleHkt> = {
+    ...bifunctor,
+    ...bifoldable,
+    bitraverse,
+};

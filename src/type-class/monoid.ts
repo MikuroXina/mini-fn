@@ -26,6 +26,11 @@ export const trivialMonoid: Monoid<[]> = {
     [semiGroupSymbol]: true,
 };
 
+export const flippedMonoid = <M>(m: Monoid<M>): Monoid<M> => ({
+    ...m,
+    combine: (l, r) => m.combine(r, l),
+});
+
 export const minMonoid = (infinity: number): Monoid<number> => ({
     combine(l, r) {
         return Math.min(l, r);

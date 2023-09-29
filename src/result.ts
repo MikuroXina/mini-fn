@@ -4,7 +4,9 @@ import { newPrism } from "./optical/prism.js";
 import { isSome, none, type Option, some, toArray as optionToArray } from "./option.js";
 import { greater, less, type Ordering } from "./ordering.js";
 import type { Applicative } from "./type-class/applicative.js";
+import type { Bifoldable } from "./type-class/bifoldable.js";
 import type { Bifunctor } from "./type-class/bifunctor.js";
+import type { Bitraversable } from "./type-class/bitraversable.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
@@ -379,6 +381,24 @@ export const traverse =
         return app.map(ok)(visitor(res[1]));
     };
 
+export const bifoldR =
+    <A, C>(aFolder: (a: A) => (c: C) => C) =>
+    <B>(bFolder: (b: B) => (c: C) => C) =>
+    (init: C) =>
+    (data: Result<A, B>) =>
+        either((a: A) => aFolder(a)(init))((b: B) => bFolder(b)(init))(data);
+
+export const bitraverse =
+    <F>(app: Applicative<F>) =>
+    <A, C>(f: (a: A) => Get1<F, C>) =>
+    <B, D>(g: (b: B) => Get1<F, D>) =>
+    (data: Result<A, B>): Get1<F, Result<C, D>> => {
+        if (isErr(data)) {
+            return app.map((c: C) => err(c))(f(data[1]));
+        }
+        return app.map((d: D) => ok(d))(g(data[1]));
+    };
+
 export interface ResultHkt extends Hkt2 {
     readonly type: Result<this["arg2"], this["arg1"]>;
 }
@@ -424,6 +444,21 @@ export const traversable: Traversable<ResultHkt> = {
  * The instance of `Bifunctor` for `Result<_, _>`.
  */
 export const bifunctor: Bifunctor<ResultHkt> = { biMap };
+/**
+ * The instance of `Bifoldable` for `Result<_, _>`.
+ */
+export const bifoldable: Bifoldable<ResultHkt> = {
+    bifoldR,
+};
+
+/**
+ * The instance of `Bitraversable` for `Result<_, _>`.
+ */
+export const bitraversable: Bitraversable<ResultHkt> = {
+    ...bifunctor,
+    ...bifoldable,
+    bitraverse,
+};
 
 export const ifErr = <E, F, T>(): Optic<Result<E, T>, Result<F, T>, E, F> =>
     newPrism<F, Result<F, T>>(err)(either<E, Result<Result<F, T>, E>>(ok)((t) => err(ok(t))));

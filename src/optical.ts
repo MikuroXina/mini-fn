@@ -2,9 +2,11 @@ import { absurd } from "./func.js";
 import type { Setter } from "./optical/setter.js";
 import { none, type Option, some } from "./option.js";
 
+export * as Getter from "./optical/getter.js";
 export * as Lens from "./optical/lens.js";
 export * as Prism from "./optical/prism.js";
 export * as Setter from "./optical/setter.js";
+export * as Traversal from "./optical/traversal.js";
 
 /**
  * Computation combinator with two-terminal pair.
@@ -31,6 +33,13 @@ export const identity =
 
 /**
  * Composes two computations.
+ * ```text
+ *     |--------|       |---------|
+ * X ->|        |-> S ->|         |-> A
+ *     |  left  |       |  right  |
+ * Y <-|        |<- T <-|         |<- B
+ *     |--------|       |---------|
+ * ```
  *
  * @param left - The second process.
  * @param right - The first process.
@@ -149,3 +158,14 @@ export const focused =
  * @returns The environment to compute.
  */
 export const opticCat = <S>(data: S): OpticCat<S, S, S, S> => focused(data)(identity());
+
+export interface OverCat<A, B> {
+    readonly on: <S, T>(o: Optic<S, T, A, B>) => OverCat<S, T>;
+    readonly from: (source: A) => B;
+}
+
+export const overCat = <A, B>(modifier: (a: A) => B): OverCat<A, B> => ({
+    on: <S, T>(o: Optic<S, T, A, B>) =>
+        overCat((s: S) => o<T>((a) => (bt) => bt(modifier(a)))(s)((t) => t)),
+    from: modifier,
+});
