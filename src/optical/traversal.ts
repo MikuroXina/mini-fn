@@ -10,6 +10,8 @@
 
 import { type Cont, type ContHkt, map, monad } from "../cont.js";
 import type { Apply2Only, Get1, Get2 } from "../hkt.js";
+import type { IdentityHkt } from "../identity.js";
+import { Identity } from "../lib.js";
 import type { Optic } from "../optical.js";
 import type { Applicative } from "../type-class/applicative.js";
 import { bisequenceA, type Bitraversable } from "../type-class/bitraversable.js";
@@ -31,3 +33,9 @@ export const newBitraversal =
         map(bisequenceA(tra, app)<B, B>)(
             tra.bitraverse<Apply2Only<ContHkt, R>>(monad())(next)(next)(received),
         );
+
+export const traversed = <T, A, B>(tra: Traversable<T>): Traversal<T, IdentityHkt, A, B> =>
+    newTraversal<T, IdentityHkt, A, B>(tra, Identity.monad);
+
+export const both = <T, A, B>(tra: Bitraversable<T>): Bitraversal<T, IdentityHkt, A, B> =>
+    newBitraversal<T, IdentityHkt, A, B>(tra, Identity.monad);
