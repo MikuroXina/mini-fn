@@ -117,3 +117,56 @@ export type Get4<S, A4, A3, A2, A1> = Instance<Apply4<S, A1, A2, A3, A4>>;
  * Applies five type parameters and gets the applied type of HKT.
  */
 export type Get5<S, A5, A4, A3, A2, A1> = Instance<Apply5<S, A1, A2, A3, A4, A5>>;
+
+/**
+ * Composes two HKTs into one on order 1.
+ */
+export interface Compose1<T, S> extends Hkt1 {
+    readonly type: Get1<T, Get1<S, this["arg1"]>>;
+}
+
+/**
+ * Composes two HKTs into one on order 2.
+ */
+export interface Compose2<T, S> extends Hkt2 {
+    readonly type: Get2<T, this["arg2"], Get2<S, this["arg2"], this["arg1"]>>;
+}
+
+/**
+ * Composes two HKTs into one on order 3.
+ */
+export interface Compose3<T, S> extends Hkt3 {
+    readonly type: Get3<
+        T,
+        this["arg3"],
+        this["arg2"],
+        Get3<S, this["arg3"], this["arg2"], this["arg1"]>
+    >;
+}
+
+/**
+ * Composes two HKTs into one on order 4.
+ */
+export interface Compose4<T, S> extends Hkt4 {
+    readonly type: Get4<
+        T,
+        this["arg4"],
+        this["arg3"],
+        this["arg2"],
+        Get4<S, this["arg4"], this["arg3"], this["arg2"], this["arg1"]>
+    >;
+}
+
+/**
+ * Composes two HKTs into one on order 5.
+ */
+export interface Compose5<T, S> extends Hkt5 {
+    readonly type: Get5<
+        T,
+        this["arg5"],
+        this["arg4"],
+        this["arg3"],
+        this["arg2"],
+        Get5<S, this["arg5"], this["arg4"], this["arg3"], this["arg2"], this["arg1"]>
+    >;
+}
