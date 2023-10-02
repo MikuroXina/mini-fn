@@ -1,5 +1,5 @@
 import { constant } from "../func.js";
-import type { Get1 } from "../hkt.js";
+import type { Compose1, Get1 } from "../hkt.js";
 import type { Invariant } from "./variance.js";
 
 /**
@@ -32,6 +32,18 @@ export const map =
     <FA, FB>(funcA: Functor<FA>, funcB: Functor<FB>) =>
     <T, U>(f: (t: T) => U): ((funcT: Get1<FA, Get1<FB, T>>) => Get1<FA, Get1<FB, U>>) =>
         funcA.map(funcB.map(f));
+
+/**
+ * Composes two functor instances.
+ *
+ * @param funcA - The instance of `Functor` for `FA`.
+ * @param funcB - The instance of `Functor` for `FB`.
+ * @returns The nested functor.
+ */
+export const compose = <FA, FB>(
+    funcA: Functor<FA>,
+    funcB: Functor<FB>,
+): Functor<Compose1<FA, FB>> => ({ map: map(funcA, funcB) });
 
 /**
  *
