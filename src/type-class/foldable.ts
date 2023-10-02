@@ -3,6 +3,8 @@ import { compose, id } from "../func.js";
 import type { Get1 } from "../hkt.js";
 import { build, type List } from "../list.js";
 import { isNone, none, type Option, some, unwrapOrElse } from "../option.js";
+import type { Applicative } from "./applicative.js";
+import { apSecond } from "./apply.js";
 import { append, type Monoid } from "./monoid.js";
 import type { PartialEq } from "./partial-eq.js";
 
@@ -212,3 +214,19 @@ export const contains = <T, A>(
     compose<(a: A) => boolean, (list: Get1<T, A>) => boolean>(any(foldable))(
         (l: A) => (r: A) => eq.eq(l, r),
     );
+
+/**
+ * Maps each element by `folder` from left to right, but ignores the results. So this cannot obtain the traversed result but only run.
+ *
+ * @param foldable - The instance of `Foldable` for `T`.
+ * @param app - The instance of `Applicative` for `F`.
+ * @param folder - The action to run.
+ * @param data - The target data structure.
+ * @returns The run computation.
+ */
+export const traverse =
+    <T, F>(foldable: Foldable<T>, app: Applicative<F>) =>
+    <A, B>(folder: (a: A) => Get1<F, B>): ((data: Get1<T, A>) => Get1<F, void>) =>
+        foldable.foldR((x: A) => (k: Get1<F, void>) => apSecond(app)(folder(x))(k))(
+            app.pure<void>(undefined),
+        );
