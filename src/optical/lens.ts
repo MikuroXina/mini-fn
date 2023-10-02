@@ -2,9 +2,9 @@
  * @packageDocumentation
  * Transformation combinator for a data structure.
  * ```text
- * S -----------|--[ get ]-> A
- *              V
- * T <-[ set ]--O<---------- B
+ * S -----|--[ get ]-> A
+ *        V
+ * T <-[ set ]-------- B
  * ```
  */
 
