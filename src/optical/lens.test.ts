@@ -10,7 +10,7 @@ test("deep structure", () => {
             b: "hoge",
             piyo: [42],
         },
-    };
+    } as const;
 
     expect(opticCat(hoge).feed(key("fuga")).feed(key("piyo")).feed(nth(0)).unwrap()).toEqual(42);
     expect(opticCat(hoge).feed(key("fuga")).feed(key("piyo")).feed(nth(0)).set(31)).toStrictEqual({

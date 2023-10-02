@@ -25,18 +25,26 @@ export const newLens =
     (callback) =>
         next(get(received))((b) => callback(set(received)(b)));
 
+export type ReplacedWith<Tuple extends readonly unknown[], I extends number, V> = Omit<Tuple, I> & {
+    [key in I]: V;
+};
+
 /**
  * Focuses to the given index of array.
  *
  * @param index - The index of array to extract.
  * @returns The lens for indexing.
  */
-export const nth = <const I extends number, Tuple extends readonly unknown[], V = Tuple[I]>(
+export const nth = <const I extends number, Tuple extends readonly unknown[], V>(
     index: I,
-): Optic<Tuple, Tuple, Tuple[I], V> =>
+): Optic<Tuple, ReplacedWith<Tuple, I, V>, Tuple[I], V> =>
     newLens<Tuple, Tuple[I]>((source) => source[index])(
         (source) => (part) =>
-            [...source.slice(0, index), part, ...source.slice(index + 1)] as unknown as Tuple,
+            [
+                ...source.slice(0, index),
+                part,
+                ...source.slice(index + 1),
+            ] as unknown as ReplacedWith<Tuple, I, V>,
     );
 
 /**
@@ -45,9 +53,9 @@ export const nth = <const I extends number, Tuple extends readonly unknown[], V 
  * @param k - The key of object to extract.
  * @returns The lens for indexing.
  */
-export const key = <const K extends PropertyKey, O extends Readonly<Record<K, unknown>>, V = O[K]>(
+export const key = <const K extends PropertyKey, O extends Readonly<Record<K, unknown>>, V>(
     k: K,
-): Optic<O, O, O[K], V> =>
+): Optic<O, O & Record<K, V>, O[K], V> =>
     newLens<O, O[K]>((source) => source[k])((source) => (part) => ({ ...source, [k]: part }));
 
 export type Entries<O, K> = K extends readonly [infer H, ...infer R]
@@ -57,27 +65,3 @@ export type Entries<O, K> = K extends readonly [infer H, ...infer R]
             : [[H, O[H]], ...Entries<O, R>]
         : never
     : [PropertyKey, unknown][];
-
-/**
- * Focuses to the given keys of object.
- *
- * @param k - The keys array of object to extract.
- * @returns The lens for indexing.
- */
-export const keys = <
-    const K extends readonly PropertyKey[],
-    O extends Readonly<Record<K[number], unknown>>,
->(
-    keysToUpdate: K,
-) =>
-    newLens<O, Entries<O, K>>(
-        (source) => keysToUpdate.map((k: K[number]) => [k, source[k]]) as Entries<O, K>,
-    )((source) => (parts: Entries<O, K>) => {
-        const obj = { ...source } as Record<PropertyKey, unknown>;
-        for (const [k, v] of parts) {
-            if (Object.hasOwn(obj, k)) {
-                obj[k] = v;
-            }
-        }
-        return obj as O;
-    });
