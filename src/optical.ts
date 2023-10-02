@@ -2,6 +2,7 @@ import { absurd } from "./func.js";
 import type { Setter } from "./optical/setter.js";
 import { none, type Option, some } from "./option.js";
 
+export * as Fold from "./optical/fold.js";
 export * as Getter from "./optical/getter.js";
 export * as Lens from "./optical/lens.js";
 export * as Prism from "./optical/prism.js";
@@ -115,7 +116,7 @@ export interface OpticCat<S, T, A, B> {
      * @param setter - The finish computation to add.
      * @returns Whole of data with `setter`.
      */
-    readonly setWith: (setter: Setter<A, B>) => T;
+    readonly setWith: <X, Y>(setter: Setter<A, B, X, Y>) => T;
     /**
      * Extracts the value of the focused entry.
      *
@@ -143,7 +144,7 @@ export const focused =
         feed: (right) => focused(data)(compose(o)(right)),
         over: (modifier) => o<T>((a) => (br) => br(modifier(a)))(data)((t) => t),
         set: (value) => o<T>(() => (br) => br(value))(data)((t) => t),
-        setWith: (setter) => o<T>((a) => (bt) => setter<T>(absurd)(a)(bt))(data)((t) => t),
+        setWith: (setter) => o<T>((a) => (bt) => bt(setter(absurd)(a)))(data)((t) => t),
         get: () => o<Option<A>>((a) => () => some(a))(data)(none),
         unwrap: () =>
             o<A>((a) => () => a)(data)(() => {
