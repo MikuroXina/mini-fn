@@ -4,8 +4,12 @@ import { type Apply, makeSemiGroup } from "./apply.js";
 import type { Monoid } from "./monoid.js";
 import type { Pure } from "./pure.js";
 import { semiGroupSymbol } from "./semi-group.js";
+import { type Contravariant, phantom } from "./variance.js";
 
 export interface Applicative<S> extends Apply<S>, Pure<S> {}
+
+export const noEffect = <F, A>(app: Applicative<F>, contra: Contravariant<F>): Get1<F, A> =>
+    phantom(app, contra)(app.pure<void>(undefined));
 
 export const makeMonoid = <S>(app: Applicative<S>) => {
     const semi = makeSemiGroup(app);
