@@ -14,6 +14,8 @@ export interface SwappedHkt extends Hkt1 {
     readonly type: Swapped<this["arg1"]>;
 }
 
+export const newSwapped = <A>(swapped: A): Swapped<A> => ({ swapped });
+
 export const getSwapped = <A>(s: Swapped<A>): A => s.swapped;
 
 export const partialEq = PartialEq.fromProjection<SwappedHkt>(getSwapped);
@@ -21,7 +23,7 @@ export const eq = Eq.fromProjection<SwappedHkt>(getSwapped);
 export const partialOrd = PartialOrd.fromProjection<SwappedHkt>(getSwapped);
 export const ord = Ord.fromProjection<SwappedHkt>(getSwapped);
 
-export const pure = <A>(swapped: A): Swapped<A> => ({ swapped });
+export const pure = newSwapped;
 
 export const map =
     <T, U>(fn: (t: T) => U) =>
