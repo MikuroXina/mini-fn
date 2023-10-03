@@ -9,6 +9,9 @@ export * as Prism from "./optical/prism.js";
 export * as Setter from "./optical/setter.js";
 export * as Traversal from "./optical/traversal.js";
 
+export type Optical<in S, out T, out A, in B> = (next: (sending: A) => B) => (received: S) => T;
+export type OpticalSimple<S, A> = Optical<S, S, A, A>;
+
 /**
  * Computation combinator with two-terminal pair.
  * ```text
