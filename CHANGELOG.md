@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.0](https://github.com/MikuroXina/mini-fn/compare/v5.1.0...v5.2.0) (2023-11-01)
+
+
+### Features
+
+* Add unwrap and unwrapErr for Result ([#132](https://github.com/MikuroXina/mini-fn/issues/132)) ([f76d550](https://github.com/MikuroXina/mini-fn/commit/f76d550920c6e4e27fa0f27dba201c46e83ef651))
+
 ## [5.1.0](https://github.com/MikuroXina/mini-fn/compare/v5.0.0...v5.1.0) (2023-09-29)
 
 
