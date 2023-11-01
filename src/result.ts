@@ -143,6 +143,31 @@ export const flatten = <E, T>(resRes: Result<E, Result<E, T>>): Result<E, T> =>
 export const mergeOkErr = <T>(res: Result<T, T>) => res[1];
 
 /**
+ * Unwraps the `Ok` value from a `Result`, or throws an error.
+ *
+ * @param res - The value which should be an `Ok`.
+ * @returns The unwrapped item.
+ */
+export const unwrap = <E, T>(res: Result<E, T>): T => {
+    if (isErr(res)) {
+        throw new Error("unwrapped Err");
+    }
+    return res[1];
+};
+/**
+ * Unwraps the `Err` value from a `Result`, or throws an error.
+ *
+ * @param res - The value which should be an `Err`.
+ * @returns The unwrapped item.
+ */
+export const unwrapErr = <E, T>(res: Result<E, T>): E => {
+    if (isOk(res)) {
+        throw new Error("unwrapped Ok");
+    }
+    return res[1];
+};
+
+/**
  * Returns `resB` if `resA` is an `Ok`, otherwise returns the error `resA`. The order of arguments is reversed because of that it is useful for partial applying.
  *
  * @param resB - The second result.
