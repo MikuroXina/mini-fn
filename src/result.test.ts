@@ -24,6 +24,14 @@ describe("Result", () => {
         expect(Result.mergeOkErr(Result.ok(3))).toBe(3);
         expect(Result.mergeOkErr(Result.err(4))).toBe(4);
     });
+    test("unwrap", () => {
+        expect(Result.unwrap(Result.ok(3))).toBe(3);
+        expect(() => Result.unwrap(Result.err(4))).toThrowError();
+    });
+    test("unwrapErr", () => {
+        expect(() => Result.unwrapErr(Result.ok(3))).toThrowError();
+        expect(Result.unwrapErr(Result.err(4))).toBe(4);
+    });
     test("and", () => {
         const success = Result.ok<number>(2);
         const failure = Result.err("not a 2");
