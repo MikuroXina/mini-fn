@@ -60,3 +60,41 @@ Cat.cat(20)
     .feed(liftedHalf)
     .feed(Cat.log); // none
 ```
+
+Also `CatT` allows you to compute with a `Monad` environment as:
+
+```ts
+import { Cat, List } from "@mikuroxina/mini-fn";
+
+// Find patterns where `x + y + z == 5` for all natural number `x`, `y`, and `z`.
+const patterns = Cat.doT(List.monad)
+    .let("x", List.range(0, 6))
+    .flatLet("y", ({ x }) => List.range(0, 6 - x))
+    .thenLet("z", ({ x, y }) => 5 - (x + y))
+    .finish(({ x, y, z }) => [x, y, z] as const);
+
+console.dir(List.toArray(patterns));
+/* [
+    [0, 0, 5],
+    [0, 1, 4],
+    [0, 2, 3],
+    [0, 3, 2],
+    [0, 4, 1],
+    [0, 5, 0],
+    [1, 0, 4],
+    [1, 1, 3],
+    [1, 2, 2],
+    [1, 3, 1],
+    [1, 4, 0],
+    [2, 0, 3],
+    [2, 1, 2],
+    [2, 2, 1],
+    [2, 3, 0],
+    [3, 0, 2],
+    [3, 1, 1],
+    [3, 2, 0],
+    [4, 0, 1],
+    [4, 1, 0],
+    [5, 0, 0],
+] */
+```
