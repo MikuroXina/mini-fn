@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.3.0](https://github.com/MikuroXina/mini-fn/compare/v5.2.0...v5.3.0) (2023-11-10)
+
+
+### Features
+
+* Add mod.ts ([#136](https://github.com/MikuroXina/mini-fn/issues/136)) ([95710c4](https://github.com/MikuroXina/mini-fn/commit/95710c40677dc03d39c1e3267f7bc9be51957110))
+
 ## [5.2.0](https://github.com/MikuroXina/mini-fn/compare/v5.1.0...v5.2.0) (2023-11-01)
 
 
