@@ -3,7 +3,7 @@ import { reduce as reduceArray } from "../array.ts";
 import { flip, id } from "../func.ts";
 import type { Get1, Hkt1 } from "../hkt.ts";
 import type { Reduce } from "../type-class/reduce.ts";
-import { Array } from "../lib.ts";
+import * as Array from "../array.ts";
 
 const emptyNominal = Symbol("FingerTreeEmpty");
 /**
