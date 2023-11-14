@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.4.1](https://github.com/MikuroXina/mini-fn/compare/v5.4.0...v5.4.1) (2023-11-14)
+
+
+### Bug Fixes
+
+* Fix missing lib.ts ([#146](https://github.com/MikuroXina/mini-fn/issues/146)) ([eefa7d6](https://github.com/MikuroXina/mini-fn/commit/eefa7d6c4a09193df925ef99f3bd4a6ab5d66982))
+
 ## [5.4.0](https://github.com/MikuroXina/mini-fn/compare/v5.3.0...v5.4.0) (2023-11-14)
 
 
