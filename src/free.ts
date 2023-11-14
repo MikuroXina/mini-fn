@@ -171,9 +171,9 @@ Deno.test("retract", () => {
     const lift = liftF<OptionHkt>(optionMonad);
     const retracted = retractOption<string>(
         catT(m)(lift(some("hoge")))
-            .then(lift(some("fuga")))
-            .then(lift<string>(none()))
-            .then(lift(some("foo"))).ctx,
+            .run(lift(some("fuga")))
+            .run(lift<string>(none()))
+            .run(lift(some("foo"))).ctx,
     );
     assertEquals(isNone(retracted), true);
 });
@@ -202,8 +202,8 @@ Deno.test("iter", () => {
     const lift = liftF<OptionHkt>(optionMonad);
     const iterated = iterOption<string>(
         catT(m)(lift(some("hoge")))
-            .then(lift(some("fuga")))
-            .then(lift(some("foo"))).ctx,
+            .run(lift(some("fuga")))
+            .run(lift(some("foo"))).ctx,
     );
     assertEquals(iterated, "foo");
 });
