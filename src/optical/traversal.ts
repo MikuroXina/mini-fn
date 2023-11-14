@@ -11,7 +11,7 @@
 import { type Cont, type ContHkt, map, monad } from "../cont.ts";
 import type { Apply2Only, Get1, Get2 } from "../hkt.ts";
 import type { IdentityHkt } from "../identity.ts";
-import { Identity } from "../lib.ts";
+import * as Identity from "../identity.ts";
 import type { Optic } from "../optical.ts";
 import type { Applicative } from "../type-class/applicative.ts";
 import {
