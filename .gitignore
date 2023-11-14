@@ -114,3 +114,6 @@ dist
 
 # Generated docs
 docs/
+
+# npm build
+npm/
