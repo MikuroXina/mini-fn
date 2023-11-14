@@ -127,14 +127,14 @@ Deno.test("hello language", async (t) => {
         assertEquals(comparator.eq(empty, empty), true);
         assertEquals(runProgram(example), "Hello.\nHello.\nBye.\n");
 
-        const exampleCode = doVoidT(m).then(hello).then(hello).then(bye).ctx;
+        const exampleCode = doVoidT(m).run(hello).run(hello).run(bye).ctx;
         assertEquals(comparator.eq(example, exampleCode), true);
     });
 
     await t.step("program monad", () => {
-        const subRoutine = doVoidT(m).then(hello).then(yearsOld(25)).ctx;
+        const subRoutine = doVoidT(m).run(hello).run(yearsOld(25)).ctx;
         const program =
-            doVoidT(m).then(hey).then(subRoutine).then(hey).then(bye).ctx;
+            doVoidT(m).run(hey).run(subRoutine).run(hey).run(bye).ctx;
 
         assertEquals(
             runProgram(program),

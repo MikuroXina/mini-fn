@@ -93,8 +93,8 @@ Deno.test("censor with log decoration", () => {
     const m = makeMonad(monoidArray<string>());
 
     const hello = doVoidT(m)
-        .then(tell(["Hello!"]))
-        .then(tell(["What do you do?"])).ctx;
+        .run(tell(["Hello!"]))
+        .run(tell(["What do you do?"])).ctx;
     const log = censor((messages: string[]) =>
         messages.map((message) => `[LOG] ${message}`)
     )(

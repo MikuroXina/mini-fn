@@ -33,7 +33,7 @@ export interface CatT<M, CTX> {
      * @param value - The wrapped value to bind.
      * @returns A new `CatT` containing the value at the key.
      */
-    readonly let: <const K extends PropertyKey, A>(
+    readonly addM: <const K extends PropertyKey, A>(
         key: K,
         value: Get1<M, A>,
     ) => CatT<M, Record<K, A> & CTX>;
@@ -45,7 +45,7 @@ export interface CatT<M, CTX> {
      * @param fn - The calculation.
      * @returns A new `CatT` containing the value at the key.
      */
-    readonly thenLet: <const K extends PropertyKey, A>(
+    readonly addWith: <const K extends PropertyKey, A>(
         key: K,
         fn: (ctx: CTX) => A,
     ) => CatT<M, Record<K, A> & CTX>;
@@ -56,7 +56,7 @@ export interface CatT<M, CTX> {
      * @param computation - The computation to run.
      * @returns A new `CatT` with modified environment.
      */
-    readonly then: <T>(computation: Get1<M, T>) => CatT<M, T>;
+    readonly run: <T>(computation: Get1<M, T>) => CatT<M, T>;
 
     /**
      * Binds a new value wrapped by the monad, calculated from `ctx` by `fn`.
@@ -65,7 +65,7 @@ export interface CatT<M, CTX> {
      * @param fn - The calculation which returns the wrapped value.
      * @returns A new `CatT` containing the value at the key.
      */
-    readonly flatLet: <const K extends PropertyKey, A>(
+    readonly addMWith: <const K extends PropertyKey, A>(
         key: K,
         fn: (ctx: CTX) => Get1<M, A>,
     ) => CatT<M, Record<K, A> & CTX>;
@@ -89,7 +89,7 @@ export interface CatT<M, CTX> {
 export const catT =
     <M>(monad: Monad<M>) => <CTX>(ctx: Get1<M, CTX>): CatT<M, CTX> => ({
         ctx,
-        let: <const K extends PropertyKey, A>(key: K, value: Get1<M, A>) =>
+        addM: <const K extends PropertyKey, A>(key: K, value: Get1<M, A>) =>
             catT(monad)(
                 monad.flatMap((c: CTX) =>
                     monad.map((v: A) =>
@@ -97,7 +97,7 @@ export const catT =
                     )(value)
                 )(ctx),
             ),
-        thenLet: <const K extends PropertyKey, A>(
+        addWith: <const K extends PropertyKey, A>(
             key: K,
             fn: (ctx: CTX) => A,
         ) => catT(monad)(
@@ -109,9 +109,9 @@ export const catT =
                     }) as Record<K, A> & CTX,
             )(ctx),
         ),
-        then: (computation) =>
+        run: (computation) =>
             catT(monad)(monad.flatMap(() => computation)(ctx)),
-        flatLet: <const K extends PropertyKey, A>(
+        addMWith: <const K extends PropertyKey, A>(
             key: K,
             fn: (ctx: CTX) => Get1<M, A>,
         ) => catT(monad)(
@@ -148,14 +148,14 @@ Deno.test("doT", () => {
     const optionC = some(3);
 
     const computation = doT(optionMonad)
-        .let("a", optionA)
-        .let("b", optionB)
-        .thenLet("bSquared", ({ b }) => b * b)
-        .let("c", optionC);
+        .addM("a", optionA)
+        .addM("b", optionB)
+        .addWith("bSquared", ({ b }) => b * b)
+        .addM("c", optionC);
 
     assertEquals(
         computation
-            .flatLet("cSqrt", ({ c }) => {
+            .addMWith("cSqrt", ({ c }) => {
                 const sqrt = Math.sqrt(c);
                 return Number.isInteger(sqrt) ? some(sqrt) : none();
             })

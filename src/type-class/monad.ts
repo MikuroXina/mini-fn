@@ -60,8 +60,8 @@ export const liftM2 =
     (ma: Get1<S, A>) =>
     (mb: Get1<S, B>): Get1<S, C> =>
         doT(m)
-            .let("a", ma)
-            .let("b", mb)
+            .addM("a", ma)
+            .addM("b", mb)
             .finish(({ a, b }) => f(a)(b));
 
 export const liftM3 =
@@ -71,9 +71,9 @@ export const liftM3 =
     (mb: Get1<S, B>) =>
     (mc: Get1<S, C>): Get1<S, D> =>
         doT(m)
-            .let("a", ma)
-            .let("b", mb)
-            .let("c", mc)
+            .addM("a", ma)
+            .addM("b", mb)
+            .addM("c", mc)
             .finish(({ a, b, c }) => f(a)(b)(c));
 
 export const liftM4 =
@@ -84,10 +84,10 @@ export const liftM4 =
     (mc: Get1<S, C>) =>
     (md: Get1<S, D>): Get1<S, E> =>
         doT(m)
-            .let("a", ma)
-            .let("b", mb)
-            .let("c", mc)
-            .let("d", md)
+            .addM("a", ma)
+            .addM("b", mb)
+            .addM("c", mc)
+            .addM("d", md)
             .finish(({ a, b, c, d }) => f(a)(b)(c)(d));
 
 export const liftM5 = <S>(m: Monad<S>) =>
@@ -100,11 +100,11 @@ export const liftM5 = <S>(m: Monad<S>) =>
 (md: Get1<S, D>) =>
 (me: Get1<S, E>): Get1<S, F> =>
     doT(m)
-        .let("a", ma)
-        .let("b", mb)
-        .let("c", mc)
-        .let("d", md)
-        .let("e", me)
+        .addM("a", ma)
+        .addM("b", mb)
+        .addM("c", mc)
+        .addM("d", md)
+        .addM("e", me)
         .finish(({ a, b, c, d, e }) => f(a)(b)(c)(d)(e));
 
 export const begin = <S>(m: Monad<S>): Get1<S, object> => m.pure({});

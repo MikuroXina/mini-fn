@@ -1762,9 +1762,9 @@ export const monad: Monad<ListHkt> = {
 Deno.test("with CatT", () => {
     // Find patterns where `x + y + z == 5` for all natural number `x`, `y`, and `z`.
     const patterns = Cat.doT(monad)
-        .let("x", range(0, 6))
-        .flatLet("y", ({ x }) => range(0, 6 - x))
-        .thenLet("z", ({ x, y }) => 5 - (x + y))
+        .addM("x", range(0, 6))
+        .addMWith("y", ({ x }) => range(0, 6 - x))
+        .addWith("z", ({ x, y }) => 5 - (x + y))
         .finish(({ x, y, z }) => [x, y, z] as const);
 
     assertEquals(toArray(patterns), [
