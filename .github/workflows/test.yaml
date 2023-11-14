@@ -11,24 +11,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
+      - uses: denoland/setup-deno@v1
         with:
-          version: ^8.6.12
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Run test
-        run: pnpm run test
-
+          deno-version: "~1.38"
+      - name: Check format
+        run: |
+          deno fmt --check
+          deno lint
       - name: Generate coverage
-        run: pnpm run coverage
+        run: |
+          deno task test
+          deno task coverage
+          deno coverage --lcov --output=coverage/cov.lcov coverage/cov_profile
       - uses: codecov/codecov-action@v3
         with:
-          files: ./coverage/clover.xml
-          flags: unittests
+          files: ./coverage/cov.lcov
           name: mini-fn
           verbose: true
+          fail_ci_if_error: false
