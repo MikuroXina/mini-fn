@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.4.0](https://github.com/MikuroXina/mini-fn/compare/v5.3.0...v5.4.0) (2023-11-14)
+
+
+### Features
+
+* Migrate codebase to Deno ([#138](https://github.com/MikuroXina/mini-fn/issues/138)) ([f68acc2](https://github.com/MikuroXina/mini-fn/commit/f68acc23c34dcfda74d1dd7fda3d96062f71a216))
+
+
+### Bug Fixes
+
+* Improve CatT method name ([#142](https://github.com/MikuroXina/mini-fn/issues/142)) ([a42aca9](https://github.com/MikuroXina/mini-fn/commit/a42aca904541e61b9a518c5452d29d01f84d4ace))
+* Remove lib.ts ([#141](https://github.com/MikuroXina/mini-fn/issues/141)) ([18029cb](https://github.com/MikuroXina/mini-fn/commit/18029cb8162ea6e2c2807fd9882c66dda7d7a145))
+
 ## [5.3.0](https://github.com/MikuroXina/mini-fn/compare/v5.2.0...v5.3.0) (2023-11-10)
 
 ### Features
