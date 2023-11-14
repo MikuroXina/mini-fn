@@ -29,7 +29,7 @@ jobs:
         run: |
             TAG_SHA=`git rev-list --tags --max-count=1`
             TAG=`git describe --tags $TAG_SHA`
-            deno run ./scripts/build_npm.ts ${TAG#v}
+            deno run -A ./scripts/build_npm.ts ${TAG#v}
 
       - uses: JS-DevTools/npm-publish@v3
         with:
