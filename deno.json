@@ -11,7 +11,8 @@
         "indentWidth": 4,
         "semiColons": true,
         "singleQuote": false,
-        "proseWrap": "always"
+        "proseWrap": "always",
+        "exclude": ["CHANGELOG.md"]
     },
     "lint": {
         "include": ["src/"],
