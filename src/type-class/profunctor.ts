@@ -1,5 +1,5 @@
-import { type FnHkt, id } from "../func.js";
-import type { Get2 } from "../hkt.js";
+import { type FnHkt, id } from "../func.ts";
+import type { Get2 } from "../hkt.ts";
 
 export interface Profunctor<S> {
     readonly diMap: <A, B>(
@@ -9,11 +9,12 @@ export interface Profunctor<S> {
 
 export const leftMap =
     <S>(pro: Profunctor<S>) =>
-    <A, B>(f: (a: A) => B): (<C>(m: Get2<S, B, C>) => Get2<S, A, C>) =>
+    <A, B>(f: (a: A) => B): <C>(m: Get2<S, B, C>) => Get2<S, A, C> =>
         pro.diMap(f)(id);
 export const rightMap = <S>(
     pro: Profunctor<S>,
-): (<C, D>(f: (a: C) => D) => <A>(m: Get2<S, A, C>) => Get2<S, A, D>) => pro.diMap(id);
+): <C, D>(f: (a: C) => D) => <A>(m: Get2<S, A, C>) => Get2<S, A, D> =>
+    pro.diMap(id);
 
 export const fnPro: Profunctor<FnHkt> = {
     diMap: (f) => (g) => (m) => (a) => g(m(f(a))),

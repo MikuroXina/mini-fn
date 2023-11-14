@@ -1,10 +1,10 @@
-import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
-import type { IdentityHkt } from "./identity.js";
-import type { Tuple } from "./tuple.js";
-import type { Functor } from "./type-class/functor.js";
-import type { Monad } from "./type-class/monad.js";
-import type { Monoid } from "./type-class/monoid.js";
-import type { SemiGroup } from "./type-class/semi-group.js";
+import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
+import type { IdentityHkt } from "./identity.ts";
+import type { Tuple } from "./tuple.ts";
+import type { Functor } from "./type-class/functor.ts";
+import type { Monad } from "./type-class/monad.ts";
+import type { Monoid } from "./type-class/monoid.ts";
+import type { SemiGroup } from "./type-class/semi-group.ts";
 
 /**
  * The write monad transformer, the computation which returns the result `A` and output `W` on `M`.
@@ -21,8 +21,7 @@ export interface WriterT<W, M, A> {
  * @returns The output of `w`.
  */
 export const executeWriterT =
-    <M>(monad: Monad<M>) =>
-    <W, A>(w: WriterT<W, M, A>): Get1<M, W> =>
+    <M>(monad: Monad<M>) => <W, A>(w: WriterT<W, M, A>): Get1<M, W> =>
         monad.map(([, nextWriter]: [A, W]) => nextWriter)(w());
 /**
  * Maps both the result and output of the computation with `fn`.
@@ -34,8 +33,7 @@ export const executeWriterT =
 export const mapWriterT =
     <M, N, A, B, W1, W2>(fn: (maw: Get1<M, [A, W1]>) => Get1<N, [B, W2]>) =>
     (w: WriterT<W1, M, A>): WriterT<W2, N, B> =>
-    () =>
-        fn(w());
+    () => fn(w());
 
 /**
  * Puts the output value as a computation on `Writer`.
@@ -45,9 +43,7 @@ export const mapWriterT =
  * @returns The computation which puts the output.
  */
 export const tellM =
-    <M>(monad: Monad<M>) =>
-    <W>(w: W): WriterT<W, M, void> =>
-    () =>
+    <M>(monad: Monad<M>) => <W>(w: W): WriterT<W, M, void> => () =>
         monad.pure([undefined, w]);
 /**
  * Creates an action that executes `writer` and adds its output to the value of the computation.
@@ -59,8 +55,7 @@ export const tellM =
 export const listenM =
     <M>(monad: Monad<M>) =>
     <W, A>(writer: WriterT<W, M, A>): WriterT<W, M, [A, W]> =>
-    () =>
-        monad.map(([a, w]: [A, W]): [[A, W], W] => [[a, w], w])(writer());
+    () => monad.map(([a, w]: [A, W]): [[A, W], W] => [[a, w], w])(writer());
 /**
  * Creates an action that executes `writer`, maps its output and adds to that value of the computation.
  *
@@ -74,7 +69,9 @@ export const listensM =
     <W, B>(mapper: (w: W) => B) =>
     <A>(writer: WriterT<W, M, A>): WriterT<W, M, [A, B]> =>
     () =>
-        monad.map(([a, w]: [A, W]): [[A, B], W] => [[a, mapper(w)], w])(writer());
+        monad.map(([a, w]: [A, W]): [[A, B], W] => [[a, mapper(w)], w])(
+            writer(),
+        );
 /**
  * Creates an action which passes a function to the state returned from the computation `writer`.
  *
@@ -86,7 +83,9 @@ export const passM =
     <M>(monad: Monad<M>) =>
     <W, A>(writer: WriterT<W, M, [A, (w: W) => W]>): WriterT<W, M, A> =>
     () =>
-        monad.map(([[a, f], w]: [[A, (w: W) => W], W]): [A, W] => [a, f(w)])(writer());
+        monad.map(([[a, f], w]: [[A, (w: W) => W], W]): [A, W] => [a, f(w)])(
+            writer(),
+        );
 
 /**
  * Creates an action which censors the computation `writer` with `cense`.
@@ -100,8 +99,7 @@ export const censorM =
     <M>(monad: Monad<M>) =>
     <W>(cense: (w: W) => W) =>
     <A>(writer: WriterT<W, M, A>): WriterT<W, M, A> =>
-    () =>
-        monad.map(([a, w]: [A, W]): [A, W] => [a, cense(w)])(writer());
+    () => monad.map(([a, w]: [A, W]): [A, W] => [a, cense(w)])(writer());
 
 /**
  * The write monad, the computation which returns the result `A` and output `W`.
@@ -132,8 +130,7 @@ export const executeWriter = <W, A>(w: Writer<W, A>): W => w()[1];
 export const mapWriter =
     <A, B, W1, W2>(fn: (aw: [A, W1]) => [B, W2]) =>
     (w: Writer<W1, A>): Writer<W2, B> =>
-    () =>
-        fn(w());
+    () => fn(w());
 
 /**
  * Creates an action which returns the new state `w`.
@@ -141,21 +138,17 @@ export const mapWriter =
  * @param w - The new state to tell.
  * @returns The empty computation which returns the new state.
  */
-export const tell =
-    <W>(w: W): Writer<W, void> =>
-    () => [undefined, w];
+export const tell = <W>(w: W): Writer<W, void> => () => [undefined, w];
 /**
  * Creates an action that executes `writer` and adds its output to the value of the computation.
  *
  * @param writer - The computation to be listened.
  * @returns The computation that adds its output to the value.
  */
-export const listen =
-    <W, A>(writer: Writer<W, A>): Writer<W, [A, W]> =>
-    () => {
-        const [a, w] = writer();
-        return [[a, w], w];
-    };
+export const listen = <W, A>(writer: Writer<W, A>): Writer<W, [A, W]> => () => {
+    const [a, w] = writer();
+    return [[a, w], w];
+};
 /**
  * Creates an action that executes `writer`, maps its output and adds to the value of the computation.
  *
@@ -177,8 +170,7 @@ export const listens =
  * @returns The computation with a passed state.
  */
 export const pass =
-    <W, A>(writer: Writer<W, [A, (w: W) => W]>): Writer<W, A> =>
-    () => {
+    <W, A>(writer: Writer<W, [A, (w: W) => W]>): Writer<W, A> => () => {
         const [[a, f], w] = writer();
         return [a, f(w)];
     };
@@ -191,8 +183,7 @@ export const pass =
  * @returns The censored computation.
  */
 export const censor =
-    <W>(cense: (w: W) => W) =>
-    <A>(writer: Writer<W, A>): Writer<W, A> =>
+    <W>(cense: (w: W) => W) => <A>(writer: Writer<W, A>): Writer<W, A> =>
     () => {
         const [a, w] = writer();
         return [a, cense(w)];
@@ -222,10 +213,10 @@ export const product =
  * @param a - The value to be contained.
  * @returns The new computation with the result from `a` and output from `monoid.identity`.
  */
-export const pure =
-    <W>(monoid: Monoid<W>) =>
-    <T>(a: T): Writer<W, T> =>
-    () => [a, monoid.identity];
+export const pure = <W>(monoid: Monoid<W>) => <T>(a: T): Writer<W, T> => () => [
+    a,
+    monoid.identity,
+];
 /**
  * Maps the result of computation with `f`.
  *
@@ -233,9 +224,7 @@ export const pure =
  * @returns The mapped computation.
  */
 export const map =
-    <T, U>(f: (t: T) => U) =>
-    <W>(w: Writer<W, T>): Writer<W, U> =>
-    () => {
+    <T, U>(f: (t: T) => U) => <W>(w: Writer<W, T>): Writer<W, U> => () => {
         const [ans, write] = w();
         return [f(ans), write];
     };
@@ -292,7 +281,9 @@ export const functor = <M>(): Functor<Apply2Only<WriterHkt, M>> => ({ map });
  * @param monoid - The instance of `Monoid` for `W`.
  * @returns The instance of `Monad` for `Writer<W, _>`.
  */
-export const makeMonad = <W>(monoid: Monoid<W>): Monad<Apply2Only<WriterHkt, W>> => ({
+export const makeMonad = <W>(
+    monoid: Monoid<W>,
+): Monad<Apply2Only<WriterHkt, W>> => ({
     pure: pure(monoid),
     map,
     flatMap: flatMap(monoid),

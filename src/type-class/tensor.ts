@@ -1,6 +1,6 @@
-import type { Get2 } from "../hkt.js";
-import type { Associative } from "./associative.js";
-import type { Iso } from "./iso.js";
+import type { Get2 } from "../hkt.ts";
+import type { Associative } from "./associative.ts";
+import type { Iso } from "./iso.ts";
 
 /**
  * All instance of `Tensor` must satisfy:

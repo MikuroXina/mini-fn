@@ -1,10 +1,10 @@
-import { andMonoid, orMonoid } from "../bool.js";
-import { compose, id } from "../func.js";
-import type { Get1 } from "../hkt.js";
-import { build, type List } from "../list.js";
-import { isNone, none, type Option, some, unwrapOrElse } from "../option.js";
-import { append, type Monoid } from "./monoid.js";
-import type { PartialEq } from "./partial-eq.js";
+import { andMonoid, orMonoid } from "../bool.ts";
+import { compose, id } from "../func.ts";
+import type { Get1 } from "../hkt.ts";
+import { build, type List } from "../list.ts";
+import { isNone, none, type Option, some, unwrapOrElse } from "../option.ts";
+import { append, type Monoid } from "./monoid.ts";
+import type { PartialEq } from "./partial-eq.ts";
 
 /**
  * A structure which can be reduced to an accumulated value, such as list and tree.
@@ -34,7 +34,7 @@ export interface Foldable<T> {
  */
 export const foldMap =
     <T, A, M>(foldable: Foldable<T>, monoid: Monoid<M>) =>
-    (f: (t: A) => M): ((ta: Get1<T, A>) => M) =>
+    (f: (t: A) => M): (ta: Get1<T, A>) => M =>
         foldable.foldR<A, M>(compose(append(monoid))(f))(monoid.identity);
 
 /**
@@ -45,8 +45,10 @@ export const foldMap =
  * @param tm - The data structure to be folded.
  * @returns The combined result value.
  */
-export const fold = <T, M>(foldable: Foldable<T>, monoid: Monoid<M>): ((tm: Get1<T, M>) => M) =>
-    foldMap<T, M, M>(foldable, monoid)(id);
+export const fold = <T, M>(
+    foldable: Foldable<T>,
+    monoid: Monoid<M>,
+): (tm: Get1<T, M>) => M => foldMap<T, M, M>(foldable, monoid)(id);
 
 /**
  * Folds the data structure with `folder` function by left associativity.
@@ -62,7 +64,9 @@ export const foldL =
     <A, B>(folder: (b: B) => (a: A) => B) =>
     (init: B) =>
     (data: Get1<T, A>): B =>
-        foldable.foldR((x: A) => (k: (b: B) => B) => (z: B) => k(folder(z)(x)))(id)(data)(init);
+        foldable.foldR((x: A) => (k: (b: B) => B) => (z: B) => k(folder(z)(x)))(
+            id,
+        )(data)(init);
 
 /**
  * Folds the data structure with `folder` function by right associativity. The last value will be used as an initial value for `acc` of `folder`, or throws an error if no exists.
@@ -76,14 +80,12 @@ export const foldR1 =
     <T>(foldable: Foldable<T>) =>
     <A>(folder: (l: A) => (r: A) => A) =>
     (data: Get1<T, A>): A => {
-        const mf =
-            (x: A) =>
-            (m: Option<A>): Option<A> => {
-                if (isNone(m)) {
-                    return some(x);
-                }
-                return some(folder(x)(m[1]));
-            };
+        const mf = (x: A) => (m: Option<A>): Option<A> => {
+            if (isNone(m)) {
+                return some(x);
+            }
+            return some(folder(x)(m[1]));
+        };
         return unwrapOrElse<A>(() => {
             throw new Error("foldR1: empty structure");
         })(foldable.foldR(mf)(none())(data));
@@ -101,14 +103,12 @@ export const foldL1 =
     <T>(foldable: Foldable<T>) =>
     <A>(f: (l: A) => (r: A) => A) =>
     (data: Get1<T, A>): A => {
-        const mf =
-            (m: Option<A>) =>
-            (y: A): Option<A> => {
-                if (isNone(m)) {
-                    return some(y);
-                }
-                return some(f(m[1])(y));
-            };
+        const mf = (m: Option<A>) => (y: A): Option<A> => {
+            if (isNone(m)) {
+                return some(y);
+            }
+            return some(f(m[1])(y));
+        };
         return unwrapOrElse<A>(() => {
             throw new Error("foldL1: empty structure");
         })(foldL(foldable)(mf)(none())(data));
@@ -122,12 +122,10 @@ export const foldL1 =
  * @returns The converted list.
  */
 export const toList =
-    <T>(foldable: Foldable<T>) =>
-    <A>(data: Get1<T, A>): List<A> =>
+    <T>(foldable: Foldable<T>) => <A>(data: Get1<T, A>): List<A> =>
         build(
-            <B>(c: (a: A) => (b: B) => B) =>
-                (n: B) =>
-                    foldable.foldR(c)(n)(data),
+            <B>(c: (a: A) => (b: B) => B) => (n: B) =>
+                foldable.foldR(c)(n)(data),
         );
 
 /**
@@ -137,7 +135,9 @@ export const toList =
  * @param ta - The data to be checked.
  * @returns Whether the data structure has no elements.
  */
-export const isNull = <T, A>(foldable: Foldable<T>): ((ta: Get1<T, A>) => boolean) =>
+export const isNull = <T, A>(
+    foldable: Foldable<T>,
+): (ta: Get1<T, A>) => boolean =>
     foldable.foldR<A, boolean>(() => () => false)(true);
 
 /**
@@ -147,7 +147,9 @@ export const isNull = <T, A>(foldable: Foldable<T>): ((ta: Get1<T, A>) => boolea
  * @param ta - The data to be counted.
  * @returns The length of data.
  */
-export const length = <T, A>(foldable: Foldable<T>): ((ta: Get1<T, A>) => number) =>
+export const length = <T, A>(
+    foldable: Foldable<T>,
+): (ta: Get1<T, A>) => number =>
     foldL(foldable)<A, number>((c: number) => () => c + 1)(0);
 
 /**
@@ -157,7 +159,9 @@ export const length = <T, A>(foldable: Foldable<T>): ((ta: Get1<T, A>) => number
  * @param data - The data to be tested.
  * @returns The test result.
  */
-export const and = <T>(foldable: Foldable<T>): ((data: Get1<T, boolean>) => boolean) =>
+export const and = <T>(
+    foldable: Foldable<T>,
+): (data: Get1<T, boolean>) => boolean =>
     foldable.foldR((a: boolean) => (b: boolean) => a && b)(true);
 
 /**
@@ -170,7 +174,7 @@ export const and = <T>(foldable: Foldable<T>): ((data: Get1<T, boolean>) => bool
  */
 export const all =
     <T>(foldable: Foldable<T>) =>
-    <A>(pred: (a: A) => boolean): ((data: Get1<T, A>) => boolean) =>
+    <A>(pred: (a: A) => boolean): (data: Get1<T, A>) => boolean =>
         foldMap<T, A, boolean>(foldable, andMonoid)(pred);
 
 /**
@@ -180,7 +184,9 @@ export const all =
  * @param data - The data to be tested.
  * @returns The test result.
  */
-export const or = <T>(foldable: Foldable<T>): ((data: Get1<T, boolean>) => boolean) =>
+export const or = <T>(
+    foldable: Foldable<T>,
+): (data: Get1<T, boolean>) => boolean =>
     foldable.foldR((a: boolean) => (b: boolean) => a || b)(false);
 
 /**
@@ -193,7 +199,7 @@ export const or = <T>(foldable: Foldable<T>): ((data: Get1<T, boolean>) => boole
  */
 export const any =
     <T>(foldable: Foldable<T>) =>
-    <A>(pref: (a: A) => boolean): ((data: Get1<T, A>) => boolean) =>
+    <A>(pref: (a: A) => boolean): (data: Get1<T, A>) => boolean =>
         foldMap<T, A, boolean>(foldable, orMonoid)(pref);
 
 /**
@@ -208,7 +214,7 @@ export const any =
 export const contains = <T, A>(
     foldable: Foldable<T>,
     eq: PartialEq<A>,
-): ((target: A) => (data: Get1<T, A>) => boolean) =>
+): (target: A) => (data: Get1<T, A>) => boolean =>
     compose<(a: A) => boolean, (list: Get1<T, A>) => boolean>(any(foldable))(
         (l: A) => (r: A) => eq.eq(l, r),
     );

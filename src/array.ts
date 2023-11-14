@@ -1,9 +1,9 @@
-import type { Get1, Hkt1 } from "./hkt.js";
-import { type Applicative, liftA2 } from "./type-class/applicative.js";
-import type { Functor } from "./type-class/functor.js";
-import type { Monad } from "./type-class/monad.js";
-import type { Reduce } from "./type-class/reduce.js";
-import type { Traversable } from "./type-class/traversable.js";
+import type { Get1, Hkt1 } from "./hkt.ts";
+import { type Applicative, liftA2 } from "./type-class/applicative.ts";
+import type { Functor } from "./type-class/functor.ts";
+import type { Monad } from "./type-class/monad.ts";
+import type { Reduce } from "./type-class/reduce.ts";
+import type { Traversable } from "./type-class/traversable.ts";
 
 export interface ArrayHkt extends Hkt1 {
     readonly type: readonly this["arg1"][];
@@ -20,7 +20,9 @@ export const traverse =
     (data: readonly A[]): Get1<F, readonly B[]> => {
         let res = app.pure([] as readonly B[]);
         for (const a of data) {
-            res = liftA2(app)((b: B) => (bs: readonly B[]) => [b, ...bs])(visitor(a))(res);
+            res = liftA2(app)((b: B) => (bs: readonly B[]) => [b, ...bs])(
+                visitor(a),
+            )(res);
         }
         return res;
     };
@@ -50,8 +52,7 @@ export const traversable: Traversable<ArrayHkt> = {
  * @returns The new array.
  */
 export const fromReduce =
-    <F>(reduce: Reduce<F>) =>
-    <A>(fa: Get1<F, A>): ReadonlyArray<A> =>
+    <F>(reduce: Reduce<F>) => <A>(fa: Get1<F, A>): ReadonlyArray<A> =>
         reduce.reduceL((arr: A[]) => (elem: A) => [...arr, elem])([])(fa);
 
 /**
@@ -61,14 +62,15 @@ export const fromReduce =
  * @param fa - The array to be folded.
  * @returns The folded value.
  */
-export const reduceR: <A, B>(reducer: (a: A) => (b: B) => B) => (fa: readonly A[]) => (b: B) => B =
-    (reducer) => (as) => (b) => {
-        const reversed = [...as].reverse();
-        for (const a of reversed) {
-            b = reducer(a)(b);
-        }
-        return b;
-    };
+export const reduceR: <A, B>(
+    reducer: (a: A) => (b: B) => B,
+) => (fa: readonly A[]) => (b: B) => B = (reducer) => (as) => (b) => {
+    const reversed = [...as].reverse();
+    for (const a of reversed) {
+        b = reducer(a)(b);
+    }
+    return b;
+};
 /**
  * Reduces the elements of array by `reducer` from left-side.
  *
@@ -76,9 +78,10 @@ export const reduceR: <A, B>(reducer: (a: A) => (b: B) => B) => (fa: readonly A[
  * @param fa - The array to be folded.
  * @returns The folded value.
  */
-export const reduceL: <A, B>(reducer: (b: B) => (a: A) => B) => (b: B) => (fa: readonly A[]) => B =
-    (reducer) => (b) => (as) =>
-        as.reduce((acc, a) => reducer(acc)(a), b);
+export const reduceL: <A, B>(
+    reducer: (b: B) => (a: A) => B,
+) => (b: B) => (fa: readonly A[]) => B = (reducer) => (b) => (as) =>
+    as.reduce((acc, a) => reducer(acc)(a), b);
 
 /**
  * The instance of `Reduce` for `Array`.

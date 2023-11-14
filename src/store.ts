@@ -1,13 +1,13 @@
-import { apply as applyFn } from "./func.js";
-import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
-import type { IdentityHkt } from "./identity.js";
-import type { ComonadStore } from "./store/comonad.js";
-import type { Tuple } from "./tuple.js";
-import type { Apply } from "./type-class/apply.js";
-import { type Comonad, extend as extendComonad } from "./type-class/comonad.js";
-import type { Functor } from "./type-class/functor.js";
-import type { Monoid } from "./type-class/monoid.js";
-import type { Pure } from "./type-class/pure.js";
+import { apply as applyFn } from "./func.ts";
+import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
+import type { IdentityHkt } from "./identity.ts";
+import type { ComonadStore } from "./store/comonad.ts";
+import type { Tuple } from "./tuple.ts";
+import type { Apply } from "./type-class/apply.ts";
+import { type Comonad, extend as extendComonad } from "./type-class/comonad.ts";
+import type { Functor } from "./type-class/functor.ts";
+import type { Monoid } from "./type-class/monoid.ts";
+import type { Pure } from "./type-class/pure.ts";
 
 /**
  * The store comonad transformer, the object holding the index `S` and accessor `(s: S) => A` on `W`.
@@ -24,9 +24,10 @@ export interface StoreT<S, W, A> {
  * @param index - The initial index value.
  * @returns The new store.
  */
-export const newStoreT =
-    <S, W, A>(accessor: Get1<W, (s: S) => A>) =>
-    (index: S): StoreT<S, W, A> => ({ index, accessor });
+export const newStoreT = <S, W, A>(accessor: Get1<W, (s: S) => A>) =>
+(
+    index: S,
+): StoreT<S, W, A> => ({ index, accessor });
 
 /**
  * Converts the store into a tuple of its fields.
@@ -55,8 +56,7 @@ export const pos = <S, W, A>({ index }: StoreT<S, W, A>): S => index;
  * @returns The seeked store.
  */
 export const seek =
-    <S>(newPos: S) =>
-    <W, A>({ accessor }: StoreT<S, W, A>): StoreT<S, W, A> =>
+    <S>(newPos: S) => <W, A>({ accessor }: StoreT<S, W, A>): StoreT<S, W, A> =>
         newStoreT(accessor)(newPos);
 
 /**
@@ -84,8 +84,7 @@ export const seeks =
 export const peek =
     <W>(com: Comonad<W>) =>
     <S>(position: S) =>
-    <A>(store: StoreT<S, W, A>): A =>
-        com.extract(store.accessor)(position);
+    <A>(store: StoreT<S, W, A>): A => com.extract(store.accessor)(position);
 
 /**
  * Fetches the data from `store` at the position by modifying with `modifier`.
@@ -129,7 +128,9 @@ export const mapW =
     <T, U>(f: (t: T) => U) =>
     <S>(store: StoreT<S, W, T>): StoreT<S, W, U> => ({
         ...store,
-        accessor: functor.map((accessor: (s: S) => T) => (position: S) => f(accessor(position)))(
+        accessor: functor.map((accessor: (s: S) => T) => (position: S) =>
+            f(accessor(position))
+        )(
             store.accessor,
         ),
     });
@@ -142,8 +143,7 @@ export const mapW =
  * @returns The new store which returns only `a`.
  */
 export const pureW =
-    <S, W>(monoid: Monoid<S>, p: Pure<W>) =>
-    <A>(a: A): StoreT<S, W, A> => ({
+    <S, W>(monoid: Monoid<S>, p: Pure<W>) => <A>(a: A): StoreT<S, W, A> => ({
         index: monoid.identity,
         accessor: p.pure(() => a),
     });
@@ -253,8 +253,10 @@ export type Store<S, A> = StoreT<S, IdentityHkt, A>;
  * @returns The new store.
  */
 export const newStore =
-    <S, A>(accessor: (s: S) => A) =>
-    (index: S): Store<S, A> => ({ index, accessor });
+    <S, A>(accessor: (s: S) => A) => (index: S): Store<S, A> => ({
+        index,
+        accessor,
+    });
 
 /**
  * Maps data value of the store with `f`.
@@ -264,8 +266,7 @@ export const newStore =
  * @returns The mapped store.
  */
 export const map =
-    <A, B>(fn: (a: A) => B) =>
-    <S>(store: Store<S, A>): Store<S, B> => ({
+    <A, B>(fn: (a: A) => B) => <S>(store: Store<S, A>): Store<S, B> => ({
         ...store,
         accessor: (idx) => fn(store.accessor(idx)),
     });
@@ -276,7 +277,8 @@ export const map =
  * @param store - The store to be extracted.
  * @returns The value on the current position.
  */
-export const extract = <S, A>(store: Store<S, A>): A => store.accessor(store.index);
+export const extract = <S, A>(store: Store<S, A>): A =>
+    store.accessor(store.index);
 
 /**
  * Duplicates the store into `StoreT`.
@@ -329,7 +331,11 @@ export const functor = <S>(): Functor<Apply2Only<StoreHkt, S>> => ({ map });
 /**
  * The instance of `Comonad` for `Store<S, _>`.
  */
-export const comonad = <S>(): Comonad<Apply2Only<StoreHkt, S>> => ({ map, extract, duplicate });
+export const comonad = <S>(): Comonad<Apply2Only<StoreHkt, S>> => ({
+    map,
+    extract,
+    duplicate,
+});
 
 /**
  * The instance of `ComonadStore` for `StoreT<S, W, _>`.

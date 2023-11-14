@@ -1,12 +1,14 @@
-import type { Get2 } from "../hkt.js";
-import type { Tuple } from "../tuple.js";
-import { type Category, pipe } from "./category.js";
+import type { Get2 } from "../hkt.ts";
+import type { Tuple } from "../tuple.ts";
+import { type Category, pipe } from "./category.ts";
 
 export interface Arrow<A> extends Category<A> {
     readonly arr: <B, C>(fn: (b: B) => C) => Get2<A, B, C>;
     readonly split: <B1, C1>(
         arrow1: Get2<A, B1, C1>,
-    ) => <B2, C2>(arrow2: Get2<A, B2, C2>) => Get2<A, Tuple<B1, B2>, Tuple<C1, C2>>;
+    ) => <B2, C2>(
+        arrow2: Get2<A, B2, C2>,
+    ) => Get2<A, Tuple<B1, B2>, Tuple<C1, C2>>;
 }
 
 export const first =

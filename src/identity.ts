@@ -1,11 +1,11 @@
-import { flip, id } from "./func.js";
-import type { Hkt1 } from "./hkt.js";
-import type { Comonad } from "./type-class/comonad.js";
-import type { Distributive } from "./type-class/distributive.js";
-import type { Functor } from "./type-class/functor.js";
-import type { Monad } from "./type-class/monad.js";
-import type { Settable } from "./type-class/settable.js";
-import type { Traversable } from "./type-class/traversable.js";
+import { flip, id } from "./func.ts";
+import type { Hkt1 } from "./hkt.ts";
+import type { Comonad } from "./type-class/comonad.ts";
+import type { Distributive } from "./type-class/distributive.ts";
+import type { Functor } from "./type-class/functor.ts";
+import type { Monad } from "./type-class/monad.ts";
+import type { Settable } from "./type-class/settable.ts";
+import type { Traversable } from "./type-class/traversable.ts";
 
 export { id };
 

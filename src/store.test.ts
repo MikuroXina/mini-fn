@@ -1,6 +1,5 @@
-import { expect, test } from "vitest";
-
-import { constant } from "./func.js";
+import { assertEquals } from "std/assert/mod.ts";
+import { constant } from "./func.ts";
 import {
     filter,
     fromArray,
@@ -11,10 +10,10 @@ import {
     toArray,
     toIterator,
     zip,
-} from "./list.js";
-import { experiment, extend, extract, type Store } from "./store.js";
+} from "./list.ts";
+import { experiment, extend, extract, type Store } from "./store.ts";
 
-test("store with life game", () => {
+Deno.test("store with life game", () => {
     type Coord = [number, number];
     type CellPlane<T> = Store<Coord, T>;
     type Conway = "Dead" | "Alive";
@@ -31,7 +30,9 @@ test("store with life game", () => {
         experiment(listFunctor)(neighborsOf);
     const step = (plane: CellPlane<Conway>): Conway => {
         const cell = extract(plane);
-        const neighborCount = length(filter((c: Conway) => c == "Alive")(neighborCells(plane)));
+        const neighborCount = length(
+            filter((c: Conway) => c == "Alive")(neighborCells(plane)),
+        );
         if (cell == "Dead" && neighborCount == 3) {
             return "Alive";
         }
@@ -47,15 +48,20 @@ test("store with life game", () => {
         accessor: ([x, y]) => record?.[y]?.[x] ?? "Dead",
     });
     const fromCellPlane =
-        (plane: CellPlane<Conway>) =>
-        ({ width, height }: Area): Conway[][] => {
+        (plane: CellPlane<Conway>) => ({ width, height }: Area): Conway[][] => {
             const xs = toArray(range(0, width));
             const ys = toArray(range(0, height));
-            const coords = fromArray(ys.flatMap((y) => xs.map((x): Coord => [x, y])));
+            const coords = fromArray(
+                ys.flatMap((y) => xs.map((x): Coord => [x, y])),
+            );
             const array: Conway[][] = [];
-            for (const [[x, y], cell] of toIterator(
-                zip(coords)(experiment(listFunctor)<Coord>(constant(coords))(plane)),
-            )) {
+            for (
+                const [[x, y], cell] of toIterator(
+                    zip(coords)(
+                        experiment(listFunctor)<Coord>(constant(coords))(plane),
+                    ),
+                )
+            ) {
                 if (!array[y]) {
                     array[y] = [];
                 }
@@ -85,7 +91,7 @@ test("store with life game", () => {
     | O  |
     */
     const nextPlane = fromCellPlane(evolved)({ width: 4, height: 4 });
-    expect(nextPlane).toEqual([
+    assertEquals(nextPlane, [
         ["Dead", "Dead", "Dead", "Dead"],
         ["Alive", "Dead", "Alive", "Dead"],
         ["Dead", "Alive", "Alive", "Dead"],

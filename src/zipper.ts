@@ -1,4 +1,4 @@
-import type { Hkt1 } from "./hkt.js";
+import type { Hkt1 } from "./hkt.ts";
 import {
     appendToHead,
     drop,
@@ -13,15 +13,24 @@ import {
     reverse,
     singleton as listSingleton,
     unCons,
-} from "./list.js";
-import { andThen, isNone, map as optionMap, type Option, unwrap } from "./option.js";
-import { andThen as thenWith, type Ordering } from "./ordering.js";
-import type { Comonad } from "./type-class/comonad.js";
-import { type Eq, fromEquality } from "./type-class/eq.js";
-import type { Functor } from "./type-class/functor.js";
-import { fromCmp, type Ord } from "./type-class/ord.js";
-import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
+} from "./list.ts";
+import {
+    andThen,
+    isNone,
+    map as optionMap,
+    type Option,
+    unwrap,
+} from "./option.ts";
+import { andThen as thenWith, type Ordering } from "./ordering.ts";
+import type { Comonad } from "./type-class/comonad.ts";
+import { type Eq, fromEquality } from "./type-class/eq.ts";
+import type { Functor } from "./type-class/functor.ts";
+import { fromCmp, type Ord } from "./type-class/ord.ts";
+import {
+    fromPartialEquality,
+    type PartialEq,
+} from "./type-class/partial-eq.ts";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 
 /**
  * The zipper represents the cursor of non-empty list.
@@ -55,13 +64,15 @@ export const partialCmp =
     (lhs: Zipper<T>, rhs: Zipper<T>): Option<Ordering> =>
         andThen(() => listPartialOrd(order).partialCmp(lhs.right, rhs.right))(
             andThen(() => order.partialCmp(lhs.current, rhs.current))(
-                listPartialOrd(order).partialCmp(reverse(lhs.left), reverse(rhs.left)),
+                listPartialOrd(order).partialCmp(
+                    reverse(lhs.left),
+                    reverse(rhs.left),
+                ),
             ),
         );
 export const partialOrd = fromPartialCmp(partialCmp);
 export const cmp =
-    <T>(order: Ord<T>) =>
-    (lhs: Zipper<T>, rhs: Zipper<T>): Ordering =>
+    <T>(order: Ord<T>) => (lhs: Zipper<T>, rhs: Zipper<T>): Ordering =>
         thenWith(() => listOrd(order).cmp(lhs.right, rhs.right))(
             thenWith(() => order.cmp(lhs.current, rhs.current))(
                 listOrd(order).cmp(reverse(lhs.left), reverse(rhs.left)),
@@ -75,7 +86,11 @@ export const ord = fromCmp(cmp);
  * @param current - The new value to be contained.
  * @returns The zipper with only one element.
  */
-export const singleton = <T>(current: T): Zipper<T> => ({ left: empty(), current, right: empty() });
+export const singleton = <T>(current: T): Zipper<T> => ({
+    left: empty(),
+    current,
+    right: empty(),
+});
 
 /**
  * Creates a new zipper which picks up the first element from the list, or a `None` if it is an empty list.
@@ -99,7 +114,9 @@ export const fromList = <T>(list: List<T>): Option<Zipper<T>> =>
  * @returns The converted list.
  */
 export const toList = <T>(zipper: Zipper<T>): List<T> =>
-    plus(reverse(zipper.left))(plus(listSingleton(zipper.current))(zipper.right));
+    plus(reverse(zipper.left))(
+        plus(listSingleton(zipper.current))(zipper.right),
+    );
 
 /**
  * Gets the current picking element of the zipper.
@@ -155,7 +172,8 @@ export const right = <T>(zipper: Zipper<T>): Option<Zipper<T>> =>
  * @param zipper - The source zipper.
  * @returns The shifted zipper.
  */
-export const start = <T>(zipper: Zipper<T>): Zipper<T> => unwrap(fromList(toList(zipper)));
+export const start = <T>(zipper: Zipper<T>): Zipper<T> =>
+    unwrap(fromList(toList(zipper)));
 /**
  * Shifts the zipper cursor to the end. If the source list is infinite, it will hang forever.
  *
@@ -183,8 +201,7 @@ export const end = <T>(zipper: Zipper<T>): Zipper<T> => {
  */
 export const iterateLeft = <T>(zipper: Zipper<T>): List<Zipper<T>> => {
     const inner =
-        (z: Zipper<T>) =>
-        (list: List<Zipper<T>>): List<Zipper<T>> => {
+        (z: Zipper<T>) => (list: List<Zipper<T>>): List<Zipper<T>> => {
             const lAndLs = unCons(z.left);
             if (isNone(lAndLs)) {
                 return appendToHead(z)(list);
@@ -206,8 +223,7 @@ export const iterateLeft = <T>(zipper: Zipper<T>): List<Zipper<T>> => {
  */
 export const iterateRight = <T>(zipper: Zipper<T>): List<Zipper<T>> => {
     const inner =
-        (z: Zipper<T>) =>
-        (list: List<Zipper<T>>): List<Zipper<T>> => {
+        (z: Zipper<T>) => (list: List<Zipper<T>>): List<Zipper<T>> => {
             const rAndRs = unCons(z.right);
             if (isNone(rAndRs)) {
                 return appendToHead(z)(list);
@@ -242,8 +258,7 @@ export const duplicate = <T>(zipper: Zipper<T>): Zipper<Zipper<T>> => ({
  * @returns The mapped zipper.
  */
 export const map =
-    <T, U>(fn: (t: T) => U) =>
-    (zipper: Zipper<T>): Zipper<U> => ({
+    <T, U>(fn: (t: T) => U) => (zipper: Zipper<T>): Zipper<U> => ({
         left: listMap(fn)(zipper.left),
         current: fn(zipper.current),
         right: listMap(fn)(zipper.right),

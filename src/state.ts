@@ -1,8 +1,8 @@
-import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
-import type { IdentityHkt } from "./identity.js";
-import type { Tuple } from "./tuple.js";
-import type { Functor } from "./type-class/functor.js";
-import type { Monad } from "./type-class/monad.js";
+import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
+import type { IdentityHkt } from "./identity.ts";
+import type { Tuple } from "./tuple.ts";
+import type { Functor } from "./type-class/functor.ts";
+import type { Monad } from "./type-class/monad.ts";
 
 /**
  * The state monad transformer, the computation allows you to carry and modify the state `S` of it and returns the result `A` on `M`.
@@ -18,7 +18,9 @@ export interface StateT<S, M, A> {
  * @param state - The initial state.
  * @returns The result of run.
  */
-export const runStateT = <S, M, A>(s: StateT<S, M, A>): ((state: S) => Get1<M, [A, S]>) => s;
+export const runStateT = <S, M, A>(
+    s: StateT<S, M, A>,
+): (state: S) => Get1<M, [A, S]> => s;
 /**
  * Evaluates the state computation and returns the final result.
  *
@@ -30,8 +32,7 @@ export const runStateT = <S, M, A>(s: StateT<S, M, A>): ((state: S) => Get1<M, [
 export const evaluateStateT =
     <M>(monad: Monad<M>) =>
     <S, A>(s: StateT<S, M, A>) =>
-    (state: S): Get1<M, A> =>
-        monad.map(([nextA]: [A, S]) => nextA)(s(state));
+    (state: S): Get1<M, A> => monad.map(([nextA]: [A, S]) => nextA)(s(state));
 /**
  * Executes the state computation and returns the final state.
  *
@@ -43,8 +44,7 @@ export const evaluateStateT =
 export const executeStateT =
     <M>(monad: Monad<M>) =>
     <S, A>(s: StateT<S, M, A>) =>
-    (state: S): Get1<M, S> =>
-        monad.map(([, nextS]: [A, S]) => nextS)(s(state));
+    (state: S): Get1<M, S> => monad.map(([, nextS]: [A, S]) => nextS)(s(state));
 /**
  * Maps both the return value and final state of the computation by `fn`.
  *
@@ -55,8 +55,7 @@ export const executeStateT =
 export const mapStateT =
     <M, N, S, A, B>(fn: (m: Get1<M, [A, S]>) => Get1<N, [B, S]>) =>
     (s: StateT<S, M, A>): StateT<S, N, B> =>
-    (state: S) =>
-        fn(s(state));
+    (state: S) => fn(s(state));
 /**
  * Modifies the state of the computation `s` with `fn`.
  *
@@ -67,8 +66,7 @@ export const mapStateT =
 export const withStateT =
     <S, M, A>(fn: (state: S) => S) =>
     (s: StateT<S, M, A>): StateT<S, M, A> =>
-    (state: S) =>
-        s(fn(state));
+    (state: S) => s(fn(state));
 
 /**
  * The state monad, the computation allows you to carry and modify the state `S` of it and returns the result `A`.
@@ -82,7 +80,7 @@ export type State<S, A> = StateT<S, IdentityHkt, A>;
  * @param state - The initial state.
  * @returns The result of run.
  */
-export const runState = <S, A>(s: State<S, A>): ((state: S) => [A, S]) => s;
+export const runState = <S, A>(s: State<S, A>): (state: S) => [A, S] => s;
 /**
  * Evaluates the state computation and returns the final result.
  *
@@ -90,10 +88,8 @@ export const runState = <S, A>(s: State<S, A>): ((state: S) => [A, S]) => s;
  * @param state - The initial state.
  * @returns The evaluation of the computation.
  */
-export const evaluateState =
-    <S, A>(s: State<S, A>) =>
-    (state: S): A =>
-        s(state)[0];
+export const evaluateState = <S, A>(s: State<S, A>) => (state: S): A =>
+    s(state)[0];
 /**
  * Executes the state computation and returns the final state.
  *
@@ -101,10 +97,8 @@ export const evaluateState =
  * @param state - The initial state.
  * @returns The execution of the computation.
  */
-export const executeState =
-    <S, A>(s: State<S, A>) =>
-    (state: S): S =>
-        s(state)[1];
+export const executeState = <S, A>(s: State<S, A>) => (state: S): S =>
+    s(state)[1];
 /**
  * Maps both the return value and final state of the computation by `fn`.
  *
@@ -115,8 +109,7 @@ export const executeState =
 export const mapState =
     <S, A, B>(fn: (a: [A, S]) => [B, S]) =>
     (s: State<S, A>): State<S, B> =>
-    (state) =>
-        fn(s(state));
+    (state) => fn(s(state));
 /**
  * Modifies the state of the computation `s` with `fn`.
  *
@@ -127,26 +120,21 @@ export const mapState =
 export const withState =
     <S, A>(fn: (state: S) => S) =>
     (s: State<S, A>): State<S, A> =>
-    (state: S) =>
-        s(fn(state));
+    (state: S) => s(fn(state));
 
 /**
  * Creates a computation that fetches the current state in the monad. You need to dive in the monad to use the value.
  *
  * @returns The computation which fetches the current state.
  */
-export const get =
-    <S>(): State<S, S> =>
-    (state: S) => [state, state];
+export const get = <S>(): State<S, S> => (state: S) => [state, state];
 /**
  * Creates a computation that sets the new state in the monad.
  *
  * @param state - The new state value.
  * @returns The computation which sets the new state.
  */
-export const put =
-    <S>(state: S): State<S, void> =>
-    () => [undefined, state];
+export const put = <S>(state: S): State<S, void> => () => [undefined, state];
 
 /**
  * Makes two computations into a product about the result type.
@@ -171,9 +159,7 @@ export const product =
  * @returns The mapped computation.
  */
 export const map =
-    <S, A, B>(fn: (a: A) => B) =>
-    (s: State<S, A>): State<S, B> =>
-    (state) => {
+    <S, A, B>(fn: (a: A) => B) => (s: State<S, A>): State<S, B> => (state) => {
         const [answer, nextState] = s(state);
         return [fn(answer), nextState];
     };
@@ -198,9 +184,7 @@ export const apply =
  * @param a - The value to be contained.
  * @returns The computation that does nothing.
  */
-export const pure =
-    <S, A>(a: A): State<S, A> =>
-    (s: S) => [a, s];
+export const pure = <S, A>(a: A): State<S, A> => (s: S) => [a, s];
 /**
  * Maps and flattens the computation by `fn` over `State<S, _>`.
  *

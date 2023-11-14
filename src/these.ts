@@ -1,15 +1,15 @@
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
-import { id } from "./identity.js";
-import { appendToHead, either, empty, type List } from "./list.js";
-import { make as makeTuple, type Tuple } from "./tuple.js";
-import type { Applicative } from "./type-class/applicative.js";
-import type { Bifunctor } from "./type-class/bifunctor.js";
-import { type Eq, eqSymbol } from "./type-class/eq.js";
-import type { Foldable } from "./type-class/foldable.js";
-import type { Functor } from "./type-class/functor.js";
-import type { Monad } from "./type-class/monad.js";
-import type { PartialEq } from "./type-class/partial-eq.js";
-import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
+import { id } from "./identity.ts";
+import { appendToHead, either, empty, type List } from "./list.ts";
+import { make as makeTuple, type Tuple } from "./tuple.ts";
+import type { Applicative } from "./type-class/applicative.ts";
+import type { Bifunctor } from "./type-class/bifunctor.ts";
+import { type Eq, eqSymbol } from "./type-class/eq.ts";
+import type { Foldable } from "./type-class/foldable.ts";
+import type { Functor } from "./type-class/functor.ts";
+import type { Monad } from "./type-class/monad.ts";
+import type { PartialEq } from "./type-class/partial-eq.ts";
+import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.ts";
 
 const thisSymbol = Symbol("TheseThis");
 /**
@@ -29,7 +29,8 @@ export const newThis = <A>(a: A): This<A> => [thisSymbol, a];
  * @param these - The `These` to be checked.
  * @returns Whether the `These` is a `This`.
  */
-export const isThis = <A, B>(these: These<A, B>): these is This<A> => these[0] === thisSymbol;
+export const isThis = <A, B>(these: These<A, B>): these is This<A> =>
+    these[0] === thisSymbol;
 
 const thatSymbol = Symbol("TheseThat");
 /**
@@ -49,7 +50,8 @@ export const newThat = <B>(b: B): That<B> => [thatSymbol, b];
  * @param these - The `These` to be checked.
  * @returns Whether the `These` is a `That`.
  */
-export const isThat = <A, B>(these: These<A, B>): these is That<B> => these[0] === thatSymbol;
+export const isThat = <A, B>(these: These<A, B>): these is That<B> =>
+    these[0] === thatSymbol;
 
 const bothSymbol = Symbol("TheseBoth");
 /**
@@ -63,16 +65,15 @@ export type Both<A, B> = readonly [typeof bothSymbol, A, B];
  * @param b - The second value to be contained.
  * @returns The new `Both`.
  */
-export const newBoth =
-    <A>(a: A) =>
-    <B>(b: B): Both<A, B> => [bothSymbol, a, b];
+export const newBoth = <A>(a: A) => <B>(b: B): Both<A, B> => [bothSymbol, a, b];
 /**
  * Checks whether the `These` is a `Both`.
  *
  * @param these - The `These` to be checked.
  * @returns Whether the `These` is a `Both`.
  */
-export const isBoth = <A, B>(these: These<A, B>): these is Both<A, B> => these[0] === bothSymbol;
+export const isBoth = <A, B>(these: These<A, B>): these is Both<A, B> =>
+    these[0] === bothSymbol;
 
 /**
  * The type of three variants:
@@ -106,7 +107,10 @@ export const partialEq = <A, B>(
         return false;
     },
 });
-export const eq = <A, B>(equalityA: Eq<A>, equalityB: Eq<B>): Eq<These<A, B>> => ({
+export const eq = <A, B>(
+    equalityA: Eq<A>,
+    equalityB: Eq<B>,
+): Eq<These<A, B>> => ({
     ...partialEq(equalityA, equalityB),
     [eqSymbol]: true,
 });
@@ -143,9 +147,10 @@ export const these =
  * @returns The converted tuple.
  */
 export const intoTuple =
-    <A>(defaultA: A) =>
-    <B>(defaultB: B): ((t: These<A, B>) => Tuple<A, B>) =>
-        these((a: A) => makeTuple(a)(defaultB))(makeTuple(defaultA)<B>)(makeTuple);
+    <A>(defaultA: A) => <B>(defaultB: B): (t: These<A, B>) => Tuple<A, B> =>
+        these((a: A) => makeTuple(a)(defaultB))(makeTuple(defaultA)<B>)(
+            makeTuple,
+        );
 
 /**
  * Maps both over `These` by two mappers.
@@ -157,7 +162,7 @@ export const intoTuple =
  */
 export const biMap =
     <A, B>(first: (a: A) => B) =>
-    <C, D>(second: (c: C) => D): ((curr: These<A, C>) => These<B, D>) =>
+    <C, D>(second: (c: C) => D): (curr: These<A, C>) => These<B, D> =>
         these((a: A) => newThis(first(a)) as These<B, D>)(
             (c: C) => newThat(second(c)) as These<B, D>,
         )((a) => (c) => newBoth(first(a))(second(c)) as These<B, D>);
@@ -168,8 +173,9 @@ export const biMap =
  * @param merger - The function used on `Both` case to merge its values.
  * @returns The contained value on cases of either `This` or `That`, or merged value by `merge` on case of `Both`.
  */
-export const merge = <A>(merger: (thisA: A) => (thatA: A) => A): ((t: These<A, A>) => A) =>
-    these(id<A>)(id<A>)(merger);
+export const merge = <A>(
+    merger: (thisA: A) => (thatA: A) => A,
+): (t: These<A, A>) => A => these(id<A>)(id<A>)(merger);
 
 /**
  * Maps and merges the `These`'s value with the provided functions.
@@ -183,8 +189,7 @@ export const mergeWith =
     <A, C>(f: (a: A) => C) =>
     <B>(g: (b: B) => C) =>
     (merger: (thisC: C) => (thatC: C) => C) =>
-    (t: These<A, B>): C =>
-        merge(merger)(biMap(f)(g)(t));
+    (t: These<A, B>): C => merge(merger)(biMap(f)(g)(t));
 
 /**
  * Sorts out the list of `These`s into the lists of `This`, `That` and `Both` values.
@@ -192,19 +197,25 @@ export const mergeWith =
  * @param list - The list of `These`s.
  * @returns The tuple of the list of values contained by `This`, `That` and `Both` respectively.
  */
-export const partition = <A, B>(list: List<These<A, B>>): [List<A>, List<B>, List<Tuple<A, B>>] =>
-    either<[List<A>, List<B>, List<Tuple<A, B>>]>(() => [empty(), empty(), empty()])(
+export const partition = <A, B>(
+    list: List<These<A, B>>,
+): [List<A>, List<B>, List<Tuple<A, B>>] =>
+    either<[List<A>, List<B>, List<Tuple<A, B>>]>(
+        () => [empty(), empty(), empty()],
+    )(
         (t: These<A, B>, ts: List<These<A, B>>) => {
             const [restThis, restThat, restBoth] = partition(ts);
             return these<A, [List<A>, List<B>, List<Tuple<A, B>>]>((a) => [
                 appendToHead(a)(restThis),
                 restThat,
                 restBoth,
-            ])<B>((b) => [restThis, appendToHead(b)(restThat), restBoth])((a) => (b) => [
-                restThis,
-                restThat,
-                appendToHead(makeTuple(a)(b))(restBoth),
-            ])(t);
+            ])<B>((b) => [restThis, appendToHead(b)(restThat), restBoth])(
+                (a) => (b) => [
+                    restThis,
+                    restThat,
+                    appendToHead(makeTuple(a)(b))(restBoth),
+                ],
+            )(t);
         },
     )(list);
 
@@ -214,13 +225,22 @@ export const partition = <A, B>(list: List<These<A, B>>): [List<A>, List<B>, Lis
  * @param list - The list of `These`s.
  * @returns The tuple of list of values of left and right respectively.
  */
-export const partitionHere = <A, B>(list: List<These<A, B>>): [List<A>, List<B>] =>
+export const partitionHere = <A, B>(
+    list: List<These<A, B>>,
+): [List<A>, List<B>] =>
     either<[List<A>, List<B>]>(() => [empty(), empty()])(
         (t: These<A, B>, ts: List<These<A, B>>) => {
             const [restThis, restThat] = partitionHere(ts);
-            return these<A, [List<A>, List<B>]>((a) => [appendToHead(a)(restThis), restThat])<B>(
+            return these<A, [List<A>, List<B>]>((
+                a,
+            ) => [appendToHead(a)(restThis), restThat])<B>(
                 (b) => [restThis, appendToHead(b)(restThat)],
-            )((a) => (b) => [appendToHead(a)(restThis), appendToHead(b)(restThat)])(t);
+            )(
+                (a) => (b) => [
+                    appendToHead(a)(restThis),
+                    appendToHead(b)(restThat),
+                ],
+            )(t);
         },
     )(list);
 
@@ -234,11 +254,9 @@ export const distributeTheseTuple = <A, B, C>(
     t: These<Tuple<A, B>, C>,
 ): Tuple<These<A, C>, These<B, C>> =>
     these<Tuple<A, B>, Tuple<These<A, C>, These<B, C>>>(([a, b]) =>
-        makeTuple(newThis(a))(newThis(b)),
+        makeTuple(newThis(a))(newThis(b))
     )<C>((c) => makeTuple(newThat(c))(newThat(c)))(
-        ([a, b]) =>
-            (c) =>
-                makeTuple(newBoth(a)(c))(newBoth(b)(c)),
+        ([a, b]) => (c) => makeTuple(newBoth(a)(c))(newBoth(b)(c)),
     )(t);
 
 /**
@@ -247,7 +265,9 @@ export const distributeTheseTuple = <A, B, C>(
  * @param t - The tuple having `These`s.
  * @returns The undistributed `These` of tuples.
  */
-export const undistributeTheseTuple = <A, B, C>([t1, t2]: Tuple<These<A, C>, These<B, C>>): These<
+export const undistributeTheseTuple = <A, B, C>(
+    [t1, t2]: Tuple<These<A, C>, These<B, C>>,
+): These<
     Tuple<A, B>,
     C
 > => {
@@ -276,13 +296,16 @@ export const undistributeTheseTuple = <A, B, C>([t1, t2]: Tuple<These<A, C>, The
  * @param t - The tuple having a `These` on left.
  * @returns The distributed `These` of tuples.
  */
-export const distributeTupleThese = <A, B, C>([t, c]: Tuple<These<A, B>, C>): These<
+export const distributeTupleThese = <A, B, C>(
+    [t, c]: Tuple<These<A, B>, C>,
+): These<
     Tuple<A, C>,
     Tuple<B, C>
-> =>
-    these<A, These<Tuple<A, C>, Tuple<B, C>>>((a) => newThis(makeTuple(a)(c)))<B>((b) =>
-        newThat(makeTuple(b)(c)),
-    )((a) => (b) => newBoth(makeTuple(a)(c))(makeTuple(b)(c)))(t);
+> => these<A, These<Tuple<A, C>, Tuple<B, C>>>((a) => newThis(makeTuple(a)(c)))<
+    B
+>((b) => newThat(makeTuple(b)(c)))((a) => (b) =>
+    newBoth(makeTuple(a)(c))(makeTuple(b)(c))
+)(t);
 
 /**
  * Undistributes `These` in `Tuple`.
@@ -293,12 +316,12 @@ export const distributeTupleThese = <A, B, C>([t, c]: Tuple<These<A, B>, C>): Th
 export const undistributeTupleThese = <A, B, C>(
     t: These<Tuple<A, C>, Tuple<B, C>>,
 ): Tuple<These<A, B>, C> =>
-    these<Tuple<A, C>, Tuple<These<A, B>, C>>(([a, c]) => makeTuple(newThis(a))(c))<Tuple<B, C>>(
+    these<Tuple<A, C>, Tuple<These<A, B>, C>>(([a, c]) =>
+        makeTuple(newThis(a))(c)
+    )<Tuple<B, C>>(
         ([b, c]) => makeTuple(newThat(b))(c),
     )(
-        ([a, c]) =>
-            ([b]) =>
-                makeTuple(newBoth(a)(b))(c),
+        ([a, c]) => ([b]) => makeTuple(newBoth(a)(b))(c),
     )(t);
 
 /**
@@ -315,22 +338,32 @@ export const combine =
     (l: These<A, B>, r: These<A, B>): These<A, B> => {
         if (isThis(l)) {
             const leftA = l[1];
-            return these<A, These<A, B>>((rightA) => newThis(semiA.combine(leftA, rightA)))<B>(
+            return these<A, These<A, B>>((rightA) =>
+                newThis(semiA.combine(leftA, rightA))
+            )<B>(
                 (rightB) => newBoth(leftA)(rightB),
-            )((rightA) => (rightB) => newBoth(semiA.combine(leftA, rightA))(rightB))(r);
+            )((rightA) => (rightB) =>
+                newBoth(semiA.combine(leftA, rightA))(rightB)
+            )(r);
         }
         if (isThat(l)) {
             const leftB = l[1];
-            return these<A, These<A, B>>((rightA) => newBoth(rightA)(leftB))<B>((rightB) =>
-                newThat(semiB.combine(leftB, rightB)),
-            )((rightA) => (rightB) => newBoth(rightA)(semiB.combine(leftB, rightB)))(r);
+            return these<A, These<A, B>>((rightA) => newBoth(rightA)(leftB))<B>(
+                (rightB) => newThat(semiB.combine(leftB, rightB)),
+            )((rightA) => (rightB) =>
+                newBoth(rightA)(semiB.combine(leftB, rightB))
+            )(r);
         }
         const [, leftA, leftB] = l;
-        return these<A, These<A, B>>((rightA) => newBoth(semiA.combine(leftA, rightA))(leftB))<B>(
+        return these<A, These<A, B>>((rightA) =>
+            newBoth(semiA.combine(leftA, rightA))(leftB)
+        )<B>(
             (rightB) => newBoth(leftA)(semiB.combine(leftB, rightB)),
         )(
             (rightA) => (rightB) =>
-                newBoth(semiA.combine(leftA, rightA))(semiB.combine(leftB, rightB)),
+                newBoth(semiA.combine(leftA, rightA))(
+                    semiB.combine(leftB, rightB),
+                ),
         )(r);
     };
 
@@ -342,8 +375,7 @@ export const combine =
  * @returns The mapped `These`.
  */
 export const map =
-    <B, C>(fn: (b: B) => C) =>
-    <A>(t: These<A, B>): These<A, C> =>
+    <B, C>(fn: (b: B) => C) => <A>(t: These<A, B>): These<A, C> =>
         these<A, These<A, C>>((a) => newThis(a))<B>((b) => newThat(fn(b)))(
             (a) => (b) => newBoth(a)(fn(b)),
         )(t);
@@ -360,7 +392,9 @@ export const foldR =
     <A, B>(folder: (a: A) => (b: B) => B) =>
     (init: B) =>
     <X>(data: These<X, A>): B =>
-        these<X, B>(() => init)<A>((a) => folder(a)(init))(() => (a) => folder(a)(init))(data);
+        these<X, B>(() => init)<A>((a) => folder(a)(init))(() => (a) =>
+            folder(a)(init)
+        )(data);
 
 /**
  * Traverses the `These` with `visitor` on an applicative `F`.
@@ -375,7 +409,7 @@ export const traverse =
     <A, B>(visitor: (a: A) => Get1<F, B>) =>
     <X>(data: These<X, A>): Get1<F, These<X, B>> =>
         these<X, Get1<F, These<X, B>>>((x) => app.pure(newThis(x)))<A>((b) =>
-            app.map(newThat)(visitor(b)),
+            app.map(newThat)(visitor(b))
         )((x) => (b) => app.map(newBoth(x))(visitor(b)))(data);
 
 /**
@@ -472,7 +506,9 @@ export const bifunctor: Bifunctor<TheseHkt> = { biMap };
 /**
  * The instance of `Applicative` for `These<A, _>` from `SemiGroup` for `A`.
  */
-export const app = <A>(semi: SemiGroup<A>): Applicative<Apply2Only<TheseHkt, A>> => ({
+export const app = <A>(
+    semi: SemiGroup<A>,
+): Applicative<Apply2Only<TheseHkt, A>> => ({
     map,
     pure: newThat,
     apply: apply(semi),
@@ -481,7 +517,9 @@ export const app = <A>(semi: SemiGroup<A>): Applicative<Apply2Only<TheseHkt, A>>
 /**
  * The instance of `Monad` for `These<A, _>` from `SemiGroup` for `A`.
  */
-export const monad = <A>(semi: SemiGroup<A>): Monad<Apply2Only<TheseHkt, A>> => ({
+export const monad = <A>(
+    semi: SemiGroup<A>,
+): Monad<Apply2Only<TheseHkt, A>> => ({
     ...app(semi),
     flatMap: flatMap(semi),
 });

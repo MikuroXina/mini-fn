@@ -1,12 +1,12 @@
-import { absurd } from "./func.js";
-import type { Setter } from "./optical/setter.js";
-import { none, type Option, some } from "./option.js";
+import { absurd } from "./func.ts";
+import type { Setter } from "./optical/setter.ts";
+import { none, type Option, some } from "./option.ts";
 
-export * as Getter from "./optical/getter.js";
-export * as Lens from "./optical/lens.js";
-export * as Prism from "./optical/prism.js";
-export * as Setter from "./optical/setter.js";
-export * as Traversal from "./optical/traversal.js";
+export * as Getter from "./optical/getter.ts";
+export * as Lens from "./optical/lens.ts";
+export * as Prism from "./optical/prism.ts";
+export * as Setter from "./optical/setter.ts";
+export * as Traversal from "./optical/traversal.ts";
 
 /**
  * Computation combinator with two-terminal pair.
@@ -26,10 +26,7 @@ export type OpticSimple<S, A> = Optic<S, S, A, A>;
 /**
  * The identity combinator which does nothing.
  */
-export const identity =
-    <S>(): Optic<S, S, S, S> =>
-    (x) =>
-        x;
+export const identity = <S>(): Optic<S, S, S, S> => (x) => x;
 
 /**
  * Composes two computations.
@@ -48,8 +45,7 @@ export const identity =
 export const compose =
     <X, Y, S, T>(left: Optic<X, Y, S, T>) =>
     <A, B>(right: Optic<S, T, A, B>): Optic<X, Y, A, B> =>
-    (ab) =>
-        left(right(ab));
+    (ab) => left(right(ab));
 
 /**
  * Modifies the value of the focused entry.
@@ -57,35 +53,29 @@ export const compose =
 export const over =
     <S, T, A, B>(lens: Optic<S, T, A, B>) =>
     (modifier: (a: A) => B) =>
-    (data: S): T =>
-        lens<T>((a) => (br) => br(modifier(a)))(data)((t) => t);
+    (data: S): T => lens<T>((a) => (br) => br(modifier(a)))(data)((t) => t);
 
 /**
  * Overwrites the value of the focused entry.
  */
 export const set =
-    <S, T, A, B>(lens: Optic<S, T, A, B>) =>
-    (value: B) =>
-    (data: S): T =>
+    <S, T, A, B>(lens: Optic<S, T, A, B>) => (value: B) => (data: S): T =>
         over(lens)(() => value)(data);
 
 /**
  * Extracts the value of the focused entry.
  */
 export const get =
-    <S, T, A, B>(lens: Optic<S, T, A, B>) =>
-    (data: S): Option<A> =>
+    <S, T, A, B>(lens: Optic<S, T, A, B>) => (data: S): Option<A> =>
         lens<Option<A>>((a) => () => some(a))(data)(none);
 
 /**
  * Extracts the value of the focused entry, or throw an error if no entry found.
  */
-export const unwrap =
-    <S, T, A, B>(lens: Optic<S, T, A, B>) =>
-    (data: S): A =>
-        lens<A>((a) => () => a)(data)(() => {
-            throw new Error("no entry");
-        });
+export const unwrap = <S, T, A, B>(lens: Optic<S, T, A, B>) => (data: S): A =>
+    lens<A>((a) => () => a)(data)(() => {
+        throw new Error("no entry");
+    });
 
 export interface OpticCat<S, T, A, B> {
     /**
@@ -138,12 +128,13 @@ export interface OpticCat<S, T, A, B> {
  * @returns The modified environment.
  */
 export const focused =
-    <S>(data: S) =>
-    <T, A, B>(o: Optic<S, T, A, B>): OpticCat<S, T, A, B> => ({
+    <S>(data: S) => <T, A, B>(o: Optic<S, T, A, B>): OpticCat<S, T, A, B> => ({
         feed: (right) => focused(data)(compose(o)(right)),
-        over: (modifier) => o<T>((a) => (br) => br(modifier(a)))(data)((t) => t),
+        over: (modifier) =>
+            o<T>((a) => (br) => br(modifier(a)))(data)((t) => t),
         set: (value) => o<T>(() => (br) => br(value))(data)((t) => t),
-        setWith: (setter) => o<T>((a) => (bt) => setter<T>(absurd)(a)(bt))(data)((t) => t),
+        setWith: (setter) =>
+            o<T>((a) => (bt) => setter<T>(absurd)(a)(bt))(data)((t) => t),
         get: () => o<Option<A>>((a) => () => some(a))(data)(none),
         unwrap: () =>
             o<A>((a) => () => a)(data)(() => {
@@ -157,7 +148,8 @@ export const focused =
  * @param data - The data to be computed.
  * @returns The environment to compute.
  */
-export const opticCat = <S>(data: S): OpticCat<S, S, S, S> => focused(data)(identity());
+export const opticCat = <S>(data: S): OpticCat<S, S, S, S> =>
+    focused(data)(identity());
 
 export interface OverCat<A, B> {
     readonly on: <S, T>(o: Optic<S, T, A, B>) => OverCat<S, T>;

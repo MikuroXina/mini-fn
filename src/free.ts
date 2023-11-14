@@ -1,16 +1,30 @@
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
-import * as Option from "./option.js";
-import { greater, less, type Ordering } from "./ordering.js";
-import * as Result from "./result.js";
-import type { Tuple } from "./tuple.js";
-import type { Applicative } from "./type-class/applicative.js";
-import { type Eq, fromEquality } from "./type-class/eq.js";
-import type { Functor } from "./type-class/functor.js";
-import { kleisli, type Monad } from "./type-class/monad.js";
-import { fromCmp, type Ord } from "./type-class/ord.js";
-import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
-import type { Traversable } from "./type-class/traversable.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
+import * as Option from "./option.ts";
+import { greater, less, type Ordering } from "./ordering.ts";
+import * as Result from "./result.ts";
+import type { Tuple } from "./tuple.ts";
+import type { Applicative } from "./type-class/applicative.ts";
+import { type Eq, fromEquality } from "./type-class/eq.ts";
+import type { Functor } from "./type-class/functor.ts";
+import { kleisli, type Monad } from "./type-class/monad.ts";
+import { fromCmp, type Ord } from "./type-class/ord.ts";
+import {
+    fromPartialEquality,
+    type PartialEq,
+} from "./type-class/partial-eq.ts";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
+import type { Traversable } from "./type-class/traversable.ts";
+import {
+    functor as optionFunctor,
+    isNone,
+    monad as optionMonad,
+    none,
+    type OptionHkt,
+    some,
+    unwrap,
+} from "./option.ts";
+import { catT } from "./cat.ts";
+import { assertEquals } from "std/assert/mod.ts";
 
 const pureNominal = Symbol("FreePure");
 const nodeNominal = Symbol("FreeNode");
@@ -37,10 +51,14 @@ export const pure = <A>(a: A): Pure<A> => [pureNominal, a];
  * @param f - The value wrapped with `F` to be contained.
  * @returns The new node.
  */
-export const node = <F, A>(f: Get1<F, Free<F, A>>): Node<F, A> => [nodeNominal, f];
+export const node = <F, A>(
+    f: Get1<F, Free<F, A>>,
+): Node<F, A> => [nodeNominal, f];
 
-export const isPure = <F, A>(free: Free<F, A>): free is Pure<A> => free[0] === pureNominal;
-export const isNode = <F, A>(free: Free<F, A>): free is Node<F, A> => free[0] === nodeNominal;
+export const isPure = <F, A>(free: Free<F, A>): free is Pure<A> =>
+    free[0] === pureNominal;
+export const isNode = <F, A>(free: Free<F, A>): free is Node<F, A> =>
+    free[0] === nodeNominal;
 
 /**
  * `Free` makes `Monad` instance from the functor `F`. It is left adjoint to some *forgetful* functor.
@@ -140,13 +158,25 @@ export const ord = fromCmp(cmp);
  * @returns The reduction of `F`.
  */
 export const retract =
-    <F>(monad: Monad<F>) =>
-    <T>(fr: Free<F, T>): Get1<F, T> => {
+    <F>(monad: Monad<F>) => <T>(fr: Free<F, T>): Get1<F, T> => {
         if (isPure(fr)) {
             return monad.pure(fr[1]);
         }
         return monad.flatMap(retract(monad))(fr[1]);
     };
+
+Deno.test("retract", () => {
+    const retractOption = retract(optionMonad);
+    const m = monad<OptionHkt>(optionFunctor);
+    const lift = liftF<OptionHkt>(optionMonad);
+    const retracted = retractOption<string>(
+        catT(m)(lift(some("hoge")))
+            .then(lift(some("fuga")))
+            .then(lift<string>(none()))
+            .then(lift(some("foo"))).ctx,
+    );
+    assertEquals(isNone(retracted), true);
+});
 
 /**
  * Reduces `Free` with the internal items.
@@ -165,6 +195,19 @@ export const iter =
         }
         return fn(functor.map(iter(functor)(fn))(fr[1]));
     };
+
+Deno.test("iter", () => {
+    const iterOption = iter<OptionHkt>(optionMonad)(unwrap);
+    const m = monad<OptionHkt>(optionFunctor);
+    const lift = liftF<OptionHkt>(optionMonad);
+    const iterated = iterOption<string>(
+        catT(m)(lift(some("hoge")))
+            .then(lift(some("fuga")))
+            .then(lift(some("foo"))).ctx,
+    );
+    assertEquals(iterated, "foo");
+});
+
 /**
  * Reduces `Free` with the internal items.
  *
@@ -233,7 +276,9 @@ export const productT =
     <B>(b: Free<F, B>): Free<F, Tuple<A, B>> => {
         if (isNode(a)) {
             const mapped = app.map(productT(app))(a[1]);
-            const applied = app.apply<Free<F, B>, Free<F, Tuple<A, B>>>(mapped)(app.pure(b));
+            const applied = app.apply<Free<F, B>, Free<F, Tuple<A, B>>>(mapped)(
+                app.pure(b),
+            );
             return node(applied);
         }
         if (isNode(b)) {
@@ -267,10 +312,8 @@ export const foldFree =
  * @param ft - The instance of `F` to be lifted.
  * @returns The new `Free`.
  */
-export const liftF =
-    <F>(func: Functor<F>) =>
-    <T>(ft: Get1<F, T>): Free<F, T> =>
-        node(func.map<T, Free<F, T>>(pure)(ft));
+export const liftF = <F>(func: Functor<F>) => <T>(ft: Get1<F, T>): Free<F, T> =>
+    node(func.map<T, Free<F, T>>(pure)(ft));
 
 /**
  * Maps the function on `Free`.
@@ -322,7 +365,8 @@ export const applyT =
             if (isPure(mf)) {
                 return pure(mf[1](t[1]));
             }
-            const applied = (rest: Free<F, (t: T) => U>) => applyT(functor)(rest)(t);
+            const applied = (rest: Free<F, (t: T) => U>) =>
+                applyT(functor)(rest)(t);
             return node(functor.map(applied)(mf[1]));
         }
         return node(functor.map(applyT(functor)(mf))(t[1]));
@@ -363,7 +407,7 @@ export const unfold =
     <A, B>(fn: (b: B) => Result.Result<A, Get1<F, B>>) =>
     (seed: B): Free<F, A> =>
         Result.either((a: A): Free<F, A> => pure(a))((fb: Get1<F, B>) =>
-            node(functor.map(unfold(functor)(fn))(fb)),
+            node(functor.map(unfold(functor)(fn))(fb))
         )(fn(seed));
 /**
  * Unfolds into a `Free` from `seed` with monad `M`.
@@ -376,12 +420,18 @@ export const unfold =
  */
 export const unfoldM =
     <F, M>(traversable: Traversable<F>, monad: Monad<M>) =>
-    <A, B>(f: (b: B) => Get1<M, Result.Result<A, Get1<F, B>>>): ((b: B) => Get1<M, Free<F, A>>) => {
+    <A, B>(
+        f: (b: B) => Get1<M, Result.Result<A, Get1<F, B>>>,
+    ): (b: B) => Get1<M, Free<F, A>> => {
         return kleisli(monad)(f)(
             Result.either((a: A) => monad.pure(pure(a) as Free<F, A>))((fb) =>
-                monad.map((ffa: Get1<F, Free<F, A>>) => node(ffa) as Free<F, A>)(
-                    traversable.traverse(monad)(unfoldM(traversable, monad)(f))(fb),
-                ),
+                monad.map((ffa: Get1<F, Free<F, A>>) =>
+                    node(ffa) as Free<F, A>
+                )(
+                    traversable.traverse(monad)(unfoldM(traversable, monad)(f))(
+                        fb,
+                    ),
+                )
             ),
         );
     };
@@ -396,9 +446,13 @@ export interface FreeHkt extends Hkt2 {
 export const functor = <F>(f: Functor<F>): Monad<Apply2Only<FreeHkt, F>> => ({
     map: mapT(f),
     pure,
-    flatMap: <T1, U1>(fn: (t: T1) => Free<F, U1>): ((free: Free<F, T1>) => Free<F, U1>) => {
+    flatMap: <T1, U1>(
+        fn: (t: T1) => Free<F, U1>,
+    ): (free: Free<F, T1>) => Free<F, U1> => {
         const self = (free: Free<F, T1>): Free<F, U1> =>
-            isPure(free) ? (fn(free[1]) as Free<F, U1>) : node(f.map(self)(free[1]));
+            isPure(free)
+                ? (fn(free[1]) as Free<F, U1>)
+                : node(f.map(self)(free[1]));
         return self;
     },
     apply: applyT(f),

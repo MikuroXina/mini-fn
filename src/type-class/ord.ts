@@ -1,9 +1,9 @@
-import type { Get1, Hkt1 } from "../hkt.js";
-import { some } from "../option.js";
-import { isEq, type Ordering } from "../ordering.js";
-import { type Eq, eqSymbol } from "./eq.js";
-import type { PartialOrd } from "./partial-ord.js";
-import type { Contravariant } from "./variance.js";
+import type { Get1, Hkt1 } from "../hkt.ts";
+import { some } from "../option.ts";
+import { isEq, type Ordering } from "../ordering.ts";
+import { type Eq, eqSymbol } from "./eq.ts";
+import type { PartialOrd } from "./partial-ord.ts";
+import type { Contravariant } from "./variance.ts";
 
 /**
  * All instances of `Ord` must satisfy following conditions:
@@ -11,7 +11,8 @@ import type { Contravariant } from "./variance.js";
  * - Duality: If `f` is `Ord`, for all `a` and `b`; `f(a, b) == -f(b, a)`.
  * - Strict: Ordering for all values is well-defined (so the return value is not an `Option`).
  */
-export interface Ord<Lhs, Rhs = Lhs> extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> {
+export interface Ord<Lhs, Rhs = Lhs>
+    extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> {
     readonly cmp: (lhs: Lhs, rhs: Rhs) => Ordering;
 }
 

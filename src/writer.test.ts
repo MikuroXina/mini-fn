@@ -1,8 +1,7 @@
-import { expect, test } from "vitest";
-
-import { cat, doVoidT } from "./cat.js";
-import type { Monoid } from "./type-class/monoid.js";
-import { semiGroupSymbol } from "./type-class/semi-group.js";
+import { assertEquals } from "std/assert/mod.ts";
+import { cat, doVoidT } from "./cat.ts";
+import type { Monoid } from "./type-class/monoid.ts";
+import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import {
     censor,
     evaluateWriter,
@@ -14,7 +13,7 @@ import {
     pure,
     tell,
     type Writer,
-} from "./writer.js";
+} from "./writer.ts";
 
 const monoidArray = <T>(): Monoid<T[]> => ({
     identity: [],
@@ -22,7 +21,7 @@ const monoidArray = <T>(): Monoid<T[]> => ({
     [semiGroupSymbol]: true,
 });
 
-test("tell with tower of hanoi", () => {
+Deno.test("tell with tower of hanoi", () => {
     const monoid = monoidArray<[string, string]>();
 
     const hanoi = (
@@ -39,11 +38,12 @@ test("tell with tower of hanoi", () => {
         }
         return cat(hanoi(height - 1, from, another, to))
             .feed(flatMap(monoid)(() => tell([[from, to]])))
-            .feed(flatMap(monoid)(() => hanoi(height - 1, another, to, from))).value;
+            .feed(flatMap(monoid)(() => hanoi(height - 1, another, to, from)))
+            .value;
     };
 
     const res = hanoi(3, "A", "B", "C");
-    expect(executeWriter(res)).toEqual([
+    assertEquals(executeWriter(res), [
         ["A", "B"],
         ["A", "C"],
         ["B", "C"],
@@ -54,7 +54,7 @@ test("tell with tower of hanoi", () => {
     ]);
 });
 
-test("listen with collatz sequence", () => {
+Deno.test("listen with collatz sequence", () => {
     const monoid = monoidArray<number>();
 
     const collatz = (n: number) => {
@@ -65,8 +65,12 @@ test("listen with collatz sequence", () => {
     };
     const collatzW = (n: number): Writer<number[], number> =>
         cat(tell([n])).feed(map(() => collatz(n))).value;
-    const lengthOfSeq = (writer: Writer<number[], number>): Writer<number[], number> =>
-        map(([_last, numbers]: [number, number[]]) => numbers.length)(listen(writer));
+    const lengthOfSeq = (
+        writer: Writer<number[], number>,
+    ): Writer<number[], number> =>
+        map(([_last, numbers]: [number, number[]]) => numbers.length)(
+            listen(writer),
+        );
     const collatzSeq = (n: number): Writer<number[], number> => {
         const seq = (num: number): Writer<number[], number> =>
             cat(collatzW(num)).feed(
@@ -81,18 +85,23 @@ test("listen with collatz sequence", () => {
     };
 
     const res = collatzSeq(13);
-    expect(executeWriter(res)).toEqual([13, 40, 20, 10, 5, 16, 8, 4, 2]);
-    expect(evaluateWriter(res)).toEqual(9);
+    assertEquals(executeWriter(res), [13, 40, 20, 10, 5, 16, 8, 4, 2]);
+    assertEquals(evaluateWriter(res), 9);
 });
 
-test("censor with log decoration", () => {
+Deno.test("censor with log decoration", () => {
     const m = makeMonad(monoidArray<string>());
 
     const hello = doVoidT(m)
         .then(tell(["Hello!"]))
         .then(tell(["What do you do?"])).ctx;
-    const log = censor((messages: string[]) => messages.map((message) => `[LOG] ${message}`))(
+    const log = censor((messages: string[]) =>
+        messages.map((message) => `[LOG] ${message}`)
+    )(
         hello,
     );
-    expect(executeWriter(log)).toEqual(["[LOG] Hello!", "[LOG] What do you do?"]);
+    assertEquals(executeWriter(log), [
+        "[LOG] Hello!",
+        "[LOG] What do you do?",
+    ]);
 });

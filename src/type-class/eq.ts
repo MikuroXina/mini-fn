@@ -1,5 +1,5 @@
-import type { Get1 } from "../hkt.js";
-import type { PartialEq } from "./partial-eq.js";
+import type { Get1 } from "../hkt.ts";
+import type { PartialEq } from "./partial-eq.ts";
 
 export const eqSymbol = Symbol("ImplEq");
 

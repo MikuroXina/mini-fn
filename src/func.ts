@@ -1,12 +1,14 @@
-import type { Apply2Only, Hkt2 } from "./hkt.js";
-import type { MonadReader } from "./reader/monad.js";
-import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.js";
-import type { Applicative } from "./type-class/applicative.js";
-import type { Arrow } from "./type-class/arrow.js";
-import type { Functor } from "./type-class/functor.js";
-import { type Group } from "./type-class/group.js";
-import type { Monad } from "./type-class/monad.js";
-import { semiGroupSymbol } from "./type-class/semi-group.js";
+import { assertEquals, assertThrows } from "std/assert/mod.ts";
+import type { Apply2Only, Hkt2 } from "./hkt.ts";
+import type { MonadReader } from "./reader/monad.ts";
+import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.ts";
+import type { Applicative } from "./type-class/applicative.ts";
+import type { Arrow } from "./type-class/arrow.ts";
+import type { Functor } from "./type-class/functor.ts";
+import { type Group } from "./type-class/group.ts";
+import type { Monad } from "./type-class/monad.ts";
+import { semiGroupSymbol } from "./type-class/semi-group.ts";
+import { addAbelianGroup } from "./number.ts";
 
 /**
  * The type of function from `A` to `B`.
@@ -20,13 +22,21 @@ export interface Fn<A, B> {
  */
 export const id = <T>(x: T) => x;
 
+Deno.test("id", () => {
+    assertEquals(id(2), 2);
+    assertEquals(id("foo"), "foo");
+});
+
 /**
  * The constant function which returns the first passed value.
  */
-export const constant =
-    <T>(x: T) =>
-    <U>(_u: U) =>
-        x;
+export const constant = <T>(x: T) => <U>(_u: U) => x;
+
+Deno.test("constant", () => {
+    const fn = constant(4);
+    assertEquals(fn(3), 4);
+    assertEquals(fn("foo"), 4);
+});
 
 /**
  * Indicates the unreachable code path. Calling this throws an error immediately, so this function should be called only if your application data is not consistent.
@@ -34,6 +44,13 @@ export const constant =
 export const absurd = <T>(): T => {
     throw new Error("PANIC: absurd must not be called");
 };
+
+Deno.test("absurd", () => {
+    assertThrows(() => {
+        absurd<number>();
+        throw new Error("this line must not be run");
+    }, "PANIC: absurd must not be called");
+});
 
 /**
  * Composes two functions sequentially. `z = pipe(a)(b)(x)` means `y = a(x), z = b(y)`.
@@ -43,10 +60,12 @@ export const absurd = <T>(): T => {
  * @returns The composed function.
  */
 export const pipe =
-    <T, U>(firstDo: Fn<T, U>) =>
-    <V>(secondDo: Fn<U, V>) =>
-    (t: T) =>
+    <T, U>(firstDo: Fn<T, U>) => <V>(secondDo: Fn<U, V>) => (t: T) =>
         secondDo(firstDo(t));
+
+Deno.test("pipe", () => {
+    assertEquals(pipe((x: number) => x + 1)((x) => x * 2)(3), 8);
+});
 
 /**
  * Composes two functions mathematically. `compose(f)(g)(x)` means `f(g(x))`.
@@ -55,11 +74,12 @@ export const pipe =
  * @param g - The function to do at first.
  * @returns The composed function.
  */
-export const compose =
-    <U, V>(f: Fn<U, V>) =>
-    <T>(g: Fn<T, U>) =>
-    (t: T) =>
-        f(g(t));
+export const compose = <U, V>(f: Fn<U, V>) => <T>(g: Fn<T, U>) => (t: T) =>
+    f(g(t));
+
+Deno.test("compose", () => {
+    assertEquals(compose((x: number) => x + 1)((x: number) => x * 2)(3), 7);
+});
 
 /**
  * Flips two arguments of the function.
@@ -68,10 +88,13 @@ export const compose =
  * @returns The function flipped the arguments.
  */
 export const flip =
-    <T, U, V>(f: Fn<T, Fn<U, V>>): Fn<U, Fn<T, V>> =>
-    (u) =>
-    (t) =>
-        f(t)(u);
+    <T, U, V>(f: Fn<T, Fn<U, V>>): Fn<U, Fn<T, V>> => (u) => (t) => f(t)(u);
+
+Deno.test("flip", () => {
+    const fn = flip((a: string) => (b: string) => a + b);
+    assertEquals(fn("a")("b"), "ba");
+    assertEquals(fn("asd")("btg"), "btgasd");
+});
 
 /**
  * Repeats the `succ` operation until `pred` returns `true`.
@@ -82,8 +105,7 @@ export const flip =
  * @returns The found value while operations.
  */
 export const until =
-    <T>(pred: (t: T) => boolean) =>
-    (succ: (t: T) => T): ((init: T) => T) => {
+    <T>(pred: (t: T) => boolean) => (succ: (t: T) => T): (init: T) => T => {
         const go = (x: T): T => {
             if (pred(x)) {
                 return x;
@@ -93,6 +115,16 @@ export const until =
         return go;
     };
 
+Deno.test("until", () => {
+    const padLeft = until((x: string) => 4 <= x.length)((x) => "0" + x);
+    assertEquals(padLeft(""), "0000");
+    assertEquals(padLeft("1"), "0001");
+    assertEquals(padLeft("13"), "0013");
+    assertEquals(padLeft("131"), "0131");
+    assertEquals(padLeft("1316"), "1316");
+    assertEquals(padLeft("1316534"), "1316534");
+});
+
 /**
  * Maps the hom `X => A` with `f`.
  *
@@ -100,11 +132,13 @@ export const until =
  * @param a - The hom to be mapped.
  * @returns The mapped hom.
  */
-export const map =
-    <X>() =>
-    <A, B>(f: (a: A) => B) =>
-    (a: Fn<X, A>): Fn<X, B> =>
-        pipe(a)(f);
+export const map = <X>() => <A, B>(f: (a: A) => B) => (a: Fn<X, A>): Fn<X, B> =>
+    pipe(a)(f);
+
+Deno.test("map", () => {
+    const mapper = map<string>()((x: number) => x * 2);
+    assertEquals(mapper(parseInt)("20"), 40);
+});
 
 /**
  * Applies the hom `X => A => B` to another hom `X => A`.
@@ -114,11 +148,15 @@ export const map =
  * @returns The applied hom.
  */
 export const apply =
-    <X>() =>
-    <A, B>(f: Fn<X, (a: A) => B>) =>
-    (g: Fn<X, A>): Fn<X, B> =>
-    (x) =>
+    <X>() => <A, B>(f: Fn<X, (a: A) => B>) => (g: Fn<X, A>): Fn<X, B> => (x) =>
         f(x)(g(x));
+
+Deno.test("apply", () => {
+    const applier = apply<string>()((str) => (radix: number) =>
+        parseInt(str, radix)
+    );
+    assertEquals(applier(parseInt)("11"), 12);
+});
 
 /**
  * Lifts the binary operation `q` over the hom `X => _`.
@@ -133,8 +171,12 @@ export const liftBinary =
     <A, B, C>(q: (a: A) => (b: B) => C) =>
     (f: Fn<X, A>) =>
     (g: Fn<X, B>): Fn<X, C> =>
-    (x) =>
-        q(f(x))(g(x));
+    (x) => q(f(x))(g(x));
+
+Deno.test("liftBinary", () => {
+    const lifter = liftBinary<void>()((a: number) => (b: number) => a + b);
+    assertEquals(lifter(() => 1)(() => 2)(), 3);
+});
 
 /**
  * Maps and flattens the hom with `fn`.
@@ -144,11 +186,13 @@ export const liftBinary =
  * @returns The mapped hom `X => B`.
  */
 export const flatMap =
-    <X>() =>
-    <A, B>(fn: (a: A) => Fn<X, B>) =>
-    (a: Fn<X, A>): Fn<X, B> =>
-    (x) =>
+    <X>() => <A, B>(fn: (a: A) => Fn<X, B>) => (a: Fn<X, A>): Fn<X, B> => (x) =>
         fn(a(x))(x);
+
+Deno.test("flatMap", () => {
+    const mapper = flatMap<number>()((x: number) => (y: number) => x * y);
+    assertEquals(mapper((x) => x + 1)(3), 12);
+});
 
 export interface FnHkt extends Hkt2 {
     readonly type: Fn<this["arg2"], this["arg1"]>;
@@ -194,10 +238,7 @@ export const fnArrow: Arrow<FnHkt> = {
     compose,
     identity: () => id,
     arr: id,
-    split:
-        (arrow1) =>
-        (arrow2) =>
-        ([b1, b2]) => [arrow1(b1), arrow2(b2)],
+    split: (arrow1) => (arrow2) => ([b1, b2]) => [arrow1(b1), arrow2(b2)],
 };
 
 /**
@@ -215,10 +256,27 @@ export const group = <A, B>(gr: Group<B>): Group<Fn<A, B>> => ({
  * @param gr - The instance of `AbelianGroup` for `B`.
  * @returns The instance of `AbelianGroup` for `Fn<A, B>`.
  */
-export const abelianGroup = <A, B>(gr: AbelianGroup<B>): AbelianGroup<Fn<A, B>> => ({
+export const abelianGroup = <A, B>(
+    gr: AbelianGroup<B>,
+): AbelianGroup<Fn<A, B>> => ({
     combine: (l, r) => (a) => gr.combine(l(a), r(a)),
     identity: () => gr.identity,
     invert: (g) => (a) => gr.invert(g(a)),
     [semiGroupSymbol]: true,
     [abelSymbol]: true,
+});
+
+Deno.test("group", () => {
+    for (const make of [group, abelianGroup]) {
+        const groupForFn = make<void, number>(addAbelianGroup);
+        assertEquals(groupForFn.identity(), 0);
+        assertEquals(
+            groupForFn.combine(
+                () => 1,
+                () => 2,
+            )(),
+            3,
+        );
+        assertEquals(groupForFn.invert(() => 1)(), -1);
+    }
 });

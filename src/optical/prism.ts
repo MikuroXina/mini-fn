@@ -11,10 +11,10 @@
  * ```
  */
 
-import { absurd } from "../func.js";
-import type { Optic } from "../optical.js";
-import { none, okOr, type Option, some } from "../option.js";
-import { either, err, type Result } from "../result.js";
+import { absurd } from "../func.ts";
+import type { Optic } from "../optical.ts";
+import { none, okOr, type Option, some } from "../option.ts";
+import { either, err, type Result } from "../result.ts";
 
 /**
  * Creates a new `Prism` optic from the two functions.
@@ -29,7 +29,9 @@ export const newPrism =
     (next) =>
     (received) =>
     (callback) =>
-        either(callback)((a: A) => next(a)((b) => callback(upcast(b))))(downcast(received));
+        either(callback)((a: A) => next(a)((b) => callback(upcast(b))))(
+            downcast(received),
+        );
 
 /**
  * Creates a new `Prism` optic from the two functions, but `downcast` may return a `Option`.
@@ -46,7 +48,8 @@ export const newPrismSimple =
 /**
  * @returns The optic which matches nothing. Getting a value through this will throw an error.
  */
-export const unreachable = <S, A>(): Optic<S, S, A, never> => newPrism<never, S>(absurd)<S, A>(err);
+export const unreachable = <S, A>(): Optic<S, S, A, never> =>
+    newPrism<never, S>(absurd)<S, A>(err);
 
 /**
  * Filters the value only if equals to `target`.
@@ -55,7 +58,9 @@ export const unreachable = <S, A>(): Optic<S, S, A, never> => newPrism<never, S>
  * @returns The computation to filter the data.
  */
 export const only = <A>(target: A): Optic<A, A, A, A> =>
-    newPrismSimple<A, A>((newValue) => newValue)((x) => (x === target ? some(x) : none()));
+    newPrismSimple<A, A>((newValue) => newValue)((
+        x,
+    ) => (x === target ? some(x) : none()));
 
 /**
  * Filters the value only if satisfies `pred`.
@@ -64,4 +69,6 @@ export const only = <A>(target: A): Optic<A, A, A, A> =>
  * @returns The computation to filter the data.
  */
 export const filter = <A>(pred: (a: A) => boolean): Optic<A, A, A, A> =>
-    newPrismSimple<A, A>((newValue) => newValue)((x) => (pred(x) ? some(x) : none()));
+    newPrismSimple<A, A>((newValue) => newValue)((
+        x,
+    ) => (pred(x) ? some(x) : none()));

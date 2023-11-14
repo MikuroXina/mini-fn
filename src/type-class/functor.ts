@@ -1,6 +1,6 @@
-import { constant } from "../func.js";
-import type { Get1 } from "../hkt.js";
-import type { Invariant } from "./variance.js";
+import { constant } from "../func.ts";
+import type { Get1 } from "../hkt.ts";
+import type { Invariant } from "./variance.ts";
 
 /**
  * A structure which able to lift up in `F`.
@@ -28,21 +28,20 @@ export interface Functor<F> {
  * @param f - The mapper function.
  * @returns The nest-mapped function.
  */
-export const map =
-    <FA, FB>(funcA: Functor<FA>, funcB: Functor<FB>) =>
-    <T, U>(f: (t: T) => U): ((funcT: Get1<FA, Get1<FB, T>>) => Get1<FA, Get1<FB, U>>) =>
-        funcA.map(funcB.map(f));
+export const map = <FA, FB>(funcA: Functor<FA>, funcB: Functor<FB>) =>
+<T, U>(
+    f: (t: T) => U,
+): (funcT: Get1<FA, Get1<FB, T>>) => Get1<FA, Get1<FB, U>> =>
+    funcA.map(funcB.map(f));
 
 /**
- *
  * @param func - The instance of `Functor` for `F`.
  * @param a - The value to be replaced.
  * @param fb - The target to replace.
  * @returns The replaced object of `F` contains the item `a`.
  */
 export const replace =
-    <F>(func: Functor<F>) =>
-    <A>(a: A): (<B>(fb: Get1<F, B>) => Get1<F, A>) =>
+    <F>(func: Functor<F>) => <A>(a: A): <B>(fb: Get1<F, B>) => Get1<F, A> =>
         func.map(constant(a));
 
 /**
@@ -53,10 +52,8 @@ export const replace =
  * @param t - The function to apply.
  * @returns The applied item in `S`.
  */
-export const flap =
-    <S>(func: Functor<S>) =>
-    <T, U>(item: T) =>
-        func.map((f: (argT: T) => U) => f(item));
+export const flap = <S>(func: Functor<S>) => <T, U>(item: T) =>
+    func.map((f: (argT: T) => U) => f(item));
 
 /**
  * Binds the item in `S` to a new object with the provided key.
@@ -67,8 +64,7 @@ export const flap =
  * @returns The bound object in `S`.
  */
 export const bindTo =
-    <S>(func: Functor<S>) =>
-    <N extends PropertyKey>(name: N) =>
+    <S>(func: Functor<S>) => <N extends PropertyKey>(name: N) =>
         func.map(<T>(a: T) => ({ [name]: a }) as Record<N, T>);
 
 /**

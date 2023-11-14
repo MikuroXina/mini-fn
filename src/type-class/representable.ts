@@ -1,6 +1,6 @@
-import type { Get1, Get2, Hkt0, Hkt1 } from "../hkt.js";
-import type { Functor } from "./functor.js";
-import type { Strong } from "./strong.js";
+import type { Get1, Get2, Hkt0, Hkt1 } from "../hkt.ts";
+import type { Functor } from "./functor.ts";
+import type { Strong } from "./strong.ts";
 
 /**
  * An HKT extension to provide associated type `Rep` for `Representable`.
@@ -30,9 +30,13 @@ export interface Representable<P> extends Strong<P> {
 export const first =
     <P>(p: Representable<P>) =>
     <A, B, C>(pab: Get2<P, A, B>): Get2<P, [A, C], [B, C]> =>
-        p.tabulate(([a, c]) => p.functor.map((b: B) => [b, c])(p.index(pab)(a)));
+        p.tabulate(([a, c]) =>
+            p.functor.map((b: B) => [b, c])(p.index(pab)(a))
+        );
 
 export const second =
     <P>(p: Representable<P>) =>
     <A, B, C>(pab: Get2<P, A, B>): Get2<P, [C, A], [C, B]> =>
-        p.tabulate(([c, a]) => p.functor.map((b: B) => [c, b])(p.index(pab)(a)));
+        p.tabulate(([c, a]) =>
+            p.functor.map((b: B) => [c, b])(p.index(pab)(a))
+        );

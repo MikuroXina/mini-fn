@@ -8,7 +8,7 @@
  * ```
  */
 
-import type { Optic } from "../optical.js";
+import type { Optic } from "../optical.ts";
 
 export type Getter<S, A, T> = Optic<S, T, A, T>;
 
