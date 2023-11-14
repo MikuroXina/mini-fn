@@ -12,21 +12,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
+      - uses: denoland/setup-deno@v1
         with:
-          version: ^8.6.12
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm run build
+          deno-version: "~1.38"
 
       - name: Generate docs
-        run: pnpm run doc
+        run: deno task doc
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -34,6 +25,12 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
 
+      - name: Setup Node.js package
+        run: |
+            TAG_SHA=`git rev-list --tags --max-count=1`
+            TAG=`git describe --tags $TAG_SHA`
+            deno run ./scripts/build_npm.ts ${TAG#v}
+
       - uses: JS-DevTools/npm-publish@v3
         with:
-          token: ${{ secrets.NPM_TOKEN }}
+            token: ${{ secrets.NPM_TOKEN }}

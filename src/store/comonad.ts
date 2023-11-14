@@ -1,6 +1,6 @@
-import type { Get1 } from "../hkt.js";
-import type { Comonad } from "../type-class/comonad.js";
-import type { Functor } from "../type-class/functor.js";
+import type { Get1 } from "../hkt.ts";
+import type { Comonad } from "../type-class/comonad.ts";
+import type { Functor } from "../type-class/functor.ts";
 
 export interface ComonadStore<S, W> extends Comonad<W> {
     readonly pos: <A>(store: Get1<W, A>) => S;
@@ -10,8 +10,7 @@ export interface ComonadStore<S, W> extends Comonad<W> {
 export const peeks =
     <S, W>(cs: ComonadStore<S, W>) =>
     (modifier: (position: S) => S) =>
-    <A>(store: Get1<W, A>): A =>
-        cs.peek(modifier(cs.pos(store)))(store);
+    <A>(store: Get1<W, A>): A => cs.peek(modifier(cs.pos(store)))(store);
 
 export const seek =
     <S, W>(cs: ComonadStore<S, W>) =>
@@ -29,4 +28,6 @@ export const experiment =
     <S, W, F>(cs: ComonadStore<S, W>, functor: Functor<F>) =>
     (modifier: (position: S) => Get1<F, S>) =>
     <A>(store: Get1<W, A>): Get1<F, A> =>
-        functor.map((position: S) => cs.peek(position)(store))(modifier(cs.pos(store)));
+        functor.map((position: S) => cs.peek(position)(store))(
+            modifier(cs.pos(store)),
+        );

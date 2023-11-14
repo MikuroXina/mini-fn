@@ -1,5 +1,5 @@
-import * as List from "../list.js";
-import { type SemiGroup, semiGroupSymbol } from "./semi-group.js";
+import * as List from "../list.ts";
+import { type SemiGroup, semiGroupSymbol } from "./semi-group.ts";
 
 /**
  * All instances of `Monoid` must satisfy following conditions:
@@ -11,13 +11,10 @@ export interface Monoid<T> extends SemiGroup<T> {
     readonly identity: T;
 }
 
-export const append =
-    <T>(monoid: Monoid<T>) =>
-    (l: T) =>
-    (r: T): T =>
-        monoid.combine(l, r);
+export const append = <T>(monoid: Monoid<T>) => (l: T) => (r: T): T =>
+    monoid.combine(l, r);
 
-export const concat = <T>(monoid: Monoid<T>): ((list: List.List<T>) => T) =>
+export const concat = <T>(monoid: Monoid<T>): (list: List.List<T>) => T =>
     List.foldL(append(monoid))(monoid.identity);
 
 export const trivialMonoid: Monoid<[]> = {

@@ -1,10 +1,11 @@
-import type { Get1, Get2 } from "../hkt.js";
-import type { Applicative } from "./applicative.js";
-import type { Distributive } from "./distributive.js";
-import { type Profunctor, rightMap } from "./profunctor.js";
-import type { Traversable } from "./traversable.js";
+import type { Get1, Get2 } from "../hkt.ts";
+import type { Applicative } from "./applicative.ts";
+import type { Distributive } from "./distributive.ts";
+import { type Profunctor, rightMap } from "./profunctor.ts";
+import type { Traversable } from "./traversable.ts";
 
-export interface Settable<F> extends Applicative<F>, Distributive<F>, Traversable<F> {
+export interface Settable<F>
+    extends Applicative<F>, Distributive<F>, Traversable<F> {
     readonly untainted: <A>(fa: Get1<F, A>) => A;
 }
 

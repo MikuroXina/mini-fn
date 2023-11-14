@@ -1,6 +1,6 @@
-import type { ComonadCofree } from "./cofree/comonad.js";
-import { compose } from "./func.js";
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
+import type { ComonadCofree } from "./cofree/comonad.ts";
+import { compose } from "./func.ts";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import {
     defer as lazyDefer,
     eq as lazyEq,
@@ -10,9 +10,9 @@ import {
     ord as lazyOrd,
     partialEq as lazyPartialEq,
     partialOrd as lazyPartialOrd,
-} from "./lazy.js";
-import { type Option } from "./option.js";
-import type { Ordering } from "./ordering.js";
+} from "./lazy.ts";
+import { type Option } from "./option.ts";
+import type { Ordering } from "./ordering.ts";
 import {
     eq as tupleEq,
     map as tupleMap,
@@ -20,15 +20,21 @@ import {
     partialEq as tuplePartialEq,
     partialOrd as tuplePartialOrd,
     type Tuple,
-} from "./tuple.js";
-import { type Comonad, extend } from "./type-class/comonad.js";
-import { type Eq, fromEquality } from "./type-class/eq.js";
-import type { Functor } from "./type-class/functor.js";
-import { kleisli, liftM, type Monad } from "./type-class/monad.js";
-import { fromCmp, type Ord } from "./type-class/ord.js";
-import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
-import { mapM as mapMTraversable, type Traversable } from "./type-class/traversable.js";
+} from "./tuple.ts";
+import { type Comonad, extend } from "./type-class/comonad.ts";
+import { type Eq, fromEquality } from "./type-class/eq.ts";
+import type { Functor } from "./type-class/functor.ts";
+import { kleisli, liftM, type Monad } from "./type-class/monad.ts";
+import { fromCmp, type Ord } from "./type-class/ord.ts";
+import {
+    fromPartialEquality,
+    type PartialEq,
+} from "./type-class/partial-eq.ts";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
+import {
+    mapM as mapMTraversable,
+    type Traversable,
+} from "./type-class/traversable.ts";
 
 export interface CofreeHkt extends Hkt2 {
     readonly type: Cofree<this["arg2"], this["arg1"]>;
@@ -45,10 +51,13 @@ export const partialEquality = <F, A>({
 }: {
     equalityA: PartialEq<A>;
     equalityFA: <T>(equality: PartialEq<T>) => PartialEq<Get1<F, T>>;
-}): ((l: Cofree<F, A>, r: Cofree<F, A>) => boolean) => {
+}): (l: Cofree<F, A>, r: Cofree<F, A>) => boolean => {
     const self: (l: Cofree<F, A>, r: Cofree<F, A>) => boolean = lazyPartialEq<
         Tuple<A, Get1<F, Cofree<F, A>>>
-    >(tuplePartialEq({ equalityA, equalityB: equalityFA(fromPartialEquality(() => self)()) })).eq;
+    >(tuplePartialEq({
+        equalityA,
+        equalityB: equalityFA(fromPartialEquality(() => self)()),
+    })).eq;
     return self;
 };
 export const partialEq = fromPartialEquality(partialEquality);
@@ -58,10 +67,11 @@ export const equality = <F, A>({
 }: {
     equalityA: Eq<A>;
     equalityFA: <T>(equality: Eq<T>) => Eq<Get1<F, T>>;
-}): ((l: Cofree<F, A>, r: Cofree<F, A>) => boolean) => {
+}): (l: Cofree<F, A>, r: Cofree<F, A>) => boolean => {
     const self: (l: Cofree<F, A>, r: Cofree<F, A>) => boolean = lazyEq<
         Tuple<A, Get1<F, Cofree<F, A>>>
-    >(tupleEq({ equalityA, equalityB: equalityFA(fromEquality(() => self)()) })).eq;
+    >(tupleEq({ equalityA, equalityB: equalityFA(fromEquality(() => self)()) }))
+        .eq;
     return self;
 };
 export const eq = fromEquality(equality);
@@ -71,13 +81,14 @@ export const partialCmp = <F, A>({
 }: {
     orderA: PartialOrd<A>;
     orderFA: <T>(order: PartialOrd<T>) => PartialOrd<Get1<F, T>>;
-}): ((l: Cofree<F, A>, r: Cofree<F, A>) => Option<Ordering>) => {
-    const self: (l: Cofree<F, A>, r: Cofree<F, A>) => Option<Ordering> = lazyPartialOrd(
-        tuplePartialOrd({
-            ordA: orderA,
-            ordB: orderFA(fromPartialCmp(() => self)()),
-        }),
-    ).partialCmp;
+}): (l: Cofree<F, A>, r: Cofree<F, A>) => Option<Ordering> => {
+    const self: (l: Cofree<F, A>, r: Cofree<F, A>) => Option<Ordering> =
+        lazyPartialOrd(
+            tuplePartialOrd({
+                ordA: orderA,
+                ordB: orderFA(fromPartialCmp(() => self)()),
+            }),
+        ).partialCmp;
     return self;
 };
 export const partialOrd = fromPartialCmp(partialCmp);
@@ -87,7 +98,7 @@ export const cmp = <F, A>({
 }: {
     orderA: Ord<A>;
     orderFA: <T>(order: Ord<T>) => Ord<Get1<F, T>>;
-}): ((l: Cofree<F, A>, r: Cofree<F, A>) => Ordering) => {
+}): (l: Cofree<F, A>, r: Cofree<F, A>) => Ordering => {
     const self: (l: Cofree<F, A>, r: Cofree<F, A>) => Ordering = lazyOrd(
         tupleOrd({
             ordA: orderA,
@@ -104,7 +115,9 @@ export const ord = fromCmp(cmp);
  * @param fn - The deferred function.
  * @returns The new instance.
  */
-export const defer: <F, A>(fn: () => [A, Get1<F, Cofree<F, A>>]) => Cofree<F, A> = lazyDefer;
+export const defer: <F, A>(
+    fn: () => [A, Get1<F, Cofree<F, A>>],
+) => Cofree<F, A> = lazyDefer;
 
 /**
  * Creates a new `Cofree` from the head and successor.
@@ -113,10 +126,8 @@ export const defer: <F, A>(fn: () => [A, Get1<F, Cofree<F, A>>]) => Cofree<F, A>
  * @param f - The successor, a `Cofree` mapped by `F`.
  * @returns The new instance.
  */
-export const make =
-    <A>(a: A) =>
-    <F>(f: Get1<F, Cofree<F, A>>): Cofree<F, A> =>
-        lazyDefer(() => [a, f]);
+export const make = <A>(a: A) => <F>(f: Get1<F, Cofree<F, A>>): Cofree<F, A> =>
+    lazyDefer(() => [a, f]);
 
 /**
  * Gets the head element.
@@ -132,7 +143,8 @@ export const head = <F, A>(c: Cofree<F, A>): A => force(c)[0];
  * @param c - The instance of `Cofree`.
  * @returns The tail elements contained by `F`.
  */
-export const tail = <F, A>(c: Cofree<F, A>): Get1<F, Cofree<F, A>> => force(c)[1];
+export const tail = <F, A>(c: Cofree<F, A>): Get1<F, Cofree<F, A>> =>
+    force(c)[1];
 
 /**
  * Unwraps the instance.
@@ -140,7 +152,8 @@ export const tail = <F, A>(c: Cofree<F, A>): Get1<F, Cofree<F, A>> => force(c)[1
  * @param c - The instance of `Cofree`.
  * @returns The tail elements contained by the functor `F`.
  */
-export const unwrap = <F, A>(cofree: Cofree<F, A>): Get1<F, Cofree<F, A>> => force(cofree)[1];
+export const unwrap = <F, A>(cofree: Cofree<F, A>): Get1<F, Cofree<F, A>> =>
+    force(cofree)[1];
 
 /**
  * Maps the function for `Cofree`.
@@ -151,8 +164,10 @@ export const unwrap = <F, A>(cofree: Cofree<F, A>): Get1<F, Cofree<F, A>> => for
  */
 export const map =
     <F>(f: Functor<F>) =>
-    <A, B>(fn: (a: A) => B): ((c: Cofree<F, A>) => Cofree<F, B>) =>
-        lazyMap(([a, fa]: readonly [A, Get1<F, Cofree<F, A>>]): [B, Get1<F, Cofree<F, B>>] => [
+    <A, B>(fn: (a: A) => B): (c: Cofree<F, A>) => Cofree<F, B> =>
+        lazyMap((
+            [a, fa]: readonly [A, Get1<F, Cofree<F, A>>],
+        ): [B, Get1<F, Cofree<F, B>>] => [
             fn(a),
             f.map(map(f)(fn))(fa),
         ]);
@@ -176,9 +191,14 @@ export const hoist =
     <F>(f: Functor<F>) =>
     <G>(nat: <T>(a: Get1<F, T>) => Get1<G, T>) =>
     <A>(c: Cofree<F, A>): Cofree<G, A> =>
-        lazyMap<Tuple<A, Get1<F, Cofree<F, A>>>, Tuple<A, Get1<G, Cofree<G, A>>>>(
+        lazyMap<
+            Tuple<A, Get1<F, Cofree<F, A>>>,
+            Tuple<A, Get1<G, Cofree<G, A>>>
+        >(
             tupleMap(
-                compose<Get1<F, Cofree<G, A>>, Get1<G, Cofree<G, A>>>(nat)(f.map(hoist(f)(nat))),
+                compose<Get1<F, Cofree<G, A>>, Get1<G, Cofree<G, A>>>(nat)(
+                    f.map(hoist(f)(nat)),
+                ),
             ),
         )(c);
 
@@ -207,8 +227,7 @@ export const build =
 export const coiter =
     <F>(functor: Functor<F>) =>
     <A>(psi: (a: A) => Get1<F, A>) =>
-    (a: A): Cofree<F, A> =>
-        make(a)(functor.map(coiter(functor)(psi))(psi(a)));
+    (a: A): Cofree<F, A> => make(a)(functor.map(coiter(functor)(psi))(psi(a)));
 
 /**
  * Generates a new `Cofree` from the co-iteration and seed wrapped with comonad `W`.
@@ -223,7 +242,9 @@ export const coiterW =
     <W, F>(comonad: Comonad<W>, functor: Functor<F>) =>
     <A>(psi: (wa: Get1<W, A>) => Get1<F, Get1<W, A>>) =>
     (a: Get1<W, A>): Cofree<F, A> =>
-        make(comonad.extract(a))(functor.map(coiterW(comonad, functor)(psi))(psi(a)));
+        make(comonad.extract(a))(
+            functor.map(coiterW(comonad, functor)(psi))(psi(a)),
+        );
 
 /**
  * Unfolds into a `Cofree` from the seed.
@@ -253,11 +274,13 @@ export const unfold =
 export const unfoldM = <F, M>(traversable: Traversable<F>, monad: Monad<M>) => {
     const partial = <B, A>(
         unfolder: (b: B) => Get1<M, Lazy<Tuple<A, Get1<F, B>>>>,
-    ): ((init: B) => Get1<M, Cofree<F, A>>) =>
+    ): (init: B) => Get1<M, Cofree<F, A>> =>
         kleisli(monad)(unfolder)((tuple) => {
             const [x, t] = force(tuple);
             return liftM(monad)(make(x))(
-                mapMTraversable<F, M, B, Cofree<F, A>>(traversable, monad)(partial(unfolder))(t),
+                mapMTraversable<F, M, B, Cofree<F, A>>(traversable, monad)(
+                    partial(unfolder),
+                )(t),
             );
         });
     return partial;
@@ -271,8 +294,7 @@ export const unfoldM = <F, M>(traversable: Traversable<F>, monad: Monad<M>) => {
  * @returns The new instance.
  */
 export const section =
-    <F>(comonad: Comonad<F>) =>
-    <A>(as: Get1<F, A>): Cofree<F, A> =>
+    <F>(comonad: Comonad<F>) => <A>(as: Get1<F, A>): Cofree<F, A> =>
         make(comonad.extract(as))(extend(comonad)(section(comonad))(as));
 
 /**
@@ -281,7 +303,9 @@ export const section =
  * @param f - The instance of `Functor` for `F`.
  * @returns The instance of `Functor` for `Cofree<F, _>`.
  */
-export const functor = <F>(f: Functor<F>): Functor<Apply2Only<CofreeHkt, F>> => ({
+export const functor = <F>(
+    f: Functor<F>,
+): Functor<Apply2Only<CofreeHkt, F>> => ({
     map: map(f),
 });
 
@@ -291,7 +315,9 @@ export const functor = <F>(f: Functor<F>): Functor<Apply2Only<CofreeHkt, F>> => 
  * @param f - The instance of `Functor` for `F`.
  * @returns The instance of `Comonad` for `Cofree<F, _>`.
  */
-export const comonad = <F>(f: Functor<F>): Comonad<Apply2Only<CofreeHkt, F>> => {
+export const comonad = <F>(
+    f: Functor<F>,
+): Comonad<Apply2Only<CofreeHkt, F>> => {
     const duplicate = <A>(w: Cofree<F, A>): Cofree<F, Cofree<F, A>> =>
         make(w)(f.map(duplicate)(unwrap(w)));
     return {
@@ -307,7 +333,9 @@ export const comonad = <F>(f: Functor<F>): Comonad<Apply2Only<CofreeHkt, F>> => 
  * @param f - The instance of `Functor` for `F`.
  * @returns The instance of `ComonadCofree` for `Cofree<F, _>`.
  */
-export const comonadCofree = <F>(f: Functor<F>): ComonadCofree<F, Apply2Only<CofreeHkt, F>> => ({
+export const comonadCofree = <F>(
+    f: Functor<F>,
+): ComonadCofree<F, Apply2Only<CofreeHkt, F>> => ({
     ...comonad(f),
     functor: f,
     unwrap,

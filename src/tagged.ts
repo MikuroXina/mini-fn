@@ -1,4 +1,4 @@
-import type { Hkt2 } from "./hkt.js";
+import type { Hkt2 } from "./hkt.ts";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface Tagged<S, B> {

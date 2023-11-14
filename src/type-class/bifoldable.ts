@@ -1,42 +1,47 @@
-import { flip } from "../func.js";
-import type { Get1, Get2 } from "../hkt.js";
-import { id } from "../identity.js";
-import { isNone, mapOr, none, type Option, some } from "../option.js";
-import { monoid } from "./endo.js";
-import type { Monad } from "./monad.js";
-import { type Monoid } from "./monoid.js";
+import { flip } from "../func.ts";
+import type { Get1, Get2 } from "../hkt.ts";
+import { id } from "../identity.ts";
+import { isNone, mapOr, none, type Option, some } from "../option.ts";
+import { monoid } from "./endo.ts";
+import type { Monad } from "./monad.ts";
+import { type Monoid } from "./monoid.ts";
 
 export interface Bifoldable<P> {
     readonly bifoldR: <A, C>(
         aFolder: (a: A) => (c: C) => C,
-    ) => <B>(bFolder: (b: B) => (c: C) => C) => (init: C) => (data: Get2<P, A, B>) => C;
+    ) => <B>(
+        bFolder: (b: B) => (c: C) => C,
+    ) => (init: C) => (data: Get2<P, A, B>) => C;
 }
 
 export const fromBifoldMap = <P>(
     f: <M>(
         m: Monoid<M>,
-    ) => <A>(aMap: (a: A) => M) => <B>(bMap: (b: B) => M) => (data: Get2<P, A, B>) => M,
+    ) => <A>(
+        aMap: (a: A) => M,
+    ) => <B>(bMap: (b: B) => M) => (data: Get2<P, A, B>) => M,
 ): Bifoldable<P> => ({
     bifoldR:
         <A, C>(aMap: (a: A) => (c: C) => C) =>
         <B>(bMap: (b: B) => (c: C) => C) =>
         (init: C) =>
         (data: Get2<P, A, B>) =>
-            f(monoid<C>())((a: A) => (c) => aMap(a)(c))((b: B) => (c) => bMap(b)(c))(data)(init),
+            f(monoid<C>())((a: A) => (c) => aMap(a)(c))((b: B) => (c) =>
+                bMap(b)(c)
+            )(data)(init),
 });
 
 export const bifoldMap =
     <P>(bi: Bifoldable<P>) =>
     <M>(m: Monoid<M>) =>
     <A>(aMap: (a: A) => M) =>
-    <B>(bMap: (b: B) => M): ((data: Get2<P, A, B>) => M) =>
+    <B>(bMap: (b: B) => M): (data: Get2<P, A, B>) => M =>
         bi.bifoldR((a: A) => (c: M) => m.combine(aMap(a), c))(
             (b: B) => (c: M) => m.combine(bMap(b), c),
         )(m.identity);
 
 export const bifold =
-    <P>(bi: Bifoldable<P>) =>
-    <M>(m: Monoid<M>): ((data: Get2<P, M, M>) => M) =>
+    <P>(bi: Bifoldable<P>) => <M>(m: Monoid<M>): (data: Get2<P, M, M>) => M =>
         bifoldMap(bi)(m)(id<M>)(id);
 
 export const bifoldL =
@@ -54,15 +59,11 @@ export const bifoldRM =
     (init: C) =>
     (data: Get2<P, A, B>): Get1<M, C> =>
         bifoldL(bi)<A, (c: C) => Get1<M, C>>(
-            <X>(k: (c: C) => Get1<M, X>) =>
-                (x: A) =>
-                (z: C): Get1<M, X> =>
-                    m.flatMap(k)(aFolder(x)(z)),
+            <X>(k: (c: C) => Get1<M, X>) => (x: A) => (z: C): Get1<M, X> =>
+                m.flatMap(k)(aFolder(x)(z)),
         )(
-            <X>(k: (c: C) => Get1<M, X>) =>
-                (x: B) =>
-                (z: C): Get1<M, X> =>
-                    m.flatMap(k)(bFolder(x)(z)),
+            <X>(k: (c: C) => Get1<M, X>) => (x: B) => (z: C): Get1<M, X> =>
+                m.flatMap(k)(bFolder(x)(z)),
         )(m.pure)(data)(init);
 
 export const bifoldLM =
@@ -72,15 +73,11 @@ export const bifoldLM =
     (init: C) =>
     (data: Get2<P, A, B>): Get1<M, C> =>
         bifoldL(bi)<A, (c: C) => Get1<M, C>>(
-            <X>(k: (c: C) => Get1<M, X>) =>
-                (x: A) =>
-                (z: C): Get1<M, X> =>
-                    m.flatMap(k)(aFolder(z)(x)),
+            <X>(k: (c: C) => Get1<M, X>) => (x: A) => (z: C): Get1<M, X> =>
+                m.flatMap(k)(aFolder(z)(x)),
         )(
-            <X>(k: (c: C) => Get1<M, X>) =>
-                (x: B) =>
-                (z: C): Get1<M, X> =>
-                    m.flatMap(k)(bFolder(z)(x)),
+            <X>(k: (c: C) => Get1<M, X>) => (x: B) => (z: C): Get1<M, X> =>
+                m.flatMap(k)(bFolder(z)(x)),
         )(m.pure)(data)(init);
 
 // reduce functions:
@@ -89,10 +86,8 @@ export const biReduceR =
     <P>(bi: Bifoldable<P>) =>
     <A>(folder: (l: A) => (r: A) => A) =>
     (data: Get2<P, A, A>): A => {
-        const mbf =
-            (x: A) =>
-            (m: Option<A>): Option<A> =>
-                some(mapOr(x)((y: A) => folder(x)(y))(m));
+        const mbf = (x: A) => (m: Option<A>): Option<A> =>
+            some(mapOr(x)((y: A) => folder(x)(y))(m));
         const opt = bi.bifoldR(mbf)(mbf)(none())(data);
         if (isNone(opt)) {
             throw new Error("empty structure");
@@ -104,10 +99,8 @@ export const biReduceL =
     <P>(bi: Bifoldable<P>) =>
     <A>(folder: (l: A) => (r: A) => A) =>
     (data: Get2<P, A, A>): A => {
-        const mbf =
-            (m: Option<A>) =>
-            (y: A): Option<A> =>
-                some(mapOr(y)((x: A) => folder(x)(y))(m));
+        const mbf = (m: Option<A>) => (y: A): Option<A> =>
+            some(mapOr(y)((x: A) => folder(x)(y))(m));
         const opt = bifoldL(bi)(mbf)(mbf)(none())(data);
         if (isNone(opt)) {
             throw new Error("empty structure");

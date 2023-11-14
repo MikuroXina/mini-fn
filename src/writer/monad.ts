@@ -1,6 +1,6 @@
-import type { Get1 } from "../hkt.js";
-import type { Monad } from "../type-class/monad.js";
-import type { Monoid } from "../type-class/monoid.js";
+import type { Get1 } from "../hkt.ts";
+import type { Monad } from "../type-class/monad.ts";
+import type { Monoid } from "../type-class/monoid.ts";
 
 export interface MonadWriter<W, M> extends Monoid<W>, Monad<M> {
     readonly tell: (output: W) => Get1<M, void>;
@@ -9,15 +9,16 @@ export interface MonadWriter<W, M> extends Monoid<W>, Monad<M> {
 }
 
 export const writer =
-    <W, M>(mw: MonadWriter<W, M>) =>
-    <A>([a, w]: readonly [A, W]): Get1<M, A> =>
+    <W, M>(mw: MonadWriter<W, M>) => <A>([a, w]: readonly [A, W]): Get1<M, A> =>
         mw.flatMap<void, A>(() => mw.pure(a))(mw.tell(w));
 
 export const listens =
     <W, M>(mw: MonadWriter<W, M>) =>
     <B>(f: (w: W) => B) =>
     <A>(m: Get1<M, A>): Get1<M, [A, B]> =>
-        mw.map(([action, output]: [A, W]): [A, B] => [action, f(output)])(mw.listen(m));
+        mw.map(([action, output]: [A, W]): [A, B] => [action, f(output)])(
+            mw.listen(m),
+        );
 export const censor =
     <W, M>(mw: MonadWriter<W, M>) =>
     (f: (w: W) => W) =>

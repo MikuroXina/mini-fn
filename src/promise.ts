@@ -1,10 +1,10 @@
-import type { MonadCont } from "./cont/monad.js";
-import { absurd, id } from "./func.js";
-import type { Hkt1 } from "./hkt.js";
-import type { MonadPromise } from "./promise/monad.js";
-import type { Monad } from "./type-class/monad.js";
-import type { Monoid } from "./type-class/monoid.js";
-import { semiGroupSymbol } from "./type-class/semi-group.js";
+import type { MonadCont } from "./cont/monad.ts";
+import { absurd, id } from "./func.ts";
+import type { Hkt1 } from "./hkt.ts";
+import type { MonadPromise } from "./promise/monad.ts";
+import type { Monad } from "./type-class/monad.ts";
+import type { Monoid } from "./type-class/monoid.ts";
+import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
 /**
  * Wraps the value into `Promise`. This is the alias of `Promise.resolve`.
@@ -19,8 +19,7 @@ export const pure = Promise.resolve;
  * @returns The promise of product.
  */
 export const product =
-    <A>(a: Promise<A>) =>
-    <B>(b: Promise<B>): Promise<[A, B]> =>
+    <A>(a: Promise<A>) => <B>(b: Promise<B>): Promise<[A, B]> =>
         Promise.all([a, b]);
 
 /**
@@ -30,8 +29,8 @@ export const product =
  * @param t - The promise to be transformed.
  * @returns The transformed promise.
  */
-export const map: <T, U>(fn: (t: T) => U) => (t: Promise<T>) => Promise<U> = (f) => (t) =>
-    t.then(f);
+export const map: <T, U>(fn: (t: T) => U) => (t: Promise<T>) => Promise<U> =
+    (f) => (t) => t.then(f);
 
 /**
  * Maps and flatten an item in the promise by `fn`.
@@ -40,9 +39,9 @@ export const map: <T, U>(fn: (t: T) => U) => (t: Promise<T>) => Promise<U> = (f)
  * @param t - The promise to be transformed.
  * @returns The transformed promise.
  */
-export const flatMap: <T, U>(fn: (t: T) => Promise<U>) => (t: Promise<T>) => Promise<U> =
-    (f) => (t) =>
-        t.then(f);
+export const flatMap: <T, U>(
+    fn: (t: T) => Promise<U>,
+) => (t: Promise<T>) => Promise<U> = (f) => (t) => t.then(f);
 
 /**
  * Applies the function in promise.
@@ -51,9 +50,10 @@ export const flatMap: <T, U>(fn: (t: T) => Promise<U>) => (t: Promise<T>) => Pro
  * @param t - The promise to be transformed.
  * @returns The applied promise.
  */
-export const apply: <T, U>(fn: Promise<(t: T) => U>) => (t: Promise<T>) => Promise<U> =
-    (f) => (t) =>
-        t.then((value) => f.then((func) => func(value)));
+export const apply: <T, U>(
+    fn: Promise<(t: T) => U>,
+) => (t: Promise<T>) => Promise<U> = (f) => (t) =>
+    t.then((value) => f.then((func) => func(value)));
 
 /**
  * Transform the continuation-passing style into the promise. The parameter for `computation` is `continuation` error handle which aborts the computation.

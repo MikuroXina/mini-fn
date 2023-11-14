@@ -1,6 +1,6 @@
-import { map, type Option, some, unwrap } from "../option.js";
-import type { Monoid } from "./monoid.js";
-import { semiGroupSymbol } from "./semi-group.js";
+import { map, type Option, some, unwrap } from "../option.ts";
+import type { Monoid } from "./monoid.ts";
+import { semiGroupSymbol } from "./semi-group.ts";
 
 /**
  * A structure of 2-term operation `combine` and 1-term operation `invert`, which must satisfy following conditions **except zero element**:
@@ -14,15 +14,11 @@ export interface GroupExceptZero<G> extends Monoid<G> {
 }
 
 export const subtractEZ =
-    <G>(group: GroupExceptZero<G>) =>
-    (l: G) =>
-    (r: G): Option<G> =>
+    <G>(group: GroupExceptZero<G>) => (l: G) => (r: G): Option<G> =>
         map((inv: G) => group.combine(l, inv))(group.invert(r));
 
 export const powiEZ =
-    <G>(group: GroupExceptZero<G>) =>
-    (base: G) =>
-    (exp: number): Option<G> => {
+    <G>(group: GroupExceptZero<G>) => (base: G) => (exp: number): Option<G> => {
         if (!Number.isInteger(exp)) {
             throw new Error("`exp` must be an integer");
         }
@@ -33,7 +29,11 @@ export const powiEZ =
             if (n == 1) {
                 return group.combine(x, c);
             }
-            return g(group.combine(x, x), Math.floor(n / 2), group.combine(x, c));
+            return g(
+                group.combine(x, x),
+                Math.floor(n / 2),
+                group.combine(x, c),
+            );
         };
         const f = (x: G, n: number): G => {
             if (n % 2 == 0) {
@@ -69,17 +69,11 @@ export const toGroupExceptZero = <G>(group: Group<G>): GroupExceptZero<G> => ({
     invert: (g) => some(group.invert(g)),
 });
 
-export const subtract =
-    <G>(group: Group<G>) =>
-    (l: G) =>
-    (r: G): G =>
-        group.combine(l, group.invert(r));
+export const subtract = <G>(group: Group<G>) => (l: G) => (r: G): G =>
+    group.combine(l, group.invert(r));
 
-export const powi =
-    <G>(group: Group<G>) =>
-    (base: G) =>
-    (exp: number): G =>
-        unwrap(powiEZ(toGroupExceptZero(group))(base)(exp));
+export const powi = <G>(group: Group<G>) => (base: G) => (exp: number): G =>
+    unwrap(powiEZ(toGroupExceptZero(group))(base)(exp));
 
 export const trivialGroup: Group<[]> = {
     combine: () => [],

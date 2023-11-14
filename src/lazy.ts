@@ -1,12 +1,12 @@
-import type { Get1, Hkt1 } from "./hkt.js";
-import type { Applicative } from "./type-class/applicative.js";
-import { fromProjection as eqFromProjection } from "./type-class/eq.js";
-import type { Functor } from "./type-class/functor.js";
-import type { Monad } from "./type-class/monad.js";
-import { fromProjection as ordFromProjection } from "./type-class/ord.js";
-import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.js";
-import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.js";
-import type { Traversable } from "./type-class/traversable.js";
+import type { Get1, Hkt1 } from "./hkt.ts";
+import type { Applicative } from "./type-class/applicative.ts";
+import { fromProjection as eqFromProjection } from "./type-class/eq.ts";
+import type { Functor } from "./type-class/functor.ts";
+import type { Monad } from "./type-class/monad.ts";
+import { fromProjection as ordFromProjection } from "./type-class/ord.ts";
+import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.ts";
+import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.ts";
+import type { Traversable } from "./type-class/traversable.ts";
 
 const lazyNominal = Symbol("Lazy");
 
@@ -25,7 +25,9 @@ export interface Lazy<L> {
  * @param deferred - The function to be contained.
  * @returns The new `Lazy`.
  */
-export const defer = <L>(deferred: () => L): Lazy<L> => ({ [lazyNominal]: deferred });
+export const defer = <L>(deferred: () => L): Lazy<L> => ({
+    [lazyNominal]: deferred,
+});
 
 /**
  * Force to evaluate the value of `Lazy`, by calling the contained function.
@@ -53,10 +55,8 @@ export const pure = <A>(a: A): Lazy<A> => defer(() => a);
  * @param fn - The function to be mapped.
  * @returns The function on `Lazy`.
  */
-export const map =
-    <A, B>(fn: (a: A) => B) =>
-    (lazy: Lazy<A>): Lazy<B> =>
-        defer(() => fn(force(lazy)));
+export const map = <A, B>(fn: (a: A) => B) => (lazy: Lazy<A>): Lazy<B> =>
+    defer(() => fn(force(lazy)));
 /**
  * Maps and flattens the function onto `Lazy`.
  *
@@ -64,8 +64,7 @@ export const map =
  * @returns The function on `Lazy`.
  */
 export const flatMap =
-    <A, B>(fn: (a: A) => Lazy<B>) =>
-    (lazy: Lazy<A>): Lazy<B> =>
+    <A, B>(fn: (a: A) => Lazy<B>) => (lazy: Lazy<A>): Lazy<B> =>
         defer(() => force(fn(force(lazy))));
 /**
  * Applies the function with `Lazy`.
@@ -75,8 +74,7 @@ export const flatMap =
  * @returns The applied `Lazy`.
  */
 export const apply =
-    <T1, U1>(fn: Lazy<(t: T1) => U1>) =>
-    (t: Lazy<T1>): Lazy<U1> =>
+    <T1, U1>(fn: Lazy<(t: T1) => U1>) => (t: Lazy<T1>): Lazy<U1> =>
         defer(() => force(fn)(force(t)));
 /**
  * Makes a product of two `Lazy`s.
@@ -85,10 +83,8 @@ export const apply =
  * @param fb - The right-side of product.
  * @returns The product of two `Lazy`s.
  */
-export const product =
-    <A, B>(fa: Lazy<A>) =>
-    (fb: Lazy<B>): Lazy<[A, B]> =>
-        defer(() => [force(fa), force(fb)]);
+export const product = <A, B>(fa: Lazy<A>) => (fb: Lazy<B>): Lazy<[A, B]> =>
+    defer(() => [force(fa), force(fb)]);
 
 /**
  * Folds the internal value with `folder`.
@@ -99,9 +95,7 @@ export const product =
  * @returns The folded value.
  */
 export const foldR =
-    <A, B>(folder: (a: A) => (b: B) => B) =>
-    (init: B) =>
-    (data: Lazy<A>): B =>
+    <A, B>(folder: (a: A) => (b: B) => B) => (init: B) => (data: Lazy<A>): B =>
         folder(force(data))(init);
 /**
  * Traverses `Lazy` as the data structure.
@@ -114,8 +108,7 @@ export const foldR =
 export const traverse =
     <F>(app: Applicative<F>) =>
     <A, B>(visitor: (a: A) => Get1<F, B>) =>
-    (data: Lazy<A>): Get1<F, Lazy<B>> =>
-        app.map(pure)(visitor(force(data)));
+    (data: Lazy<A>): Get1<F, Lazy<B>> => app.map(pure)(visitor(force(data)));
 
 export interface LazyHkt extends Hkt1 {
     readonly type: Lazy<this["arg1"]>;

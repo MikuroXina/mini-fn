@@ -6,11 +6,13 @@ The minimal functional programming library.
 
 ---
 
-mini-fn provides simple, tiny library having functional features and its type declarations.
+mini-fn provides simple, tiny library having functional features and its type
+declarations.
 
 ## Examples
 
-You can pipe your functions with `Cat<T>`'s `feed<U>(f: (t: T) => U): Cat<U>` method like this:
+You can pipe your functions with `Cat<T>`'s `feed<U>(f: (t: T) => U): Cat<U>`
+method like this:
 
 ```ts
 import { Cat } from "@mikuroxina/mini-fn";
@@ -38,7 +40,8 @@ applied(Option.some(-1)); // none
 applied(Option.none()); // none
 ```
 
-Some of them also provides its monad implementation, so you can combine and transform them like this:
+Some of them also provides its monad implementation, so you can combine and
+transform them like this:
 
 ```ts
 import { Cat, Option } from "@mikuroxina/mini-fn";

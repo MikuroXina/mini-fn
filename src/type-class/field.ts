@@ -1,5 +1,5 @@
-import type { AbelianGroupExceptZero } from "./abelian-group.js";
-import type { Ring } from "./ring.js";
+import type { AbelianGroupExceptZero } from "./abelian-group.ts";
+import type { Ring } from "./ring.ts";
 
 /**
  * A structure which can operate addition, subtraction, multiplication and division.

@@ -1,6 +1,6 @@
-import type { Get1 } from "../hkt.js";
-import type { Functor } from "./functor.js";
-import type { Monad } from "./monad.js";
+import type { Get1 } from "../hkt.ts";
+import type { Functor } from "./functor.ts";
+import type { Monad } from "./monad.ts";
 
 export interface Distributive<G> extends Functor<G> {
     readonly distribute: <F>(

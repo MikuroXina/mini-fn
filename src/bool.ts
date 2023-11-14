@@ -1,6 +1,6 @@
-import { fromEquality } from "./type-class/eq.js";
-import type { Monoid } from "./type-class/monoid.js";
-import { semiGroupSymbol } from "./type-class/semi-group.js";
+import { fromEquality } from "./type-class/eq.ts";
+import type { Monoid } from "./type-class/monoid.ts";
+import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
 /**
  * The instance of `Monoid` about logical AND operation.

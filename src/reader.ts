@@ -1,9 +1,12 @@
-import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
-import { type IdentityHkt, monad as identityMonad } from "./identity.js";
-import type { Tuple } from "./tuple.js";
-import type { Functor } from "./type-class/functor.js";
-import type { Monad } from "./type-class/monad.js";
-import type { Profunctor } from "./type-class/profunctor.js";
+import { assertEquals } from "std/assert/mod.ts";
+import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
+import { type IdentityHkt, monad as identityMonad } from "./identity.ts";
+import type { Tuple } from "./tuple.ts";
+import type { Functor } from "./type-class/functor.ts";
+import type { Monad } from "./type-class/monad.ts";
+import type { Profunctor } from "./type-class/profunctor.ts";
+import { cat } from "./cat.ts";
+import { mapOr, none, Option, some } from "./option.ts";
 
 /**
  * The reader monad transformer which expresses the environment for asking a record `R` and returning the computation `A` in `M`.
@@ -22,8 +25,7 @@ export interface ReaderT<R, M, A> {
 export const mapReaderT =
     <M, N, A, B>(fn: (ma: Get1<M, A>) => Get1<N, B>) =>
     <R>(r: ReaderT<R, M, A>): ReaderT<R, N, B> =>
-    (record: R) =>
-        fn(r(record));
+    (record: R) => fn(r(record));
 /**
  * Maps the record of environment by `mapper`. Note that the mapping is a contravariant.
  *
@@ -34,8 +36,7 @@ export const mapReaderT =
 export const withReaderT =
     <R1, R2>(mapper: (record: R1) => R2) =>
     <M, A>(r: ReaderT<R2, M, A>): ReaderT<R1, M, A> =>
-    (record: R1) =>
-        r(mapper(record));
+    (record: R1) => r(mapper(record));
 
 /**
  * The reader monad which expresses the environment for asking a record `R` and returning the computation `A`.
@@ -49,19 +50,39 @@ export type Reader<R, A> = ReaderT<R, IdentityHkt, A>;
  * @param rec - The record needed to run.
  * @returns The result of run.
  */
-export const run =
-    <R, A>(r: Reader<R, A>) =>
-    (rec: R) =>
-        r(rec);
+export const run = <R, A>(r: Reader<R, A>) => (rec: R) => r(rec);
 
 /**
  * Fetches the record of the environment with monad `S`.
  */
-export const askM = <R, S>(m: Monad<S>): Get1<S, Reader<R, R>> => m.pure((x) => x);
+export const askM = <R, S>(m: Monad<S>): Get1<S, Reader<R, R>> =>
+    m.pure((x) => x);
 /**
  * Fetches the record of the environment.
  */
 export const ask = <R>(): Reader<R, R> => askM<R, IdentityHkt>(identityMonad);
+
+Deno.test("ask", () => {
+    interface User {
+        name: string;
+    }
+    const message = (): Reader<User, string> =>
+        cat(ask<User>()).feed(map(({ name }) => `Hello, ${name}!`)).value;
+    const box = (): Reader<User, string> =>
+        cat(message()).feed(
+            map((mes) => `<div class="message-box">${mes}</div>`),
+        ).value;
+
+    assertEquals(
+        run(box())({ name: "John" }),
+        '<div class="message-box">Hello, John!</div>',
+    );
+    assertEquals(
+        run(box())({ name: "Alice" }),
+        '<div class="message-box">Hello, Alice!</div>',
+    );
+});
+
 /**
  * Executes the computation in an environment modified by `f`.
  *
@@ -70,10 +91,50 @@ export const ask = <R>(): Reader<R, R> => askM<R, IdentityHkt>(identityMonad);
  * @returns The modified environment
  */
 export const local =
-    <T, U>(f: (t: T) => U) =>
-    <A>(ma: Reader<U, A>): Reader<T, A> =>
-    (t) =>
+    <T, U>(f: (t: T) => U) => <A>(ma: Reader<U, A>): Reader<T, A> => (t) =>
         ma(f(t));
+
+Deno.test("local", () => {
+    interface User {
+        name: string;
+        id: string;
+        score: number;
+    }
+    interface Bulk {
+        users: readonly User[];
+    }
+    const extractFromBulk = (id: string) =>
+        local((bulk: Bulk): Option<User> => {
+            const found = bulk.users.find((elem) => elem.id === id);
+            if (!found) {
+                return none();
+            }
+            return some(found);
+        });
+    const scoreReport = (id: string): Reader<Bulk, string> =>
+        cat(ask<Option<User>>())
+            .feed(
+                map(
+                    mapOr("user not found")(({ name, score }) =>
+                        `${name}'s score is ${score}!`
+                    ),
+                ),
+            )
+            .feed(extractFromBulk(id)).value;
+
+    const bulk: Bulk = {
+        users: [
+            {
+                name: "John",
+                id: "1321",
+                score: 12130,
+            },
+            { name: "Alice", id: "4209", score: 320123 },
+        ],
+    };
+    assertEquals(run(scoreReport("1321"))(bulk), "John's score is 12130!");
+    assertEquals(run(scoreReport("4209"))(bulk), "Alice's score is 320123!");
+});
 
 /**
  * Makes two readers into a reader with tuple of computations.
@@ -105,9 +166,7 @@ export const withReader = <R, A>(reader: (a: R) => A): Reader<R, A> => {
  * @returns The mapped function.
  */
 export const map =
-    <T, U>(f: (t: T) => U) =>
-    <R>(r: Reader<R, T>): Reader<R, U> =>
-    (req) =>
+    <T, U>(f: (t: T) => U) => <R>(r: Reader<R, T>): Reader<R, U> => (req) =>
         f(r(req));
 /**
  * Applies the reader `r` to the reader `s` with composing the record type. The weaker variant of `apply`.
@@ -119,8 +178,7 @@ export const map =
 export const applyWeak =
     <A, B, R>(r: Reader<R, (a: A) => B>) =>
     <S>(s: Reader<S, A>): Reader<R & S, B> =>
-    (rs) =>
-        r(rs)(s(rs));
+    (rs) => r(rs)(s(rs));
 /**
  * Applies the reader `r` to the reader `s`.
  *
@@ -129,8 +187,7 @@ export const applyWeak =
  * @returns The applied reader.
  */
 export const apply =
-    <A, B, R>(r: Reader<R, (a: A) => B>) =>
-    (s: Reader<R, A>): Reader<R, B> =>
+    <A, B, R>(r: Reader<R, (a: A) => B>) => (s: Reader<R, A>): Reader<R, B> =>
         applyWeak(r)(s);
 /**
  * Creates a new reader environment from the value `a`.
@@ -138,10 +195,7 @@ export const apply =
  * @param a - The value to be contained.
  * @returns The new reader.
  */
-export const pure =
-    <R, A>(a: A): Reader<R, A> =>
-    () =>
-        a;
+export const pure = <R, A>(a: A): Reader<R, A> => () => a;
 /**
  * Maps and flattens the computation `A` into `Reader<R & S, B>` by `f`. The weaker variant of `flatMap`.
  *
@@ -152,8 +206,7 @@ export const pure =
 export const flatMapWeak =
     <A, B, R>(f: (a: A) => Reader<R, B>) =>
     <S>(r: Reader<S, A>): Reader<R & S, B> =>
-    (req) =>
-        f(r(req))(req);
+    (req) => f(r(req))(req);
 /**
  * Maps and flattens the computation `A` into `Reader<R, B>` by `f`.
  *
@@ -162,8 +215,7 @@ export const flatMapWeak =
  * @returns The mapped reader.
  */
 export const flatMap =
-    <A, B, R>(f: (a: A) => Reader<R, B>) =>
-    (r: Reader<R, A>): Reader<R, B> =>
+    <A, B, R>(f: (a: A) => Reader<R, B>) => (r: Reader<R, A>): Reader<R, B> =>
         flatMapWeak(f)(r);
 /**
  * Flattens the nested `Reader`. The weaker variant of `flatten`.
@@ -172,8 +224,7 @@ export const flatMap =
  * @returns The flattened reader.
  */
 export const flattenWeak =
-    <A, R, S>(r: Reader<S, Reader<R, A>>): Reader<R & S, A> =>
-    (rs: R & S) =>
+    <A, R, S>(r: Reader<S, Reader<R, A>>): Reader<R & S, A> => (rs: R & S) =>
         r(rs)(rs);
 /**
  * Flattens the nested `Reader`.
@@ -181,7 +232,8 @@ export const flattenWeak =
  * @param r - The nested `reader`.
  * @returns The flattened reader.
  */
-export const flatten = <R, A>(r: Reader<R, Reader<R, A>>): Reader<R, A> => flattenWeak(r);
+export const flatten = <R, A>(r: Reader<R, Reader<R, A>>): Reader<R, A> =>
+    flattenWeak(r);
 
 /**
  * Makes the reader more weaker type. It is useful to compose `Reader` to another one having different record type.
@@ -189,10 +241,7 @@ export const flatten = <R, A>(r: Reader<R, Reader<R, A>>): Reader<R, A> => flatt
  * @param r - The source reader.
  * @returns The weaker reader.
  */
-export const weaken =
-    <S>() =>
-    <R, A>(r: Reader<R, A>): Reader<R & S, A> =>
-        r;
+export const weaken = <S>() => <R, A>(r: Reader<R, A>): Reader<R & S, A> => r;
 
 /**
  * Concatenates two readers sequentially.
@@ -202,9 +251,7 @@ export const weaken =
  * @returns The concatenated reader.
  */
 export const compose =
-    <T, U>(r: Reader<T, U>) =>
-    <V>(s: Reader<U, V>): Reader<T, V> =>
-    (t) =>
+    <T, U>(r: Reader<T, U>) => <V>(s: Reader<U, V>): Reader<T, V> => (t) =>
         s(r(t));
 /**
  * Maps over both arguments of the reader.
@@ -218,8 +265,7 @@ export const diMap =
     <A, B>(f: (a: A) => B) =>
     <C, D>(g: (t: C) => D) =>
     (r: Reader<B, C>): Reader<A, D> =>
-    (t) =>
-        g(r(f(t)));
+    (t) => g(r(f(t)));
 
 export interface ReaderTHkt extends Hkt3 {
     readonly type: ReaderT<this["arg3"], this["arg2"], this["arg1"]>;

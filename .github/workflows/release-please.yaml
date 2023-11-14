@@ -10,6 +10,6 @@ jobs:
     steps:
       - uses: google-github-actions/release-please-action@v3
         with:
-          release-type: node
+          release-type: simple
           package-name: '@mikuroxina/mini-fn'
           token: ${{ secrets.RELEASE_PLEASE_PAT }}

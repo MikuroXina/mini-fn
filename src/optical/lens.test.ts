@@ -1,9 +1,8 @@
-import { expect, test } from "vitest";
+import { assertEquals } from "std/assert/mod.ts";
+import { opticCat } from "../optical.ts";
+import { key, nth } from "./lens.ts";
 
-import { opticCat } from "../optical.js";
-import { key, nth } from "./lens.js";
-
-test("deep structure", () => {
+Deno.test("deep structure", () => {
     const hoge = {
         a: 0,
         fuga: {
@@ -12,24 +11,32 @@ test("deep structure", () => {
         },
     };
 
-    expect(opticCat(hoge).feed(key("fuga")).feed(key("piyo")).feed(nth(0)).unwrap()).toEqual(42);
-    expect(opticCat(hoge).feed(key("fuga")).feed(key("piyo")).feed(nth(0)).set(31)).toStrictEqual({
-        a: 0,
-        fuga: {
-            b: "hoge",
-            piyo: [31],
+    assertEquals(
+        opticCat(hoge).feed(key("fuga")).feed(key("piyo")).feed(nth(0))
+            .unwrap(),
+        42,
+    );
+    assertEquals(
+        opticCat(hoge).feed(key("fuga")).feed(key("piyo")).feed(nth(0)).set(31),
+        {
+            a: 0,
+            fuga: {
+                b: "hoge",
+                piyo: [31],
+            },
         },
-    });
+    );
 });
 
-test("modify only x", () => {
+Deno.test("modify only x", () => {
     const coord = { x: 2.5, y: 3 };
-    expect(
+    assertEquals(
         opticCat(coord)
             .feed(key("x"))
             .over((x) => x - 1),
-    ).toStrictEqual({
-        x: 1.5,
-        y: 3,
-    });
+        {
+            x: 1.5,
+            y: 3,
+        },
+    );
 });

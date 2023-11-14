@@ -1,9 +1,9 @@
-import { pipe } from "../func.js";
-import type { Get1 } from "../hkt.js";
-import { type Apply, makeSemiGroup } from "./apply.js";
-import type { Monoid } from "./monoid.js";
-import type { Pure } from "./pure.js";
-import { semiGroupSymbol } from "./semi-group.js";
+import { pipe } from "../func.ts";
+import type { Get1 } from "../hkt.ts";
+import { type Apply, makeSemiGroup } from "./apply.ts";
+import type { Monoid } from "./monoid.ts";
+import type { Pure } from "./pure.ts";
+import { semiGroupSymbol } from "./semi-group.ts";
 
 export interface Applicative<S> extends Apply<S>, Pure<S> {}
 
@@ -16,7 +16,8 @@ export const makeMonoid = <S>(app: Applicative<S>) => {
     });
 };
 
-export const liftA2 =
-    <S>(app: Applicative<S>) =>
-    <A, B, C>(f: (a: A) => (b: B) => C): ((x: Get1<S, A>) => (y: Get1<S, B>) => Get1<S, C>) =>
-        pipe(app.map(f))(app.apply);
+export const liftA2 = <S>(app: Applicative<S>) =>
+<A, B, C>(
+    f: (a: A) => (b: B) => C,
+): (x: Get1<S, A>) => (y: Get1<S, B>) => Get1<S, C> =>
+    pipe(app.map(f))(app.apply);

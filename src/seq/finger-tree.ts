@@ -1,7 +1,9 @@
-import { reduce as reduceArray } from "../array.js";
-import { flip, id } from "../func.js";
-import type { Get1, Hkt1 } from "../hkt.js";
-import type { Reduce } from "../type-class/reduce.js";
+import { assertEquals } from "std/assert/mod.ts";
+import { reduce as reduceArray } from "../array.ts";
+import { flip, id } from "../func.ts";
+import type { Get1, Hkt1 } from "../hkt.ts";
+import type { Reduce } from "../type-class/reduce.ts";
+import { Array } from "../lib.ts";
 
 const emptyNominal = Symbol("FingerTreeEmpty");
 /**
@@ -16,7 +18,8 @@ export interface Empty {
  * @param tree - The tree to be checked.
  * @returns Whether the tree is an `Empty`.
  */
-export const isEmpty = <A>(tree: FingerTree<A>): tree is Empty => tree.type === emptyNominal;
+export const isEmpty = <A>(tree: FingerTree<A>): tree is Empty =>
+    tree.type === emptyNominal;
 /**
  * A new empty tree.
  */
@@ -36,14 +39,18 @@ export interface Single<A> {
  * @param tree - The tree to be checked.
  * @returns Whether the tree is a `Single`.
  */
-export const isSingle = <A>(tree: FingerTree<A>): tree is Single<A> => tree.type === singleNominal;
+export const isSingle = <A>(tree: FingerTree<A>): tree is Single<A> =>
+    tree.type === singleNominal;
 /**
  * Creates a new single tree contains only one element.
  *
  * @param data - The data to be contained.
  * @returns The new `Single`.
  */
-export const single = <A>(data: A): Single<A> => ({ type: singleNominal, data });
+export const single = <A>(data: A): Single<A> => ({
+    type: singleNominal,
+    data,
+});
 
 /**
  * A root of subtree.
@@ -73,9 +80,13 @@ export interface NodeHkt extends Hkt1 {
  */
 export const reduceNode: Reduce<NodeHkt> = {
     reduceR: (red) => (a) => (b) =>
-        a.length === 2 ? red(a[0])(red(a[1])(b)) : red(a[0])(red(a[1])(red(a[2])(b))),
+        a.length === 2
+            ? red(a[0])(red(a[1])(b))
+            : red(a[0])(red(a[1])(red(a[2])(b))),
     reduceL: (red) => (b) => (a) =>
-        a.length === 2 ? red(red(b)(a[0]))(a[1]) : red(red(red(b)(a[0]))(a[1]))(a[2]),
+        a.length === 2
+            ? red(red(b)(a[0]))(a[1])
+            : red(red(red(b)(a[0]))(a[1]))(a[2]),
 };
 
 const deepNominal = Symbol("FingerTreeDeep");
@@ -94,7 +105,8 @@ export interface Deep<A> {
  * @param tree - The tree to be checked.
  * @returns Whether the tree is a `Deep`.
  */
-export const isDeep = <A>(tree: FingerTree<A>): tree is Deep<A> => tree.type === deepNominal;
+export const isDeep = <A>(tree: FingerTree<A>): tree is Deep<A> =>
+    tree.type === deepNominal;
 /**
  * Creates the tree from subtrees.
  *
@@ -113,6 +125,24 @@ export const deep =
         right,
     });
 
+Deno.test("type check", () => {
+    const emptiness = empty;
+    const single = fromArray([3]);
+    const many = fromArray([2, 1, 8, 1, 8]);
+
+    assertEquals(isEmpty(emptiness), true);
+    assertEquals(isEmpty(single), false);
+    assertEquals(isEmpty(many), false);
+
+    assertEquals(isSingle(emptiness), false);
+    assertEquals(isSingle(single), true);
+    assertEquals(isSingle(many), false);
+
+    assertEquals(isDeep(emptiness), false);
+    assertEquals(isDeep(single), false);
+    assertEquals(isDeep(many), true);
+});
+
 /**
  * Counts the number of elements in the tree.
  *
@@ -129,6 +159,16 @@ export const size = <A>(tree: FingerTree<A>): number => {
     return tree.left.length + size(tree.nextTree) + tree.right.length;
 };
 
+Deno.test("size", () => {
+    const emptiness = empty;
+    const single = fromArray([3]);
+    const many = fromArray([2, 1, 8, 1, 8]);
+
+    assertEquals(size(emptiness), 0);
+    assertEquals(size(single), 1);
+    assertEquals(size(many), 5);
+});
+
 /**
  * A tree data structure that can be accessed to the *fingers* in amortized constant time. Concatenating and splitting the data will be done in logarithmic time.
  */
@@ -144,7 +184,7 @@ export interface FingerTreeHkt extends Hkt1 {
 export const reduceTree: Reduce<FingerTreeHkt> = {
     reduceR:
         <A, B>(reducer: (a: A) => (b: B) => B) =>
-        (tree: FingerTree<A>): ((b: B) => B) => {
+        (tree: FingerTree<A>): (b: B) => B => {
             if (isEmpty(tree)) {
                 return id;
             }
@@ -154,7 +194,10 @@ export const reduceTree: Reduce<FingerTreeHkt> = {
             const { left, nextTree, right } = tree;
             const arrayReducer = reduceArray.reduceR(reducer);
             const treeArrayReducer = reduceTree.reduceR(arrayReducer);
-            return (b: B) => arrayReducer(left)(treeArrayReducer(nextTree)(arrayReducer(right)(b)));
+            return (b: B) =>
+                arrayReducer(left)(
+                    treeArrayReducer(nextTree)(arrayReducer(right)(b)),
+                );
         },
     reduceL:
         <A, B>(reducer: (b: B) => (a: A) => B) =>
@@ -169,7 +212,9 @@ export const reduceTree: Reduce<FingerTreeHkt> = {
             const { left, nextTree, right } = tree;
             const arrayReducer = reduceArray.reduceL(reducer);
             const treeArrayReducer = reduceTree.reduceL(arrayReducer);
-            return arrayReducer(treeArrayReducer(arrayReducer(b)(left))(nextTree))(right);
+            return arrayReducer(
+                treeArrayReducer(arrayReducer(b)(left))(nextTree),
+            )(right);
         },
 };
 
@@ -181,8 +226,7 @@ export const reduceTree: Reduce<FingerTreeHkt> = {
  * @returns The mutated tree.
  */
 export const appendToHead =
-    <A>(elem: A) =>
-    (tree: FingerTree<A>): FingerTree<A> => {
+    <A>(elem: A) => (tree: FingerTree<A>): FingerTree<A> => {
         if (isEmpty(tree)) {
             return single(elem);
         }
@@ -222,7 +266,8 @@ export const pushToHead = flip(appendToHead);
  */
 export const appendManyToHead = <F>(
     reduce: Reduce<F>,
-): (<A>(fa: Get1<F, A>) => (tree: FingerTree<A>) => FingerTree<A>) => reduce.reduceR(appendToHead);
+): <A>(fa: Get1<F, A>) => (tree: FingerTree<A>) => FingerTree<A> =>
+    reduce.reduceR(appendToHead);
 
 /**
  * Appends the element to the tail on the tree.
@@ -232,8 +277,7 @@ export const appendManyToHead = <F>(
  * @returns The mutated tree.
  */
 export const appendToTail =
-    <A>(elem: A) =>
-    (tree: FingerTree<A>): FingerTree<A> => {
+    <A>(elem: A) => (tree: FingerTree<A>): FingerTree<A> => {
         if (isEmpty(tree)) {
             return single(elem);
         }
@@ -273,7 +317,8 @@ export const pushToTail = flip(appendToTail);
  */
 export const appendManyToTail = <F>(
     reduce: Reduce<F>,
-): (<A>(tree: FingerTree<A>) => (fa: Get1<F, A>) => FingerTree<A>) => reduce.reduceL(pushToTail);
+): <A>(tree: FingerTree<A>) => (fa: Get1<F, A>) => FingerTree<A> =>
+    reduce.reduceL(pushToTail);
 
 /**
  * Creates a new tree from the elements in `fa`.
@@ -283,8 +328,7 @@ export const appendManyToTail = <F>(
  * @returns The new tree.
  */
 export const fromReduce =
-    <F>(reduce: Reduce<F>) =>
-    <A>(fa: Get1<F, A>): FingerTree<A> =>
+    <F>(reduce: Reduce<F>) => <A>(fa: Get1<F, A>): FingerTree<A> =>
         appendManyToTail(reduce)(empty as FingerTree<A>)(fa);
 /**
  * Creates a new tree from the elements in `Array`.
@@ -335,13 +379,19 @@ export const appendBetween =
             return appendManyToTail(reduceArray)(left)(middle);
         }
         if (isSingle(left)) {
-            return appendToHead(left.data)(appendManyToHead(reduceArray)(middle)(right));
+            return appendToHead(left.data)(
+                appendManyToHead(reduceArray)(middle)(right),
+            );
         }
         if (isSingle(right)) {
-            return appendToTail(right.data)(appendManyToTail(reduceArray)(left)(middle));
+            return appendToTail(right.data)(
+                appendManyToTail(reduceArray)(left)(middle),
+            );
         }
         return deep(left.left)(
-            appendBetween(left.nextTree)(nodes([...left.right, ...middle, ...right.left]))(
+            appendBetween(left.nextTree)(
+                nodes([...left.right, ...middle, ...right.left]),
+            )(
                 right.nextTree,
             ),
         )(right.right);
@@ -355,8 +405,7 @@ export const appendBetween =
  * @returns The concatenated tree.
  */
 export const concat =
-    <A>(left: FingerTree<A>) =>
-    (right: FingerTree<A>): FingerTree<A> => {
+    <A>(left: FingerTree<A>) => (right: FingerTree<A>): FingerTree<A> => {
         if (isEmpty(left)) {
             return right;
         }
@@ -371,3 +420,37 @@ export const concat =
         }
         return appendBetween(left)([])(right);
     };
+
+Deno.test("concat", () => {
+    const toArray = Array.fromReduce(reduceTree);
+
+    const emptiness = empty;
+    const single = fromArray([3]);
+    const many = fromArray([2, 1, 8, 2, 8]);
+
+    assertEquals(toArray(concat(emptiness)(emptiness)), []);
+
+    assertEquals(toArray(concat(emptiness)(single)), [3]);
+    assertEquals(toArray(concat(single)(emptiness)), [3]);
+
+    assertEquals(toArray(concat(single)(single)), [3, 3]);
+
+    assertEquals(toArray(concat(emptiness)(many)), [2, 1, 8, 2, 8]);
+    assertEquals(toArray(concat(many)(emptiness)), [2, 1, 8, 2, 8]);
+
+    assertEquals(toArray(concat(single)(many)), [3, 2, 1, 8, 2, 8]);
+    assertEquals(toArray(concat(many)(single)), [2, 1, 8, 2, 8, 3]);
+
+    assertEquals(toArray(concat(many)(many)), [
+        2,
+        1,
+        8,
+        2,
+        8,
+        2,
+        1,
+        8,
+        2,
+        8,
+    ]);
+});

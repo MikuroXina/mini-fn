@@ -1,8 +1,8 @@
-import type { Get1 } from "../hkt.js";
-import type { Applicative } from "./applicative.js";
-import type { Foldable } from "./foldable.js";
-import type { Functor } from "./functor.js";
-import type { Monad } from "./monad.js";
+import type { Get1 } from "../hkt.ts";
+import type { Applicative } from "./applicative.ts";
+import type { Foldable } from "./foldable.ts";
+import type { Functor } from "./functor.ts";
+import type { Monad } from "./monad.ts";
 
 /**
  * A structure which can be traversed to the structure of same shape by performing `Applicative` action.
@@ -18,7 +18,9 @@ export interface Traversable<T> extends Functor<T>, Foldable<T> {
      */
     readonly traverse: <F>(
         app: Applicative<F>,
-    ) => <A, B>(visitor: (a: A) => Get1<F, B>) => (data: Get1<T, A>) => Get1<F, Get1<T, B>>;
+    ) => <A, B>(
+        visitor: (a: A) => Get1<F, B>,
+    ) => (data: Get1<T, A>) => Get1<F, Get1<T, B>>;
 }
 
 /**
@@ -32,7 +34,8 @@ export interface Traversable<T> extends Functor<T>, Foldable<T> {
 export const sequenceA = <T, F, A>(
     traversable: Traversable<T>,
     app: Applicative<F>,
-): ((data: Get1<T, Get1<F, A>>) => Get1<F, Get1<T, A>>) => traversable.traverse<F>(app)((x) => x);
+): (data: Get1<T, Get1<F, A>>) => Get1<F, Get1<T, A>> =>
+    traversable.traverse<F>(app)((x) => x);
 
 /**
  * Maps each item of the structure `data` to a monadic action, and evaluates them from left to right, then collects the result.
@@ -46,8 +49,9 @@ export const sequenceA = <T, F, A>(
 export const mapM = <T, M, A, B>(
     traversable: Traversable<T>,
     monad: Monad<M>,
-): ((visitor: (a: A) => Get1<M, B>) => (data: Get1<T, A>) => Get1<M, Get1<T, B>>) =>
-    traversable.traverse(monad);
+): (
+    visitor: (a: A) => Get1<M, B>,
+) => (data: Get1<T, A>) => Get1<M, Get1<T, B>> => traversable.traverse(monad);
 
 /**
  * Evaluates monadic actions of the structure `data` from left to right, then collects the result.
@@ -60,4 +64,5 @@ export const mapM = <T, M, A, B>(
 export const sequence = <T, M, A>(
     traversable: Traversable<T>,
     monad: Monad<M>,
-): ((data: Get1<T, Get1<M, A>>) => Get1<M, Get1<T, A>>) => sequenceA(traversable, monad);
+): (data: Get1<T, Get1<M, A>>) => Get1<M, Get1<T, A>> =>
+    sequenceA(traversable, monad);

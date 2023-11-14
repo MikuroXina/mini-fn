@@ -1,25 +1,17 @@
 {
     "compilerOptions": {
         "target": "es2022",
-        "lib": ["deno.ns"],
-        "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,
-        "esModuleInterop": true,
-        "module": "NodeNext",
+        "module": "EsNext",
         "moduleResolution": "NodeNext",
-        "moduleDetection": "force",
         "resolveJsonModule": true,
         "isolatedModules": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
-        "declaration": true,
-        "emitDeclarationOnly": true,
+        "noEmit": true,
         "verbatimModuleSyntax": true,
-        "outDir": "./dist",
-        "declarationDir": "./dist",
         "baseUrl": "."
-    },
-    "exclude": ["npm"]
+    }
 }

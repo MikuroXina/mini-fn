@@ -1,14 +1,15 @@
-import { none, type Option, some } from "./option.js";
-import { equal, greater, less, type Ordering } from "./ordering.js";
+import { assertEquals } from "std/assert/mod.ts";
+import { none, type Option, some } from "./option.ts";
+import { equal, greater, less, type Ordering } from "./ordering.ts";
 import {
     type AbelianGroup,
     type AbelianGroupExceptZero,
     abelSymbol,
-} from "./type-class/abelian-group.js";
-import type { Field } from "./type-class/field.js";
-import { fromPartialCmp } from "./type-class/partial-ord.js";
-import type { Ring } from "./type-class/ring.js";
-import { semiGroupSymbol } from "./type-class/semi-group.js";
+} from "./type-class/abelian-group.ts";
+import type { Field } from "./type-class/field.ts";
+import { fromPartialCmp } from "./type-class/partial-ord.ts";
+import type { Ring } from "./type-class/ring.ts";
+import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
 export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
     if (Number.isNaN(lhs) || Number.isNaN(rhs)) {
@@ -23,6 +24,16 @@ export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
     return some(greater);
 };
 export const partialOrd = fromPartialCmp(() => partialCmp)();
+
+Deno.test("partialCmp", () => {
+    assertEquals(partialCmp(1, NaN), none());
+    assertEquals(partialCmp(NaN, 2), none());
+    assertEquals(partialCmp(NaN, NaN), none());
+    assertEquals(partialCmp(1, 1), some(equal as Ordering));
+    assertEquals(partialCmp(2, 2), some(equal as Ordering));
+    assertEquals(partialCmp(1, 2), some(less as Ordering));
+    assertEquals(partialCmp(2, 1), some(greater as Ordering));
+});
 
 export const addAbelianGroup: AbelianGroup<number> = {
     combine: (l, r) => l + r,

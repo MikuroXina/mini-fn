@@ -1,20 +1,30 @@
-import type { Get1, Hkt2 } from "./hkt.js";
-import type { Optic } from "./optical.js";
-import { newPrism } from "./optical/prism.js";
-import { isSome, none, type Option, some, toArray as optionToArray } from "./option.js";
-import { greater, less, type Ordering } from "./ordering.js";
-import type { Applicative } from "./type-class/applicative.js";
-import type { Bifoldable } from "./type-class/bifoldable.js";
-import type { Bifunctor } from "./type-class/bifunctor.js";
-import type { Bitraversable } from "./type-class/bitraversable.js";
-import { type Eq, fromEquality } from "./type-class/eq.js";
-import type { Monad } from "./type-class/monad.js";
-import type { Monoid } from "./type-class/monoid.js";
-import { fromCmp, type Ord } from "./type-class/ord.js";
-import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
-import { semiGroupSymbol } from "./type-class/semi-group.js";
-import type { Traversable } from "./type-class/traversable.js";
+import { assertEquals, assertThrows } from "std/assert/mod.ts";
+import type { Get1, Hkt2 } from "./hkt.ts";
+import type { Optic } from "./optical.ts";
+import { newPrism } from "./optical/prism.ts";
+import {
+    isSome,
+    none,
+    type Option,
+    some,
+    toArray as optionToArray,
+} from "./option.ts";
+import { greater, less, type Ordering } from "./ordering.ts";
+import type { Applicative } from "./type-class/applicative.ts";
+import type { Bifoldable } from "./type-class/bifoldable.ts";
+import type { Bifunctor } from "./type-class/bifunctor.ts";
+import type { Bitraversable } from "./type-class/bitraversable.ts";
+import { type Eq, fromEquality } from "./type-class/eq.ts";
+import type { Monad } from "./type-class/monad.ts";
+import type { Monoid } from "./type-class/monoid.ts";
+import { fromCmp, type Ord } from "./type-class/ord.ts";
+import {
+    fromPartialEquality,
+    type PartialEq,
+} from "./type-class/partial-eq.ts";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
+import { semiGroupSymbol } from "./type-class/semi-group.ts";
+import type { Traversable } from "./type-class/traversable.ts";
 
 const okSymbol = Symbol("ResultOk");
 const errSymbol = Symbol("ResultErr");
@@ -54,45 +64,64 @@ export const err = <E>(e: E): Err<E> => [errSymbol, e];
  * @param res - The result to be checked.
  * @returns Whether the result is an `Ok`.
  */
-export const isOk = <E, T>(res: Result<E, T>): res is Ok<T> => res[0] === okSymbol;
+export const isOk = <E, T>(res: Result<E, T>): res is Ok<T> =>
+    res[0] === okSymbol;
+
+Deno.test("isOk", () => {
+    assertEquals(isOk(ok(-3)), true);
+    assertEquals(isOk(err("Some error message")), false);
+});
+
 /**
  * Checks whether the result is an `Err`.
  *
  * @param res - The result to be checked.
  * @returns Whether the result is an `Err`.
  */
-export const isErr = <E, T>(res: Result<E, T>): res is Err<E> => res[0] === errSymbol;
+export const isErr = <E, T>(res: Result<E, T>): res is Err<E> =>
+    res[0] === errSymbol;
 
-export const partialEquality =
-    <E, T>({ equalityE, equalityT }: { equalityE: PartialEq<E>; equalityT: PartialEq<T> }) =>
-    (l: Result<E, T>, r: Result<E, T>): boolean => {
-        if (isErr(l) && isErr(r)) {
-            return equalityE.eq(l[1], r[1]);
-        }
-        if (isOk(l) && isOk(r)) {
-            return equalityT.eq(l[1], r[1]);
-        }
-        return false;
-    };
+Deno.test("isErr", () => {
+    assertEquals(isErr(ok(-3)), false);
+    assertEquals(isErr(err("Some error message")), true);
+});
+
+export const partialEquality = <E, T>(
+    { equalityE, equalityT }: {
+        equalityE: PartialEq<E>;
+        equalityT: PartialEq<T>;
+    },
+) =>
+(l: Result<E, T>, r: Result<E, T>): boolean => {
+    if (isErr(l) && isErr(r)) {
+        return equalityE.eq(l[1], r[1]);
+    }
+    if (isOk(l) && isOk(r)) {
+        return equalityT.eq(l[1], r[1]);
+    }
+    return false;
+};
 export const partialEq = fromPartialEquality(partialEquality);
-export const equality = <E, T>(equalities: { equalityE: Eq<E>; equalityT: Eq<T> }) =>
-    partialEquality(equalities);
+export const equality = <E, T>(
+    equalities: { equalityE: Eq<E>; equalityT: Eq<T> },
+) => partialEquality(equalities);
 export const eq = fromEquality(equality);
-export const partialCmp =
-    <E, T>({ orderE, orderT }: { orderE: PartialOrd<E>; orderT: PartialOrd<T> }) =>
-    (l: Result<E, T>, r: Result<E, T>): Option<Ordering> => {
-        // considered that Ok is lesser than Err
-        if (isOk(l)) {
-            if (isOk(r)) {
-                return orderT.partialCmp(l[1], r[1]);
-            }
-            return some(less);
-        }
+export const partialCmp = <E, T>(
+    { orderE, orderT }: { orderE: PartialOrd<E>; orderT: PartialOrd<T> },
+) =>
+(l: Result<E, T>, r: Result<E, T>): Option<Ordering> => {
+    // considered that Ok is lesser than Err
+    if (isOk(l)) {
         if (isOk(r)) {
-            return some(greater);
+            return orderT.partialCmp(l[1], r[1]);
         }
-        return orderE.partialCmp(l[1], r[1]);
-    };
+        return some(less);
+    }
+    if (isOk(r)) {
+        return some(greater);
+    }
+    return orderE.partialCmp(l[1], r[1]);
+};
 export const partialOrd = fromPartialCmp(partialCmp);
 export const cmp =
     <E, T>({ orderE, orderT }: { orderE: Ord<E>; orderT: Ord<T> }) =>
@@ -110,7 +139,8 @@ export const cmp =
         return orderE.cmp(l[1], r[1]);
     };
 // This argument wrapper is needed for avoid cyclic-import problem.
-export const ord = <E, T>(x: { orderE: Ord<E, E>; orderT: Ord<T, T> }) => fromCmp(cmp)(x);
+export const ord = <E, T>(x: { orderE: Ord<E, E>; orderT: Ord<T, T> }) =>
+    fromCmp(cmp)(x);
 
 /**
  * Maps the value in variant by two mappers.
@@ -121,9 +151,7 @@ export const ord = <E, T>(x: { orderE: Ord<E, E>; orderT: Ord<T, T> }) => fromCm
  * @returns The mapped value.
  */
 export const either =
-    <E, R>(g: (e: E) => R) =>
-    <T>(f: (t: T) => R) =>
-    (res: Result<E, T>): R =>
+    <E, R>(g: (e: E) => R) => <T>(f: (t: T) => R) => (res: Result<E, T>): R =>
         isOk(res) ? f(res[1]) : g(res[1]);
 
 /**
@@ -134,6 +162,14 @@ export const either =
  */
 export const flatten = <E, T>(resRes: Result<E, Result<E, T>>): Result<E, T> =>
     isOk(resRes) ? resRes[1] : err(resRes[1]);
+
+Deno.test("flatten", () => {
+    assertEquals(flatten(ok(ok("hello"))), ok("hello"));
+    assertEquals(flatten(err(ok("hello"))), err(ok("hello")));
+    assertEquals(flatten(ok(err(6))), err(6));
+    assertEquals(flatten(err(err(6))), err(err(6)));
+});
+
 /**
  * Unwraps the value for the result whose type parameters of are same.
  *
@@ -141,6 +177,11 @@ export const flatten = <E, T>(resRes: Result<E, Result<E, T>>): Result<E, T> =>
  * @returns The contained value.
  */
 export const mergeOkErr = <T>(res: Result<T, T>) => res[1];
+
+Deno.test("mergeOkErr", () => {
+    assertEquals(mergeOkErr(ok(3)), 3);
+    assertEquals(mergeOkErr(err(4)), 4);
+});
 
 /**
  * Unwraps the `Ok` value from a `Result`, or throws an error.
@@ -154,6 +195,12 @@ export const unwrap = <E, T>(res: Result<E, T>): T => {
     }
     return res[1];
 };
+
+Deno.test("unwrap", () => {
+    assertEquals(unwrap(ok(3)), 3);
+    assertThrows(() => unwrap(err(4)), "unwrapped Err");
+});
+
 /**
  * Unwraps the `Err` value from a `Result`, or throws an error.
  *
@@ -167,6 +214,11 @@ export const unwrapErr = <E, T>(res: Result<E, T>): E => {
     return res[1];
 };
 
+Deno.test("unwrapErr", () => {
+    assertThrows(() => unwrapErr(ok(3)), "unwrapped Ok");
+    assertEquals(unwrapErr(err(4)), 4);
+});
+
 /**
  * Returns `resB` if `resA` is an `Ok`, otherwise returns the error `resA`. The order of arguments is reversed because of that it is useful for partial applying.
  *
@@ -174,10 +226,22 @@ export const unwrapErr = <E, T>(res: Result<E, T>): E => {
  * @param resA - The first result.
  * @returns `resB` if `resA` is a `Ok`.
  */
-export const and =
-    <U, E>(resB: Result<E, U>) =>
-    <T>(resA: Result<E, T>) =>
-        isOk(resA) ? resB : resA;
+export const and = <U, E>(resB: Result<E, U>) => <T>(resA: Result<E, T>) =>
+    isOk(resA) ? resB : resA;
+
+Deno.test("and", () => {
+    const success = ok<number>(2);
+    const failure = err("not a 2");
+    const lateError = err("late error");
+    const earlyError = err("early error");
+    const anotherSuccess = ok("different result");
+
+    assertEquals(and(lateError)(success), lateError);
+    assertEquals(and<number, string>(success)(earlyError), earlyError);
+    assertEquals(and(lateError)(failure), failure);
+    assertEquals(and(anotherSuccess)(success), anotherSuccess);
+});
+
 /**
  * Returns `fn()` if `resA` is an `Ok`, otherwise returns the error `resA`. This is an implementation of `FlatMap`. The order of arguments is reversed because of that it is useful for partial applying.
  *
@@ -186,9 +250,22 @@ export const and =
  * @returns `fn()` if `resA` is an `Ok`.
  */
 export const andThen =
-    <T, U, E>(fn: (t: T) => Result<E, U>) =>
-    (resA: Result<E, T>) =>
+    <T, U, E>(fn: (t: T) => Result<E, U>) => (resA: Result<E, T>) =>
         isOk(resA) ? fn(resA[1]) : resA;
+
+Deno.test("andThen", () => {
+    const sqrtThenToString = andThen(
+        (num: number): Result<string, string> =>
+            num < 0
+                ? err("num must not be negative")
+                : ok(Math.sqrt(num).toString()),
+    );
+
+    assertEquals(sqrtThenToString(ok(4)), ok("2"));
+    assertEquals(sqrtThenToString(ok(-1)), err("num must not be negative"));
+    assertEquals(sqrtThenToString(err("not a number")), err("not a number"));
+});
+
 /**
  * Returns `resB` if `resA` is an `Err`, otherwise returns the success `resA`. The order of arguments is reversed because of that it is useful for partial applying.
  *
@@ -196,10 +273,22 @@ export const andThen =
  * @param resA - The first result.
  * @returns `resA` or `resB`.
  */
-export const or =
-    <E, T>(resB: Result<E, T>) =>
-    (resA: Result<E, T>) =>
-        isErr(resA) ? resB : resA;
+export const or = <E, T>(resB: Result<E, T>) => (resA: Result<E, T>) =>
+    isErr(resA) ? resB : resA;
+
+Deno.test("or", () => {
+    const success = ok<number>(2);
+    const failure = err<string>("not a 2");
+    const lateError = err<string>("late error");
+    const earlyError = err<string>("early error");
+    const anotherSuccess = ok<number>(100);
+
+    assertEquals(or<string, number>(lateError)(success), success);
+    assertEquals(or<string, number>(success)(earlyError), success);
+    assertEquals(or(lateError)(failure), lateError);
+    assertEquals(or(anotherSuccess)(success), success);
+});
+
 /**
  * Returns `fn()` if `resA` is an `Err`, otherwise returns the success `resA`. The order of arguments is reversed because of that it is useful for partial applying.
  *
@@ -208,9 +297,18 @@ export const or =
  * @returns `resA` or `fn()`.
  */
 export const orElse =
-    <E, T, F>(fn: (error: E) => Result<F, T>) =>
-    (resA: Result<E, T>) =>
+    <E, T, F>(fn: (error: E) => Result<F, T>) => (resA: Result<E, T>) =>
         isErr(resA) ? fn(resA[1]) : resA;
+
+Deno.test("orElse", () => {
+    const sq = orElse((x: number) => ok<number>(x * x));
+    const residual = orElse((x: number) => err<number>(x));
+
+    assertEquals(sq(sq(ok(2))), ok(2));
+    assertEquals(sq(residual(ok(2))), ok(2));
+    assertEquals(residual(sq(err(3))), ok(9));
+    assertEquals(residual(residual(err(3))), err(3));
+});
 
 /**
  * Takes the success value as an optional if the result is an `Ok`, otherwise returns `None`.
@@ -218,7 +316,15 @@ export const orElse =
  * @param res - The source result.
  * @returns The success value if exists.
  */
-export const optionOk = <E, T>(res: Result<E, T>): Option<T> => (isOk(res) ? some(res[1]) : none());
+export const optionOk = <E, T>(
+    res: Result<E, T>,
+): Option<T> => (isOk(res) ? some(res[1]) : none());
+
+Deno.test("optionOk", () => {
+    assertEquals(optionOk(ok(2)), some(2));
+    assertEquals(optionOk(err("nothing left")), none());
+});
+
 /**
  * Takes the error value as an optional if the result is an `Err`, otherwise returns `None`.
  *
@@ -228,6 +334,11 @@ export const optionOk = <E, T>(res: Result<E, T>): Option<T> => (isOk(res) ? som
 export const optionErr = <E, T>(res: Result<E, T>): Option<E> =>
     isErr(res) ? some(res[1]) : none();
 
+Deno.test("optionErr", () => {
+    assertEquals(optionErr(ok(2)), none());
+    assertEquals(optionErr(err("nothing left")), some("nothing left"));
+});
+
 /**
  * Converts into a string for debug. It is not safe for serialization.
  *
@@ -236,13 +347,25 @@ export const optionErr = <E, T>(res: Result<E, T>): Option<E> =>
  */
 export const toString = <E, T>(res: Result<E, T>) =>
     isOk(res) ? `ok(${res[1]})` : `err(${res[1]})`;
+
+Deno.test("toString", () => {
+    assertEquals(toString(ok(24)), "ok(24)");
+    assertEquals(toString(err("hoge")), "err(hoge)");
+});
+
 /**
  * Converts into an array.
  *
  * @param opt - The result value.
  * @returns The array which contains zero or one success element.
  */
-export const toArray = <E, T>(res: Result<E, T>) => optionToArray(optionOk(res));
+export const toArray = <E, T>(res: Result<E, T>) =>
+    optionToArray(optionOk(res));
+
+Deno.test("toArray", () => {
+    assertEquals(toArray(ok(24)), [24]);
+    assertEquals(toArray(err("hoge")), []);
+});
 
 /**
  * Maps the function onto `Result<E, _>`.
@@ -251,8 +374,7 @@ export const toArray = <E, T>(res: Result<E, T>) => optionToArray(optionOk(res))
  * @returns The mapped function.
  */
 export const map =
-    <T, U>(fn: (t: T) => U) =>
-    <E>(res: Result<E, T>): Result<E, U> =>
+    <T, U>(fn: (t: T) => U) => <E>(res: Result<E, T>): Result<E, U> =>
         isOk(res) ? ok(fn(res[1])) : res;
 /**
  * Applies `fn` to the contained success value, or returns the default value `init` if it is an `Err`.
@@ -263,9 +385,7 @@ export const map =
  * @returns The mapped value.
  */
 export const mapOr =
-    <U>(init: U) =>
-    <T>(fn: (t: T) => U) =>
-    <E>(res: Result<E, T>): U =>
+    <U>(init: U) => <T>(fn: (t: T) => U) => <E>(res: Result<E, T>): U =>
         isOk(res) ? fn(res[1]) : init;
 /**
  * Applies `fn` to the contained success value, or returns the fallback value by `fallback` if it is an `Err`.
@@ -278,8 +398,7 @@ export const mapOr =
 export const mapOrElse =
     <E, U>(fallback: (err: E) => U) =>
     <T>(fn: (t: T) => U) =>
-    (res: Result<E, T>): U =>
-        isOk(res) ? fn(res[1]) : fallback(res[1]);
+    (res: Result<E, T>): U => isOk(res) ? fn(res[1]) : fallback(res[1]);
 
 /**
  * Maps the function onto `Result<_, T>`.
@@ -288,8 +407,7 @@ export const mapOrElse =
  * @returns The mapped function.
  */
 export const mapErr =
-    <E, F>(fn: (t: E) => F) =>
-    <T>(res: Result<E, T>): Result<F, T> =>
+    <E, F>(fn: (t: E) => F) => <T>(res: Result<E, T>): Result<F, T> =>
         isErr(res) ? err(fn(res[1])) : res;
 
 /**
@@ -300,8 +418,7 @@ export const mapErr =
  * @returns The result of tuple.
  */
 export const product =
-    <E, A>(aRes: Result<E, A>) =>
-    <B>(bRes: Result<E, B>): Result<E, [A, B]> =>
+    <E, A>(aRes: Result<E, A>) => <B>(bRes: Result<E, B>): Result<E, [A, B]> =>
         andThen((a: A) => map((b: B): [A, B] => [a, b])(bRes))(aRes);
 
 /**
@@ -311,10 +428,8 @@ export const product =
  * @param res - The source result.
  * @returns The unwrapped value.
  */
-export const unwrapOr =
-    <T>(init: T) =>
-    <E>(res: Result<E, T>) =>
-        isOk(res) ? res[1] : init;
+export const unwrapOr = <T>(init: T) => <E>(res: Result<E, T>) =>
+    isOk(res) ? res[1] : init;
 /**
  * Unwraps the success value, or returns the fallback value `fallback` if it is an `Err`.
  *
@@ -323,8 +438,7 @@ export const unwrapOr =
  * @returns The unwrapped value.
  */
 export const unwrapOrElse =
-    <E, T>(fallback: (err: E) => T) =>
-    (res: Result<E, T>) =>
+    <E, T>(fallback: (err: E) => T) => (res: Result<E, T>) =>
         isOk(res) ? res[1] : fallback(res[1]);
 
 /**
@@ -350,7 +464,9 @@ export const biMap =
  * @param optRes - `Option` containing `Result`.
  * @returns `Result` containing `Option`.
  */
-export const resOptToOptRes = <E, T>(resOpt: Result<E, Option<T>>): Option<Result<E, T>> => {
+export const resOptToOptRes = <E, T>(
+    resOpt: Result<E, Option<T>>,
+): Option<Result<E, T>> => {
     if (isErr(resOpt)) {
         return some(resOpt);
     }
@@ -359,6 +475,12 @@ export const resOptToOptRes = <E, T>(resOpt: Result<E, Option<T>>): Option<Resul
     }
     return none();
 };
+
+Deno.test("resOptToOptRes", () => {
+    assertEquals(resOptToOptRes(ok(some(5))), some(ok(5)));
+    assertEquals(resOptToOptRes(ok(none())), none());
+    assertEquals(resOptToOptRes(err("hoge")), some(err("hoge")));
+});
 
 /**
  * Applies the function to another value on `Result`.
@@ -486,6 +608,10 @@ export const bitraversable: Bitraversable<ResultHkt> = {
 };
 
 export const ifErr = <E, F, T>(): Optic<Result<E, T>, Result<F, T>, E, F> =>
-    newPrism<F, Result<F, T>>(err)(either<E, Result<Result<F, T>, E>>(ok)((t) => err(ok(t))));
+    newPrism<F, Result<F, T>>(err)(
+        either<E, Result<Result<F, T>, E>>(ok)((t) => err(ok(t))),
+    );
 export const ifOk = <E, T, U>(): Optic<Result<E, T>, Result<E, U>, T, U> =>
-    newPrism<U, Result<E, U>>(ok)(either<E, Result<Result<E, U>, T>>((e) => err(err(e)))(ok));
+    newPrism<U, Result<E, U>>(ok)(
+        either<E, Result<Result<E, U>, T>>((e) => err(err(e)))(ok),
+    );

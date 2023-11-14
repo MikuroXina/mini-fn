@@ -1,5 +1,5 @@
-import type { Monoid } from "./type-class/monoid.js";
-import { semiGroupSymbol } from "./type-class/semi-group.js";
+import type { Monoid } from "./type-class/monoid.ts";
+import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
 /**
  * Means that the left term is less than the right term.
@@ -31,12 +31,9 @@ export const isNe = (ord: Ordering): ord is Less | Greater => ord !== equal;
 /**
  * The reversed type of `O` extends `Ordering`.
  */
-export type Reversed<O extends Ordering> = O extends Less
-    ? Greater
-    : O extends Greater
-    ? Less
-    : O extends Equal
-    ? Equal
+export type Reversed<O extends Ordering> = O extends Less ? Greater
+    : O extends Greater ? Less
+    : O extends Equal ? Equal
     : Ordering;
 /**
  * Reverses the order.
@@ -44,7 +41,8 @@ export type Reversed<O extends Ordering> = O extends Less
  * @param order - The order value extends `Ordering`.
  * @returns The reversed order.
  */
-export const reverse = <O extends Ordering>(order: O): Reversed<O> => (0 - order) as Reversed<O>;
+export const reverse = <O extends Ordering>(order: O): Reversed<O> =>
+    (0 - order) as Reversed<O>;
 
 /**
  * Transits two `Ordering`s. Returns `second` if `first` is `equal`, otherwise returns `first`. It is useful to implement `PartialOrd` for some object type. The order of arguments is reversed because of that it is useful for partial applying.
@@ -53,7 +51,10 @@ export const reverse = <O extends Ordering>(order: O): Reversed<O> => (0 - order
  * @param first - The first order.
  * @returns The transited order.
  */
-export const and = (second: Ordering) => (first: Ordering) => (first === equal ? second : first);
+export const and = (second: Ordering) =>
+(
+    first: Ordering,
+) => (first === equal ? second : first);
 /**
  * Transits two `Ordering`s. Returns `secondFn()` if `first` is `equal`, otherwise returns `first`. It is useful to implement `PartialOrd` for some object type. The order of arguments is reversed because of that it is useful for partial applying.
  *

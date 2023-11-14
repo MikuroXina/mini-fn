@@ -1,11 +1,10 @@
-import { expect, test } from "vitest";
+import { assertEquals } from "std/assert/mod.ts";
+import { opticCat } from "../optical.ts";
+import { ifSome, none, type Option, some } from "../option.ts";
+import { key } from "./lens.ts";
+import { only } from "./prism.ts";
 
-import { opticCat } from "../optical.js";
-import { ifSome, none, type Option, some } from "../option.js";
-import { key } from "./lens.js";
-import { only } from "./prism.js";
-
-test("optional", () => {
+Deno.test("optional", () => {
     const obj = {
         foo: "x",
         hoge: some({
@@ -13,18 +12,21 @@ test("optional", () => {
             fuga: some(12),
         }) as Option<{ bar: number; fuga: Option<number> }>,
     };
-    expect(
-        opticCat(obj).feed(key("hoge")).feed(ifSome()).feed(key("fuga")).feed(ifSome()).set(42),
-    ).toStrictEqual({
-        foo: "x",
-        hoge: some({
-            bar: 2,
-            fuga: some(42),
-        }),
-    });
+    assertEquals(
+        opticCat(obj).feed(key("hoge")).feed(ifSome()).feed(key("fuga")).feed(
+            ifSome(),
+        ).set(42),
+        {
+            foo: "x",
+            hoge: some({
+                bar: 2,
+                fuga: some(42),
+            }),
+        },
+    );
 });
 
-test("only", () => {
-    expect(opticCat(4).feed(only(4)).get()).toStrictEqual(some(4));
-    expect(opticCat(4).feed(only(5)).get()).toStrictEqual(none());
+Deno.test("only", () => {
+    assertEquals(opticCat(4).feed(only(4)).get(), some(4));
+    assertEquals(opticCat(4).feed(only(5)).get(), none());
 });

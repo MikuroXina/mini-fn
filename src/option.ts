@@ -11,21 +11,25 @@
  *
  * @packageDocumentation
  */
-import type { Get1, Hkt1 } from "./hkt.js";
-import type { Optic, OpticSimple } from "./optical.js";
-import { newPrism, newPrismSimple } from "./optical/prism.js";
-import { equal, greater, less, type Ordering } from "./ordering.js";
-import { err, isOk, ok, type Result } from "./result.js";
-import type { Applicative } from "./type-class/applicative.js";
-import { type Eq, fromEquality } from "./type-class/eq.js";
-import type { Functor } from "./type-class/functor.js";
-import type { Monad } from "./type-class/monad.js";
-import type { Monoid } from "./type-class/monoid.js";
-import { fromCmp, type Ord } from "./type-class/ord.js";
-import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.js";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
-import { semiGroupSymbol } from "./type-class/semi-group.js";
-import type { Traversable } from "./type-class/traversable.js";
+import { assertEquals } from "std/assert/mod.ts";
+import type { Get1, Hkt1 } from "./hkt.ts";
+import type { Optic, OpticSimple } from "./optical.ts";
+import { newPrism, newPrismSimple } from "./optical/prism.ts";
+import { equal, greater, less, type Ordering } from "./ordering.ts";
+import { err, isOk, ok, type Result } from "./result.ts";
+import type { Applicative } from "./type-class/applicative.ts";
+import { type Eq, fromEquality } from "./type-class/eq.ts";
+import type { Functor } from "./type-class/functor.ts";
+import type { Monad } from "./type-class/monad.ts";
+import type { Monoid } from "./type-class/monoid.ts";
+import { fromCmp, type Ord } from "./type-class/ord.ts";
+import {
+    fromPartialEquality,
+    type PartialEq,
+} from "./type-class/partial-eq.ts";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
+import { semiGroupSymbol } from "./type-class/semi-group.ts";
+import type { Traversable } from "./type-class/traversable.ts";
 
 const someSymbol = Symbol("OptionSome");
 /**
@@ -67,8 +71,7 @@ export type Option<T> = None | Some<T>;
  * @returns The new optional.
  */
 export const fromPredicate =
-    <T>(predicate: (t: T) => boolean) =>
-    (t: T): Option<T> => {
+    <T>(predicate: (t: T) => boolean) => (t: T): Option<T> => {
         if (predicate(t)) {
             return some(t);
         }
@@ -81,7 +84,14 @@ export const fromPredicate =
  * @param opt - The optional value.
  * @returns The proof that `opt` is a `Some`.
  */
-export const isSome = <T>(opt: Option<T>): opt is Some<T> => opt[0] === someSymbol;
+export const isSome = <T>(opt: Option<T>): opt is Some<T> =>
+    opt[0] === someSymbol;
+
+Deno.test("isSome", () => {
+    assertEquals(isSome(some(2)), true);
+    assertEquals(isSome(none()), false);
+});
+
 /**
  * Checks whether `opt` is `None`.
  *
@@ -90,13 +100,26 @@ export const isSome = <T>(opt: Option<T>): opt is Some<T> => opt[0] === someSymb
  */
 export const isNone = <T>(opt: Option<T>): opt is None => opt[0] === noneSymbol;
 
+Deno.test("isNone", () => {
+    assertEquals(isNone(some(2)), false);
+    assertEquals(isNone(none()), true);
+});
+
 /**
  * Converts into a string for debug. It is not safe for serialization.
  *
  * @param opt - The optional value.
  * @returns The string form.
  */
-export const toString = <T>(opt: Option<T>) => (isSome(opt) ? `some(${opt[1]})` : "none");
+export const toString = <T>(
+    opt: Option<T>,
+) => (isSome(opt) ? `some(${opt[1]})` : "none");
+
+Deno.test("toString", () => {
+    assertEquals(toString(some(2)), "some(2)");
+    assertEquals(toString(none()), "none");
+});
+
 /**
  * Converts into an array.
  *
@@ -109,6 +132,11 @@ export const toArray = <T>(opt: Option<T>): T[] => {
     return arr as T[];
 };
 
+Deno.test("toArray", () => {
+    assertEquals(toArray(some(2)), [2]);
+    assertEquals(toArray(none()), []);
+});
+
 export const partialEquality =
     <T>(equalityT: PartialEq<T>) =>
     (optA: Option<T>, optB: Option<T>): boolean =>
@@ -116,8 +144,7 @@ export const partialEquality =
         (isNone(optA) && isNone(optB));
 export const partialEq = fromPartialEquality(partialEquality);
 export const equality =
-    <T>(equalityT: Eq<T>) =>
-    (optA: Option<T>, optB: Option<T>): boolean =>
+    <T>(equalityT: Eq<T>) => (optA: Option<T>, optB: Option<T>): boolean =>
         (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1])) ||
         (isNone(optA) && isNone(optB));
 export const eq = fromEquality(equality);
@@ -138,8 +165,7 @@ export const partialCmp =
     };
 export const partialOrd = fromPartialCmp(partialCmp);
 export const cmp =
-    <T>(order: Ord<T>) =>
-    (l: Option<T>, r: Option<T>): Ordering => {
+    <T>(order: Ord<T>) => (l: Option<T>, r: Option<T>): Ordering => {
         // considered that None is lesser than Some
         if (isNone(l)) {
             if (isNone(r)) {
@@ -168,6 +194,12 @@ export const flatten = <T>(opt: Option<Option<T>>): Option<T> => {
     return opt;
 };
 
+Deno.test("flatten", () => {
+    assertEquals(flatten(some(some(6))), some(6));
+    assertEquals(flatten(some(none())), none());
+    assertEquals(flatten(none()), none());
+});
+
 /**
  * Unwraps the optional value. Passing `none` will throw an error, so you must use this only when `opt` is considered to be only a `Some`.
  *
@@ -188,14 +220,20 @@ export const unwrap = <T>(opt: Option<T>): T => {
  * @param optA - The first optional.
  * @returns `optB` or a `None`.
  */
-export const and =
-    <U>(optB: Option<U>) =>
-    <T>(optA: Option<T>): Option<U> => {
-        if (isSome(optA)) {
-            return optB;
-        }
-        return optA;
-    };
+export const and = <U>(optB: Option<U>) => <T>(optA: Option<T>): Option<U> => {
+    if (isSome(optA)) {
+        return optB;
+    }
+    return optA;
+};
+
+Deno.test("and", () => {
+    assertEquals(and(none())(none()), none());
+    assertEquals(and(none())(some(2)), none());
+    assertEquals(and(some("foo"))(none()), none());
+    assertEquals(and(some("foo"))(some(2)), some("foo"));
+});
+
 /**
  * Returns `None` if `optA` is `None`, otherwise calls `optB` and return the result. This is an implementation of `FlatMap`. The order of arguments is reversed because of that it is useful for partial applying.
  *
@@ -204,13 +242,23 @@ export const and =
  * @returns `optB` or a `None`.
  */
 export const andThen =
-    <T, U>(optB: (t: T) => Option<U>) =>
-    (optA: Option<T>): Option<U> => {
+    <T, U>(optB: (t: T) => Option<U>) => (optA: Option<T>): Option<U> => {
         if (isSome(optA)) {
             return optB(optA[1]);
         }
         return optA;
     };
+
+Deno.test("andThen", () => {
+    const sqrtThenToString = (num: number): Option<string> =>
+        0 <= num ? some(Math.sqrt(num).toString()) : none();
+
+    const applied = andThen(sqrtThenToString);
+    assertEquals(applied(some(4)), some("2"));
+    assertEquals(applied(some(-1)), none());
+    assertEquals(applied(none()), none());
+});
+
 /**
  * Returns the optional `optA` if it contains a value, otherwise returns `optB`. The order of arguments is reversed because of that it is useful for partial applying.
  *
@@ -218,14 +266,20 @@ export const andThen =
  * @param optA - The source optional.
  * @returns `optA` or `optB`.
  */
-export const or =
-    <T>(optB: Option<T>) =>
-    (optA: Option<T>): Option<T> => {
-        if (isSome(optA)) {
-            return optA;
-        }
-        return optB;
-    };
+export const or = <T>(optB: Option<T>) => (optA: Option<T>): Option<T> => {
+    if (isSome(optA)) {
+        return optA;
+    }
+    return optB;
+};
+
+Deno.test("or", () => {
+    assertEquals(or(none())(none()), none());
+    assertEquals(or(none())(some(2)), some(2));
+    assertEquals(or(some(100))(none()), some(100));
+    assertEquals(or(some(100))(some(2)), some(2));
+});
+
 /**
  * Returns the optional `optA` if it contains a value, otherwise calls `optB` and returns the result. The order of arguments is reversed because of that it is useful for partial applying.
  *
@@ -234,13 +288,22 @@ export const or =
  * @returns `optA` or `optB`.
  */
 export const orElse =
-    <T>(optB: () => Option<T>) =>
-    (optA: Option<T>): Option<T> => {
+    <T>(optB: () => Option<T>) => (optA: Option<T>): Option<T> => {
         if (isSome(optA)) {
             return optA;
         }
         return optB();
     };
+
+Deno.test("orElse", () => {
+    const nobody = orElse((): Option<string> => none());
+    const vikings = orElse((): Option<string> => some("vikings"));
+
+    assertEquals(vikings(some("barbarians")), some("barbarians"));
+    assertEquals(vikings(none()), some("vikings"));
+    assertEquals(nobody(none()), none());
+});
+
 /**
  * Returns `Some` if exactly one of `optA` and `optB` is `Some`, otherwise returns `None`. The order of arguments is reversed because of that it is useful for partial applying.
  *
@@ -248,17 +311,22 @@ export const orElse =
  * @param optA - The first optional.
  * @returns `optA` exclusive or `optB`.
  */
-export const xor =
-    <T>(optB: Option<T>) =>
-    (optA: Option<T>) => {
-        if (isSome(optA) && isNone(optB)) {
-            return optA;
-        }
-        if (isNone(optA) && isSome(optB)) {
-            return optB;
-        }
-        return none();
-    };
+export const xor = <T>(optB: Option<T>) => (optA: Option<T>) => {
+    if (isSome(optA) && isNone(optB)) {
+        return optA;
+    }
+    if (isNone(optA) && isSome(optB)) {
+        return optB;
+    }
+    return none();
+};
+
+Deno.test("xor", () => {
+    assertEquals(xor(none())(none()), none());
+    assertEquals(xor(none())(some(2)), some(2));
+    assertEquals(xor(some(100))(none()), some(100));
+    assertEquals(xor(some(100))(some(2)), none());
+});
 
 /**
  * Returns `Some` only if `opt` is a `Some` and its value satisfies `predicate`, otherwise returns `None`.
@@ -266,16 +334,22 @@ export const xor =
  * @param predicate - The predicate to filter a value of `opt`.
  * @returns The filtered optional.
  */
-export const filter =
-    <T>(predicate: (t: T) => boolean) =>
-    (opt: Option<T>) => {
-        if (isSome(opt)) {
-            if (predicate(opt[1])) {
-                return opt;
-            }
+export const filter = <T>(predicate: (t: T) => boolean) => (opt: Option<T>) => {
+    if (isSome(opt)) {
+        if (predicate(opt[1])) {
+            return opt;
         }
-        return none();
-    };
+    }
+    return none();
+};
+
+Deno.test("filter", () => {
+    const isEven = filter((x: number) => x % 2 == 0);
+
+    assertEquals(isEven(none()), none());
+    assertEquals(isEven(some(3)), none());
+    assertEquals(isEven(some(4)), some(4));
+});
 
 /**
  * Zips two optionals into one.
@@ -285,13 +359,18 @@ export const filter =
  * @returns The zipped optional of tuple.
  */
 export const zip =
-    <T>(optA: Option<T>) =>
-    <U>(optB: Option<U>): Option<[T, U]> => {
+    <T>(optA: Option<T>) => <U>(optB: Option<U>): Option<[T, U]> => {
         if (isSome(optA) && isSome(optB)) {
             return some([optA[1], optB[1]]);
         }
         return none();
     };
+
+Deno.test("zip", () => {
+    assertEquals(zip(some(1))(some("hi")), some([1, "hi"] as [number, string]));
+    assertEquals(zip(some(1))(none()), none());
+});
+
 /**
  * Unzips the optional of tuple into the tuple of optionals.
  *
@@ -304,6 +383,18 @@ export const unzip = <T, U>(opt: Option<[T, U]>): [Option<T>, Option<U>] => {
     }
     return [none(), none()];
 };
+
+Deno.test("unzip", () => {
+    assertEquals(unzip(some([1, "hi"])), [
+        some(1),
+        some("hi"),
+    ]);
+    assertEquals(unzip(none()), [
+        none(),
+        none(),
+    ]);
+});
+
 /**
  * Zips two optionals into one with `fn`.
  *
@@ -322,6 +413,19 @@ export const zipWith =
         return none();
     };
 
+Deno.test("zipWith", () => {
+    interface Point {
+        x: number;
+        y: number;
+    }
+    const newPoint = zipWith((x: number, y: number): Point => ({
+        x,
+        y,
+    }));
+    assertEquals(newPoint(some(17.5))(some(42.7)), some({ x: 17.5, y: 42.7 }));
+    assertEquals(newPoint(none())(none()), none());
+});
+
 /**
  * Extracts the contained `Some` value or `init`.
  *
@@ -329,14 +433,20 @@ export const zipWith =
  * @param opt - The source optional.
  * @returns The contained value or `init`.
  */
-export const unwrapOr =
-    <T>(init: T) =>
-    (opt: Option<T>) => {
-        if (isSome(opt)) {
-            return opt[1];
-        }
-        return init;
-    };
+export const unwrapOr = <T>(init: T) => (opt: Option<T>) => {
+    if (isSome(opt)) {
+        return opt[1];
+    }
+    return init;
+};
+
+Deno.test("unwrapOr", () => {
+    const unwrapOrBike = unwrapOr("bike");
+
+    assertEquals(unwrapOrBike(some("car")), "car");
+    assertEquals(unwrapOrBike(none()), "bike");
+});
+
 /**
  * Extracts the contained `Some` value or `fn()`.
  *
@@ -344,14 +454,19 @@ export const unwrapOr =
  * @param opt - The source optional.
  * @returns The contained value or `fn()`.
  */
-export const unwrapOrElse =
-    <T>(fn: () => T) =>
-    (opt: Option<T>) => {
-        if (isSome(opt)) {
-            return opt[1];
-        }
-        return fn();
-    };
+export const unwrapOrElse = <T>(fn: () => T) => (opt: Option<T>) => {
+    if (isSome(opt)) {
+        return opt[1];
+    }
+    return fn();
+};
+
+Deno.test("unwrapOrElse", () => {
+    const unwrapOrCalc = unwrapOrElse(() => 6 ** 4);
+
+    assertEquals(unwrapOrCalc(some(4)), 4);
+    assertEquals(unwrapOrCalc(none()), 1296);
+});
 
 /**
  * Maps the function onto `Option`.
@@ -359,14 +474,20 @@ export const unwrapOrElse =
  * @param f - The function from `T` to `U`.
  * @returns The function from `Option<T>` to `Option<U>`.
  */
-export const map =
-    <T, U>(f: (t: T) => U) =>
-    (opt: Option<T>): Option<U> => {
-        if (opt[0] === someSymbol) {
-            return some(f(opt[1]));
-        }
-        return opt;
-    };
+export const map = <T, U>(f: (t: T) => U) => (opt: Option<T>): Option<U> => {
+    if (opt[0] === someSymbol) {
+        return some(f(opt[1]));
+    }
+    return opt;
+};
+
+Deno.test("map", () => {
+    const strLen = map((str: string) => str.length);
+
+    assertEquals(strLen(some("Hello, World!")), some(13));
+    assertEquals(strLen(none()), none());
+});
+
 /**
  * Maps the optional value with a default value `init`.
  *
@@ -376,14 +497,20 @@ export const map =
  * @returns The mapped value or `init`.
  */
 export const mapOr =
-    <U>(init: U) =>
-    <T>(f: (t: T) => U) =>
-    (opt: Option<T>): U => {
+    <U>(init: U) => <T>(f: (t: T) => U) => (opt: Option<T>): U => {
         if (opt[0] === someSymbol) {
             return f(opt[1]);
         }
         return init;
     };
+
+Deno.test("mapOr", () => {
+    const strLenOrAnswer = mapOr(42)((str: string) => str.length);
+
+    assertEquals(strLenOrAnswer(some("Hello, World!")), 13);
+    assertEquals(strLenOrAnswer(none()), 42);
+});
+
 /**
  * Maps the optional value with a default value `fn()`.
  *
@@ -393,14 +520,19 @@ export const mapOr =
  * @returns The mapped value or `init`.
  */
 export const mapOrElse =
-    <U>(fn: () => U) =>
-    <T>(f: (t: T) => U) =>
-    (opt: Option<T>): U => {
+    <U>(fn: () => U) => <T>(f: (t: T) => U) => (opt: Option<T>): U => {
         if (opt[0] === someSymbol) {
             return f(opt[1]);
         }
         return fn();
     };
+
+Deno.test("mapOrElse", () => {
+    const strLenOrCalc = mapOrElse(() => 6 ** 4)((str: string) => str.length);
+
+    assertEquals(strLenOrCalc(some("Hello, World!")), 13);
+    assertEquals(strLenOrCalc(none()), 1296);
+});
 
 /**
  * Checks whether the optional `opt` contains `x` value.
@@ -409,10 +541,16 @@ export const mapOrElse =
  * @param opt - The optional to be checked.
  * @returns Whether `x` is contained.
  */
-export const contains =
-    <T>(x: T) =>
-    (opt: Option<T>) =>
-        mapOr(false)((t) => t === x)(opt);
+export const contains = <T>(x: T) => (opt: Option<T>) =>
+    mapOr(false)((t) => t === x)(opt);
+
+Deno.test("contains", () => {
+    const hasTwo = contains(2);
+
+    assertEquals(hasTwo(some(2)), true);
+    assertEquals(hasTwo(some(3)), false);
+    assertEquals(hasTwo(none()), false);
+});
 
 /**
  * Transforms `Option<Result<E, T>>` into `Result<E, Option<T>>` as:
@@ -424,7 +562,9 @@ export const contains =
  * @param optRes - `Option` containing `Result`.
  * @returns `Result` containing `Option`.
  */
-export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Option<T>> => {
+export const optResToResOpt = <E, T>(
+    optRes: Option<Result<E, T>>,
+): Result<E, Option<T>> => {
     if (isNone(optRes)) {
         return ok(none());
     }
@@ -434,6 +574,12 @@ export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Op
     return err(optRes[1][1]);
 };
 
+Deno.test("optResToResOpt", () => {
+    assertEquals(optResToResOpt(some(ok(5))), ok(some(5)));
+    assertEquals(optResToResOpt(none()), ok(none()));
+    assertEquals(optResToResOpt(some(err(5))), err(5));
+});
+
 /**
  * Transforms the optional value into `Result` with the error `e`.
  *
@@ -441,10 +587,16 @@ export const optResToResOpt = <E, T>(optRes: Option<Result<E, T>>): Result<E, Op
  * @param opt - The optional to be transformed.
  * @returns The new `Result`.
  */
-export const okOr =
-    <E>(e: E) =>
-    <T>(opt: Option<T>): Result<E, T> =>
-        mapOrElse<Result<E, T>>(() => err<E>(e))((t: T) => ok(t))(opt);
+export const okOr = <E>(e: E) => <T>(opt: Option<T>): Result<E, T> =>
+    mapOrElse<Result<E, T>>(() => err<E>(e))((t: T) => ok(t))(opt);
+
+Deno.test("okOr", () => {
+    const orZero = okOr(0);
+
+    assertEquals(orZero(some("foo")), ok("foo"));
+    assertEquals(orZero(none()), err(0));
+});
+
 /**
  * Transforms the optional value into `Result` with the error `e()`.
  *
@@ -452,10 +604,15 @@ export const okOr =
  * @param opt - The optional to be transformed.
  * @returns The new `Result`.
  */
-export const okOrElse =
-    <E>(e: () => E) =>
-    <T>(opt: Option<T>): Result<E, T> =>
-        mapOrElse<Result<E, T>>(() => err<E>(e()))((t: T) => ok(t))(opt);
+export const okOrElse = <E>(e: () => E) => <T>(opt: Option<T>): Result<E, T> =>
+    mapOrElse<Result<E, T>>(() => err<E>(e()))((t: T) => ok(t))(opt);
+
+Deno.test("okOrElse", () => {
+    const orZero = okOrElse(() => 0);
+
+    assertEquals(orZero(some("foo")), ok("foo"));
+    assertEquals(orZero(none()), err(0));
+});
 
 /**
  * The alias of `andThen`.
@@ -489,10 +646,8 @@ export const monad: Monad<OptionHkt> = {
     pure: some,
     map,
     flatMap,
-    apply:
-        <T1, U1>(fnOpt: Option<(t: T1) => U1>) =>
-        (tOpt: Option<T1>) =>
-            flatMap((fn: (t: T1) => U1) => map(fn)(tOpt))(fnOpt),
+    apply: <T1, U1>(fnOpt: Option<(t: T1) => U1>) => (tOpt: Option<T1>) =>
+        flatMap((fn: (t: T1) => U1) => map(fn)(tOpt))(fnOpt),
 };
 
 /**
@@ -518,6 +673,10 @@ export const traversable: Traversable<OptionHkt> = {
 };
 
 export const ifSome = <T, U>(): Optic<Option<T>, Option<U>, T, U> =>
-    newPrism<U, Option<U>>(some)(mapOrElse<Result<Option<U>, T>>(() => err(none()))(ok));
+    newPrism<U, Option<U>>(some)(
+        mapOrElse<Result<Option<U>, T>>(() => err(none()))(ok),
+    );
 export const ifNone = <T>(): OpticSimple<Option<T>, void> =>
-    newPrismSimple<void, Option<T>>(none)(mapOrElse<Option<void>>(() => some(undefined))(none));
+    newPrismSimple<void, Option<T>>(none)(
+        mapOrElse<Option<void>>(() => some(undefined))(none),
+    );

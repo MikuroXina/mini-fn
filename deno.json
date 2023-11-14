@@ -1,0 +1,26 @@
+{
+    "tasks": {
+        "dev": "deno run --watch mod.ts",
+        "test": "deno test -A src/",
+        "coverage": "deno test -A --coverage=./coverage/cov_profile src/",
+        "doc": "deno run --allow-read --allow-write --allow-env --deny-run npm:typedoc@0.25.3 --tsconfig tsconfig.doc.json --skipErrorChecking --name @mikuroxina/mini-fn mod.ts"
+    },
+    "fmt": {
+        "useTabs": false,
+        "lineWidth": 80,
+        "indentWidth": 4,
+        "semiColons": true,
+        "singleQuote": false,
+        "proseWrap": "always"
+    },
+    "lint": {
+        "include": ["src/"],
+        "rules": {
+            "tags": ["recommended"]
+        }
+    },
+    "lock": false,
+    "imports": {
+        "std/": "https://deno.land/std@0.206.0/"
+    }
+}

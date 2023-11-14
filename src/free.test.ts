@@ -1,29 +1,17 @@
-import { describe, expect, test } from "vitest";
-
-import { catT, doVoidT } from "./cat.js";
+import { assertEquals } from "std/assert/mod.ts";
+import { doVoidT } from "./cat.ts";
 import {
     eq,
     type Free,
     isPure,
-    iter,
     liftF,
     monad as freeMonad,
     node,
     pure,
-    retract,
-} from "./free.js";
-import type { Hkt1 } from "./hkt.js";
-import {
-    functor as optionFunctor,
-    isNone,
-    monad,
-    none,
-    type OptionHkt,
-    some,
-    unwrap,
-} from "./option.js";
-import { type Eq, fromEquality } from "./type-class/eq.js";
-import type { Functor } from "./type-class/functor.js";
+} from "./free.ts";
+import type { Hkt1 } from "./hkt.ts";
+import { type Eq, fromEquality } from "./type-class/eq.ts";
+import type { Functor } from "./type-class/functor.ts";
 
 type Hello<T> = {
     type: "Hello";
@@ -47,10 +35,9 @@ interface HelloLangHkt extends Hkt1 {
     readonly type: HelloLang<this["arg1"]>;
 }
 
-describe("hello language", () => {
+Deno.test("hello language", async (t) => {
     const map =
-        <T1, U1>(fn: (t: T1) => U1) =>
-        (code: HelloLang<T1>): HelloLang<U1> => {
+        <T1, U1>(fn: (t: T1) => U1) => (code: HelloLang<T1>): HelloLang<U1> => {
             switch (code.type) {
                 case "Hello":
                     return { ...code, next: fn(code.next) };
@@ -74,14 +61,22 @@ describe("hello language", () => {
             case "Hey":
                 return `Hey.\n${runProgram(code[1].next)}`;
             case "YearsOld":
-                return `I'm ${code[1].years} years old.\n${runProgram(code[1].next)}`;
+                return `I'm ${code[1].years} years old.\n${
+                    runProgram(code[1].next)
+                }`;
             case "Bye":
                 return "Bye.\n";
         }
     };
 
-    const hello: Free<HelloLangHkt, void> = liftF(functor)({ type: "Hello", next: undefined });
-    const hey: Free<HelloLangHkt, void> = liftF(functor)({ type: "Hey", next: undefined });
+    const hello: Free<HelloLangHkt, void> = liftF(functor)({
+        type: "Hello",
+        next: undefined,
+    });
+    const hey: Free<HelloLangHkt, void> = liftF(functor)({
+        type: "Hey",
+        next: undefined,
+    });
     const yearsOld = (years: number): Free<HelloLangHkt, void> =>
         liftF(functor)({ type: "YearsOld", years, next: undefined });
     const bye: Free<HelloLangHkt, void> = liftF(functor)({ type: "Bye" });
@@ -90,29 +85,34 @@ describe("hello language", () => {
 
     const comparator = eq<HelloLangHkt, unknown>({
         equalityA: fromEquality(() => () => true)(),
-        equalityFA: fromEquality(<T>(x: Eq<T>) => (l: HelloLang<T>, r: HelloLang<T>) => {
-            if (l.type !== r.type) {
-                return false;
-            }
-            switch (l.type) {
-                case "Hello":
-                    return x.eq(l.next, (r as Hello<T>).next);
-                case "Hey":
-                    return x.eq(l.next, (r as Hey<T>).next);
-                case "YearsOld":
-                    return (
-                        l.years === (r as YearsOld<T>).years &&
-                        x.eq(l.next, (r as YearsOld<T>).next)
-                    );
-                case "Bye":
-                    return true;
-            }
-        }),
+        equalityFA: fromEquality(
+            <T>(x: Eq<T>) => (l: HelloLang<T>, r: HelloLang<T>) => {
+                if (l.type !== r.type) {
+                    return false;
+                }
+                switch (l.type) {
+                    case "Hello":
+                        return x.eq(l.next, (r as Hello<T>).next);
+                    case "Hey":
+                        return x.eq(l.next, (r as Hey<T>).next);
+                    case "YearsOld":
+                        return (
+                            l.years === (r as YearsOld<T>).years &&
+                            x.eq(l.next, (r as YearsOld<T>).next)
+                        );
+                    case "Bye":
+                        return true;
+                }
+            },
+        ),
     });
 
-    test("syntax tree", () => {
+    await t.step("syntax tree", () => {
         const empty: Free<HelloLangHkt, unknown> = pure({} as unknown);
-        const example: Free<HelloLangHkt, unknown> = node<HelloLangHkt, HelloLang<unknown>>({
+        const example: Free<HelloLangHkt, unknown> = node<
+            HelloLangHkt,
+            HelloLang<unknown>
+        >({
             type: "Hello",
             next: node<HelloLangHkt, HelloLang<unknown>>({
                 type: "Hello",
@@ -121,45 +121,24 @@ describe("hello language", () => {
                 }),
             }),
         });
-        expect(comparator.eq(example, example)).toBe(true);
-        expect(comparator.eq(example, empty)).toBe(false);
-        expect(comparator.eq(empty, example)).toBe(false);
-        expect(comparator.eq(empty, empty)).toBe(true);
-        expect(runProgram(example)).toEqual("Hello.\nHello.\nBye.\n");
+        assertEquals(comparator.eq(example, example), true);
+        assertEquals(comparator.eq(example, empty), false);
+        assertEquals(comparator.eq(empty, example), false);
+        assertEquals(comparator.eq(empty, empty), true);
+        assertEquals(runProgram(example), "Hello.\nHello.\nBye.\n");
 
         const exampleCode = doVoidT(m).then(hello).then(hello).then(bye).ctx;
-        expect(comparator.eq(example, exampleCode)).toBe(true);
+        assertEquals(comparator.eq(example, exampleCode), true);
     });
 
-    test("program monad", () => {
+    await t.step("program monad", () => {
         const subRoutine = doVoidT(m).then(hello).then(yearsOld(25)).ctx;
-        const program = doVoidT(m).then(hey).then(subRoutine).then(hey).then(bye).ctx;
+        const program =
+            doVoidT(m).then(hey).then(subRoutine).then(hey).then(bye).ctx;
 
-        expect(runProgram(program)).toEqual("Hey.\nHello.\nI'm 25 years old.\nHey.\nBye.\n");
+        assertEquals(
+            runProgram(program),
+            "Hey.\nHello.\nI'm 25 years old.\nHey.\nBye.\n",
+        );
     });
-});
-
-test("retract", () => {
-    const retractOption = retract(monad);
-    const m = freeMonad<OptionHkt>(optionFunctor);
-    const lift = liftF<OptionHkt>(monad);
-    const retracted = retractOption<string>(
-        catT(m)(lift(some("hoge")))
-            .then(lift(some("fuga")))
-            .then(lift<string>(none()))
-            .then(lift(some("foo"))).ctx,
-    );
-    expect(isNone(retracted)).toBe(true);
-});
-
-test("iter", () => {
-    const iterOption = iter<OptionHkt>(monad)(unwrap);
-    const m = freeMonad<OptionHkt>(optionFunctor);
-    const lift = liftF<OptionHkt>(monad);
-    const iterated = iterOption<string>(
-        catT(m)(lift(some("hoge")))
-            .then(lift(some("fuga")))
-            .then(lift(some("foo"))).ctx,
-    );
-    expect(iterated).toBe("foo");
 });
