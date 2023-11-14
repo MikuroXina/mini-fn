@@ -8,6 +8,8 @@ await build({
     shims: {
         deno: true,
     },
+    typeCheck: false,
+    test: false,
     package: {
         name: "@mikuroxina/mini-fn",
         version: Deno.args[0],
