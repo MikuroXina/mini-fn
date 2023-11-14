@@ -1,6 +1,6 @@
 import { assertEquals } from "std/assert/mod.ts";
 import type { Hkt1 } from "./hkt.ts";
-import { Number } from "./lib.ts";
+import * as Number from "./number.ts";
 import { map as optionMap, some } from "./option.ts";
 import { equal, greater, less, Ordering, reverse } from "./ordering.ts";
 import { eqSymbol } from "./type-class/eq.ts";
