@@ -1,4 +1,4 @@
-import { assertEquals } from "../deps.ts";
+import { assertEquals } from "../../deps.ts";
 import { opticCat } from "../optical.ts";
 import { ifSome, none, type Option, some } from "../option.ts";
 import { key } from "./lens.ts";
