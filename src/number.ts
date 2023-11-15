@@ -1,4 +1,4 @@
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 import { none, type Option, some } from "./option.ts";
 import { equal, greater, less, type Ordering } from "./ordering.ts";
 import {

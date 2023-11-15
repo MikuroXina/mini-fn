@@ -1,4 +1,4 @@
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 import * as Cat from "./cat.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import * as Option from "./option.ts";

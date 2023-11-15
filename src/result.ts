@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "std/assert/mod.ts";
+import { assertEquals, assertThrows } from "../deps.ts";
 import type { Get1, Hkt2 } from "./hkt.ts";
 import type { Optic } from "./optical.ts";
 import { newPrism } from "./optical/prism.ts";

@@ -1,4 +1,4 @@
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 import { cat, doVoidT } from "./cat.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";

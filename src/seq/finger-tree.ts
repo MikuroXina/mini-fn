@@ -1,4 +1,4 @@
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../../deps.ts";
 import { reduce as reduceArray } from "../array.ts";
 import { flip, id } from "../func.ts";
 import type { Get1, Hkt1 } from "../hkt.ts";

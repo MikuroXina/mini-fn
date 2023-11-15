@@ -1,4 +1,4 @@
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 import type { Hkt1 } from "./hkt.ts";
 import * as Number from "./number.ts";
 import { map as optionMap, some } from "./option.ts";

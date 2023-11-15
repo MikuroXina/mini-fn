@@ -1,4 +1,4 @@
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 import { constant } from "./func.ts";
 import {
     filter,

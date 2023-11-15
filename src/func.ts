@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "std/assert/mod.ts";
+import { assertEquals, assertThrows } from "../deps.ts";
 import type { Apply2Only, Hkt2 } from "./hkt.ts";
 import type { MonadReader } from "./reader/monad.ts";
 import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.ts";

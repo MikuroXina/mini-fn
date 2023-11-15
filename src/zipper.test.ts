@@ -1,7 +1,7 @@
 import { range } from "./list.ts";
 import { none, some, unwrap } from "./option.ts";
 import { end, fromList, left, right, start, top } from "./zipper.ts";
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 
 Deno.test("seeking", () => {
     const zipper = unwrap(fromList(range(0, 8)));
