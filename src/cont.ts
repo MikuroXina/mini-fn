@@ -4,8 +4,7 @@ import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
 import * as Identity from "./identity.ts";
 import type { MonadPromise } from "./promise/monad.ts";
 import type { Monad } from "./type-class/monad.ts";
-import { assertEquals } from "std/assert/mod.ts";
-import { assertSpyCall, spy } from "std/testing/mock.ts";
+import { assertEquals, assertSpyCall, spy } from "../deps.ts";
 
 /**
  * Monad transformer `ContT`, the generic form of `Cont`.

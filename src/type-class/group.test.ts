@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "std/assert/mod.ts";
+import { assertEquals, assertThrows } from "../../deps.ts";
 import { none, some } from "../option.ts";
 import { type GroupExceptZero, powiEZ, subtractEZ } from "./group.ts";
 import { semiGroupSymbol } from "./semi-group.ts";

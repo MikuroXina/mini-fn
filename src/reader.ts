@@ -1,4 +1,4 @@
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
 import { type IdentityHkt, monad as identityMonad } from "./identity.ts";
 import type { Tuple } from "./tuple.ts";

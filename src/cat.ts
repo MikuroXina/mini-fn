@@ -12,7 +12,7 @@ import { fromProjection as ordFromProjection } from "./type-class/ord.ts";
 import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.ts";
 import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.ts";
 import { monad as optionMonad, none, some } from "./option.ts";
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 
 /**
  * Contains a `ctx` and can be transformed into another one by some methods.

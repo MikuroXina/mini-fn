@@ -1,4 +1,4 @@
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 import { functor } from "../array.ts";
 import { opticCat } from "../optical.ts";
 import { key } from "./lens.ts";

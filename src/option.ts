@@ -11,7 +11,7 @@
  *
  * @packageDocumentation
  */
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import type { Optic, OpticSimple } from "./optical.ts";
 import { newPrism, newPrismSimple } from "./optical/prism.ts";

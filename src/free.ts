@@ -24,7 +24,7 @@ import {
     unwrap,
 } from "./option.ts";
 import { catT } from "./cat.ts";
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 
 const pureNominal = Symbol("FreePure");
 const nodeNominal = Symbol("FreeNode");

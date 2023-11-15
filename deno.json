@@ -20,8 +20,5 @@
             "tags": ["recommended"]
         }
     },
-    "lock": false,
-    "imports": {
-        "std/": "https://deno.land/std@0.206.0/"
-    }
+    "lock": false
 }

@@ -1,4 +1,4 @@
-import { assertEquals } from "std/assert/mod.ts";
+import { assertEquals } from "../deps.ts";
 import { cat } from "./cat.ts";
 import type { Apply2Only } from "./hkt.ts";
 import {
