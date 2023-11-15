@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.4.2](https://github.com/MikuroXina/mini-fn/compare/v5.4.1...v5.4.2) (2023-11-15)
+
+
+### Bug Fixes
+
+* Use deps.ts instead of import map ([#149](https://github.com/MikuroXina/mini-fn/issues/149)) ([7d479b1](https://github.com/MikuroXina/mini-fn/commit/7d479b1b6f19c447299626c6cb2eea9bbed19a32))
+
 ## [5.4.1](https://github.com/MikuroXina/mini-fn/compare/v5.4.0...v5.4.1) (2023-11-14)
 
 
