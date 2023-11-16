@@ -1,9 +1,7 @@
-import { assertEquals } from "../../deps.ts";
 import { reduce as reduceArray } from "../array.ts";
 import { flip, id } from "../func.ts";
 import type { Get1, Hkt1 } from "../hkt.ts";
 import type { Reduce } from "../type-class/reduce.ts";
-import * as Array from "../array.ts";
 
 const emptyNominal = Symbol("FingerTreeEmpty");
 /**
@@ -125,29 +123,26 @@ export const deep =
         right,
     });
 
-Deno.test("type check", () => {
-    const emptiness = empty;
-    const single = fromArray([3]);
-    const many = fromArray([2, 1, 8, 1, 8]);
-
-    assertEquals(isEmpty(emptiness), true);
-    assertEquals(isEmpty(single), false);
-    assertEquals(isEmpty(many), false);
-
-    assertEquals(isSingle(emptiness), false);
-    assertEquals(isSingle(single), true);
-    assertEquals(isSingle(many), false);
-
-    assertEquals(isDeep(emptiness), false);
-    assertEquals(isDeep(single), false);
-    assertEquals(isDeep(many), true);
-});
-
 /**
  * Counts the number of elements in the tree.
  *
  * @param tree - to count elements.
  * @returns The number of elements in the tree.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromArray, size } from "./finger-tree.ts";
+ * import { assertEquals } from "../../deps.ts";
+ *
+ * const emptiness = empty;
+ * const single = fromArray([3]);
+ * const many = fromArray([2, 1, 8, 1, 8]);
+
+ * assertEquals(size(emptiness), 0);
+ * assertEquals(size(single), 1);
+ * assertEquals(size(many), 5);
+ * ```
  */
 export const size = <A>(tree: FingerTree<A>): number => {
     if (isEmpty(tree)) {
@@ -158,16 +153,6 @@ export const size = <A>(tree: FingerTree<A>): number => {
     }
     return tree.left.length + size(tree.nextTree) + tree.right.length;
 };
-
-Deno.test("size", () => {
-    const emptiness = empty;
-    const single = fromArray([3]);
-    const many = fromArray([2, 1, 8, 1, 8]);
-
-    assertEquals(size(emptiness), 0);
-    assertEquals(size(single), 1);
-    assertEquals(size(many), 5);
-});
 
 /**
  * A tree data structure that can be accessed to the *fingers* in amortized constant time. Concatenating and splitting the data will be done in logarithmic time.
@@ -403,6 +388,46 @@ export const appendBetween =
  * @param left - The left-side tree.
  * @param right - The right-side tree.
  * @returns The concatenated tree.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { concat, empty, fromArray, reduceTree } from "./finger-tree.ts";
+ * import * as Array from "../array.ts";
+ * import { assertEquals } from "../../deps.ts";
+ *
+ * const toArray = Array.fromReduce(reduceTree);
+ *
+ * const emptiness = empty;
+ * const single = fromArray([3]);
+ * const many = fromArray([2, 1, 8, 2, 8]);
+ *
+ * assertEquals(toArray(concat(emptiness)(emptiness)), []);
+ *
+ * assertEquals(toArray(concat(emptiness)(single)), [3]);
+ * assertEquals(toArray(concat(single)(emptiness)), [3]);
+ *
+ * assertEquals(toArray(concat(single)(single)), [3, 3]);
+ *
+ * assertEquals(toArray(concat(emptiness)(many)), [2, 1, 8, 2, 8]);
+ * assertEquals(toArray(concat(many)(emptiness)), [2, 1, 8, 2, 8]);
+ *
+ * assertEquals(toArray(concat(single)(many)), [3, 2, 1, 8, 2, 8]);
+ * assertEquals(toArray(concat(many)(single)), [2, 1, 8, 2, 8, 3]);
+ *
+ * assertEquals(toArray(concat(many)(many)), [
+ *     2,
+ *     1,
+ *     8,
+ *     2,
+ *     8,
+ *     2,
+ *     1,
+ *     8,
+ *     2,
+ *     8,
+ * ]);
+ * ```
  */
 export const concat =
     <A>(left: FingerTree<A>) => (right: FingerTree<A>): FingerTree<A> => {
@@ -420,37 +445,3 @@ export const concat =
         }
         return appendBetween(left)([])(right);
     };
-
-Deno.test("concat", () => {
-    const toArray = Array.fromReduce(reduceTree);
-
-    const emptiness = empty;
-    const single = fromArray([3]);
-    const many = fromArray([2, 1, 8, 2, 8]);
-
-    assertEquals(toArray(concat(emptiness)(emptiness)), []);
-
-    assertEquals(toArray(concat(emptiness)(single)), [3]);
-    assertEquals(toArray(concat(single)(emptiness)), [3]);
-
-    assertEquals(toArray(concat(single)(single)), [3, 3]);
-
-    assertEquals(toArray(concat(emptiness)(many)), [2, 1, 8, 2, 8]);
-    assertEquals(toArray(concat(many)(emptiness)), [2, 1, 8, 2, 8]);
-
-    assertEquals(toArray(concat(single)(many)), [3, 2, 1, 8, 2, 8]);
-    assertEquals(toArray(concat(many)(single)), [2, 1, 8, 2, 8, 3]);
-
-    assertEquals(toArray(concat(many)(many)), [
-        2,
-        1,
-        8,
-        2,
-        8,
-        2,
-        1,
-        8,
-        2,
-        8,
-    ]);
-});

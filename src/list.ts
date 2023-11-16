@@ -1,5 +1,4 @@
-import { assertEquals } from "../deps.ts";
-import * as Cat from "./cat.ts";
+import { cat } from "./cat.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import * as Option from "./option.ts";
 import { andThen, type Ordering } from "./ordering.ts";
@@ -13,7 +12,6 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     fromPartialEquality,
     type PartialEq,
-    strict,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import type { Reduce } from "./type-class/reduce.ts";
@@ -64,20 +62,39 @@ export const ord = fromCmp(cmp);
  *
  * @param list - The list to be checked.
  * @returns Whether the list has a current element.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, isNull, repeat } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(isNull(empty()), true);
+ * assertEquals(isNull(repeat(0)), false);
+ * ```
  */
 export const isNull = <T>(list: List<T>): boolean =>
     Option.isNone(list.current());
-
-Deno.test("isNull", () => {
-    assertEquals(isNull(empty()), true);
-    assertEquals(isNull(repeat(0)), false);
-});
 
 /**
  * Converts the list into a `Generator` iterator.
  *
  * @param list - The list to be converted.
  * @returns The generator of elements.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { successors, toIterator } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const iota = successors((x: number) => x + 1)(0);
+ * const iter = toIterator(iota);
+ * assertEquals(iter.next(), { value: 0, done: false });
+ * assertEquals(iter.next(), { value: 1, done: false });
+ * assertEquals(iter.next(), { value: 2, done: false });
+ * assertEquals(iter.next(), { value: 3, done: false });
+ * ```
  */
 export function* toIterator<T>(list: List<T>): Generator<T, void> {
     let rest = list;
@@ -90,15 +107,6 @@ export function* toIterator<T>(list: List<T>): Generator<T, void> {
         rest = rest.rest();
     }
 }
-
-Deno.test("toIterator", () => {
-    const iota = successors((x: number) => x + 1)(0);
-    const iter = toIterator(iota);
-    assertEquals(iter.next(), { value: 0, done: false });
-    assertEquals(iter.next(), { value: 1, done: false });
-    assertEquals(iter.next(), { value: 2, done: false });
-    assertEquals(iter.next(), { value: 3, done: false });
-});
 
 /**
  * Converts the list into an `Array`. If the list is infinite, this will occur an error.
@@ -113,17 +121,24 @@ export const toArray = <T>(list: List<T>): T[] => [...toIterator(list)];
  *
  * @param list - The list to be un-constructed.
  * @returns The optional of the pair of head and rest.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { List, empty, unCons, singleton } from "./list.ts";
+ * import * as Option from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(unCons(empty()), Option.none());
+ * assertEquals(
+ *     unCons(singleton(42)),
+ *     Option.some([42, empty()] as [number, List<number>]),
+ * );
+ * ```
  */
 export const unCons = <T>(list: List<T>): Option.Option<[T, List<T>]> =>
     Option.map((curr: T): [T, List<T>] => [curr, list.rest()])(list.current());
 
-Deno.test("unCons", () => {
-    assertEquals(unCons(empty()), Option.none());
-    assertEquals(
-        unCons(singleton(42)),
-        Option.some([42, empty()] as [number, List<number>]),
-    );
-});
 /**
  * Transforms the list either the current value exists or not.
  *
@@ -145,19 +160,24 @@ export const either =
  *
  * @param f - The function to be mapped.
  * @returns The function mapped on `List`.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { successors, toIterator, map } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const iota = successors((x: number) => x + 1)(0);
+ * const mapped = toIterator(map((x: number) => x * 3 + 1)(iota));
+ * assertEquals(mapped.next(), { value: 1, done: false });
+ * assertEquals(mapped.next(), { value: 4, done: false });
+ * assertEquals(mapped.next(), { value: 7, done: false });
+ * assertEquals(mapped.next(), { value: 10, done: false });
+ * ```
  */
 export const map = <T, U>(f: (t: T) => U) => (list: List<T>): List<U> => ({
     current: () => Option.map(f)(list.current()),
     rest: () => map(f)(list.rest()),
-});
-
-Deno.test("map", () => {
-    const iota = successors((x: number) => x + 1)(0);
-    const mapped = toIterator(map((x: number) => x * 3 + 1)(iota));
-    assertEquals(mapped.next(), { value: 1, done: false });
-    assertEquals(mapped.next(), { value: 4, done: false });
-    assertEquals(mapped.next(), { value: 7, done: false });
-    assertEquals(mapped.next(), { value: 10, done: false });
 });
 
 /**
@@ -190,6 +210,31 @@ export const singleton = <T>(value: T): List<T> => singletonWith(() => value);
  * @param left - The left-side to concatenate.
  * @param right - The right-side to concatenate.
  * @returns The concatenated list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { List, empty, plus, singleton, toIterator, unCons } from "./list.ts";
+ * import * as Option from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const singleZero = singleton(0);
+ * const emptiness = empty<number>();
+ *
+ * const iter = toIterator(plus(singleZero)(singleZero));
+ * assertEquals(iter.next(), { value: 0, done: false });
+ * assertEquals(iter.next(), { value: 0, done: false });
+ * assertEquals(iter.next(), { value: undefined, done: true });
+ * assertEquals(
+ *     unCons(plus(singleZero)(emptiness)),
+ *     Option.some([0, empty()] as [number, List<number>]),
+ * );
+ * assertEquals(
+ *     unCons(plus(emptiness)(singleZero)),
+ *     Option.some([0, empty()] as [number, List<number>]),
+ * );
+ * assertEquals(unCons(plus(emptiness)(emptiness)), Option.none());
+ * ```
  */
 export const plus = <T>(left: List<T>) => (right: List<T>): List<T> => {
     if (Option.isNone(left.current())) {
@@ -201,41 +246,27 @@ export const plus = <T>(left: List<T>) => (right: List<T>): List<T> => {
     };
 };
 
-Deno.test("plus", () => {
-    const singleZero = singleton(0);
-    const emptiness = empty<number>();
-
-    const iter = toIterator(plus(singleZero)(singleZero));
-    assertEquals(iter.next(), { value: 0, done: false });
-    assertEquals(iter.next(), { value: 0, done: false });
-    assertEquals(iter.next(), { value: undefined, done: true });
-    assertEquals(
-        unCons(plus(singleZero)(emptiness)),
-        Option.some([0, empty()] as [number, List<number>]),
-    );
-    assertEquals(
-        unCons(plus(emptiness)(singleZero)),
-        Option.some([0, empty()] as [number, List<number>]),
-    );
-    assertEquals(unCons(plus(emptiness)(emptiness)), Option.none());
-});
-
 /**
  * Appends the element to head of the list.
  *
  * @param value - The value to be appended.
  * @returns The appended list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { List, appendToHead, singleton, toIterator } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const iter = toIterator(appendToHead(1)(singleton(4)));
+ * assertEquals(iter.next(), { value: 1, done: false });
+ * assertEquals(iter.next(), { value: 4, done: false });
+ * assertEquals(iter.next(), { value: undefined, done: true });
+ * ```
  */
 export const appendToHead = <T>(value: T) => (list: List<T>): List<T> => ({
     current: () => Option.some(value),
     rest: () => list,
-});
-
-Deno.test("appendToHead", () => {
-    const iter = toIterator(appendToHead(1)(singleton(4)));
-    assertEquals(iter.next(), { value: 1, done: false });
-    assertEquals(iter.next(), { value: 4, done: false });
-    assertEquals(iter.next(), { value: undefined, done: true });
 });
 
 /**
@@ -243,6 +274,18 @@ Deno.test("appendToHead", () => {
  *
  * @param value - The value to be appended.
  * @returns The appended list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { appendToTail, singleton, toIterator } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const iter = toIterator(appendToTail(1)(singleton(4)));
+ * assertEquals(iter.next(), { value: 4, done: false });
+ * assertEquals(iter.next(), { value: 1, done: false });
+ * assertEquals(iter.next(), { value: undefined, done: true });
+ * ```
  */
 export const appendToTail = <T>(value: T) => (list: List<T>): List<T> => {
     if (Option.isNone(list.current())) {
@@ -253,13 +296,6 @@ export const appendToTail = <T>(value: T) => (list: List<T>): List<T> => {
         rest: () => appendToTail(value)(list.rest()),
     };
 };
-
-Deno.test("appendToTail", () => {
-    const iter = toIterator(appendToTail(1)(singleton(4)));
-    assertEquals(iter.next(), { value: 4, done: false });
-    assertEquals(iter.next(), { value: 1, done: false });
-    assertEquals(iter.next(), { value: undefined, done: true });
-});
 
 /**
  * Creates an infinite list with `elem()`.
@@ -276,16 +312,21 @@ export const repeatWith = <T>(elem: () => T): List<T> => ({
  *
  * @param value - The element generator.
  * @returns The infinite list with `value` element.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { repeat, toIterator } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const iter = toIterator(repeat(13));
+ * assertEquals(iter.next(), { value: 13, done: false });
+ * assertEquals(iter.next(), { value: 13, done: false });
+ * assertEquals(iter.next(), { value: 13, done: false });
+ * assertEquals(iter.next(), { value: 13, done: false });
+ * ```
  */
 export const repeat = <T>(value: T) => repeatWith(() => value);
-
-Deno.test("repeat", () => {
-    const iter = toIterator(repeat(13));
-    assertEquals(iter.next(), { value: 13, done: false });
-    assertEquals(iter.next(), { value: 13, done: false });
-    assertEquals(iter.next(), { value: 13, done: false });
-    assertEquals(iter.next(), { value: 13, done: false });
-});
 
 /**
  * Creates an infinite list with mutating by `succ`.
@@ -293,19 +334,24 @@ Deno.test("repeat", () => {
  * @param succ - The successor generator.
  * @param init - Th initial element.
  * @returns The infinite list with applying `init` to `succ`.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { successors, toIterator } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const iter = toIterator(successors((str: string) => str + "a")(""));
+ * assertEquals(iter.next(), { value: "", done: false });
+ * assertEquals(iter.next(), { value: "a", done: false });
+ * assertEquals(iter.next(), { value: "aa", done: false });
+ * assertEquals(iter.next(), { value: "aaa", done: false });
+ * assertEquals(iter.next(), { value: "aaaa", done: false });
+ * ```
  */
 export const successors = <T>(succ: (t: T) => T) => (init: T): List<T> => ({
     current: () => Option.some(init),
     rest: () => successors(succ)(succ(init)),
-});
-
-Deno.test("successors", () => {
-    const iter = toIterator(successors((str: string) => str + "a")(""));
-    assertEquals(iter.next(), { value: "", done: false });
-    assertEquals(iter.next(), { value: "a", done: false });
-    assertEquals(iter.next(), { value: "aa", done: false });
-    assertEquals(iter.next(), { value: "aaa", done: false });
-    assertEquals(iter.next(), { value: "aaaa", done: false });
 });
 
 /**
@@ -315,31 +361,36 @@ Deno.test("successors", () => {
  * @param end - The end of the range (exclusive).
  * @param step - The steps of the numbers. Defaults to 1. Setting `step` to `0` will make the list infinite.
  * @returns The list of numbers in the range.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { range, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(toArray(range(0, 5)), [0, 1, 2, 3, 4]);
+ * assertEquals(toArray(range(0, 5, 0.5)), [
+ *     0,
+ *     0.5,
+ *     1,
+ *     1.5,
+ *     2,
+ *     2.5,
+ *     3,
+ *     3.5,
+ *     4,
+ *     4.5,
+ * ]);
+ * assertEquals(toArray(range(2, 3)), [2]);
+ * assertEquals(toArray(range(3, 6)), [3, 4, 5]);
+ * assertEquals(toArray(range(3, 3)), []);
+ * assertEquals(toArray(range(5, 0)), []);
+ * assertEquals(toArray(range(3, 2)), []);
+ * ```
  */
 export const range = (start: number, end: number, step = 1): List<number> => ({
     current: () => Option.fromPredicate((x: number) => x < end)(start),
     rest: () => range(start + step, end, step),
-});
-
-Deno.test("range", () => {
-    assertEquals(toArray(range(0, 5)), [0, 1, 2, 3, 4]);
-    assertEquals(toArray(range(0, 5, 0.5)), [
-        0,
-        0.5,
-        1,
-        1.5,
-        2,
-        2.5,
-        3,
-        3.5,
-        4,
-        4.5,
-    ]);
-    assertEquals(toArray(range(2, 3)), [2]);
-    assertEquals(toArray(range(3, 6)), [3, 4, 5]);
-    assertEquals(toArray(range(3, 3)), []);
-    assertEquals(toArray(range(5, 0)), []);
-    assertEquals(toArray(range(3, 2)), []);
 });
 
 /**
@@ -348,30 +399,35 @@ Deno.test("range", () => {
  * @param num - The number to extract digits.
  * @param radix - The radix of digit.
  * @returns The list of digits of the number.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { digits, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(toArray(digits(51413, 10)), [3, 1, 4, 1, 5]);
+ * assertEquals(toArray(digits(0x51413, 16)), [3, 1, 4, 1, 5]);
+ * assertEquals(toArray(digits(0o51413, 8)), [3, 1, 4, 1, 5]);
+ * assertEquals(toArray(digits(0b1001011001, 2)), [
+ *     1,
+ *     0,
+ *     0,
+ *     1,
+ *     1,
+ *     0,
+ *     1,
+ *     0,
+ *     0,
+ *     1,
+ * ]);
+ *
+ * assertEquals(toArray(digits(0, 10)), []);
+ * ```
  */
 export const digits = (num: number, radix: number): List<number> => ({
     current: () => (num === 0 ? Option.none() : Option.some(num % radix)),
     rest: () => digits(Math.floor(num / radix), radix),
-});
-
-Deno.test("digits", () => {
-    assertEquals(toArray(digits(51413, 10)), [3, 1, 4, 1, 5]);
-    assertEquals(toArray(digits(0x51413, 16)), [3, 1, 4, 1, 5]);
-    assertEquals(toArray(digits(0o51413, 8)), [3, 1, 4, 1, 5]);
-    assertEquals(toArray(digits(0b1001011001, 2)), [
-        1,
-        0,
-        0,
-        1,
-        1,
-        0,
-        1,
-        0,
-        0,
-        1,
-    ]);
-
-    assertEquals(toArray(digits(0, 10)), []);
 });
 
 /**
@@ -379,6 +435,16 @@ Deno.test("digits", () => {
  *
  * @param str - The source string.
  * @returns The list of characters.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { fromString, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(toArray(fromString("hoge")), ["h", "o", "g", "e"]);
+ * assertEquals(toArray(fromString("")), []);
+ * ```
  */
 export const fromString = (str: string): List<string> => ({
     current: () =>
@@ -386,25 +452,25 @@ export const fromString = (str: string): List<string> => ({
     rest: () => fromString(str.slice(1)),
 });
 
-Deno.test("fromString", () => {
-    assertEquals(toArray(fromString("hoge")), ["h", "o", "g", "e"]);
-    assertEquals(toArray(fromString("")), []);
-});
-
 /**
  * Creates the list of elements from `Array`.
  *
  * @param arr - The source array.
  * @returns The list of elements.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { fromArray, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(toArray(fromArray([2.81, 3.14, 1.58])), [2.81, 3.14, 1.58]);
+ * assertEquals(toArray(fromArray([])), []);
+ * ```
  */
 export const fromArray = <T>(arr: readonly T[]): List<T> => ({
     current: () => (0 in arr ? Option.some(arr[0]) : Option.none()),
     rest: () => fromArray(arr.slice(1)),
-});
-
-Deno.test("fromArray", () => {
-    assertEquals(toArray(fromArray([2.81, 3.14, 1.58])), [2.81, 3.14, 1.58]);
-    assertEquals(toArray(fromArray([])), []);
 });
 
 /**
@@ -412,20 +478,26 @@ Deno.test("fromArray", () => {
  *
  * @param opt - The source optional.
  * @returns The list of zero or one elements.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromOption } from "./list.ts";
+ * import * as Option from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const listOf2 = fromOption(Option.some(2));
+ * assertEquals(listOf2.current(), Option.some(2));
+ * assertEquals(listOf2.rest(), empty());
+ *
+ * const listOfNone = fromOption(Option.none());
+ * assertEquals(listOfNone.current(), Option.none());
+ * assertEquals(listOfNone.rest(), empty());
+ * ```
  */
 export const fromOption = <T>(opt: Option.Option<T>): List<T> => ({
     current: () => opt,
     rest: empty,
-});
-
-Deno.test("fromOption", () => {
-    const listOf2 = fromOption(Option.some(2));
-    assertEquals(listOf2.current(), Option.some(2));
-    assertEquals(listOf2.rest(), empty());
-
-    const listOfNone = fromOption(Option.none());
-    assertEquals(listOfNone.current(), Option.none());
-    assertEquals(listOfNone.rest(), empty());
 });
 
 /**
@@ -446,6 +518,22 @@ export const fromReduce =
  * @param init - The initial value of the operation.
  * @param list - The target list.
  * @returns The folded value.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { foldL, fromString } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(
+ *     foldL((x: string) => (y: string) => y + x)("")(fromString("hoge")),
+ *     "egoh",
+ * );
+ * assertEquals(
+ *     foldL((x: string) => (y: string) => y + x)("")(fromString("")),
+ *     "",
+ * );
+ * ```
  */
 export const foldL =
     <T, U>(f: (a: U) => (b: T) => U) => (init: U) => (list: List<T>): U => {
@@ -455,17 +543,6 @@ export const foldL =
         }
         return res;
     };
-
-Deno.test("foldL", () => {
-    assertEquals(
-        foldL((x: string) => (y: string) => y + x)("")(fromString("hoge")),
-        "egoh",
-    );
-    assertEquals(
-        foldL((x: string) => (y: string) => y + x)("")(fromString("")),
-        "",
-    );
-});
 
 /**
  * Folds the elements of list from left. The first value is used as an initial value. If `list` is null, it throws an error.
@@ -486,6 +563,22 @@ export const foldL1 = <T>(f: (a: T) => (b: T) => T) => (list: List<T>): T =>
  * @param init - The initial value of the operation.
  * @param list - The target list.
  * @returns The folded value.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { foldR, fromString } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(
+ *     foldR((x: string) => (y: string) => x + y)("")(fromString("hoge")),
+ *     "hoge",
+ * );
+ * assertEquals(
+ *     foldR((x: string) => (y: string) => y + x)("")(fromString("")),
+ *     "",
+ * );
+ * ```
  */
 export const foldR = <T, U>(f: (a: T) => (b: U) => U) => (init: U) => {
     const go = (list: List<T>): U =>
@@ -494,17 +587,6 @@ export const foldR = <T, U>(f: (a: T) => (b: U) => U) => (init: U) => {
         );
     return go;
 };
-
-Deno.test("foldR", () => {
-    assertEquals(
-        foldR((x: string) => (y: string) => x + y)("")(fromString("hoge")),
-        "hoge",
-    );
-    assertEquals(
-        foldR((x: string) => (y: string) => y + x)("")(fromString("")),
-        "",
-    );
-});
 
 /**
  * Folds the elements of list from right. The first value is used as an initial value. If `list` is null, it throws an error.
@@ -530,15 +612,20 @@ export const toString = foldL((a: string) => (b: string) => a + b)("");
  *
  * @param list - The finite list to count the length.
  * @returns The number of elements in the list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromString, length, singleton } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(length(empty()), 0);
+ * assertEquals(length(singleton(42)), 1);
+ * assertEquals(length(fromString("foo")), 3);
+ * ```
  */
 export const length = <T>(list: List<T>): number =>
     foldL((a: number) => () => a + 1)(0)(list);
-
-Deno.test("length", () => {
-    assertEquals(length(empty()), 0);
-    assertEquals(length(singleton(42)), 1);
-    assertEquals(length(fromString("foo")), 3);
-});
 
 /**
  * Creates the list from the builder.
@@ -555,20 +642,25 @@ export const build = <A>(
  *
  * @param listList - The list of list.
  * @returns The flattened list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { concat, empty, fromArray, singleton, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const aList = singleton(42);
+ * const bList = empty<number>();
+ * const cList = fromArray([5, 4, 1, 2]);
+ * const listList = fromArray([aList, bList, cList]);
+ * assertEquals(toArray(concat(listList)), [42, 5, 4, 1, 2]);
+ * ```
  */
 export const concat = <T>(listList: List<List<T>>): List<T> =>
     build(
         <U>(c: (a: T) => (b: U) => U) => (n: U) =>
             foldR((x: List<T>) => (y: U) => foldR(c)(y)(x))(n)(listList),
     );
-
-Deno.test("concat", () => {
-    const aList = singleton(42);
-    const bList = empty<number>();
-    const cList = fromArray([5, 4, 1, 2]);
-    const listList = fromArray([aList, bList, cList]);
-    assertEquals(toArray(concat(listList)), [42, 5, 4, 1, 2]);
-});
 
 /**
  * Maps and flattens the list of list.
@@ -592,14 +684,19 @@ export const flatMap = concatMap;
 /**
  * Scans the list from left. It is useful to make the partial sum list.
  *
- * ```ts
- * const aList = fromArray([1, 2, 2, 4, 4, 3]);
- * const partialSum = scanL((a: number) => (b: number) => a + b)(0)(aList)
- * assertEquals(toArray(partialSum), [0, 1, 3, 5, 9, 13, 16]);
- * ```
- *
  * @param f - The scanner for the adjacent elements.
  * @returns The scanned list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { fromArray, scanL, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const aList = fromArray([1, 2, 2, 4, 4, 3]);
+ * const partialSum = scanL((a: number) => (b: number) => a + b)(0)(aList);
+ * assertEquals(toArray(partialSum), [0, 1, 3, 5, 9, 13, 16]);
+ * ```
  */
 export const scanL = <T, U>(f: (u: U) => (t: T) => U) =>
 (init: U) =>
@@ -614,34 +711,49 @@ export const scanL = <T, U>(f: (u: U) => (t: T) => U) =>
     return fromArray(res);
 };
 
-Deno.test("scanL", () => {
-    const aList = fromArray([1, 2, 2, 4, 4, 3]);
-    const partialSum = scanL((a: number) => (b: number) => a + b)(0)(aList);
-    assertEquals(toArray(partialSum), [0, 1, 3, 5, 9, 13, 16]);
-});
-
 /**
  * Gets the first element of the list.
  *
  * @param list - The source list.
  * @returns The first element of list if exists.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromString, head, singleton } from "./list.ts";
+ * import * as Option from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(head(empty()), Option.none());
+ * assertEquals(head(fromString("hoge")), Option.some("h"));
+ *
+ * const list = singleton(42);
+ * assertEquals(head(list), Option.some(42));
+ * assertEquals(head(list.rest()), Option.none());
+ * ```
  */
 export const head = <T>(list: List<T>): Option.Option<T> => list.current();
-
-Deno.test("head", () => {
-    assertEquals(head(empty()), Option.none());
-    assertEquals(head(fromString("hoge")), Option.some("h"));
-
-    const list = singleton(42);
-    assertEquals(head(list), Option.some(42));
-    assertEquals(head(list.rest()), Option.none());
-});
 
 /**
  * Gets the last element of the list. If the list is infinite, it hangs forever.
  *
  * @param list - The source list.
  * @returns The last element of list if exists.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromString, last, singleton } from "./list.ts";
+ * import * as Option from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(last(empty()), Option.none());
+ * assertEquals(last(fromString("hoge")), Option.some("e"));
+ *
+ * const list = singleton(42);
+ * assertEquals(last(list), Option.some(42));
+ * assertEquals(last(list.rest()), Option.none());
+ * ```
  */
 export const last = <T>(list: List<T>): Option.Option<T> => {
     const first = list.current();
@@ -658,15 +770,6 @@ export const last = <T>(list: List<T>): Option.Option<T> => {
     }
 };
 
-Deno.test("last", () => {
-    assertEquals(last(empty()), Option.none());
-    assertEquals(last(fromString("hoge")), Option.some("e"));
-
-    const list = singleton(42);
-    assertEquals(last(list), Option.some(42));
-    assertEquals(last(list.rest()), Option.none());
-});
-
 /**
  * Gets the elements without the first from the list.
  *
@@ -680,6 +783,17 @@ export const tail = <T>(list: List<T>): List<T> => list.rest();
  *
  * @param list - The source list.
  * @returns The reversed list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromArray, fromString, reverse, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(reverse(empty()), empty());
+ * assertEquals(toArray(reverse(fromArray([1, 4, 2, 3]))), [3, 2, 4, 1]);
+ * assertEquals(toArray(reverse(fromString("hoge"))), ["e", "g", "o", "h"]);
+ * ```
  */
 export const reverse = <T>(list: List<T>): List<T> => {
     const curr = list.current();
@@ -689,25 +803,24 @@ export const reverse = <T>(list: List<T>): List<T> => {
     return appendToTail(curr[1])(reverse(list.rest()));
 };
 
-Deno.test("reverse", () => {
-    assertEquals(reverse(empty()), empty());
-    assertEquals(toArray(reverse(fromArray([1, 4, 2, 3]))), [3, 2, 4, 1]);
-    assertEquals(toArray(reverse(fromString("hoge"))), ["e", "g", "o", "h"]);
-});
-
 /**
  * Removes the last element from the list.
  *
  * @param list - The source list.
  * @returns The picked list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromArray, init, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(init(empty()), empty());
+ *
+ * assertEquals(toArray(init(fromArray([5, 2, 1, 3]))), [5, 2, 1]);
+ * ```
  */
 export const init = <T>(list: List<T>): List<T> => reverse(tail(reverse(list)));
-
-Deno.test("init", () => {
-    assertEquals(init(empty()), empty());
-
-    assertEquals(toArray(init(fromArray([5, 2, 1, 3]))), [5, 2, 1]);
-});
 
 /**
  * Zips two lists as the list of tuple.
@@ -715,37 +828,28 @@ Deno.test("init", () => {
  * @param aList - The left-side list.
  * @param bList - The right-side list.
  * @returns The zipped list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromArray, toArray, zip } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const aList = fromArray([1, 4, 2]);
+ * const bList = fromArray([3, 5, 2]);
+ *
+ * assertEquals(toArray(zip(aList)(bList)), [
+ *     [1, 3],
+ *     [4, 5],
+ *     [2, 2],
+ * ]);
+ * ```
  */
 export const zip =
     <T>(aList: List<T>) => <U>(bList: List<U>): List<[T, U]> => ({
         current: () => Option.zip(aList.current())(bList.current()),
         rest: () => zip(aList.rest())(bList.rest()),
     });
-
-Deno.test("zip", () => {
-    const aList = fromArray([1, 4, 2]);
-    const bList = fromArray([3, 5, 2]);
-    const cList = fromArray([3, 8, 4, 7, 6]);
-    const dList = fromArray([6, 2, 9, 8]);
-
-    assertEquals(toArray(zip(aList)(bList)), [
-        [1, 3],
-        [4, 5],
-        [2, 2],
-    ]);
-
-    assertEquals(toArray(zip3(aList)(bList)(cList)), [
-        [1, 3, 3],
-        [4, 5, 8],
-        [2, 2, 4],
-    ]);
-
-    assertEquals(toArray(zip4(aList)(bList)(cList)(dList)), [
-        [1, 3, 3, 6],
-        [4, 5, 8, 2],
-        [2, 2, 4, 9],
-    ]);
-});
 
 /**
  * Zips three lists as the list of tuple.
@@ -754,6 +858,23 @@ Deno.test("zip", () => {
  * @param bList - The middle list.
  * @param cList - The right-side list.
  * @returns The zipped list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromArray, toArray, zip3 } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const aList = fromArray([1, 4, 2]);
+ * const bList = fromArray([3, 5, 2]);
+ * const cList = fromArray([3, 8, 4, 7, 6]);
+ *
+ * assertEquals(toArray(zip3(aList)(bList)(cList)), [
+ *     [1, 3, 3],
+ *     [4, 5, 8],
+ *     [2, 2, 4],
+ * ]);
+ * ```
  */
 export const zip3 =
     <T>(aList: List<T>) =>
@@ -780,6 +901,24 @@ export const zip3 =
  * @param cList - The list used as the third element of tuple.
  * @param dList - The list used as the fourth element of tuple.
  * @returns The zipped list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromArray, toArray, zip4 } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const aList = fromArray([1, 4, 2]);
+ * const bList = fromArray([3, 5, 2]);
+ * const cList = fromArray([3, 8, 4, 7, 6]);
+ * const dList = fromArray([6, 2, 9, 8]);
+ *
+ * assertEquals(toArray(zip4(aList)(bList)(cList)(dList)), [
+ *     [1, 3, 3, 6],
+ *     [4, 5, 8, 2],
+ *     [2, 2, 4, 9],
+ * ]);
+ * ```
  */
 export const zip4 =
     <T>(aList: List<T>) =>
@@ -811,6 +950,19 @@ export const zip4 =
  * @param aList - The left-side list.
  * @param bList - The right-side list.
  * @returns The zipped list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromArray, toArray, zipWith } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const aList = fromArray([1, 4, 2]);
+ * const bList = fromArray([3, 5, 2]);
+ *
+ * const zipped = zipWith((a: number) => (b: number) => a * b)(aList)(bList);
+ * assertEquals(toArray(zipped), [3, 20, 4]);
+ * ```
  */
 export const zipWith = <T, U, V>(
     zipper: (t: T) => (u: U) => V,
@@ -825,19 +977,28 @@ export const zipWith = <T, U, V>(
     return go;
 };
 
-Deno.test("zipWith", () => {
-    const aList = fromArray([1, 4, 2]);
-    const bList = fromArray([3, 5, 2]);
-
-    const zipped = zipWith((a: number) => (b: number) => a * b)(aList)(bList);
-    assertEquals(toArray(zipped), [3, 20, 4]);
-});
-
 /**
  * Unzips the list of tuple into the tuple of list.
  *
  * @param list - The list of tuple.
  * @returns The unzipped tuple.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromArray, toArray, unzip } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const [aList, bList] = unzip(
+ *     fromArray([
+ *         [2, 3],
+ *         [5, 4],
+ *         [11, 3],
+ *     ]),
+ * );
+ * assertEquals(toArray(aList), [2, 5, 11]);
+ * assertEquals(toArray(bList), [3, 4, 3]);
+ * ```
  */
 export const unzip = <A, B>(list: List<[A, B]>): [List<A>, List<B>] =>
     foldR<[A, B], [List<A>, List<B>]>(([a, b]) => ([as, bs]) => [
@@ -845,22 +1006,10 @@ export const unzip = <A, B>(list: List<[A, B]>): [List<A>, List<B>] =>
         appendToHead(b)(bs),
     ])([empty(), empty()])(list);
 
-Deno.test("unzip", () => {
-    const [aList, bList] = unzip(
-        fromArray([
-            [2, 3],
-            [5, 4],
-            [11, 3],
-        ]),
-    );
-    assertEquals(toArray(aList), [2, 5, 11]);
-    assertEquals(toArray(bList), [3, 4, 3]);
-});
-
 const prependToAll = <T>(sep: T) => (list: List<T>): List<T> =>
     either(() => list)(
         (x: T, xs) =>
-            Cat.cat(xs).feed(prependToAll(sep)).feed(appendToHead(x)).feed(
+            cat(xs).feed(prependToAll(sep)).feed(appendToHead(x)).feed(
                 appendToHead(sep),
             )
                 .value,
@@ -871,17 +1020,22 @@ const prependToAll = <T>(sep: T) => (list: List<T>): List<T> =>
  * @param sep - The separator element.
  * @param list - The source list.
  * @returns The joined list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromString, intersperse, toString } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(intersperse(0)(empty()), empty());
+ *
+ * assertEquals(toString(intersperse(" ")(fromString("hoge"))), "h o g e");
+ * ```
  */
 export const intersperse = <T>(sep: T) => (list: List<T>): List<T> =>
     either(() => list)((x: T, xs) => appendToHead(x)(prependToAll(sep)(xs)))(
         list,
     );
-
-Deno.test("intersperse", () => {
-    assertEquals(intersperse(0)(empty()), empty());
-
-    assertEquals(toString(intersperse(" ")(fromString("hoge"))), "h o g e");
-});
 
 /**
  * Joins `separator` items among each list of the list.
@@ -889,24 +1043,37 @@ Deno.test("intersperse", () => {
  * @param separator - The separator element.
  * @param list - The source list of list.
  * @returns The joined list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromArray, fromString, intercalate, singleton, toString } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(intercalate(singleton(0))(empty()), empty());
+ *
+ * const joined = intercalate(fromString(", "))(
+ *     fromArray([fromString("foo"), fromString("bar"), fromString("bee")]),
+ * );
+ * assertEquals(toString(joined), "foo, bar, bee");
+ * ```
  */
 export const intercalate =
     <T>(separator: List<T>) => (listList: List<List<T>>): List<T> =>
         concat(intersperse(separator)(listList));
 
-Deno.test("intercalate", () => {
-    assertEquals(intercalate(singleton(0))(empty()), empty());
-
-    const joined = intercalate(fromString(", "))(
-        fromArray([fromString("foo"), fromString("bar"), fromString("bee")]),
-    );
-    assertEquals(toString(joined), "foo, bar, bee");
-});
-
 /**
  * Transposes the rows and columns. Passing an infinite list will hang forever.
  *
+ * @param listList - The source list of list.
+ * @returns The transposed list.
+ *
+ * # Examples
+ *
  * ```ts
+ * import { fromArray, transpose, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
  * const matrix = fromArray([fromArray([1, 2, 3]), fromArray([4, 5, 6])]);
  * const transposed = transpose(matrix);
  * const actual = toArray(transposed).map((col) => toArray(col));
@@ -916,9 +1083,6 @@ Deno.test("intercalate", () => {
  *     [3, 6],
  * ]);
  * ```
- *
- * @param listList - The source list of list.
- * @returns The transposed list.
  */
 export const transpose = <T>(listList: List<List<T>>): List<List<T>> => {
     const xxsAndXss = unCons(listList);
@@ -944,17 +1108,6 @@ export const transpose = <T>(listList: List<List<T>>): List<List<T>> => {
             appendToHead(appendToHead(y)(h))(transpose(appendToHead(ys)(t)));
     return combine(x)(hds)(xs)(tls);
 };
-
-Deno.test("transpose", () => {
-    const matrix = fromArray([fromArray([1, 2, 3]), fromArray([4, 5, 6])]);
-    const transposed = transpose(matrix);
-    const actual = toArray(transposed).map((col) => toArray(col));
-    assertEquals(actual, [
-        [1, 4],
-        [2, 5],
-        [3, 6],
-    ]);
-});
 
 /**
  * Picks up the elements from list by list. It is same as doing transpose and concatenate.
@@ -991,7 +1144,15 @@ export const subsequencesExceptEmpty = <T>(list: List<T>): List<List<T>> =>
 /**
  * Creates subsequences of the list.
  *
+ * @param list - The source list.
+ * @returns The list having subsequences.
+ *
+ * # Examples
+ *
  * ```ts
+ * import { fromArray, subsequences, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
  * const subSeq = subsequences(fromArray([1, 2, 3, 4]));
  * const sequences = toArray(subSeq).map((seq) => toArray(seq));
  * assertEquals(sequences, [
@@ -1012,55 +1173,53 @@ export const subsequencesExceptEmpty = <T>(list: List<T>): List<List<T>> =>
  *     [1, 2, 3, 4],
  * ]);
  * ```
- *
- * @param list - The source list.
- * @returns The list having subsequences.
  */
 export const subsequences = <T>(list: List<T>): List<List<T>> =>
     plus<List<T>>(empty())(subsequencesExceptEmpty(list));
 
-Deno.test("subsequences", () => {
-    assertEquals(subsequences(empty()), empty());
-
-    const subSeq = subsequences(fromArray([1, 2, 3, 4]));
-    const sequences = toArray(subSeq).map((seq) => toArray(seq));
-    assertEquals(sequences, [
-        [1],
-        [2],
-        [1, 2],
-        [3],
-        [1, 3],
-        [2, 3],
-        [1, 2, 3],
-        [4],
-        [1, 4],
-        [2, 4],
-        [1, 2, 4],
-        [3, 4],
-        [1, 3, 4],
-        [2, 3, 4],
-        [1, 2, 3, 4],
-    ]);
-});
-
 /**
  * Creates permutations of the list.
  *
- * ```ts
- * const subSeq = permutations(range(1, 4));
- * const sequences = toArray(subSeq).map((seq) => toArray(seq));
- * assertEquals(sequences, [
- *     [1, 2, 3],
- *     [2, 1, 3],
- *     [3, 2, 1],
- *     [2, 3, 1],
- *     [3, 1, 2],
- *     [1, 3, 2],
- * ]);
- * ```
- *
  * @param list - The source list.
  * @returns The list having permutations.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { empty, fromArray, permutations, range, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals(permutations(empty()), empty());
+ *
+ * const subSeq = permutations(range(1, 5));
+ * const sequences = toArray(subSeq).map((seq) => toArray(seq));
+ * assertEquals(sequences, [
+ *     [1, 2, 3, 4],
+ *     [2, 1, 3, 4],
+ *     [3, 2, 1, 4],
+ *     [2, 3, 1, 4],
+ *     [3, 1, 2, 4],
+ *     [1, 3, 2, 4],
+ *     [4, 3, 2, 1],
+ *     [3, 4, 2, 1],
+ *     [3, 2, 4, 1],
+ *     [4, 2, 3, 1],
+ *     [2, 4, 3, 1],
+ *     [2, 3, 4, 1],
+ *     [4, 1, 2, 3],
+ *     [1, 4, 2, 3],
+ *     [1, 2, 4, 3],
+ *     [4, 2, 1, 3],
+ *     [2, 4, 1, 3],
+ *     [2, 1, 4, 3],
+ *     [4, 1, 3, 2],
+ *     [1, 4, 3, 2],
+ *     [1, 3, 4, 2],
+ *     [4, 3, 1, 2],
+ *     [3, 4, 1, 2],
+ *     [3, 1, 4, 2],
+ * ]);
+ * ```
  */
 export const permutations = <A>(list: List<A>): List<List<A>> => {
     if (Option.isNone(list.current())) {
@@ -1101,45 +1260,40 @@ export const permutations = <A>(list: List<A>): List<List<A>> => {
     return appendToHead(list)(perms(list)(empty()));
 };
 
-Deno.test("permutations", () => {
-    assertEquals(permutations(empty()), empty());
-
-    const subSeq = permutations(range(1, 5));
-    const sequences = toArray(subSeq).map((seq) => toArray(seq));
-    assertEquals(sequences, [
-        [1, 2, 3, 4],
-        [2, 1, 3, 4],
-        [3, 2, 1, 4],
-        [2, 3, 1, 4],
-        [3, 1, 2, 4],
-        [1, 3, 2, 4],
-        [4, 3, 2, 1],
-        [3, 4, 2, 1],
-        [3, 2, 4, 1],
-        [4, 2, 3, 1],
-        [2, 4, 3, 1],
-        [2, 3, 4, 1],
-        [4, 1, 2, 3],
-        [1, 4, 2, 3],
-        [1, 2, 4, 3],
-        [4, 2, 1, 3],
-        [2, 4, 1, 3],
-        [2, 1, 4, 3],
-        [4, 1, 3, 2],
-        [1, 4, 3, 2],
-        [1, 3, 4, 2],
-        [4, 3, 1, 2],
-        [3, 4, 1, 2],
-        [3, 1, 4, 2],
-    ]);
-});
-
 /**
  * Builds the list from `initial` value with `unfolder`. When `unfolder` returns `none`, the building will end.
  *
  * @param unfolder - The function takes the seed and returns the tuple of next element and seed. The seed will be used as the next seed in a recursive call.
  * @param initial - The initial seed value to be passed to `unfolder`.
  * @returns The built list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { unfoldR, toArray } from "./list.ts";
+ * import * as Option from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const decrement = (n: number): Option.Option<[number, number]> => {
+ *     if (n == 0) {
+ *         return Option.none();
+ *     }
+ *     return Option.some([n, n - 1]);
+ * };
+ *
+ * assertEquals(toArray(unfoldR(decrement)(10)), [
+ *     10,
+ *     9,
+ *     8,
+ *     7,
+ *     6,
+ *     5,
+ *     4,
+ *     3,
+ *     2,
+ *     1,
+ * ]);
+ * ```
  */
 export const unfoldR =
     <T, U>(unfolder: (u: U) => Option.Option<[T, U]>) =>
@@ -1156,34 +1310,25 @@ export const unfoldR =
             return go(initial);
         });
 
-Deno.test("unfoldR", () => {
-    const decrement = (n: number): Option.Option<[number, number]> => {
-        if (n == 0) {
-            return Option.none();
-        }
-        return Option.some([n, n - 1]);
-    };
-
-    assertEquals(toArray(unfoldR(decrement)(10)), [
-        10,
-        9,
-        8,
-        7,
-        6,
-        5,
-        4,
-        3,
-        2,
-        1,
-    ]);
-});
-
 /**
  * Takes only the suffix of length `count`. If `count >= length(list)`, the list itself will be returned.
  *
  * @param count - The length to take.
  * @param list - The source list.
  * @returns The taken list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { range, take, toIterator } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const taken = take(2)(range(1, 6));
+ * const iter = toIterator(taken);
+ * assertEquals(iter.next(), { value: 1, done: false });
+ * assertEquals(iter.next(), { value: 2, done: false });
+ * assertEquals(iter.next(), { value: undefined, done: true });
+ * ```
  */
 export const take = (count: number) => <T>(list: List<T>): List<T> => {
     if (count <= 1) {
@@ -1196,20 +1341,26 @@ export const take = (count: number) => <T>(list: List<T>): List<T> => {
     return appendToHead(curr[1])(take(count - 1)(list.rest()));
 };
 
-Deno.test("take", () => {
-    const taken = take(2)(range(1, 6));
-    const iter = toIterator(taken);
-    assertEquals(iter.next(), { value: 1, done: false });
-    assertEquals(iter.next(), { value: 2, done: false });
-    assertEquals(iter.next(), { value: undefined, done: true });
-});
-
 /**
  * Drops the suffix of length `count`. If `count >= length(list)`, the empty list will be returned.
  *
  * @param count - The length to drop.
  * @param list - The source list.
  * @returns The dropped list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { drop, range, toIterator } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const dropped = drop(2)(range(1, 6));
+ * const iter = toIterator(dropped);
+ * assertEquals(iter.next(), { value: 3, done: false });
+ * assertEquals(iter.next(), { value: 4, done: false });
+ * assertEquals(iter.next(), { value: 5, done: false });
+ * assertEquals(iter.next(), { value: undefined, done: true });
+ * ```
  */
 export const drop = (count: number) => <T>(list: List<T>): List<T> => {
     if (Option.isNone(list.current())) {
@@ -1224,27 +1375,23 @@ export const drop = (count: number) => <T>(list: List<T>): List<T> => {
     return drop(count - 1)(list.rest());
 };
 
-Deno.test("drop", () => {
-    const dropped = drop(2)(range(1, 6));
-    const iter = toIterator(dropped);
-    assertEquals(iter.next(), { value: 3, done: false });
-    assertEquals(iter.next(), { value: 4, done: false });
-    assertEquals(iter.next(), { value: 5, done: false });
-    assertEquals(iter.next(), { value: undefined, done: true });
-});
-
 /**
  * Splits one list into two at `index`.
- *
- * ```ts
- * const [left, right] = splitAt(2)(range(1, 6));
- * assertEquals(toArray(left), [1, 2]);
- * assertEquals(toArray(right), [3, 4, 5]);
- * ```
  *
  * @param index - The boundary of split.
  * @param list - The list to be split.
  * @returns The tuple of split lists.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { range, splitAt, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const [left, right] = splitAt(2)(range(1, 6));
+ * assertEquals(toArray(left), [1, 2]);
+ * assertEquals(toArray(right), [3, 4, 5]);
+ * ```
  */
 export const splitAt =
     (index: number) => <T>(list: List<T>): [List<T>, List<T>] => [
@@ -1252,31 +1399,30 @@ export const splitAt =
         drop(index)(list),
     ];
 
-Deno.test("splitAt", () => {
-    const [left, right] = splitAt(2)(range(1, 6));
-    assertEquals(toArray(left), [1, 2]);
-    assertEquals(toArray(right), [3, 4, 5]);
-});
-
 /**
  * Repeats `value` at `count` times as a list.
  *
  * @param count - The times to repeat.
  * @param value - The value to be repeated.
  * @returns The repeated list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { range, replicate, toIterator } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const replicated = replicate(4)(42);
+ * const iter = toIterator(replicated);
+ * assertEquals(iter.next(), { value: 42, done: false });
+ * assertEquals(iter.next(), { value: 42, done: false });
+ * assertEquals(iter.next(), { value: 42, done: false });
+ * assertEquals(iter.next(), { value: 42, done: false });
+ * assertEquals(iter.next(), { value: undefined, done: true });
+ * ```
  */
 export const replicate = (count: number) => <T>(value: T): List<T> =>
     take(count)(repeat(value));
-
-Deno.test("replicate", () => {
-    const replicated = replicate(4)(42);
-    const iter = toIterator(replicated);
-    assertEquals(iter.next(), { value: 42, done: false });
-    assertEquals(iter.next(), { value: 42, done: false });
-    assertEquals(iter.next(), { value: 42, done: false });
-    assertEquals(iter.next(), { value: 42, done: false });
-    assertEquals(iter.next(), { value: undefined, done: true });
-});
 
 /**
  * Gets the value at `index`. It takes *O(n)*.
@@ -1284,6 +1430,20 @@ Deno.test("replicate", () => {
  * @param index - The position from 0 to get.
  * @param list - The source list.
  * @returns The element if exists.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { atMay, range } from "./list.ts";
+ * import * as Option from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const nums = range(1, 6);
+ * assertEquals(atMay(0)(nums), Option.some(1));
+ * assertEquals(atMay(4)(nums), Option.some(5));
+ * assertEquals(atMay(-1)(nums), Option.none());
+ * assertEquals(atMay(5)(nums), Option.none());
+ * ```
  */
 export const atMay =
     (index: number) => <T>(list: List<T>): Option.Option<T> => {
@@ -1293,20 +1453,26 @@ export const atMay =
         return drop(index)(list).current();
     };
 
-Deno.test("atMay", () => {
-    const nums = range(1, 6);
-    assertEquals(atMay(0)(nums), Option.some(1));
-    assertEquals(atMay(4)(nums), Option.some(5));
-    assertEquals(atMay(-1)(nums), Option.none());
-    assertEquals(atMay(5)(nums), Option.none());
-});
-
 /**
  * Finds the position of element which satisfies `pred` in the list. If the list is infinite and the element is not found, this will hang forever.
  *
  * @param pred - The match condition of element to find.
  * @param list - The source list.
  * @returns The found position if exists.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { findIndex, fromArray } from "./list.ts";
+ * import * as Option from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const list = fromArray([1, 4, 2, 3, 5]);
+ *
+ * assertEquals(findIndex((x: number) => 4 <= x)(list), Option.some(1));
+ * assertEquals(findIndex((x: number) => 0 <= x)(list), Option.some(0));
+ * assertEquals(findIndex((x: number) => 8 <= x)(list), Option.none());
+ * ```
  */
 export const findIndex =
     <T>(pred: (value: T) => boolean) =>
@@ -1336,6 +1502,20 @@ export const elemIndex = <T>(equalityT: PartialEq<T>) => (target: T) =>
  * @param pred - The match condition of element to find.
  * @param list - The source list.
  * @returns The found positions.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { findIndices, fromArray } from "./list.ts";
+ * import * as Option from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const list = fromArray([1, 4, 2, 3, 5]);
+ *
+ * assertEquals(findIndices((x: number) => 4 <= x)(list), [1, 4]);
+ * assertEquals(findIndices((x: number) => 0 <= x)(list), [0, 1, 2, 3, 4]);
+ * assertEquals(findIndices((x: number) => 8 <= x)(list), []);
+ * ```
  */
 export const findIndices =
     <T>(pred: (value: T) => boolean) => (list: List<T>): number[] => {
@@ -1359,28 +1539,22 @@ export const findIndices =
 export const elemIndices = <T>(equalityT: PartialEq<T>) => (target: T) =>
     findIndices((value: T) => equalityT.eq(value, target));
 
-Deno.test("findIndex/findIndices", () => {
-    const list = fromArray([1, 4, 2, 3, 5]);
-
-    assertEquals(findIndex((x: number) => 4 <= x)(list), Option.some(1));
-    assertEquals(findIndex((x: number) => 0 <= x)(list), Option.some(0));
-    assertEquals(findIndex((x: number) => 8 <= x)(list), Option.none());
-
-    assertEquals(findIndices((x: number) => 4 <= x)(list), [1, 4]);
-    assertEquals(findIndices((x: number) => 0 <= x)(list), [0, 1, 2, 3, 4]);
-    assertEquals(findIndices((x: number) => 8 <= x)(list), []);
-});
-
 /**
  * Takes while the element satisfies `pred`. If the element matches `pred`, the list will fuse at the element.
  *
- * ```ts
- * const iota = successors((x: number) => x + 1)(0);
- * const lessThanSqrt10 = takeWhile((x: number) => x * x < 10)(iota);
- * ```
- *
  * @param pred - The condition to decide to stop the list.
  * @returns The filtered list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { range, takeWhile, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const nums = range(1, 100);
+ * const takeWhileSquared = takeWhile((x: number) => x * x <= 20)(nums);
+ * assertEquals(toArray(takeWhileSquared), [1, 2, 3, 4]);
+ * ```
  */
 export const takeWhile =
     <T>(pred: (t: T) => boolean) => (list: List<T>): List<T> => {
@@ -1393,23 +1567,34 @@ export const takeWhile =
         return empty();
     };
 
-Deno.test("takeWhile", () => {
-    const nums = range(1, 100);
-    const takeWhileSquared = takeWhile((x: number) => x * x <= 20)(nums);
-    assertEquals(toArray(takeWhileSquared), [1, 2, 3, 4]);
-});
-
 /**
  * Drops while the element satisfies `pred`. If the element does not match `pred`, the rest of elements are yielded.
  *
- * ```ts
- * const list = fromArray([-1, 0, 1, -2]);
- * const filtered = dropWhile((x: number) => x < 0)(list);
- * assertEquals(toArray(filtered), [0, 1, -2]);
- * ```
- *
  * @param pred - The condition to decide to drop from the list.
  * @returns The filtered list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { dropWhile, fromArray, toArray, toIterator } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals([
+ *     ...toIterator(
+ *         dropWhile((x: number) => x < 3)(
+ *             fromArray([1, 2, 3, 4, 5, 1, 2, 3]),
+ *         ),
+ *     ),
+ * ], [3, 4, 5, 1, 2, 3]);
+ * assertEquals(
+ *     toArray(dropWhile((x: number) => x < 9)(fromArray([1, 2, 3]))),
+ *     [],
+ * );
+ * assertEquals(
+ *     toArray(dropWhile((x: number) => x < 0)(fromArray([1, 2, 3]))),
+ *     [1, 2, 3],
+ * );
+ * ```
  */
 export const dropWhile =
     <T>(pred: (t: T) => boolean) => (list: List<T>): List<T> =>
@@ -1418,29 +1603,34 @@ export const dropWhile =
             xs,
         ) => (pred(x) ? dropWhile(pred)(xs) : list))(list);
 
-Deno.test("dropWhile", () => {
-    assertEquals([
-        ...toIterator(
-            dropWhile((x: number) => x < 3)(
-                fromArray([1, 2, 3, 4, 5, 1, 2, 3]),
-            ),
-        ),
-    ], [3, 4, 5, 1, 2, 3]);
-    assertEquals(
-        toArray(dropWhile((x: number) => x < 9)(fromArray([1, 2, 3]))),
-        [],
-    );
-    assertEquals(
-        toArray(dropWhile((x: number) => x < 0)(fromArray([1, 2, 3]))),
-        [1, 2, 3],
-    );
-});
-
 /**
  * Drops the largest suffix of the list in which `pred` holds for all elements of the suffix.
  *
  * @param pred - The condition to drop the suffix.
  * @returns The list dropped the matched suffix.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { dropWhileEnd, fromArray, toArray, toIterator } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * assertEquals([
+ *     ...toIterator(
+ *         dropWhileEnd((x: number) => x < 3)(
+ *             fromArray([1, 2, 3, 4, 5, 1, 2]),
+ *         ),
+ *     ),
+ * ], [1, 2, 3, 4, 5]);
+ * assertEquals(
+ *     toArray(dropWhileEnd((x: number) => x < 9)(fromArray([1, 2, 3]))),
+ *     [],
+ * );
+ * assertEquals(
+ *     toArray(dropWhileEnd((x: number) => x < 0)(fromArray([1, 2, 3]))),
+ *     [1, 2, 3],
+ * );
+ * ```
  */
 export const dropWhileEnd = <T>(
     pred: (t: T) => boolean,
@@ -1451,29 +1641,36 @@ export const dropWhileEnd = <T>(
         empty(),
     );
 
-Deno.test("dropWhileEnd", () => {
-    assertEquals([
-        ...toIterator(
-            dropWhileEnd((x: number) => x < 3)(
-                fromArray([1, 2, 3, 4, 5, 1, 2]),
-            ),
-        ),
-    ], [1, 2, 3, 4, 5]);
-    assertEquals(
-        toArray(dropWhile((x: number) => x < 9)(fromArray([1, 2, 3]))),
-        [],
-    );
-    assertEquals(
-        toArray(dropWhile((x: number) => x < 0)(fromArray([1, 2, 3]))),
-        [1, 2, 3],
-    );
-});
-
 /**
  * Splits the list into a tuple of the longest prefix satisfies `pred` and the rest. It is equivalent to `[takeWhile(pred)(list), dropWhile(pred)(list)]`.
  *
  * @param pred - The condition to split.
  * @returns The tuple of split of the list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { fromArray, span, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * {
+ *     const [left, right] = span((x: number) => x < 3)(
+ *         fromArray([1, 2, 3, 4, 1, 2, 3, 4]),
+ *     );
+ *     assertEquals(toArray(left), [1, 2]);
+ *     assertEquals(toArray(right), [3, 4, 1, 2, 3, 4]);
+ * }
+ * {
+ *     const [left, right] = span((x: number) => x < 9)(fromArray([1, 2, 3]));
+ *     assertEquals(toArray(left), [1, 2, 3]);
+ *     assertEquals(toArray(right), []);
+ * }
+ * {
+ *     const [left, right] = span((x: number) => x < 0)(fromArray([1, 2, 3]));
+ *     assertEquals(toArray(left), []);
+ *     assertEquals(toArray(right), [1, 2, 3]);
+ * }
+ * ```
  */
 export const span =
     <T>(pred: (t: T) => boolean) => (list: List<T>): [List<T>, List<T>] =>
@@ -1485,57 +1682,42 @@ export const span =
             return [empty(), list];
         })(list);
 
-Deno.test("span", () => {
-    {
-        const [left, right] = span((x: number) => x < 3)(
-            fromArray([1, 2, 3, 4, 1, 2, 3, 4]),
-        );
-        assertEquals(toArray(left), [1, 2]);
-        assertEquals(toArray(right), [3, 4, 1, 2, 3, 4]);
-    }
-    {
-        const [left, right] = span((x: number) => x < 9)(fromArray([1, 2, 3]));
-        assertEquals(toArray(left), [1, 2, 3]);
-        assertEquals(toArray(right), []);
-    }
-    {
-        const [left, right] = span((x: number) => x < 0)(fromArray([1, 2, 3]));
-        assertEquals(toArray(left), []);
-        assertEquals(toArray(right), [1, 2, 3]);
-    }
-});
-
 /**
  * Splits the list into a tuple of the longest prefix does *NOT* satisfy `pred` and the rest. It is equivalent to `span((item) => !pred(item))`.
  *
  * @param pred - The condition to split.
  * @returns The tuple of split of the list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { fromArray, spanNot, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * {
+ *     const [left, right] = spanNot((x: number) => x > 3)(
+ *         fromArray([1, 2, 3, 4, 1, 2, 3, 4]),
+ *     );
+ *     assertEquals(toArray(left), [1, 2, 3]);
+ *     assertEquals(toArray(right), [4, 1, 2, 3, 4]);
+ * }
+ * {
+ *     const [left, right] = spanNot((x: number) => x < 9)(
+ *         fromArray([1, 2, 3]),
+ *     );
+ *     assertEquals(toArray(left), []);
+ *     assertEquals(toArray(right), [1, 2, 3]);
+ * }
+ * {
+ *     const [left, right] = spanNot((x: number) => x > 9)(
+ *         fromArray([1, 2, 3]),
+ *     );
+ *     assertEquals(toArray(left), [1, 2, 3]);
+ *     assertEquals(toArray(right), []);
+ * }
+ * ```
  */
 export const spanNot = <T>(pred: (t: T) => boolean) => span((t: T) => !pred(t));
-
-Deno.test("spanNot", () => {
-    {
-        const [left, right] = spanNot((x: number) => x > 3)(
-            fromArray([1, 2, 3, 4, 1, 2, 3, 4]),
-        );
-        assertEquals(toArray(left), [1, 2, 3]);
-        assertEquals(toArray(right), [4, 1, 2, 3, 4]);
-    }
-    {
-        const [left, right] = spanNot((x: number) => x < 9)(
-            fromArray([1, 2, 3]),
-        );
-        assertEquals(toArray(left), []);
-        assertEquals(toArray(right), [1, 2, 3]);
-    }
-    {
-        const [left, right] = spanNot((x: number) => x > 9)(
-            fromArray([1, 2, 3]),
-        );
-        assertEquals(toArray(left), [1, 2, 3]);
-        assertEquals(toArray(right), []);
-    }
-});
 
 /**
  * Strips `list` if matches `prefix`, otherwise returns `none`.
@@ -1544,6 +1726,33 @@ Deno.test("spanNot", () => {
  * @param prefix - The prefix to strip.
  * @param list - The source list.
  * @returns The stripped list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { fromString, stripPrefix, toString } from "./list.ts";
+ * import * as Option from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ * import { strict } from "./type-class/partial-eq.ts";
+ *
+ * const stripFoo = stripPrefix(strict<string>())(fromString("foo"));
+ *
+ * {
+ *     const optList = stripFoo(fromString("foobar"));
+ *     const optStr = Option.map(toString)(optList);
+ *     assertEquals(optStr, Option.some("bar"));
+ * }
+ * {
+ *     const optList = stripFoo(fromString("foo"));
+ *     const optStr = Option.map(toString)(optList);
+ *     assertEquals(optStr, Option.some(""));
+ * }
+ * {
+ *     const optList = stripFoo(fromString("barfoo"));
+ *     const optStr = Option.map(toString)(optList);
+ *     assertEquals(optStr, Option.none());
+ * }
+ * ```
  */
 export const stripPrefix =
     <T>(equalityT: PartialEq<T>) =>
@@ -1556,26 +1765,6 @@ export const stripPrefix =
                     : Option.none()
             )(unCons(list))
         )(prefix);
-
-Deno.test("stripPrefix", () => {
-    const stripFoo = stripPrefix(strict<string>())(fromString("foo"));
-
-    {
-        const optList = stripFoo(fromString("foobar"));
-        const optStr = Option.map(toString)(optList);
-        assertEquals(optStr, Option.some("bar"));
-    }
-    {
-        const optList = stripFoo(fromString("foo"));
-        const optStr = Option.map(toString)(optList);
-        assertEquals(optStr, Option.some(""));
-    }
-    {
-        const optList = stripFoo(fromString("barfoo"));
-        const optStr = Option.map(toString)(optList);
-        assertEquals(optStr, Option.none());
-    }
-});
 
 /**
  * Groups the list into sub-lists when adjacent elements are satisfy `pred`.
@@ -1597,17 +1786,24 @@ export const groupBy = <T>(
  * @param equalityT - The equality for `T`.
  * @param list - The source list.
  * @returns The list of grouped sub-list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { fromString, group, toArray, toString } from "./list.ts";
+ * import * as Option from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ * import { strict } from "./type-class/partial-eq.ts";
+ *
+ * const grouped = toArray(group(strict<string>())(fromString("Mississippi")))
+ *     .map((list) => toString(list));
+ * assertEquals(grouped, ["M", "i", "ss", "i", "ss", "i", "pp", "i"]);
+ * ```
  */
 export const group = <T>(
     equalityT: PartialEq<T>,
 ): (list: List<T>) => List<List<T>> =>
     groupBy((l) => (r) => equalityT.eq(l, r));
-
-Deno.test("group", () => {
-    const grouped = toArray(group(strict<string>())(fromString("Mississippi")))
-        .map((list) => toString(list));
-    assertEquals(grouped, ["M", "i", "ss", "i", "ss", "i", "pp", "i"]);
-});
 
 /**
  * Filters the list by `pred`. The elements which satisfy `pred` are only passed.
@@ -1692,7 +1888,15 @@ export const applyCartesian =
 /**
  * Creates a list such that whenever `v_i` has finite index in list `i` for each `i`, `[v_1, v_2, ..., v_n]` has finite index in the output list. It is different to cartesian product, so the order of elements are not sorted.
  *
+ * @param listList - The finite list of (possibly infinite) list.
+ * @returns The choose list.
+ *
+ * # Examples
+ *
  * ```ts
+ * import { fromArray, fromString, choices, range, toArray } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
  * const choice = choices(fromArray([range(0, 3), range(3, 6)]));
  * const sequences = toArray(choice).map((seq) => toArray(seq));
  * assertEquals(sequences, [
@@ -1707,28 +1911,9 @@ export const applyCartesian =
  *     [2, 5],
  * ]);
  * ```
- *
- * @param listList - The finite list of (possibly infinite) list.
- * @returns The choose list.
  */
 export const choices = <T>(listList: List<List<T>>): List<List<T>> =>
     foldR(cartesianProduct(appendToHead))(singleton(empty<T>()))(listList);
-
-Deno.test("choices", () => {
-    const choice = choices(fromArray([range(0, 3), range(3, 6)]));
-    const sequences = toArray(choice).map((seq) => toArray(seq));
-    assertEquals(sequences, [
-        [0, 3],
-        [0, 4],
-        [1, 3],
-        [0, 5],
-        [1, 4],
-        [2, 3],
-        [1, 5],
-        [2, 4],
-        [2, 5],
-    ]);
-});
 
 export interface ListHkt extends Hkt1 {
     readonly type: List<this["arg1"]>;
@@ -1758,39 +1943,6 @@ export const monad: Monad<ListHkt> = {
     apply: <T1, U1>(fns: List<(t: T1) => U1>) => (t: List<T1>): List<U1> =>
         concat(map((fn: (t: T1) => U1) => map(fn)(t))(fns)),
 };
-
-Deno.test("with CatT", () => {
-    // Find patterns where `x + y + z == 5` for all natural number `x`, `y`, and `z`.
-    const patterns = Cat.doT(monad)
-        .addM("x", range(0, 6))
-        .addMWith("y", ({ x }) => range(0, 6 - x))
-        .addWith("z", ({ x, y }) => 5 - (x + y))
-        .finish(({ x, y, z }) => [x, y, z] as const);
-
-    assertEquals(toArray(patterns), [
-        [0, 0, 5],
-        [0, 1, 4],
-        [0, 2, 3],
-        [0, 3, 2],
-        [0, 4, 1],
-        [0, 5, 0],
-        [1, 0, 4],
-        [1, 1, 3],
-        [1, 2, 2],
-        [1, 3, 1],
-        [1, 4, 0],
-        [2, 0, 3],
-        [2, 1, 2],
-        [2, 2, 1],
-        [2, 3, 0],
-        [3, 0, 2],
-        [3, 1, 1],
-        [3, 2, 0],
-        [4, 0, 1],
-        [4, 1, 0],
-        [5, 0, 0],
-    ]);
-});
 
 /**
  * The instance of `Traversable` for `List`.

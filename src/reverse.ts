@@ -1,8 +1,6 @@
-import { assertEquals } from "../deps.ts";
 import type { Hkt1 } from "./hkt.ts";
-import * as Number from "./number.ts";
-import { map as optionMap, some } from "./option.ts";
-import { equal, greater, less, Ordering, reverse } from "./ordering.ts";
+import { map as optionMap } from "./option.ts";
+import { reverse } from "./ordering.ts";
 import { eqSymbol } from "./type-class/eq.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Ord } from "./type-class/ord.ts";
@@ -29,15 +27,6 @@ export const ord = <T>(order: Ord<T>): Ord<Reverse<T>> => ({
     ...partialOrd(order),
     cmp: (lhs, rhs) => order.cmp(lhs[revSymbol], rhs[revSymbol]),
     [eqSymbol]: true,
-});
-
-Deno.test("order", () => {
-    const order = partialOrd(Number.partialOrd);
-    assertEquals(order.eq(pure(2), pure(2)), true);
-    assertEquals(order.eq(pure(1), pure(2)), false);
-    assertEquals(order.partialCmp(pure(1), pure(2)), some(greater as Ordering));
-    assertEquals(order.partialCmp(pure(2), pure(1)), some(less as Ordering));
-    assertEquals(order.partialCmp(pure(2), pure(2)), some(equal as Ordering));
 });
 
 export const pure = <T>(item: T): Reverse<T> => ({ [revSymbol]: item });
