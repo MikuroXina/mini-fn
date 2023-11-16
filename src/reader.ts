@@ -1,12 +1,9 @@
-import { assertEquals } from "../deps.ts";
 import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
 import { type IdentityHkt, monad as identityMonad } from "./identity.ts";
 import type { Tuple } from "./tuple.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Profunctor } from "./type-class/profunctor.ts";
-import { cat } from "./cat.ts";
-import { mapOr, none, Option, some } from "./option.ts";
 
 /**
  * The reader monad transformer which expresses the environment for asking a record `R` and returning the computation `A` in `M`.
@@ -59,29 +56,37 @@ export const askM = <R, S>(m: Monad<S>): Get1<S, Reader<R, R>> =>
     m.pure((x) => x);
 /**
  * Fetches the record of the environment.
+ *
+ * @returns The fetching computation.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { ask, map, Reader, run } from "./reader.ts";
+ * import { cat } from "./cat.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * interface User {
+ *     name: string;
+ * }
+ * const message = (): Reader<User, string> =>
+ *     cat(ask<User>()).feed(map(({ name }) => `Hello, ${name}!`)).value;
+ * const box = (): Reader<User, string> =>
+ *     cat(message()).feed(
+ *         map((mes) => `<div class="message-box">${mes}</div>`),
+ *     ).value;
+ *
+ * assertEquals(
+ *     run(box())({ name: "John" }),
+ *     '<div class="message-box">Hello, John!</div>',
+ * );
+ * assertEquals(
+ *     run(box())({ name: "Alice" }),
+ *     '<div class="message-box">Hello, Alice!</div>',
+ * );
+ * ```
  */
 export const ask = <R>(): Reader<R, R> => askM<R, IdentityHkt>(identityMonad);
-
-Deno.test("ask", () => {
-    interface User {
-        name: string;
-    }
-    const message = (): Reader<User, string> =>
-        cat(ask<User>()).feed(map(({ name }) => `Hello, ${name}!`)).value;
-    const box = (): Reader<User, string> =>
-        cat(message()).feed(
-            map((mes) => `<div class="message-box">${mes}</div>`),
-        ).value;
-
-    assertEquals(
-        run(box())({ name: "John" }),
-        '<div class="message-box">Hello, John!</div>',
-    );
-    assertEquals(
-        run(box())({ name: "Alice" }),
-        '<div class="message-box">Hello, Alice!</div>',
-    );
-});
 
 /**
  * Executes the computation in an environment modified by `f`.
@@ -89,52 +94,59 @@ Deno.test("ask", () => {
  * @param f - The function to modify the record of environment.
  * @param ma - The computation to run in the modified environment.
  * @returns The modified environment
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { ask, local, map, Reader, run } from "./reader.ts";
+ * import { cat } from "./cat.ts";
+ * import { assertEquals } from "../deps.ts";
+ * import { Option, some, mapOr, none } from "./option.ts";
+ *
+ * interface User {
+ *     name: string;
+ *     id: string;
+ *     score: number;
+ * }
+ * interface Bulk {
+ *     users: readonly User[];
+ * }
+ * const extractFromBulk = (id: string) =>
+ *     local((bulk: Bulk): Option<User> => {
+ *         const found = bulk.users.find((elem) => elem.id === id);
+ *         if (!found) {
+ *             return none();
+ *         }
+ *         return some(found);
+ *     });
+ * const scoreReport = (id: string): Reader<Bulk, string> =>
+ *     cat(ask<Option<User>>())
+ *         .feed(
+ *             map(
+ *                 mapOr("user not found")(({ name, score }) =>
+ *                     `${name}'s score is ${score}!`
+ *                 ),
+ *             ),
+ *         )
+ *         .feed(extractFromBulk(id)).value;
+ *
+ * const bulk: Bulk = {
+ *     users: [
+ *         {
+ *             name: "John",
+ *             id: "1321",
+ *             score: 12130,
+ *         },
+ *         { name: "Alice", id: "4209", score: 320123 },
+ *     ],
+ * };
+ * assertEquals(run(scoreReport("1321"))(bulk), "John's score is 12130!");
+ * assertEquals(run(scoreReport("4209"))(bulk), "Alice's score is 320123!");
+ * ```
  */
 export const local =
     <T, U>(f: (t: T) => U) => <A>(ma: Reader<U, A>): Reader<T, A> => (t) =>
         ma(f(t));
-
-Deno.test("local", () => {
-    interface User {
-        name: string;
-        id: string;
-        score: number;
-    }
-    interface Bulk {
-        users: readonly User[];
-    }
-    const extractFromBulk = (id: string) =>
-        local((bulk: Bulk): Option<User> => {
-            const found = bulk.users.find((elem) => elem.id === id);
-            if (!found) {
-                return none();
-            }
-            return some(found);
-        });
-    const scoreReport = (id: string): Reader<Bulk, string> =>
-        cat(ask<Option<User>>())
-            .feed(
-                map(
-                    mapOr("user not found")(({ name, score }) =>
-                        `${name}'s score is ${score}!`
-                    ),
-                ),
-            )
-            .feed(extractFromBulk(id)).value;
-
-    const bulk: Bulk = {
-        users: [
-            {
-                name: "John",
-                id: "1321",
-                score: 12130,
-            },
-            { name: "Alice", id: "4209", score: 320123 },
-        ],
-    };
-    assertEquals(run(scoreReport("1321"))(bulk), "John's score is 12130!");
-    assertEquals(run(scoreReport("4209"))(bulk), "Alice's score is 320123!");
-});
 
 /**
  * Makes two readers into a reader with tuple of computations.

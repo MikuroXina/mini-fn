@@ -12,7 +12,11 @@ export const eqSymbol = Symbol("ImplEq");
  * For example, the comparator below cannot implement `Eq` because that does not satisfy reflexive due to `NaN === NaN` always be false.
  *
  * ```ts
- * const numPartialEq: PartialEq<number, number> = (x, y) => x === y;
+ * import { PartialEq } from "./partial-eq.ts";
+ *
+ * const numPartialEq: PartialEq<number, number> = {
+ *     eq: (x, y) => x === y,
+ * };
  * ```
  */
 export interface Eq<Lhs, Rhs = Lhs> extends PartialEq<Lhs, Rhs> {

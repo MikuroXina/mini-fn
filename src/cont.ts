@@ -1,10 +1,8 @@
-import { cat } from "./cat.ts";
 import { absurd, constant } from "./func.ts";
 import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
 import * as Identity from "./identity.ts";
 import type { MonadPromise } from "./promise/monad.ts";
 import type { Monad } from "./type-class/monad.ts";
-import { assertEquals, assertSpyCall, spy } from "../deps.ts";
 
 /**
  * Monad transformer `ContT`, the generic form of `Cont`.
@@ -63,6 +61,31 @@ export const withContT = <M, A, B, R>(
  *
  * @param computation - The computation will be provided `exit`.
  * @returns The label trigger to abort.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { Cont, callCC, flatMap, pure, runCont, when } from "./cont.ts";
+ * import { IdentityHkt, id } from "./identity.ts";
+ * import { cat } from "./cat.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const validateName =
+ *     (name: string) =>
+ *     (exit: (a: string) => Cont<string, void>): Cont<string, void> =>
+ *         when(name.length === 0)(exit("expected at least 1 character"));
+ * const whatYourName = (name: string): string => {
+ *     const cont = callCC<string, IdentityHkt, string, void>(
+ *         (exit) =>
+ *             cat(validateName(name)(exit)).feed(
+ *                 flatMap(() => pure(`Welcome, ${name}!`)),
+ *             ).value,
+ *     );
+ *     return runCont(cont)(id);
+ * };
+ * assertEquals(whatYourName("Alice"), "Welcome, Alice!");
+ * assertEquals(whatYourName(""), "expected at least 1 character");
+ * ```
  */
 export const callCC = <R, M, A, B>(
     computation: (exit: (a: A) => ContT<R, M, B>) => ContT<R, M, A>,
@@ -71,24 +94,6 @@ export const callCC = <R, M, A, B>(
     computation(
         (a): ContT<R, M, B> => (_fn): Get1<M, R> => c(a),
     )(c);
-
-Deno.test("using callCC", () => {
-    const validateName =
-        (name: string) =>
-        (exit: (a: string) => Cont<string, void>): Cont<string, void> =>
-            when(name.length === 0)(exit("expected at least 1 character"));
-    const whatYourName = (name: string): string => {
-        const cont = callCC<string, Identity.IdentityHkt, string, void>(
-            (exit) =>
-                cat(validateName(name)(exit)).feed(
-                    flatMap(() => pure(`Welcome, ${name}!`)),
-                ).value,
-        );
-        return runCont(cont)(Identity.id);
-    };
-    assertEquals(whatYourName("Alice"), "Welcome, Alice!");
-    assertEquals(whatYourName(""), "expected at least 1 character");
-});
 
 /**
  * Delimits the continuation of any `shiftT` inside `M`.
@@ -153,42 +158,57 @@ export const runCont: <R, A>(cont: Cont<R, A>) => (fn: (a: A) => R) => R =
  *
  * @param cont - The computation.
  * @returns The running result.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { evalCont, pure } from "./cont.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const actual = evalCont<number>(pure(42));
+ * assertEquals(actual, 42);
+ * ```
  */
 export const evalCont: <R>(cont: Cont<R, R>) => R = evalContT(Identity.monad);
 
-Deno.test("eval", () => {
-    const actual = evalCont<number>(pure(42));
-    assertEquals(actual, 42);
-});
-
 /**
  * Applies the function to transform the result of the computation.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { evalCont, mapCont, pure } from "./cont.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const actual = evalCont(mapCont((x: number) => x + 1)(pure(42)));
+ * assertEquals(actual, 43);
+ * ```
  */
 export const mapCont: <R>(
     mapper: (r: R) => R,
 ) => <A>(cont: Cont<R, A>) => Cont<R, A> = mapContT;
 
-Deno.test("map", () => {
-    const actual = evalCont(mapCont((x: number) => x + 1)(pure(42)));
-    assertEquals(actual, 43);
-});
-
 /**
  * Applies the function to transform the continuation passed to the computation.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { assertEquals } from "../deps.ts";
+ * import { runCont, withCont } from "./cont.ts";
+ *
+ * const cont = withCont((fn: (x: number) => boolean) => (a: string) =>
+ *     fn(parseInt(a, 10))
+ * )(
+ *     (callback) => callback("foo"),
+ * );
+ * const actual = runCont(cont)(Number.isNaN);
+ * assertEquals(actual, true);
+ * ```
  */
 export const withCont: <A, B, R>(
     callback: (fn: (b: B) => R) => (a: A) => R,
 ) => (cont: Cont<R, A>) => Cont<R, B> = withContT;
-
-Deno.test("with", () => {
-    const cont = withCont((fn: (x: number) => boolean) => (a: string) =>
-        fn(parseInt(a, 10))
-    )(
-        (callback) => callback("foo"),
-    );
-    const actual = runCont(cont)(Number.isNaN);
-    assertEquals(actual, true);
-});
 
 /**
  * Delimits the continuation of any `shift` inside `M`.
@@ -210,19 +230,6 @@ export const shift: <R, A>(
 ) => Cont<R, A> = shiftT(
     Identity.monad,
 );
-
-Deno.test("simple usage", () => {
-    const calcLength = <A, R>(a: readonly A[]): Cont<R, number> =>
-        pure(a.length);
-    const double = <R>(num: number): Cont<R, number> => pure(num * 2);
-    const callback = spy(() => {});
-    cat([1, 2, 3]).feed(calcLength).feed(flatMap(double)).feed(runContT).value(
-        callback,
-    );
-    assertSpyCall(callback, 0, {
-        args: [6],
-    });
-});
 
 /**
  * Wraps the value with `ContT`.

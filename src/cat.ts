@@ -11,8 +11,6 @@ import type { Monad } from "./type-class/monad.ts";
 import { fromProjection as ordFromProjection } from "./type-class/ord.ts";
 import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.ts";
 import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.ts";
-import { monad as optionMonad, none, some } from "./option.ts";
-import { assertEquals } from "../deps.ts";
 
 /**
  * Contains a `ctx` and can be transformed into another one by some methods.
@@ -138,34 +136,40 @@ export const doVoidT = <M>(monad: Monad<M>): CatT<M, void> =>
  *
  * @param monad - The monad implementation for `M`.
  * @returns A new `CatT`.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { monad as optionMonad, none, some } from "./option.ts";
+ * import { assertEquals } from "../deps.ts";
+ * import { doT } from "./cat.ts";
+ *
+ * const optionA = some(1);
+ * const optionB = some(2);
+ * const optionC = some(3);
+ *
+ * const computation = doT(optionMonad)
+ *     .addM("a", optionA)
+ *     .addM("b", optionB)
+ *     .addWith("bSquared", ({ b }) => b * b)
+ *     .addM("c", optionC);
+ *
+ * assertEquals(
+ *     computation
+ *         .addMWith("cSqrt", ({ c }) => {
+ *             const sqrt = Math.sqrt(c);
+ *             return Number.isInteger(sqrt) ? some(sqrt) : none();
+ *         })
+ *         .finish(({ bSquared, cSqrt }) => bSquared + cSqrt),
+ *     none(),
+ * );
+ *
+ * const result = computation.finish(({ a, b, c }) => a + b + c);
+ * assertEquals(result, some(6));
+ * ```
  */
 export const doT = <M>(monad: Monad<M>): CatT<M, Record<string, never>> =>
     catT(monad)(monad.pure({}));
-
-Deno.test("doT", () => {
-    const optionA = some(1);
-    const optionB = some(2);
-    const optionC = some(3);
-
-    const computation = doT(optionMonad)
-        .addM("a", optionA)
-        .addM("b", optionB)
-        .addWith("bSquared", ({ b }) => b * b)
-        .addM("c", optionC);
-
-    assertEquals(
-        computation
-            .addMWith("cSqrt", ({ c }) => {
-                const sqrt = Math.sqrt(c);
-                return Number.isInteger(sqrt) ? some(sqrt) : none();
-            })
-            .finish(({ bSquared, cSqrt }) => bSquared + cSqrt),
-        none(),
-    );
-
-    const result = computation.finish(({ a, b, c }) => a + b + c);
-    assertEquals(result, some(6));
-});
 
 /**
  * Creates a new `CatT` with the context.
@@ -206,17 +210,22 @@ export interface Cat<T> {
  *
  * @param value - A value will be contained.
  * @returns A new created `Cat`.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { cat } from "./cat.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const result = cat(-3)
+ *     .feed((x) => x ** 2)
+ *     .feed((x) => x.toString());
+ * assertEquals(result.value, "9");
+ * ```
  */
 export const cat = <T>(value: T): Cat<T> => ({
     value,
     feed: <U>(fn: (t: T) => U) => cat(fn(value)),
-});
-
-Deno.test("cat", () => {
-    const result = cat(-3)
-        .feed((x) => x ** 2)
-        .feed((x) => x.toString());
-    assertEquals(result.value, "9");
 });
 
 /**
@@ -249,21 +258,26 @@ export const ord = ordFromProjection<CatHkt>(get);
  *
  * @param inspector - An inspector to see the passing value.
  * @returns An identity function.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { cat, inspect } from "./cat.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const result = cat(-3)
+ *     .feed(inspect((x) => assertEquals(x, -3)))
+ *     .feed((x) => x ** 2)
+ *     .feed(inspect((x) => assertEquals(x, 9)))
+ *     .feed((x) => x.toString())
+ *     .feed(inspect((x) => assertEquals(x, "9")));
+ * assertEquals(result.value, "9");
+ * ```
  */
 export const inspect = <T>(inspector: (t: T) => void) => (t: T) => {
     inspector(t);
     return t;
 };
-
-Deno.test("inspect", () => {
-    const result = cat(-3)
-        .feed(inspect((x) => assertEquals(x, -3)))
-        .feed((x) => x ** 2)
-        .feed(inspect((x) => assertEquals(x, 9)))
-        .feed((x) => x.toString())
-        .feed(inspect((x) => assertEquals(x, "9")));
-    assertEquals(result.value, "9");
-});
 
 /**
  * An inspector which applied `console.log` to `inspect`.
@@ -312,59 +326,79 @@ export const flatten = <T>(catCat: Cat<Cat<T>>): Cat<T> => catCat.value;
  * @param a - A `Cat` to be placed at left.
  * @param b - A `Cat` to be placed at right.
  * @returns A composed `Cat`.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { cat, product } from "./cat.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const actual = product(cat(5))(cat("foo")).value;
+ * assertEquals(actual, [5, "foo"]);
+ * ```
  */
 export const product = <A>(a: Cat<A>) => <B>(b: Cat<B>): Cat<[A, B]> =>
     cat([a.value, b.value]);
-
-Deno.test("product", () => {
-    const actual = product(cat(5))(cat("foo")).value;
-    assertEquals(actual, [5, "foo"]);
-});
 
 /**
  * Maps an inner value of a `Cat` into another one by applying a function. It is useful to lift a function for `Cat`.
  *
  * @param fn - A function which maps from `T` to `U`.
  * @returns A lifted function which maps from `Cat<T>` to `Cat<U>`.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { cat, map } from "./cat.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const actual = map((v: number) => v / 2)(cat(10)).value;
+ * assertEquals(actual, 5);
+ * ```
  */
 export const map = <T, U>(fn: (t: T) => U) => (c: Cat<T>): Cat<U> => c.feed(fn);
-
-Deno.test("map", () => {
-    const actual = map((v: number) => v / 2)(cat(10)).value;
-    assertEquals(actual, 5);
-});
 
 /**
  * Maps an inner value of `Cat` into another `Cat` by applying a function. It is useful to lift a subroutine with `Cat`.
  *
  * @param fn - A function which maps from `T` to `Cat<U>`.
  * @returns A lifted function which maps from `Cat<T>` to `Cat<U>`.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { Cat, cat, flatMap } from "./cat.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const sub = (num: number): Cat<string> =>
+ *     cat(num).feed((x) => x.toString());
+ * const actual = flatMap(sub)(cat(6)).value;
+ * assertEquals(actual, "6");
+ * ```
  */
 export const flatMap = <T, U>(fn: (t: T) => Cat<U>) => (c: Cat<T>): Cat<U> =>
     flatten(map(fn)(c));
-
-Deno.test("flatMap", () => {
-    const sub = (num: number): Cat<string> =>
-        cat(num).feed((x) => x.toString());
-    const actual = flatMap(sub)(cat(6)).value;
-    assertEquals(actual, "6");
-});
 
 /**
  * Lifts down a `Cat` which contains a mapping function. It is useful to decompose a function in `Cat`.
  *
  * @param fn - A `Cat` which contains a mapping function.
  * @returns An applied function which maps from `Cat<T>` to `Cat<U>`.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { cat, apply } from "./cat.ts";
+ * import { assertEquals } from "../deps.ts";
+ *
+ * const sub = cat((numeral: string) => parseInt(numeral, 10));
+ * const actual = apply(sub)(cat("1024")).value;
+ * assertEquals(actual, 1024);
+ * ```
  */
 export const apply =
     <T1, U1>(fn: Cat<(t: T1) => U1>) => (t: Cat<T1>): Cat<U1> =>
         flatMap(t.feed)(fn);
-
-Deno.test("apply", () => {
-    const sub = cat((numeral: string) => parseInt(numeral, 10));
-    const actual = apply(sub)(cat("1024")).value;
-    assertEquals(actual, 1024);
-});
 
 /**
  * The monad implementation of `Cat`.

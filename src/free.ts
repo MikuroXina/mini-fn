@@ -14,17 +14,6 @@ import {
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import type { Traversable } from "./type-class/traversable.ts";
-import {
-    functor as optionFunctor,
-    isNone,
-    monad as optionMonad,
-    none,
-    type OptionHkt,
-    some,
-    unwrap,
-} from "./option.ts";
-import { catT } from "./cat.ts";
-import { assertEquals } from "../deps.ts";
 
 const pureNominal = Symbol("FreePure");
 const nodeNominal = Symbol("FreeNode");
@@ -156,6 +145,26 @@ export const ord = fromCmp(cmp);
  * @param monad - The instance of `Monad` for `F`.
  * @param fr - The instance of `Free`.
  * @returns The reduction of `F`.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import * as Option from "./option.ts";
+ * import { retract, liftF, monad } from "./free.ts";
+ * import { assertEquals } from "../deps.ts";
+ * import { catT } from "./cat.ts";
+ *
+ * const retractOption = retract(Option.monad);
+ * const m = monad<Option.OptionHkt>(Option.functor);
+ * const lift = liftF<Option.OptionHkt>(Option.monad);
+ * const retracted = retractOption<string>(
+ *     catT(m)(lift(Option.some("hoge")))
+ *         .run(lift(Option.some("fuga")))
+ *         .run(lift<string>(Option.none()))
+ *         .run(lift(Option.some("foo"))).ctx,
+ * );
+ * assertEquals(Option.isNone(retracted), true);
+ * ```
  */
 export const retract =
     <F>(monad: Monad<F>) => <T>(fr: Free<F, T>): Get1<F, T> => {
@@ -165,19 +174,6 @@ export const retract =
         return monad.flatMap(retract(monad))(fr[1]);
     };
 
-Deno.test("retract", () => {
-    const retractOption = retract(optionMonad);
-    const m = monad<OptionHkt>(optionFunctor);
-    const lift = liftF<OptionHkt>(optionMonad);
-    const retracted = retractOption<string>(
-        catT(m)(lift(some("hoge")))
-            .run(lift(some("fuga")))
-            .run(lift<string>(none()))
-            .run(lift(some("foo"))).ctx,
-    );
-    assertEquals(isNone(retracted), true);
-});
-
 /**
  * Reduces `Free` with the internal items.
  *
@@ -185,6 +181,25 @@ Deno.test("retract", () => {
  * @param fn - The function to be applied.
  * @param fr - The instance of `Free`.
  * @returns The reduction of `F`.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { iter, liftF, monad, retract } from "./free.ts";
+ * import { assertEquals } from "../deps.ts";
+ * import { catT } from "./cat.ts";
+ * import * as Option from "./option.ts";
+ *
+ * const iterOption = iter<Option.OptionHkt>(Option.monad)(Option.unwrap);
+ * const m = monad<Option.OptionHkt>(Option.functor);
+ * const lift = liftF<Option.OptionHkt>(Option.monad);
+ * const iterated = iterOption<string>(
+ *     catT(m)(lift(Option.some("hoge")))
+ *         .run(lift(Option.some("fuga")))
+ *         .run(lift(Option.some("foo"))).ctx,
+ * );
+ * assertEquals(iterated, "foo");
+ * ```
  */
 export const iter =
     <F>(functor: Functor<F>) =>
@@ -195,18 +210,6 @@ export const iter =
         }
         return fn(functor.map(iter(functor)(fn))(fr[1]));
     };
-
-Deno.test("iter", () => {
-    const iterOption = iter<OptionHkt>(optionMonad)(unwrap);
-    const m = monad<OptionHkt>(optionFunctor);
-    const lift = liftF<OptionHkt>(optionMonad);
-    const iterated = iterOption<string>(
-        catT(m)(lift(some("hoge")))
-            .run(lift(some("fuga")))
-            .run(lift(some("foo"))).ctx,
-    );
-    assertEquals(iterated, "foo");
-});
 
 /**
  * Reduces `Free` with the internal items.
