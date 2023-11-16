@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.4.3](https://github.com/MikuroXina/mini-fn/compare/v5.4.2...v5.4.3) (2023-11-16)
+
+
+### Bug Fixes
+
+* Remove Deno.test from source files ([#151](https://github.com/MikuroXina/mini-fn/issues/151)) ([749bbbb](https://github.com/MikuroXina/mini-fn/commit/749bbbb49e4f07dbe324cb8963bfe9293b3cc311))
+
 ## [5.4.2](https://github.com/MikuroXina/mini-fn/compare/v5.4.1...v5.4.2) (2023-11-15)
 
 
