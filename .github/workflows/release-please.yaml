@@ -8,8 +8,14 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
+      - id: token
+        uses: tibdex/github-app-token@v2
+        with:
+          app_id: ${{ secrets.HELPER_BOT_APP_ID }}
+          private_key: ${{ secrets.HELPER_BOT_PRIVATE_KEY }}
+
       - uses: google-github-actions/release-please-action@v3
         with:
           release-type: simple
           package-name: '@mikuroxina/mini-fn'
-          token: ${{ secrets.RELEASE_PLEASE_PAT }}
+          token: ${{ steps.token.outputs.token }}
