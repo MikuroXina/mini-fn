@@ -17,5 +17,4 @@ jobs:
       - uses: google-github-actions/release-please-action@v4
         with:
           release-type: simple
-          package-name: '@mikuroxina/mini-fn'
           token: ${{ steps.token.outputs.token }}

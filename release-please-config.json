@@ -1,0 +1,7 @@
+{
+    "packages": {
+        ".": {
+            "package-name": "@mikuroxina/mini-fn"
+        }
+    }
+}
