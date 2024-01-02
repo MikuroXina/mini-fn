@@ -5,3 +5,7 @@ export interface FlatMap<S> {
         a: (t: T1) => Get1<S, U1>,
     ) => (t: Get1<S, T1>) => Get1<S, U1>;
 }
+
+export const flatten = <S>(
+    f: FlatMap<S>,
+): <T>(t: Get1<S, Get1<S, T>>) => Get1<S, T> => f.flatMap((t) => t);
