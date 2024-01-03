@@ -11,6 +11,7 @@ import type { Monoid } from "./type-class/monoid.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import type { SemiGroupal } from "./type-class/semi-groupal.ts";
 import type { Traversable } from "./type-class/traversable.ts";
+import type { TraversableMonad } from "./type-class/traversable-monad.ts";
 
 /**
  * Monad transformer `PromiseT`, a generic form of `Promise`.
@@ -123,7 +124,7 @@ export const applicativeT = <M>(
  * @returns The instance of `Monad` for `PromiseT<M, _>`.
  */
 export const monadT = <M>(
-    m: Traversable<M> & Apply<M> & FlatMap<M>,
+    m: TraversableMonad<M>,
 ): Monad<Apply2Only<PromiseTHkt, M>> => ({
     pure,
     map: mapT(m),
