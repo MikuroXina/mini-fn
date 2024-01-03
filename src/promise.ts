@@ -11,6 +11,8 @@ import type { Monoid } from "./type-class/monoid.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import type { SemiGroupal } from "./type-class/semi-groupal.ts";
 import type { Traversable } from "./type-class/traversable.ts";
+import type { TraversableMonad } from "./type-class/traversable-monad.ts";
+import { Pure } from "./type-class/pure.ts";
 
 /**
  * Monad transformer `PromiseT`, a generic form of `Promise`.
@@ -20,7 +22,8 @@ export type PromiseT<M, A> = Promise<Get1<M, A>>;
 /**
  * Wraps the value of monad into a `Promise`. This is an alias of `Promise.resolve`.
  */
-export const pureT: <M, A>(ma: Get1<M, A>) => PromiseT<M, A> = Promise.resolve;
+export const pureT = <M>(f: Pure<M>) => <A>(a: A): PromiseT<M, A> =>
+    Promise.resolve(f.pure(a));
 
 /**
  * Makes two `PromiseT`s into a `PromiseT` of tuple.
@@ -111,9 +114,9 @@ export const functorT = <M>(
  * @returns The instance of `Applicative` for `PromiseT<M, _>`.
  */
 export const applicativeT = <M>(
-    m: Functor<M> & Apply<M>,
+    m: Functor<M> & Apply<M> & Pure<M>,
 ): Applicative<Apply2Only<PromiseTHkt, M>> => ({
-    pure,
+    pure: pureT(m),
     map: mapT(m),
     apply: applyT(m),
 });
@@ -123,9 +126,9 @@ export const applicativeT = <M>(
  * @returns The instance of `Monad` for `PromiseT<M, _>`.
  */
 export const monadT = <M>(
-    m: Traversable<M> & Apply<M> & FlatMap<M>,
+    m: TraversableMonad<M>,
 ): Monad<Apply2Only<PromiseTHkt, M>> => ({
-    pure,
+    pure: pureT(m),
     map: mapT(m),
     apply: applyT(m),
     flatMap: flatMapT(m),
@@ -134,7 +137,7 @@ export const monadT = <M>(
 /**
  * Wraps the value into `Promise`. This is the alias of `Promise.resolve`.
  */
-export const pure = Promise.resolve;
+export const pure = <A>(value: A): Promise<A> => Promise.resolve(value);
 
 /**
  * Makes two promises into a promise of tuple.

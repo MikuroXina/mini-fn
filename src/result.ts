@@ -1,4 +1,4 @@
-import type { Get1, Hkt2 } from "./hkt.ts";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import type { Optic } from "./optical.ts";
 import { newPrism } from "./optical/prism.ts";
 import {
@@ -23,6 +23,7 @@ import {
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
+import { TraversableMonad } from "./type-class/traversable-monad.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
 const okSymbol = Symbol("ResultOk");
@@ -632,30 +633,44 @@ export const monoid = <E, T>(error: E): Monoid<Result<E, T>> => ({
     [semiGroupSymbol]: true,
 });
 
-export const applicative: Applicative<ResultHkt> = {
+export const applicative = <E>(): Applicative<Apply2Only<ResultHkt, E>> => ({
     pure: ok,
     map,
     apply,
-};
+});
 
 /**
  * The instance of `Monad` for `Result<E, _>`.
  */
-export const monad: Monad<ResultHkt> = {
+export const monad = <E>(): Monad<Apply2Only<ResultHkt, E>> => ({
     pure: ok,
     map,
     flatMap: andThen,
     apply,
-};
+});
 
 /**
  * The instance of `Monad` for `Traversable<E, _>`.
  */
-export const traversable: Traversable<ResultHkt> = {
+export const traversable = <E>(): Traversable<Apply2Only<ResultHkt, E>> => ({
     map,
     foldR,
     traverse,
-};
+});
+
+/**
+ * The instance of `TraversableMonad` for `Result<E, _>`.
+ */
+export const traversableMonad = <E>(): TraversableMonad<
+    Apply2Only<ResultHkt, E>
+> => ({
+    pure: ok,
+    map,
+    flatMap: andThen,
+    apply,
+    foldR,
+    traverse,
+});
 
 /**
  * The instance of `Bifunctor` for `Result<_, _>`.
