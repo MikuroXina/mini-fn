@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.5.0](https://github.com/MikuroXina/mini-fn/compare/v5.4.3...v5.5.0) (2024-01-03)
+
+
+### Features
+
+* Add PromiseT monad transformer ([#157](https://github.com/MikuroXina/mini-fn/issues/157)) ([21714ca](https://github.com/MikuroXina/mini-fn/commit/21714ca80d6f5b7d8ad6618d2f4b2ec4c9592b49))
+
 ## [5.4.3](https://github.com/MikuroXina/mini-fn/compare/v5.4.2...v5.4.3) (2023-11-16)
 
 
