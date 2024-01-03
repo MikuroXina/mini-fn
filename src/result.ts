@@ -23,6 +23,7 @@ import {
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
+import { TraversableMonad } from "./type-class/traversable-monad.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
 const okSymbol = Symbol("ResultOk");
@@ -653,6 +654,20 @@ export const monad = <E>(): Monad<Apply2Only<ResultHkt, E>> => ({
  */
 export const traversable = <E>(): Traversable<Apply2Only<ResultHkt, E>> => ({
     map,
+    foldR,
+    traverse,
+});
+
+/**
+ * The instance of `TraversableMonad` for `Result<E, _>`.
+ */
+export const traversableMonad = <E>(): TraversableMonad<
+    Apply2Only<ResultHkt, E>
+> => ({
+    pure: ok,
+    map,
+    flatMap: andThen,
+    apply,
     foldR,
     traverse,
 });

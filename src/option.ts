@@ -28,6 +28,7 @@ import {
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
+import { TraversableMonad } from "./type-class/traversable-monad.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
 const someSymbol = Symbol("OptionSome");
@@ -739,6 +740,30 @@ export const okOrElse = <E>(e: () => E) => <T>(opt: Option<T>): Result<E, T> =>
  */
 export const flatMap = andThen;
 
+export const apply =
+    <T1, U1>(fnOpt: Option<(t: T1) => U1>) => (tOpt: Option<T1>) =>
+        flatMap((fn: (t: T1) => U1) => map(fn)(tOpt))(fnOpt);
+
+export const foldR =
+    <A, B>(folder: (next: A) => (acc: B) => B) =>
+    (init: B) =>
+    (data: Option<A>) => {
+        if (isNone(data)) {
+            return init;
+        }
+        return folder(data[1])(init);
+    };
+
+export const traverse =
+    <F>(app: Applicative<F>) =>
+    <A, B>(visitor: (a: A) => Get1<F, B>) =>
+    (opt: Option<A>): Get1<F, Option<B>> => {
+        if (isNone(opt)) {
+            return app.pure(none() as Option<B>);
+        }
+        return app.map<B, Option<B>>(some)(visitor(opt[1]));
+    };
+
 export interface OptionHkt extends Hkt1 {
     readonly type: Option<this["arg1"]>;
 }
@@ -766,8 +791,7 @@ export const monad: Monad<OptionHkt> = {
     pure: some,
     map,
     flatMap,
-    apply: <T1, U1>(fnOpt: Option<(t: T1) => U1>) => (tOpt: Option<T1>) =>
-        flatMap((fn: (t: T1) => U1) => map(fn)(tOpt))(fnOpt),
+    apply,
 };
 
 /**
@@ -775,21 +799,20 @@ export const monad: Monad<OptionHkt> = {
  */
 export const traversable: Traversable<OptionHkt> = {
     map,
-    foldR: (folder) => (init) => (data) => {
-        if (isNone(data)) {
-            return init;
-        }
-        return folder(data[1])(init);
-    },
-    traverse:
-        <F>(app: Applicative<F>) =>
-        <A, B>(visitor: (a: A) => Get1<F, B>) =>
-        (opt: Option<A>): Get1<F, Option<B>> => {
-            if (isNone(opt)) {
-                return app.pure(none() as Option<B>);
-            }
-            return app.map<B, Option<B>>(some)(visitor(opt[1]));
-        },
+    foldR,
+    traverse,
+};
+
+/**
+ * The instance of `TraversableMonad` for `Option<_>`.
+ */
+export const traversableMonad: TraversableMonad<OptionHkt> = {
+    pure: some,
+    map,
+    flatMap: andThen,
+    apply,
+    foldR,
+    traverse,
 };
 
 export const ifSome = <T, U>(): Optic<Option<T>, Option<U>, T, U> =>
