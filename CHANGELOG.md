@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.5.1](https://github.com/MikuroXina/mini-fn/compare/v5.5.0...v5.5.1) (2024-01-03)
+
+
+### Bug Fixes
+
+* Fix implementation of PromiseT and its typing ([#160](https://github.com/MikuroXina/mini-fn/issues/160)) ([ad47966](https://github.com/MikuroXina/mini-fn/commit/ad4796623435628b44271087e937da2901d6a979))
+
 ## [5.5.0](https://github.com/MikuroXina/mini-fn/compare/v5.4.3...v5.5.0) (2024-01-03)
 
 
