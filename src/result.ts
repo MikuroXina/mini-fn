@@ -1,4 +1,4 @@
-import type { Get1, Hkt2 } from "./hkt.ts";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import type { Optic } from "./optical.ts";
 import { newPrism } from "./optical/prism.ts";
 import {
@@ -632,30 +632,30 @@ export const monoid = <E, T>(error: E): Monoid<Result<E, T>> => ({
     [semiGroupSymbol]: true,
 });
 
-export const applicative: Applicative<ResultHkt> = {
+export const applicative = <E>(): Applicative<Apply2Only<ResultHkt, E>> => ({
     pure: ok,
     map,
     apply,
-};
+});
 
 /**
  * The instance of `Monad` for `Result<E, _>`.
  */
-export const monad: Monad<ResultHkt> = {
+export const monad = <E>(): Monad<Apply2Only<ResultHkt, E>> => ({
     pure: ok,
     map,
     flatMap: andThen,
     apply,
-};
+});
 
 /**
  * The instance of `Monad` for `Traversable<E, _>`.
  */
-export const traversable: Traversable<ResultHkt> = {
+export const traversable = <E>(): Traversable<Apply2Only<ResultHkt, E>> => ({
     map,
     foldR,
     traverse,
-};
+});
 
 /**
  * The instance of `Bifunctor` for `Result<_, _>`.
