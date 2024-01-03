@@ -12,7 +12,7 @@
         "semiColons": true,
         "singleQuote": false,
         "proseWrap": "always",
-        "exclude": ["CHANGELOG.md"]
+        "exclude": [".release-please-manifest.json", "CHANGELOG.md"]
     },
     "lint": {
         "include": ["src/"],
