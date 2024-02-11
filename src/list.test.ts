@@ -1,6 +1,7 @@
 import { assertEquals } from "../deps.ts";
 import { doT } from "./cat.ts";
-import { monad, range, toArray } from "./list.ts";
+import { none, some } from "./option.ts";
+import { fromIterable, monad, range, toArray } from "./list.ts";
 
 Deno.test("with CatT", () => {
     // Find patterns where `x + y + z == 5` for all natural number `x`, `y`, and `z`.
@@ -33,4 +34,17 @@ Deno.test("with CatT", () => {
         [4, 1, 0],
         [5, 0, 0],
     ]);
+});
+
+Deno.test("fromIterable", () => {
+    let list = fromIterable([3, 1, 4]);
+    assertEquals(list.current(), some(3));
+    list = list.rest();
+    assertEquals(list.current(), some(1));
+    list = list.rest();
+    assertEquals(list.current(), some(4));
+    list = list.rest();
+    assertEquals(list.current(), none());
+    list = list.rest();
+    assertEquals(list.current(), none());
 });

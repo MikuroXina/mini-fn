@@ -205,6 +205,33 @@ export const singletonWith = <T>(value: () => T): List<T> => ({
 export const singleton = <T>(value: T): List<T> => singletonWith(() => value);
 
 /**
+ * Creates a new list with an iterator.
+ *
+ * @param iterator - The iterator from an iterable object such as `Array` or `Map`.
+ * @returns The list of items from the iterator.
+ */
+export const fromIterator = <T>(iterator: Iterator<T>): List<T> => {
+    const next = iterator.next();
+    if (next.done) {
+        return empty();
+    }
+    const current = next.value;
+    return {
+        current: () => Option.some(current),
+        rest: () => fromIterator(iterator),
+    };
+};
+
+/**
+ * Creates a new list with an iterable object.
+ *
+ * @param iterable - The iterable object such as `Array` or `Map`.
+ * @returns The list of items from the iterable.
+ */
+export const fromIterable = <T>(iterable: Iterable<T>): List<T> =>
+    fromIterator(iterable[Symbol.iterator]());
+
+/**
  * Concatenates two lists.
  *
  * @param left - The left-side to concatenate.
