@@ -30,12 +30,11 @@ export const eq =
         if (l.size !== r.size) {
             return false;
         }
-        for (const leftKey of l.keys()) {
-            const leftValue = l.get(leftKey);
+        for (const [leftKey, leftValue] of l) {
             const rightValue = r.get(leftKey);
             if (
-                !leftValue || !rightValue ||
-                !equality.eq(leftValue, rightValue)
+                !r.has(leftKey) ||
+                !equality.eq(leftValue, rightValue!)
             ) {
                 return false;
             }
