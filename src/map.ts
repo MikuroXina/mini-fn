@@ -124,6 +124,27 @@ export const fromListWithKey =
         return m;
     };
 
+export const fromArray = <K, V>(arr: readonly Tuple<K, V>[]): Map<K, V> => {
+    const m = new Map<K, V>();
+    for (const [key, value] of arr) {
+        m.set(key, value);
+    }
+    return m;
+};
+export const fromArrayWith =
+    <V>(combiner: (newValue: V) => (oldValue: V) => V) =>
+    <K>(arr: readonly Tuple<K, V>[]): Map<K, V> => {
+        const m = new Map<K, V>();
+        for (const [key, value] of arr) {
+            if (m.has(key)) {
+                m.set(key, combiner(value)(m.get(key)!));
+            } else {
+                m.set(key, value);
+            }
+        }
+        return m;
+    };
+
 export const clone = <K, V>(m: Map<K, V>): Map<K, V> => new Map(m);
 
 export const insert =
