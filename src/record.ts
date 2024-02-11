@@ -344,7 +344,7 @@ export const intersection = <K extends string, V1>(left: Record<K, V1>) =>
     return m;
 };
 export const intersectionWith =
-    <V1, V2, V3>(combiner: (left: V1) => (right: V2) => V3) =>
+    <V1, V2 = V1, V3 = V1>(combiner: (left: V1) => (right: V2) => V3) =>
     <K extends string>(left: Record<K, V1>) =>
     (right: Record<K, V2>): Record<K, V3> => {
         const m = {} as Record<K, V3>;
@@ -355,7 +355,7 @@ export const intersectionWith =
         }
         return m;
     };
-export const intersectionWithKey = <K extends string, V1, V2, V3>(
+export const intersectionWithKey = <K extends string, V1, V2 = V1, V3 = V1>(
     combiner: (key: K) => (left: V1) => (right: V2) => V3,
 ) =>
 (left: Record<K, V1>) =>

@@ -352,7 +352,7 @@ export const intersection =
         return m;
     };
 export const intersectionWith =
-    <V1, V2, V3>(combiner: (left: V1) => (right: V2) => V3) =>
+    <V1, V2 = V1, V3 = V1>(combiner: (left: V1) => (right: V2) => V3) =>
     <K>(left: Map<K, V1>) =>
     (right: Map<K, V2>): Map<K, V3> => {
         const m = new Map<K, V3>();
@@ -364,7 +364,9 @@ export const intersectionWith =
         return m;
     };
 export const intersectionWithKey =
-    <K, V1, V2, V3>(combiner: (key: K) => (left: V1) => (right: V2) => V3) =>
+    <K, V1, V2 = V1, V3 = V1>(
+        combiner: (key: K) => (left: V1) => (right: V2) => V3,
+    ) =>
     (left: Map<K, V1>) =>
     (right: Map<K, V2>): Map<K, V3> => {
         const m = new Map<K, V3>();
