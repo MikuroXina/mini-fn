@@ -188,7 +188,8 @@ export const adjust =
         if (!m.has(key)) {
             return m;
         }
-        return m.set(key, mapper(m.get(key)!));
+        const cloned = clone(m);
+        return cloned.set(key, mapper(m.get(key)!));
     };
 export const adjustWithKey =
     <K, V>(mapper: (key: K) => (oldValue: V) => V) =>
@@ -197,7 +198,8 @@ export const adjustWithKey =
         if (!m.has(key)) {
             return m;
         }
-        return m.set(key, mapper(key)(m.get(key)!));
+        const cloned = clone(m);
+        return cloned.set(key, mapper(key)(m.get(key)!));
     };
 
 export const update =
