@@ -28,6 +28,7 @@ export * as Promise from "./src/promise.ts";
 export * as MonadPromise from "./src/promise/monad.ts";
 export * as Reader from "./src/reader.ts";
 export * as MonadReader from "./src/reader/monad.ts";
+export * as Record from "./src/record.ts";
 export * as Result from "./src/result.ts";
 export * as Reverse from "./src/reverse.ts";
 export * as Seq from "./src/seq.ts";
