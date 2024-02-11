@@ -301,7 +301,9 @@ export const difference =
         return cloned;
     };
 export const differenceWith =
-    <V1, V2>(combiner: (leftValue: V1) => (rightValue: V2) => Option<V1>) =>
+    <V1, V2 = V1>(
+        combiner: (leftValue: V1) => (rightValue: V2) => Option<V1>,
+    ) =>
     <K>(left: Map<K, V1>) =>
     (right: Map<K, V2>): Map<K, V1> => {
         const cloned = clone(left);

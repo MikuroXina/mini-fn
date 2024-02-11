@@ -289,7 +289,9 @@ export const difference = <K extends string, V1>(left: Record<K, V1>) =>
     return cloned;
 };
 export const differenceWith =
-    <V1, V2>(combiner: (leftValue: V1) => (rightValue: V2) => Option<V1>) =>
+    <V1, V2 = V1>(
+        combiner: (leftValue: V1) => (rightValue: V2) => Option<V1>,
+    ) =>
     <K extends string>(left: Record<K, V1>) =>
     (right: Record<K, V2>): Record<K, V1> => {
         const cloned = clone(left);
