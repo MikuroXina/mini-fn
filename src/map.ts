@@ -300,27 +300,26 @@ export const difference =
         }
         return cloned;
     };
-export const differenceWith =
-    <V1, V2 = V1>(
-        combiner: (leftValue: V1) => (rightValue: V2) => Option<V1>,
-    ) =>
-    <K>(left: Map<K, V1>) =>
-    (right: Map<K, V2>): Map<K, V1> => {
-        const cloned = clone(left);
-        for (const [rightKey, rightValue] of right) {
-            if (!cloned.has(rightKey)) {
-                continue;
-            }
-            const toUpdate = combiner(left.get(rightKey)!)(rightValue);
-            if (isNone(toUpdate)) {
-                cloned.delete(rightKey);
-            } else {
-                cloned.set(rightKey, toUpdate[1]);
-            }
+export const differenceWith = <V1, V2 = V1>(
+    combiner: (leftValue: V1) => (rightValue: V2) => Option<V1>,
+) =>
+<K>(left: Map<K, V1>) =>
+(right: Map<K, V2>): Map<K, V1> => {
+    const cloned = clone(left);
+    for (const [rightKey, rightValue] of right) {
+        if (!cloned.has(rightKey)) {
+            continue;
         }
-        return cloned;
-    };
-export const differenceWithKey = <K, V1, V2>(
+        const toUpdate = combiner(left.get(rightKey)!)(rightValue);
+        if (isNone(toUpdate)) {
+            cloned.delete(rightKey);
+        } else {
+            cloned.set(rightKey, toUpdate[1]);
+        }
+    }
+    return cloned;
+};
+export const differenceWithKey = <K, V1, V2 = V1>(
     combiner: (key: K) => (leftValue: V1) => (rightValue: V2) => Option<V1>,
 ) =>
 (left: Map<K, V1>) =>
