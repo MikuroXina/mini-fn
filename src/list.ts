@@ -1,6 +1,7 @@
 import { cat } from "./cat.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import * as Option from "./option.ts";
+import { isNone } from "./option.ts";
 import { andThen, type Ordering } from "./ordering.ts";
 import type { Tuple } from "./tuple.ts";
 import { type Applicative, liftA2 } from "./type-class/applicative.ts";
@@ -27,18 +28,19 @@ export interface List<T> {
 }
 
 export const partialEquality = <T>(equalityT: PartialEq<T>) => {
-    const self = (l: List<T>, r: List<T>): boolean => {
-        console.log({ l: l.current(), r: r.current() });
-        return Option.partialEq(equalityT).eq(l.current(), r.current()) &&
-            self(l.rest(), r.rest());
-    };
+    const self = (l: List<T>, r: List<T>): boolean =>
+        (isNone(l.current()) && isNone(r.current())) ||
+        (Option.partialEq(equalityT).eq(l.current(), r.current()) &&
+            self(l.rest(), r.rest()));
+
     return self;
 };
 export const partialEq = fromPartialEquality(partialEquality);
 export const equality = <T>(equalityT: Eq<T>) => {
     const self = (l: List<T>, r: List<T>): boolean =>
-        Option.eq(equalityT).eq(l.current(), r.current()) &&
-        self(l.rest(), r.rest());
+        (isNone(l.current()) && isNone(r.current())) ||
+        (Option.eq(equalityT).eq(l.current(), r.current()) &&
+            self(l.rest(), r.rest()));
     return self;
 };
 export const eq = fromEquality(equality);
