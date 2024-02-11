@@ -27,9 +27,11 @@ export interface List<T> {
 }
 
 export const partialEquality = <T>(equalityT: PartialEq<T>) => {
-    const self = (l: List<T>, r: List<T>): boolean =>
-        Option.partialEq(equalityT).eq(l.current(), r.current()) &&
-        self(l.rest(), r.rest());
+    const self = (l: List<T>, r: List<T>): boolean => {
+        console.log({ l: l.current(), r: r.current() });
+        return Option.partialEq(equalityT).eq(l.current(), r.current()) &&
+            self(l.rest(), r.rest());
+    };
     return self;
 };
 export const partialEq = fromPartialEquality(partialEquality);
@@ -205,31 +207,13 @@ export const singletonWith = <T>(value: () => T): List<T> => ({
 export const singleton = <T>(value: T): List<T> => singletonWith(() => value);
 
 /**
- * Creates a new list with an iterator.
+ * Creates a new list with a finite iterable object.
  *
- * @param iterator - The iterator from an iterable object such as `Array` or `Map`.
- * @returns The list of items from the iterator.
- */
-export const fromIterator = <T>(iterator: Iterator<T>): List<T> => {
-    const next = iterator.next();
-    if (next.done) {
-        return empty();
-    }
-    const current = next.value;
-    return {
-        current: () => Option.some(current),
-        rest: () => fromIterator(iterator),
-    };
-};
-
-/**
- * Creates a new list with an iterable object.
- *
- * @param iterable - The iterable object such as `Array` or `Map`.
+ * @param iterable - The finite iterable object such as `Array` or `Map`.
  * @returns The list of items from the iterable.
  */
 export const fromIterable = <T>(iterable: Iterable<T>): List<T> =>
-    fromIterator(iterable[Symbol.iterator]());
+    fromArray([...iterable]);
 
 /**
  * Concatenates two lists.

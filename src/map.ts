@@ -1,7 +1,7 @@
 import { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import {
     cmp as listCmp,
-    fromIterator,
+    fromIterable,
     isNull,
     List,
     partialCmp as listPartialCmp,
@@ -363,23 +363,22 @@ export const intersectionWith =
         }
         return m;
     };
-export const intersectionWithKey =
-    <K, V1, V2 = V1, V3 = V1>(
-        combiner: (key: K) => (left: V1) => (right: V2) => V3,
-    ) =>
-    (left: Map<K, V1>) =>
-    (right: Map<K, V2>): Map<K, V3> => {
-        const m = new Map<K, V3>();
-        for (const [leftKey, leftValue] of left) {
-            if (right.has(leftKey)) {
-                m.set(
-                    leftKey,
-                    combiner(leftKey)(leftValue)(right.get(leftKey)!),
-                );
-            }
+export const intersectionWithKey = <K, V1, V2 = V1, V3 = V1>(
+    combiner: (key: K) => (left: V1) => (right: V2) => V3,
+) =>
+(left: Map<K, V1>) =>
+(right: Map<K, V2>): Map<K, V3> => {
+    const m = new Map<K, V3>();
+    for (const [leftKey, leftValue] of left) {
+        if (right.has(leftKey)) {
+            m.set(
+                leftKey,
+                combiner(leftKey)(leftValue)(right.get(leftKey)!),
+            );
         }
-        return m;
-    };
+    }
+    return m;
+};
 
 export const isDisjoint =
     <K, V1>(left: Map<K, V1>) => <V2>(right: Map<K, V2>): boolean => {
@@ -566,10 +565,10 @@ export const foldMapWithKey =
         return acc;
     };
 
-export const keys = <K, V>(m: Map<K, V>): List<K> => fromIterator(m.keys());
-export const values = <K, V>(m: Map<K, V>): List<V> => fromIterator(m.values());
+export const keys = <K, V>(m: Map<K, V>): List<K> => fromIterable(m.keys());
+export const values = <K, V>(m: Map<K, V>): List<V> => fromIterable(m.values());
 export const entries = <K, V>(m: Map<K, V>): List<Tuple<K, V>> =>
-    fromIterator(m.entries());
+    fromIterable(m.entries());
 
 export const sortedEntries =
     <K, V>({ ordK, ordV }: { ordK: Ord<K>; ordV: Ord<V> }) =>
@@ -582,7 +581,7 @@ export const sortedEntries =
             ? ordV.cmp(aValue, bValue)
             : ordK.cmp(aKey, bKey))
         );
-        return fromIterator(entries[Symbol.iterator]());
+        return fromIterable(entries);
     };
 
 export const filter =
