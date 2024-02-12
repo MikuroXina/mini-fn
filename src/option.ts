@@ -160,13 +160,13 @@ export const toArray = <T>(opt: Option<T>): T[] => {
 export const partialEquality =
     <T>(equalityT: PartialEq<T>) =>
     (optA: Option<T>, optB: Option<T>): boolean =>
-        (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1])) ||
-        (isNone(optA) && isNone(optB));
+        (isNone(optA) && isNone(optB)) ||
+        (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1]));
 export const partialEq = fromPartialEquality(partialEquality);
 export const equality =
     <T>(equalityT: Eq<T>) => (optA: Option<T>, optB: Option<T>): boolean =>
-        (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1])) ||
-        (isNone(optA) && isNone(optB));
+        (isNone(optA) && isNone(optB)) ||
+        (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1]));
 export const eq = fromEquality(equality);
 export const partialCmp =
     <T>(order: PartialOrd<T>) =>
