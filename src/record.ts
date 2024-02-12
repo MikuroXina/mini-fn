@@ -194,8 +194,9 @@ export const adjust =
         if (!(key in m)) {
             return m;
         }
-        m[key] = mapper(m[key]);
-        return m;
+        const cloned = clone(m);
+        cloned[key] = mapper(m[key]);
+        return cloned;
     };
 export const adjustWithKey =
     <K extends string, V>(mapper: (key: K) => (oldValue: V) => V) =>
@@ -204,8 +205,9 @@ export const adjustWithKey =
         if (!(key in m)) {
             return m;
         }
-        m[key] = mapper(key)(m[key]);
-        return m;
+        const cloned = clone(m);
+        cloned[key] = mapper(key)(m[key]);
+        return cloned;
     };
 
 export const update =
