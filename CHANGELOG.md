@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.6.0](https://github.com/MikuroXina/mini-fn/compare/v5.5.1...v5.6.0) (2024-02-12)
+
+
+### Features
+
+* Add Map and Record modules ([#164](https://github.com/MikuroXina/mini-fn/issues/164)) ([d09f97a](https://github.com/MikuroXina/mini-fn/commit/d09f97a2052e9490144b14ac4dba44f1085eb043))
+
 ## [5.5.1](https://github.com/MikuroXina/mini-fn/compare/v5.5.0...v5.5.1) (2024-01-03)
 
 
