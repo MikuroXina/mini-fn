@@ -1,7 +1,7 @@
 import { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import {
     cmp as listCmp,
-    fromIterator,
+    fromIterable,
     isNull,
     List,
     partialCmp as listPartialCmp,
@@ -123,6 +123,23 @@ export const fromListWithKey = <K extends string, V>(
     }
     return m;
 };
+
+export const fromArray = <K extends string, V>(
+    arr: readonly Tuple<K, V>[],
+): Record<K, V> => Object.fromEntries(arr) as Record<K, V>;
+export const fromArrayWith =
+    <V>(combiner: (newValue: V) => (oldValue: V) => V) =>
+    <K extends string>(arr: readonly Tuple<K, V>[]): Record<K, V> => {
+        const m = {} as Record<K, V>;
+        for (const [key, value] of arr) {
+            if (key in m) {
+                m[key] = combiner(value)(m[key]);
+            } else {
+                m[key] = value;
+            }
+        }
+        return m;
+    };
 
 export const clone = <K extends string, V>(m: Record<K, V>): Record<K, V> => ({
     ...m,
@@ -566,13 +583,12 @@ export const foldRecordWithKey =
     };
 
 export const keys = <K extends string, V>(m: Record<K, V>): List<K> =>
-    fromIterator((Object.keys(m) as K[])[Symbol.iterator]());
+    fromIterable(Object.keys(m) as K[]);
 export const values = <K extends string, V>(m: Record<K, V>): List<V> =>
-    fromIterator(Object.values<V>(m)[Symbol.iterator]());
+    fromIterable(Object.values<V>(m));
 export const entries = <K extends string, V>(
     m: Record<K, V>,
-): List<Tuple<K, V>> =>
-    fromIterator((Object.entries(m) as [K, V][])[Symbol.iterator]());
+): List<Tuple<K, V>> => fromIterable(Object.entries(m) as [K, V][]);
 
 export const sortedEntries =
     <K extends string, V>(ordV: Ord<V>) =>
@@ -585,7 +601,7 @@ export const sortedEntries =
             ? ordV.cmp(aValue, bValue)
             : stringCmp(aKey, bKey))
         );
-        return fromIterator(entries[Symbol.iterator]());
+        return fromIterable(entries);
     };
 
 export const filter =
