@@ -554,13 +554,13 @@ Deno.test("isSubsetOfBy", () => {
 
 Deno.test("isProperSubsetOfBy", () => {
     const isProperSubsetOfByEq = Map.isProperSubsetOfBy(
-        (sub: string) => (sup: string) => sub === sup
+        (sub: string) => (sup: string) => sub === sup,
     );
     const isProperSubsetOfByLe = Map.isProperSubsetOfBy(
-        (sub: string) => (sup: string) => sub <= sup
+        (sub: string) => (sup: string) => sub <= sup,
     );
     const isProperSubsetOfByLt = Map.isProperSubsetOfBy(
-        (sub: string) => (sup: string) => sub < sup
+        (sub: string) => (sup: string) => sub < sup,
     );
 
     assertEquals(
