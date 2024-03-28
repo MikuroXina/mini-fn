@@ -3,18 +3,35 @@ import type { Monad } from "./type-class/monad.ts";
 import { IdentityHkt } from "./identity.ts";
 import { doT } from "./cat.ts";
 
+/**
+ * A symbol among Ether values, which resolves into the actual producing type.
+ */
 export type EtherSymbol<T> = symbol & {
     readonly etherValue: T;
 };
+/**
+ * Gets the value type from an `EtherSymbol`.
+ */
 export type EtherValue<S> = S extends EtherSymbol<infer T> ? T : never;
 
+/**
+ * Makes a new `EtherSymbol` for `newEther` or `newEtherT`. It should be created with an interface definition.
+ *
+ * @returns The unique `EtherSymbol`.
+ */
 export const newEtherSymbol = <T>(): EtherSymbol<T> =>
     Symbol() as EtherSymbol<T>;
 
+/**
+ * A dependencies object which will be passed to `Ether`'s handler.
+ */
 export type EtherDeps<D> = {
     [K in keyof D]: EtherValue<D[K]>;
 };
 
+/**
+ * Omits fields of type `T` from a dependencies object type `D`.
+ */
 export type OmitType<D, T> = {
     [K in keyof D as D[K] extends EtherSymbol<T> ? never : K]: D[K];
 };
@@ -28,10 +45,24 @@ export interface EtherT<D, M, T> {
     readonly depSymbols: D;
 }
 
+/**
+ * Executes an `EtherT` which requires no dependencies.
+ *
+ * @param ether Execution target.
+ * @returns The return value of `ether`'s handler.
+ */
 export const runEtherT = <M, T>(
     ether: EtherT<Record<string, never>, M, T>,
 ): Get1<M, T> => ether.handler({});
 
+/**
+ * Creates a new `EtherT`.
+ *
+ * @param selfSymbol The unique symbol corresponding to the return type `T`.
+ * @param handler The function which creates an object of type `T` from the dependencies object on `M`.
+ * @param depSymbols The declaration of symbols by key, for `handler` which requires dependencies.
+ * @returns A new `EtherT` having parameters as fields.
+ */
 export const newEtherT = <M>() =>
 <
     T,
@@ -42,6 +73,14 @@ export const newEtherT = <M>() =>
     depSymbols: D = {} as D,
 ): EtherT<D, M, T> => ({ selfSymbol, handler, depSymbols });
 
+/**
+ * Composes two `EtherT`s into a new one. Injects `lower` into `upper`.
+ *
+ * @param monad The monad implementation for `M`.
+ * @param lower The lower dependency, which will be injected, such as a database adaptor.
+ * @param upper The upper dependency, which will injected `lower`, such as a service function.
+ * @returns The injected `EtherT`, which will be resolved the matching dependencies on `upper` with `lower`'s handler.
+ */
 export const composeT =
     <M>(monad: Monad<M>) =>
     <const D extends Record<string, symbol>, T>(lower: EtherT<D, M, T>) =>
@@ -82,9 +121,23 @@ export interface EtherTHkt extends Hkt3 {
  */
 export type Ether<D, T> = EtherT<D, IdentityHkt, T>;
 
+/**
+ * Executes an `Ether` which requires no dependencies.
+ *
+ * @param ether Execution target.
+ * @returns The return value of `ether`'s handler.
+ */
 export const runEther = <T>(ether: Ether<Record<string, never>, T>): T =>
     ether.handler({});
 
+/**
+ * Creates a new `Ether`.
+ *
+ * @param selfSymbol The unique symbol corresponding to the return type `T`.
+ * @param handler The function which creates an object of type `T` from the dependencies object.
+ * @param depSymbols The declaration of symbols by key, for `handler` which requires dependencies.
+ * @returns A new `Ether` having parameters as fields.
+ */
 export const newEther = <
     T,
     const D extends Record<string, symbol> = Record<string, never>,
@@ -94,6 +147,13 @@ export const newEther = <
     depSymbols: D = {} as D,
 ): Ether<D, T> => ({ selfSymbol, handler, depSymbols });
 
+/**
+ * Composes two `Ether`s into a new one. Injects `lower` into `upper`.
+ *
+ * @param lower The lower dependency, which will be injected, such as a database adaptor.
+ * @param upper The upper dependency, which will injected `lower`, such as a service function.
+ * @returns The injected `Ether`, which will be resolved the matching dependencies on `upper` with `lower`'s handler.
+ */
 export const compose =
     <const D extends Record<string, symbol>, T>(lower: Ether<D, T>) =>
     <const E extends Record<string, symbol>, U>(
