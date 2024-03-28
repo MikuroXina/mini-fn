@@ -4,59 +4,56 @@
  * A parallel combinator that merging two computations `C1` and `C2`.
  *
  * ```text
- *                        S1  +------+  A1
- *                     +----->|      |------+
- *                     |  T1  |  C1  |  B1  |
- *                  +--|------|      |<-----|--+
- *                  |  |      +------+      |  |
- *  Tuple<S2, S1> -----+                    +-----> Result<A2, A1>
- *                  |  |  S2  +------+  A2  |  |
- * Result<T2, T1> <-+  +----->|      |------+  +--- Result<B2, B1>
- *                  |     T2  |  C2  |  B2     |
- *                  +---------|      |<--------+
- *                            +------+
+ *                        +------+  A1
+ * S --------------+----->|      |--------------+
+ *                 |  T1  |  C1  |              |
+ *          +------|------|      |<------+      V
+ *          |      |      +------+       |  [ joinA ]--> A
+ *          V      |                     |      ^
+ * T <--[ joinT ]  |      +------+  A2   |      |
+ *          ^      |----->|      |-------|------+
+ *          |         T2  |  C2  |       |
+ *          +-------------|      |<------+-------------- B
+ *                        +------+
  * ```
  */
 
+import { absurd } from "../func.ts";
 import type { Optic } from "../optical.ts";
-import { err, isOk, ok, type Result } from "../result.ts";
-import type { Tuple } from "../tuple.ts";
 
 /**
  * Creates a new parallel combinator that merging two computations `C1` and `C2`.
  *
  * ```text
- *                        S1  +------+  A1
- *                     +----->|      |------+
- *                     |  T1  |  C1  |  B1  |
- *                  +--|------|      |<-----|--+
- *                  |  |      +------+      |  |
- *  Tuple<S2, S1> -----+                    +-----> Result<A2, A1>
- *                  |  |  S2  +------+  A2  |  |
- * Result<T2, T1> <-+  +----->|      |------+  +--- Result<B2, B1>
- *                  |     T2  |  C2  |  B2     |
- *                  +---------|      |<--------+
- *                            +------+
+ *                        +------+  A1
+ * S --------------+----->|      |--------------+
+ *                 |  T1  |  C1  |              |
+ *          +------|------|      |<------+      V
+ *          |      |      +------+       |  [ joinA ]--> A
+ *          V      |                     |      ^
+ * T <--[ joinT ]  |      +------+  A2   |      |
+ *          ^      |----->|      |-------|------+
+ *          |         T2  |  C2  |       |
+ *          +-------------|      |<------+-------------- B
+ *                        +------+
  * ```
  */
 export const newParallel =
-    <S2, T2, A2, B2>(computation2: Optic<S2, T2, A2, B2>) =>
-    <S1, T1, A1, B1>(
-        computation1: Optic<S1, T1, A1, B1>,
-    ): Optic<Tuple<S2, S1>, Result<T2, T1>, Result<A2, A1>, Result<B2, B1>> =>
-    <R>(
-        next: (
-            sending: Result<A2, A1>,
-        ) => (continuation: (returned: Result<B2, B1>) => R) => R,
-    ) =>
-    (received: Tuple<S2, S1>) =>
-    (callback: (t: Result<T2, T1>) => R): R =>
-        computation1<R>((sending) => (continuation) =>
-            next(ok(sending))((returned) =>
-                isOk(returned)
-                    ? continuation(returned[1])
-                    : computation2<R>(() => (continuation) =>
-                        continuation(returned[1])
-                    )(received[0])((t2) => callback(err(t2)))
-            )
-        )(received[1])((t1) => callback(ok(t1)));
+    <T, T1, T2>(joinT: (t1: T1) => (t2: T2) => T) =>
+    <A, A1, A2>(joinA: (a1: A1) => (a2: A2) => A) =>
+    <S, B>(computation1: Optic<S, T1, A1, B>) =>
+    (computation2: Optic<S, T2, A2, B>): Optic<S, T, A, B> =>
+    <R>(next: (sending: A) => (continuation: (returned: B) => R) => R) =>
+    (received: S) =>
+    (callback: (t: T) => R): R =>
+        computation1<R>((sending1) => (continuation1) =>
+            computation2<R>((sending2) => () =>
+                next(joinA(sending1)(sending2))(continuation1)
+            )(received)(absurd)
+        )(received)((t1) =>
+            computation2<R>((sending2) => (continuation2) =>
+                computation1<R>((sending1) => () =>
+                    next(joinA(sending1)(sending2))(continuation2)
+                )(received)(absurd)
+            )(received)((t2) => callback(joinT(t1)(t2)))
+        );
