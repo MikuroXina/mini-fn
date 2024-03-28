@@ -9,6 +9,7 @@ export * as MonadCont from "./src/cont/monad.ts";
 export * as Coyoneda from "./src/coyoneda.ts";
 export * as Curry from "./src/curry.ts";
 export * as Dual from "./src/dual.ts";
+export * as Ether from "./src/ether.ts";
 export * as Free from "./src/free.ts";
 export * as MonadFree from "./src/free/monad.ts";
 export * as Frozen from "./src/frozen.ts";
