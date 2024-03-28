@@ -4,6 +4,7 @@ import { none, type Option, some } from "./option.ts";
 
 export * as Getter from "./optical/getter.ts";
 export * as Lens from "./optical/lens.ts";
+export * as Parallel from "./optical/parallel.ts";
 export * as Prism from "./optical/prism.ts";
 export * as Setter from "./optical/setter.ts";
 export * as Traversal from "./optical/traversal.ts";
