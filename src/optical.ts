@@ -1,6 +1,8 @@
 import { absurd } from "./func.ts";
 import type { Setter } from "./optical/setter.ts";
 import { none, type Option, some } from "./option.ts";
+import type { ContT } from "./cont.ts";
+import type { IdentityHkt } from "./identity.ts";
 
 export * as Getter from "./optical/getter.ts";
 export * as Lens from "./optical/lens.ts";
@@ -9,6 +11,24 @@ export * as Prism from "./optical/prism.ts";
 export * as Setter from "./optical/setter.ts";
 export * as Sequential from "./optical/sequential.ts";
 export * as Traversal from "./optical/traversal.ts";
+
+/**
+ * Generic computation combinator with two-terminal pair.
+ * ```text
+ * +-- environment M ----------+
+ * |                           |
+ * |     |---------------|     |
+ * | S ->|               |-> A |
+ * |     |  Computation  |     |
+ * | T <-|               |<- B |
+ * |     |---------------|     |
+ * |                           |
+ * +---------------------------+
+ * ```
+ */
+export type Optical<M, in S, out T, out A, in B> = <R>(
+    next: (sending: A) => ContT<R, M, B>,
+) => (received: S) => ContT<R, M, T>;
 
 /**
  * Computation combinator with two-terminal pair.
@@ -20,9 +40,7 @@ export * as Traversal from "./optical/traversal.ts";
  *     |---------------|
  * ```
  */
-export type Optic<in S, out T, out A, in B> = <R>(
-    next: (sending: A) => (continuation: (returned: B) => R) => R,
-) => (received: S) => (callback: (t: T) => R) => R;
+export type Optic<in S, out T, out A, in B> = Optical<IdentityHkt, S, T, A, B>;
 export type OpticSimple<S, A> = Optic<S, S, A, A>;
 
 /**
