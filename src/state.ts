@@ -1,8 +1,11 @@
-import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
+import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
 import type { IdentityHkt } from "./identity.ts";
 import type { Tuple } from "./tuple.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
+import type { Pure } from "./type-class/pure.ts";
+import type { FlatMap } from "./type-class/flat-map.ts";
+import { doT } from "./cat.ts";
 
 /**
  * The state monad transformer, the computation allows you to carry and modify the state `S` of it and returns the result `A` on `M`.
@@ -67,6 +70,92 @@ export const withStateT =
     <S, M, A>(fn: (state: S) => S) =>
     (s: StateT<S, M, A>): StateT<S, M, A> =>
     (state: S) => s(fn(state));
+
+/**
+ * Makes two computations into a product about the result type.
+ *
+ * @param monad - A `Monad` instance for `M`.
+ * @param a - A left-side computation.
+ * @param b - A right-side computation.
+ * @returns The computation which the result type is a product of them.
+ */
+export const productT =
+    <M>(monad: Monad<M>) =>
+    <S, A>(a: StateT<S, M, A>) =>
+    <B>(b: StateT<S, M, B>): StateT<S, M, Tuple<A, B>> =>
+    (state) =>
+        doT(monad).addM("aRes", a(state))
+            .addMWith("bRes", ({ aRes }) => b(aRes[1]))
+            .finish(({ aRes, bRes }) => [[aRes[0], bRes[0]], bRes[1]]);
+/**
+ * Maps the computation by `fn` over `StateT<S, M, _>`.
+ *
+ * @param functor - A `Functor` instance for `M`.
+ * @param fn - A function to be applied.
+ * @param s - A computation to be mapped.
+ * @returns The mapped computation.
+ */
+export const mapT =
+    <M>(functor: Functor<M>) =>
+    <S, A, B>(fn: (a: A) => B) =>
+    (s: StateT<S, M, A>): StateT<S, M, B> =>
+    (state) =>
+        functor.map(([answer, nextState]: [A, S]) => [fn(answer), nextState])(
+            s(state),
+        );
+/**
+ * Applies the function returned by the computation `sMap`.
+ *
+ * @param monad - A `Monad` instance for `M`.
+ * @param sMap - A computation returns the function to map.
+ * @param s - A computation to be mapped.
+ * @returns The applied computation.
+ */
+export const applyT =
+    <M>(monad: Monad<M>) =>
+    <S, A, B>(sMap: StateT<S, M, (a: A) => B>) =>
+    (s: StateT<S, M, A>): StateT<S, M, B> =>
+    (state: S) =>
+        doT(monad).addM("first", sMap(state))
+            .addMWith("second", ({ first }) => s(first[1]))
+            .finish(({ first, second }) => [first[0](second[0]), second[1]]);
+/**
+ * Wraps the value as a computation which does nothing.
+ *
+ * @param pure - A `Pure` instance for `M`.
+ * @param a - A value to be contained.
+ * @returns The computation that does nothing.
+ */
+export const pureT =
+    <M>(pure: Pure<M>) => <S, A>(a: A): StateT<S, M, A> => (s: S) =>
+        pure.pure([a, s]);
+/**
+ * Maps and flattens the computation by `fn` over `StateT<S, M, _>`.
+ *
+ * @param flatMap - A `FlatMap` instance for `M`.
+ * @param fn - A function to map.
+ * @param s - A computation to be mapped.
+ * @returns The mapped and flattened computation.
+ */
+export const flatMapT =
+    <M>(flatMap: FlatMap<M>) =>
+    <S, A, B>(fn: (a: A) => StateT<S, M, B>) =>
+    (s: StateT<S, M, A>): StateT<S, M, B> =>
+    (state) =>
+        flatMap.flatMap(([ans, nextState]: [A, S]) => fn(ans)(nextState))(
+            s(state),
+        );
+/**
+ * Flattens the nested computation. It is equivalent to `flatMapT(m)((s) => s)(ss)`.
+ *
+ * @param m - A `FlatMap` instance for `M`.
+ * @param ss - The nested computation.
+ * @returns The flattened computation.
+ */
+export const flattenT =
+    <M>(m: FlatMap<M>) =>
+    <S, A>(ss: StateT<S, M, StateT<S, M, A>>): StateT<S, M, A> =>
+        flatMapT(m)((s: StateT<S, M, A>) => s)(ss);
 
 /**
  * The state monad, the computation allows you to carry and modify the state `S` of it and returns the result `A`.
@@ -228,4 +317,24 @@ export const monad = <S>(): Monad<Apply2Only<StateHkt, S>> => ({
     apply,
     pure,
     flatMap,
+});
+
+/**
+ * The instance of `Functor` for `StateT<S, M, _>`.
+ */
+export const functorT = <S, M>(
+    functor: Functor<M>,
+): Functor<Apply3Only<StateTHkt, S> & Apply2Only<StateTHkt, M>> => ({
+    map: mapT(functor),
+});
+/**
+ * The instance of `Monad` for `StateT<S, M, _>`.
+ */
+export const monadT = <S, M>(
+    monad: Monad<M>,
+): Monad<Apply3Only<StateTHkt, S> & Apply2Only<StateTHkt, M>> => ({
+    map: mapT(monad),
+    apply: applyT(monad),
+    pure: pureT(monad),
+    flatMap: flatMapT(monad),
 });
