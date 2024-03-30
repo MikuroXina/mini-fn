@@ -3,6 +3,8 @@ import type { Setter } from "./optical/setter.ts";
 import { none, type Option, some } from "./option.ts";
 import type { ContT } from "./cont.ts";
 import type { IdentityHkt } from "./identity.ts";
+import type { Get1 } from "./hkt.ts";
+import type { Pure } from "./type-class/pure.ts";
 
 export * as Getter from "./optical/getter.ts";
 export * as Lens from "./optical/lens.ts";
@@ -31,6 +33,123 @@ export type Optical<M, in S, out T, out A, in B> = <R>(
     next: (sending: A) => ContT<R, M, B>,
 ) => (received: S) => ContT<R, M, T>;
 
+export interface OpticalCat<M, S, T, A, B> {
+    /**
+     * Feeds the `Optic` and produces a new environment.
+     *
+     * @param o - The computation such as `Lens`, `Prism` and so on.
+     * @returns Modified environment.
+     */
+    readonly feed: <X, Y>(
+        o: Optical<M, A, B, X, Y>,
+    ) => OpticalCat<M, S, T, X, Y>;
+    /**
+     * Modifies the value of the focused entry.
+     *
+     * @param modifier - The function which maps from the entry value to you desired.
+     * @returns Whole of data with the entry modified.
+     */
+    readonly over: (modifier: (a: A) => B) => Get1<M, T>;
+    /**
+     * Overwrites the value of the focused entry.
+     *
+     * @param value - The value to be placed.
+     * @returns Whole of data with `value`.
+     */
+    readonly set: (value: B) => Get1<M, T>;
+    /**
+     * Overwrites the value with the modifying computation.
+     *
+     * @param setter - The finish computation to add.
+     * @returns Whole of data with `setter`.
+     */
+    readonly setWith: (setter: Setter<A, B>) => Get1<M, T>;
+    /**
+     * Extracts the value of the focused entry.
+     *
+     * @returns Extracted value if exists.
+     */
+    readonly get: () => Get1<M, Option<A>>;
+    /**
+     * Extracts the value of the focused entry, or throws an error if not found.
+     *
+     * @returns Extracted value.
+     */
+    readonly unwrap: () => Get1<M, A>;
+}
+
+/**
+ * Modifies the value of the focused entry.
+ */
+export const overT =
+    <M>(pure: Pure<M>) =>
+    <S, T, A, B>(lens: Optical<M, S, T, A, B>) =>
+    (modifier: (a: A) => B) =>
+    (data: S): Get1<M, T> =>
+        lens<T>((a) => (br) => br(modifier(a)))(data)((t) => pure.pure(t));
+
+/**
+ * Overwrites the value of the focused entry.
+ */
+export const setT =
+    <M>(pure: Pure<M>) =>
+    <S, T, A, B>(lens: Optical<M, S, T, A, B>) =>
+    (value: B) =>
+    (data: S): Get1<M, T> => overT(pure)(lens)(() => value)(data);
+
+/**
+ * Extracts the value of the focused entry.
+ */
+export const getT =
+    <M>(pure: Pure<M>) =>
+    <S, T, A, B>(lens: Optical<M, S, T, A, B>) =>
+    (data: S): Get1<M, Option<A>> =>
+        lens<Option<A>>((a) => () => pure.pure(some(a)))(data)(() =>
+            pure.pure(none())
+        );
+
+/**
+ * Extracts the value of the focused entry, or throw an error if no entry found.
+ */
+export const unwrapT =
+    <M>(pure: Pure<M>) =>
+    <S, T, A, B>(lens: Optical<M, S, T, A, B>) =>
+    (data: S): Get1<M, A> =>
+        lens<A>((a) => () => pure.pure(a))(data)(() => {
+            throw new Error("no entry");
+        });
+
+/**
+ * Creates a focused environment to compute about the part of the data structure on `M`.
+ *
+ * @param pure - A `Pure` instance for `M`.
+ * @param data - Data to be computed.
+ * @param o - A computation to use.
+ * @returns The modified environment.
+ */
+export const focusedT =
+    <M>(pure: Pure<M>) =>
+    <S>(data: S) =>
+    <T, A, B>(o: Optical<M, S, T, A, B>): OpticalCat<M, S, T, A, B> => ({
+        feed: (right) => focusedT(pure)(data)(compose(o)(right)),
+        over: (modifier) =>
+            o<T>((a) => (br) => br(modifier(a)))(data)((t) => pure.pure(t)),
+        set: (value) =>
+            o<T>(() => (br) => br(value))(data)((t) => pure.pure(t)),
+        setWith: (setter) =>
+            o<T>((a) => (bt) => setter<Get1<M, T>>(absurd)(a)((b) => bt(b)))(
+                data,
+            )((t) => pure.pure(t)),
+        get: () =>
+            o<Option<A>>((a) => () => pure.pure(some(a)))(data)(() =>
+                pure.pure(none())
+            ),
+        unwrap: () =>
+            o<A>((a) => () => pure.pure(a))(data)(() => {
+                throw new Error("no entry");
+            }),
+    });
+
 /**
  * Computation combinator with two-terminal pair.
  * ```text
@@ -47,7 +166,7 @@ export type OpticSimple<S, A> = Optic<S, S, A, A>;
 /**
  * The identity combinator which does nothing.
  */
-export const identity = <S>(): Optic<S, S, S, S> => (x) => x;
+export const identity = <M, S>(): Optical<M, S, S, S, S> => (x) => x;
 
 /**
  * Composes two computations.
@@ -64,8 +183,8 @@ export const identity = <S>(): Optic<S, S, S, S> => (x) => x;
  * @returns The composed computation.
  */
 export const compose =
-    <X, Y, S, T>(left: Optic<X, Y, S, T>) =>
-    <A, B>(right: Optic<S, T, A, B>): Optic<X, Y, A, B> =>
+    <M, X, Y, S, T>(left: Optical<M, X, Y, S, T>) =>
+    <A, B>(right: Optical<M, S, T, A, B>): Optical<M, X, Y, A, B> =>
     (ab) => left(right(ab));
 
 /**
