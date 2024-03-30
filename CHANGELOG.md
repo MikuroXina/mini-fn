@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.7.0](https://github.com/MikuroXina/mini-fn/compare/v5.6.0...v5.7.0) (2024-03-30)
+
+
+### Features
+
+* Add Ether and EtherT ([#166](https://github.com/MikuroXina/mini-fn/issues/166)) ([1b8e93b](https://github.com/MikuroXina/mini-fn/commit/1b8e93b70e9c605d3615789eb4ae53392b3290c6))
+* Enforce Optical ([#168](https://github.com/MikuroXina/mini-fn/issues/168)) ([679d657](https://github.com/MikuroXina/mini-fn/commit/679d657bfa6c0befc12d1a74f5f0599199057d6a))
+
 ## [5.6.0](https://github.com/MikuroXina/mini-fn/compare/v5.5.1...v5.6.0) (2024-02-12)
 
 
