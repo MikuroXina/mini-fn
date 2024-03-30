@@ -151,6 +151,17 @@ export const focusedT =
     });
 
 /**
+ * Creates an environment to compute about the data structure.
+ *
+ * @param pure - A `Pure` instance for `M`.
+ * @param data - The data to be computed.
+ * @returns The environment to compute.
+ */
+export const opticalCat =
+    <M>(pure: Pure<M>) => <S>(data: S): OpticalCat<M, S, S, S, S> =>
+        focusedT(pure)(data)(identity());
+
+/**
  * Computation combinator with two-terminal pair.
  * ```text
  *     |---------------|
