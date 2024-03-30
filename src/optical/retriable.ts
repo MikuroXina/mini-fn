@@ -108,12 +108,13 @@ export const newRetriable =
  * @param set - A function to substitute the data `S`.
  * @returns The retriable optical.
  */
-export const exponentialBackoff = <E>(maxRetries: number) =>
-    newRetriable(promiseMonad)(0)((_err: E) => async (attempt) => {
-        if (attempt >= maxRetries) {
-            return newBreak(undefined);
-        }
-        const delay = 100 << Math.min(23, attempt);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        return newContinue(attempt + 1);
-    });
+export const exponentialBackoff =
+    (maxRetries: number) => <E, T>(fallback: (err: E) => T) =>
+        newRetriable(promiseMonad)(0)((err: E) => async (attempt) => {
+            if (attempt >= maxRetries) {
+                return newBreak(fallback(err));
+            }
+            const delay = 100 << Math.min(23, attempt);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return newContinue(attempt + 1);
+        });
