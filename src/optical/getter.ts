@@ -16,6 +16,4 @@ export const newGetter =
     <S, A, T>(getter: (s: S) => A): Getter<S, A, T> =>
     (next) =>
     (received) =>
-    (callback) => {
-        return next(getter(received))(callback);
-    };
+    (callback) => next(getter(received))(callback);

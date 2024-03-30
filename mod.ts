@@ -6,6 +6,7 @@ export * as ComonadCofree from "./src/cofree/comonad.ts";
 export * as Const from "./src/const.ts";
 export * as Cont from "./src/cont.ts";
 export * as MonadCont from "./src/cont/monad.ts";
+export * as ControlFlow from "./src/control-flow.ts";
 export * as Coyoneda from "./src/coyoneda.ts";
 export * as Curry from "./src/curry.ts";
 export * as Dual from "./src/dual.ts";
