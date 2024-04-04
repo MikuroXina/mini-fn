@@ -1,3 +1,10 @@
+import {
+    type Serial,
+    type Serialize,
+    serializeMonad,
+    type Serializer,
+} from "./serialize.ts";
+import { doT } from "./cat.ts";
 import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.ts";
 import { defer as lazyDefer, force, type Lazy } from "./lazy.ts";
 import { andThen, type Option } from "./option.ts";
@@ -278,3 +285,21 @@ export const bitraversable: Bitraversable<TupleHkt> = {
     ...bifoldable,
     bitraverse,
 };
+
+export const serialize =
+    <A>(serializeA: Serialize<A>) =>
+    <B>(serializeB: Serialize<B>): Serialize<Tuple<A, B>> =>
+    <S>(v: Tuple<A, B>) =>
+    (ser: Serializer<S>): Serial<S> =>
+        doT(serializeMonad<S>()).addM(
+            "serTuple",
+            ser.serializeTuple(2),
+        ).addMWith("_", ({ serTuple }) =>
+            serTuple.serializeElement(serializeA)(v[0]))
+            .addMWith("_", ({ serTuple }) =>
+                serTuple.serializeElement(serializeB)(v[1]))
+            .addMWith("end", ({ serTuple }) =>
+                serTuple.end())
+            .finish(({ end }) =>
+                end
+            ) as Serial<S>;

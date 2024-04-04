@@ -1,3 +1,9 @@
+import {
+    type Serial,
+    type Serialize,
+    serializeMonad,
+    type Serializer,
+} from "./serialize.ts";
 import type { Hkt1 } from "./hkt.ts";
 import { isNone, map as mapOption, none, type Option, some } from "./option.ts";
 import {
@@ -10,8 +16,11 @@ import {
     isSingle,
     type Node,
     reduceDigit,
+    reduceTree,
+    size,
 } from "./seq/finger-tree.ts";
 import type { Tuple } from "./tuple.ts";
+import { doT } from "./cat.ts";
 
 /**
  * The sequence of `A`, the homogenous data structure to store finite data. This is an alias of `FingerTree`.
@@ -155,3 +164,22 @@ export const headR = <A>(tree: Seq<A>): Option<A> =>
  */
 export const tailR = <A>(tree: Seq<A>): Option<Seq<A>> =>
     mapOption(([tail]: Tuple<Seq<A>, A>) => tail)(viewR(tree));
+
+export const serialize =
+    <A>(serializeA: Serialize<A>): Serialize<Seq<A>> =>
+    <S>(v: Seq<A>) =>
+    (ser: Serializer<S>): Serial<S> => {
+        const cat = doT(serializeMonad<S>()).addM(
+            "seqSer",
+            ser.serializeArray(size(v)),
+        );
+        return reduceTree
+            .reduceL((prev: typeof cat) => (item: A): typeof cat =>
+                prev.addMWith(
+                    "_",
+                    ({ seqSer }) => seqSer.serializeElement(serializeA)(item),
+                )
+            )(cat)(v)
+            .addMWith("end", ({ seqSer }) => seqSer.end())
+            .finish(({ end }) => end) as Serial<S>;
+    };

@@ -1,3 +1,4 @@
+import type { Serialize } from "./serialize.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import type { Applicative } from "./type-class/applicative.ts";
 import { fromProjection as eqFromProjection } from "./type-class/eq.ts";
@@ -139,3 +140,7 @@ export const traversable: Traversable<LazyHkt> = {
     foldR,
     traverse,
 };
+
+export const serialize =
+    <T>(serializeT: Serialize<T>): Serialize<Lazy<T>> => (v) =>
+        serializeT(force(v));

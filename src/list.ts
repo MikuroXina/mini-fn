@@ -1,3 +1,4 @@
+import { collectArray, type Serialize } from "./serialize.ts";
 import { cat } from "./cat.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import * as Option from "./option.ts";
@@ -1980,3 +1981,7 @@ export const reduce: Reduce<ListHkt> = {
     reduceL: foldL,
     reduceR: (reducer) => (fa) => (b) => foldR(reducer)(b)(fa),
 };
+
+export const serialize =
+    <T>(serializeT: Serialize<T>): Serialize<List<T>> => (v) =>
+        collectArray(serializeT)(toArray(v));

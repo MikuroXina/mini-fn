@@ -30,6 +30,13 @@ import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import { TraversableMonad } from "./type-class/traversable-monad.ts";
 import type { Traversable } from "./type-class/traversable.ts";
+import {
+    Serial,
+    type Serialize,
+    serializeMonad,
+    Serializer,
+} from "./serialize.ts";
+import { doT } from "./cat.ts";
 
 const someSymbol = Symbol("OptionSome");
 /**
@@ -823,3 +830,20 @@ export const ifNone = <T>(): OpticSimple<Option<T>, void> =>
     newPrismSimple<void, Option<T>>(none)(
         mapOrElse<Option<void>>(() => some(undefined))(none),
     );
+
+export const serialize = <T>(
+    serializeT: Serialize<T>,
+): Serialize<Option<T>> =>
+(v) =>
+<S>(ser: Serializer<S>): Serial<S> =>
+    isNone(v)
+        ? ser.serializeUnitVariant("Option", 0, "None")
+        : doT(serializeMonad<S>()).addM(
+            "serVariant",
+            ser.serializeTupleVariant("Option", 1, "Some", 1),
+        ).addMWith(
+            "_",
+            ({ serVariant }) => serVariant.serializeElement(serializeT)(v[1]),
+        )
+            .addMWith("end", ({ serVariant }) => serVariant.end())
+            .finish(({ end }) => end) as Serial<S>;

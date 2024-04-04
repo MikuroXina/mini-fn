@@ -1,3 +1,4 @@
+import type { Serialize } from "./serialize.ts";
 import type { Hkt2 } from "./hkt.ts";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -12,3 +13,7 @@ export const unTagged = <S, B>({ value }: Tagged<S, B>) => value;
 export interface TaggedHkt extends Hkt2 {
     readonly type: Tagged<this["arg2"], this["arg1"]>;
 }
+
+export const serialize =
+    <S, B>(serializeB: Serialize<B>): Serialize<Tagged<S, B>> => (v) =>
+        serializeB(v.value);

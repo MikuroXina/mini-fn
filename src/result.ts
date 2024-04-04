@@ -1,3 +1,4 @@
+import { doT } from "./cat.ts";
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import type { Optic } from "./optical.ts";
 import { newPrism } from "./optical/prism.ts";
@@ -9,6 +10,12 @@ import {
     toArray as optionToArray,
 } from "./option.ts";
 import { greater, less, type Ordering } from "./ordering.ts";
+import {
+    type Serial,
+    type Serialize,
+    serializeMonad,
+    type Serializer,
+} from "./serialize.ts";
 import type { Applicative } from "./type-class/applicative.ts";
 import type { Bifoldable } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
@@ -700,3 +707,23 @@ export const ifOk = <E, T, U>(): Optic<Result<E, T>, Result<E, U>, T, U> =>
     newPrism<U, Result<E, U>>(ok)(
         either<E, Result<Result<E, U>, T>>((e) => err(err(e)))(ok),
     );
+
+export const serialize = <E>(
+    serializeE: Serialize<E>,
+) =>
+<T>(serializeT: Serialize<T>): Serialize<Result<E, T>> =>
+(v) =>
+<S>(ser: Serializer<S>): Serial<S> =>
+    doT(serializeMonad<S>()).addM(
+        "serVariant",
+        isErr(v)
+            ? ser.serializeTupleVariant("Result", 0, "Err", 1)
+            : ser.serializeTupleVariant("Result", 1, "Ok", 1),
+    ).addMWith("_", ({ serVariant }) =>
+        isErr(v)
+            ? serVariant
+                .serializeElement(serializeE)(v[1])
+            : serVariant
+                .serializeElement(serializeT)(v[1]))
+        .addMWith("end", ({ serVariant }) => serVariant.end())
+        .finish(({ end }) => end) as Serial<S>;

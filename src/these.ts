@@ -10,6 +10,13 @@ import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { PartialEq } from "./type-class/partial-eq.ts";
 import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.ts";
+import {
+    type Serial,
+    type Serialize,
+    serializeMonad,
+    type Serializer,
+} from "./serialize.ts";
+import { doT } from "./cat.ts";
 
 const thisSymbol = Symbol("TheseThis");
 /**
@@ -523,3 +530,51 @@ export const monad = <A>(
     ...app(semi),
     flatMap: flatMap(semi),
 });
+
+export const serialize =
+    <A>(serializeA: Serialize<A>) =>
+    <B>(serializeB: Serialize<B>): Serialize<These<A, B>> =>
+    <S>(v: These<A, B>) =>
+    (ser: Serializer<S>): Serial<S> =>
+        isThis(v)
+            ? doT(serializeMonad<S>())
+                .addM(
+                    "serVariant",
+                    ser.serializeTupleVariant("These", 0, "This", 1),
+                )
+                .addMWith(
+                    "_",
+                    ({ serVariant }) =>
+                        serVariant.serializeElement(serializeA)(v[1]),
+                ).addMWith(
+                    "end",
+                    ({ serVariant }) => serVariant.end(),
+                )
+                .finish(({ end }) => end) as Serial<S>
+            : isThat(v)
+            ? doT(serializeMonad<S>())
+                .addM(
+                    "serVariant",
+                    ser.serializeTupleVariant("These", 1, "That", 1),
+                )
+                .addMWith(
+                    "_",
+                    ({ serVariant }) =>
+                        serVariant.serializeElement(serializeB)(v[1]),
+                ).addMWith("end", ({ serVariant }) => serVariant.end())
+                .finish(({ end }) => end) as Serial<S>
+            : doT(serializeMonad<S>())
+                .addM(
+                    "serVariant",
+                    ser.serializeTupleVariant("These", 2, "Both", 2),
+                )
+                .addMWith(
+                    "_",
+                    ({ serVariant }) =>
+                        serVariant.serializeElement(serializeA)(v[1]),
+                ).addMWith(
+                    "_",
+                    ({ serVariant }) =>
+                        serVariant.serializeElement(serializeB)(v[2]),
+                ).addMWith("end", ({ serVariant }) => serVariant.end())
+                .finish(({ end }) => end) as Serial<S>;

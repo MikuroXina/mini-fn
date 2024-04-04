@@ -24,6 +24,13 @@ import { fromPartialEquality, PartialEq } from "./type-class/partial-eq.ts";
 import { fromPartialCmp } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import { Traversable } from "./type-class/traversable.ts";
+import {
+    type Serial,
+    type Serialize,
+    serializeMonad,
+    type Serializer,
+} from "./serialize.ts";
+import { doT } from "./cat.ts";
 
 export const eq =
     <K, V>(equality: PartialEq<V>) => (l: Map<K, V>, r: Map<K, V>): boolean => {
@@ -737,3 +744,34 @@ export const traversable = <K>(): Traversable<Apply2Only<MapHkt, K>> => ({
     foldR,
     traverse,
 });
+
+export const serialize =
+    <K>(serializeK: Serialize<K>) =>
+    <V>(serializeV: Serialize<V>): Serialize<Map<K, V>> =>
+    <S>(rec: Map<K, V>) =>
+    (ser: Serializer<S>): Serial<S> => {
+        const keys = [...rec.keys()];
+        ser.serializeRecord(keys.length);
+        const cat = doT(serializeMonad<S>()).addM(
+            "recSer",
+            ser.serializeRecord(
+                keys.length,
+            ),
+        );
+        return keys.reduce(
+            (prev, key) =>
+                prev.addMWith(
+                    "_",
+                    ({ recSer }) => recSer.serializeKey(serializeK)(key),
+                )
+                    .addMWith(
+                        "_",
+                        ({ recSer }) =>
+                            recSer.serializeKey(serializeV)(rec.get(key)!),
+                    ),
+            cat,
+        )
+            .addMWith("end", ({ recSer }) => recSer.end()).finish(({ end }) =>
+                end
+            ) as Serial<S>;
+    };

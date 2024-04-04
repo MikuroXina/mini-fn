@@ -1,3 +1,4 @@
+import type { Serialize } from "./serialize.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
@@ -73,3 +74,10 @@ export const monoid: Monoid<Ordering> = {
     identity: equal,
     [semiGroupSymbol]: true,
 };
+
+export const serialize: Serialize<Ordering> = (v) => (ser) =>
+    isLt(v)
+        ? ser.serializeUnitVariant("Ordering", 0, "Less")
+        : isEq(v)
+        ? ser.serializeUnitVariant("Ordering", 1, "Equal")
+        : ser.serializeUnitVariant("Ordering", 2, "Greater");

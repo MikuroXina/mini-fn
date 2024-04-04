@@ -1,3 +1,4 @@
+import type { Serialize } from "./serialize.ts";
 import type { Hkt1 } from "./hkt.ts";
 import {
     appendToHead,
@@ -11,6 +12,7 @@ import {
     partialOrd as listPartialOrd,
     plus,
     reverse,
+    serialize as listSerialize,
     singleton as listSingleton,
     unCons,
 } from "./list.ts";
@@ -283,3 +285,7 @@ export const comonad: Comonad<ZipperHkt> = {
     extract,
     duplicate,
 };
+
+export const serialize =
+    <T>(serializeT: Serialize<T>): Serialize<Zipper<T>> => (v) =>
+        listSerialize(serializeT)(toList(v));

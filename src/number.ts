@@ -1,3 +1,4 @@
+import type { Serialize } from "./serialize.ts";
 import { none, type Option, some } from "./option.ts";
 import { equal, greater, less, type Ordering } from "./ordering.ts";
 import {
@@ -49,3 +50,6 @@ export const field: Field<number> = {
     additive: addAbelianGroup,
     multiplication: mulAbelianGroup,
 };
+
+export const serialize: Serialize<number> = (v) => (ser) =>
+    ser.serializeNumber(v);

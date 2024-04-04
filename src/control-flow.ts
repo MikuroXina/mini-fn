@@ -12,6 +12,13 @@ import type { Get1 } from "./hkt.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 import type { TraversableMonad } from "./type-class/traversable-monad.ts";
+import {
+    type Serial,
+    type Serialize,
+    serializeMonad,
+    type Serializer,
+} from "./serialize.ts";
+import { doT } from "./cat.ts";
 
 const continueSymbol = Symbol("ControlFlowContinue");
 /**
@@ -121,3 +128,23 @@ export const traversableMonad = <B>(): TraversableMonad<
     ...monad(),
     ...traversable(),
 });
+
+export const serialize = <B>(
+    serializeB: Serialize<B>,
+) =>
+<C>(serializeC: Serialize<C>): Serialize<ControlFlow<B, C>> =>
+(v) =>
+<S>(ser: Serializer<S>): Serial<S> =>
+    doT(serializeMonad<S>()).addM(
+        "serVariant",
+        isContinue(v)
+            ? ser.serializeTupleVariant("ControlFlow", 0, "Continue", 1)
+            : ser.serializeTupleVariant("ControlFlow", 1, "Break", 1),
+    ).addMWith("_", ({ serVariant }) =>
+        isContinue(v)
+            ? serVariant
+                .serializeElement(serializeC)(v[1])
+            : serVariant
+                .serializeElement(serializeB)(v[1]))
+        .addMWith("end", ({ serVariant }) => serVariant.end())
+        .finish(({ end }) => end) as Serial<S>;
