@@ -1,5 +1,6 @@
 /**
- * This package provides serialization utilities such as ``.
+ * This package provides serialization utilities such as `serializeMonad`,
+`collectArray`, `collectRecord` and so on.
  *
  * # Serial Model
  *
@@ -16,7 +17,9 @@
  * - `record`
  * - `variant`
  *
- * A `Serialize<T>` instance invokes `Serializer`'s methods to serialize an object `T`.
+ * A `Serialize<T>` instance invokes `Serializer`'s methods to serialize an object `T`. You can implement it as a custom instance.
+ *
+ * Note: You should consider that changing the variant index of your data will be a breaking change.
  *
  * @packageDocumentation
  */
