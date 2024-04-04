@@ -87,13 +87,22 @@ export interface Serializer<S> {
     readonly serializeRecord: (
         len: number,
     ) => SerialWriting<S, RecordSerializer<S>>;
+    readonly serializeUnitVariant: (
+        name: string,
+        variantIndex: number,
+        variant: string,
+    ) => Serial<S>;
     readonly serializeTupleVariant: (
         name: string,
         variantIndex: number,
+        variant: string,
+        len: number,
     ) => SerialWriting<S, TupleSerializer<S>>;
     readonly serializeRecordVariant: (
         name: string,
         variantIndex: number,
+        variant: string,
+        len: number,
     ) => SerialWriting<S, RecordSerializer<S>>;
 }
 
