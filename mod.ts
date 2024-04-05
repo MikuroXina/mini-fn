@@ -11,6 +11,7 @@ export * as ControlFlow from "./src/control-flow.ts";
 export * as Coyoneda from "./src/coyoneda.ts";
 export * as Curry from "./src/curry.ts";
 export * as Dual from "./src/dual.ts";
+export * as Deserialize from "./src/deserialize.ts";
 export * as Ether from "./src/ether.ts";
 export * as Free from "./src/free.ts";
 export * as MonadFree from "./src/free/monad.ts";
