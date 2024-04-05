@@ -8,7 +8,7 @@
 
 import type { Apply2Only } from "./hkt.ts";
 import type { Option } from "./option.ts";
-import { monadT, pure, type Reader, type ReaderT } from "./reader.ts";
+import { monadT, type ReaderT } from "./reader.ts";
 import { err, monad, type Result, type ResultHkt } from "./result.ts";
 
 export interface VisitorHkt {
@@ -16,9 +16,10 @@ export interface VisitorHkt {
 }
 export type VisitorValue<S> = S extends VisitorHkt ? S["valueType"] : never;
 export type VisitorResult<S> = Result<DeserializeError, VisitorValue<S>>;
-export type VisitorReader<S, T> = Reader<
+export type VisitorReader<S, T> = ReaderT<
     Visitor<S>,
-    Result<DeserializeError, T>
+    Apply2Only<ResultHkt, DeserializeError>,
+    T
 >;
 export type VisitorRet<S> = VisitorReader<S, VisitorValue<S>>;
 
@@ -37,6 +38,7 @@ export interface Visitor<S> {
     readonly visitNull: () => VisitorRet<S>;
     readonly visitUndefined: () => VisitorRet<S>;
     readonly visitBigInt: (v: bigint) => VisitorRet<S>;
+    readonly visitCustom: (deserializer: Deserializer) => VisitorRet<S>;
     readonly visitArray: (array: ArrayVisitor<S>) => VisitorRet<S>;
     readonly visitRecord: (record: RecordVisitor<S>) => VisitorRet<S>;
     readonly visitVariants: (variants: VariantsVisitor<S>) => VisitorRet<S>;
@@ -88,15 +90,16 @@ export const newVisitor = (expecting: string) =>
     methods: Partial<Omit<Visitor<S>, "expecting">>,
 ): Visitor<S> => ({
     expecting,
-    visitString: () => pure(err(() => "unexpected string")),
-    visitNumber: () => pure(err(() => "unexpected number")),
-    visitBoolean: () => pure(err(() => "unexpected boolean")),
-    visitNull: () => pure(err(() => "unexpected null")),
-    visitUndefined: () => pure(err(() => "unexpected undefined")),
-    visitBigInt: () => pure(err(() => "unexpected bigint")),
-    visitArray: () => pure(err(() => "unexpected array")),
-    visitRecord: () => pure(err(() => "unexpected record")),
-    visitVariants: () => pure(err(() => "unexpected variants")),
+    visitString: () => () => err(() => "unexpected string"),
+    visitNumber: () => () => err(() => "unexpected number"),
+    visitBoolean: () => () => err(() => "unexpected boolean"),
+    visitNull: () => () => err(() => "unexpected null"),
+    visitUndefined: () => () => err(() => "unexpected undefined"),
+    visitBigInt: () => () => err(() => "unexpected bigint"),
+    visitCustom: () => () => err(() => "unexpected custom"),
+    visitArray: () => () => err(() => "unexpected array"),
+    visitRecord: () => () => err(() => "unexpected record"),
+    visitVariants: () => () => err(() => "unexpected variants"),
     ...methods,
 });
 
