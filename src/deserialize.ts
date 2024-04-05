@@ -6,65 +6,76 @@
  * @packageDocumentation
  */
 
+import type { Apply2Only } from "./hkt.ts";
 import type { Option } from "./option.ts";
-import { err } from "./result.ts";
-import type { Result } from "./result.ts";
+import { monadT, pure, type Reader, type ReaderT } from "./reader.ts";
+import { err, monad, type Result, type ResultHkt } from "./result.ts";
 
 export interface VisitorHkt {
     readonly valueType: unknown;
 }
-
-export type VisitorValue<V> = V extends VisitorHkt ? V["valueType"] : never;
-
-export interface ArrayVisitor {
-    readonly nextElement: <V>(
-        de: Deserialize<V>,
-    ) => DeserialReading<Option<V>>;
-    readonly sizeHint: Option<number>;
-}
-
-export interface RecordVisitor {
-    readonly nextKey: <K>(de: Deserialize<K>) => DeserialReading<Option<K>>;
-    readonly nextValue: <V>(de: Deserialize<V>) => DeserialReading<V>;
-    readonly sizeHint: Option<number>;
-}
-
-export interface VariantVisitor {
-    readonly onUnit: () => DeserialReading<[]>;
-    readonly onTuple: (
-        len: number,
-    ) => <V>(visitor: Visitor<V>) => Deserial<V>;
-    readonly onRecord: (
-        fields: readonly string[],
-    ) => <V>(visitor: Visitor<V>) => Deserial<V>;
-    readonly onCustom: <T>(de: Deserialize<T>) => DeserialReading<T>;
-}
-
-export interface VariantsVisitor {
-    readonly variant: <V>(
-        de: Deserialize<V>,
-    ) => DeserialReading<[V, VariantVisitor]>;
-}
+export type VisitorValue<S> = S extends VisitorHkt ? S["valueType"] : never;
+export type VisitorResult<S> = Result<DeserializeError, VisitorValue<S>>;
+export type VisitorReader<S, T> = Reader<
+    Visitor<S>,
+    Result<DeserializeError, T>
+>;
+export type VisitorRet<S> = VisitorReader<S, VisitorValue<S>>;
 
 /**
  * A visitor that telling the values occurring on deserialization to a `Deserialize` instance.
  */
-export interface Visitor<V> {
+export interface Visitor<S> {
     /**
      * A message about what you are expecting.
      */
     readonly expecting: string;
 
-    readonly onString: (v: string) => Deserial<V>;
-    readonly onNumber: (v: number) => Deserial<V>;
-    readonly onBoolean: (v: boolean) => Deserial<V>;
-    readonly onNull: () => Deserial<V>;
-    readonly onUndefined: () => Deserial<V>;
-    readonly onBigInt: (v: bigint) => Deserial<V>;
-    readonly onArray: (vi: ArrayVisitor) => Deserial<V>;
-    readonly onRecord: (vi: RecordVisitor) => Deserial<V>;
-    readonly onVariants: (vi: VariantsVisitor) => Deserial<V>;
+    readonly visitString: (v: string) => VisitorRet<S>;
+    readonly visitNumber: (v: number) => VisitorRet<S>;
+    readonly visitBoolean: (v: boolean) => VisitorRet<S>;
+    readonly visitNull: () => VisitorRet<S>;
+    readonly visitUndefined: () => VisitorRet<S>;
+    readonly visitBigInt: (v: bigint) => VisitorRet<S>;
+    readonly visitArray: (array: ArrayVisitor<S>) => VisitorRet<S>;
+    readonly visitRecord: (record: RecordVisitor<S>) => VisitorRet<S>;
+    readonly visitVariants: (variants: VariantsVisitor<S>) => VisitorRet<S>;
 }
+
+export interface ArrayVisitor<S> {
+    readonly nextElement: <T>(
+        de: Deserialize<T>,
+    ) => VisitorReader<S, Option<T>>;
+    readonly sizeHint: Option<number>;
+}
+
+export interface RecordVisitor<S> {
+    readonly nextKey: <K>(de: Deserialize<K>) => VisitorReader<S, Option<K>>;
+    readonly nextValue: <V>(de: Deserialize<V>) => VisitorReader<S, V>;
+    readonly sizeHint: Option<number>;
+}
+
+export interface VariantVisitor<S> {
+    readonly onUnit: () => VisitorReader<S, []>;
+    readonly onTuple: (
+        len: number,
+    ) => <V>(visitor: Visitor<V>) => VisitorRet<V>;
+    readonly onRecord: (
+        fields: readonly string[],
+    ) => <V>(visitor: Visitor<V>) => VisitorRet<V>;
+    readonly onCustom: <T>(de: Deserialize<T>) => VisitorReader<S, T>;
+}
+
+export interface VariantsVisitor<S> {
+    readonly variant: <V>(
+        de: Deserialize<V>,
+    ) => VisitorReader<S, [V, VariantVisitor<S>]>;
+}
+
+export const visitorMonad = <S>() =>
+    monadT<Visitor<S>, Apply2Only<ResultHkt, DeserializeError>>(
+        monad<DeserializeError>(),
+    );
 
 /**
  * Creates a new visitor from a table of methods. Unprovided methods will be implemented as a function that just returns an unexpected error.
@@ -73,50 +84,53 @@ export interface Visitor<V> {
  * @returns The new visitor.
  */
 export const newVisitor = (expecting: string) =>
-<V>(
-    methods: Partial<Visitor<V>>,
-): Visitor<V> => ({
+<S>(
+    methods: Partial<Omit<Visitor<S>, "expecting">>,
+): Visitor<S> => ({
     expecting,
-    onString: () => err(() => "unexpected string"),
-    onNumber: () => err(() => "unexpected number"),
-    onBoolean: () => err(() => "unexpected boolean"),
-    onNull: () => err(() => "unexpected null"),
-    onUndefined: () => err(() => "unexpected undefined"),
-    onBigInt: () => err(() => "unexpected bigint"),
-    onArray: () => err(() => "unexpected array"),
-    onRecord: () => err(() => "unexpected record"),
-    onVariants: () => err(() => "unexpected variants"),
+    visitString: () => pure(err(() => "unexpected string")),
+    visitNumber: () => pure(err(() => "unexpected number")),
+    visitBoolean: () => pure(err(() => "unexpected boolean")),
+    visitNull: () => pure(err(() => "unexpected null")),
+    visitUndefined: () => pure(err(() => "unexpected undefined")),
+    visitBigInt: () => pure(err(() => "unexpected bigint")),
+    visitArray: () => pure(err(() => "unexpected array")),
+    visitRecord: () => pure(err(() => "unexpected record")),
+    visitVariants: () => pure(err(() => "unexpected variants")),
     ...methods,
 });
 
 export type DeserializeError = <T extends object>(msg: T) => string;
-export type DeserialReading<T> = Result<DeserializeError, T>;
-export type Deserial<V> = Result<DeserializeError, VisitorValue<V>>;
 
-/**
- * Entries that hint what deserialization is about to start.
- */
 export interface Deserializer {
-    readonly deserializeUnknown: <V>(v: Visitor<V>) => Deserial<V>;
-    readonly deserializeString: <V>(v: Visitor<V>) => Deserial<V>;
-    readonly deserializeNumber: <V>(v: Visitor<V>) => Deserial<V>;
-    readonly deserializeBoolean: <V>(v: Visitor<V>) => Deserial<V>;
-    readonly deserializeNull: <V>(v: Visitor<V>) => Deserial<V>;
-    readonly deserializeUndefined: <V>(v: Visitor<V>) => Deserial<V>;
-    readonly deserializeBigInt: <V>(v: Visitor<V>) => Deserial<V>;
-    readonly deserializeArray: <V>(visitor: Visitor<V>) => Deserial<V>;
+    readonly deserializeUnknown: <V>(v: Visitor<V>) => VisitorResult<V>;
+    readonly deserializeString: <V>(v: Visitor<V>) => VisitorResult<V>;
+    readonly deserializeNumber: <V>(v: Visitor<V>) => VisitorResult<V>;
+    readonly deserializeBoolean: <V>(v: Visitor<V>) => VisitorResult<V>;
+    readonly deserializeNull: <V>(v: Visitor<V>) => VisitorResult<V>;
+    readonly deserializeUndefined: <V>(v: Visitor<V>) => VisitorResult<V>;
+    readonly deserializeBigInt: <V>(v: Visitor<V>) => VisitorResult<V>;
+    readonly deserializeArray: <V>(visitor: Visitor<V>) => VisitorResult<V>;
     readonly deserializeTuple: (
         len: number,
-    ) => <V>(visitor: Visitor<V>) => Deserial<V>;
-    readonly deserializeRecord: <V>(visitor: Visitor<V>) => Deserial<V>;
+    ) => <V>(visitor: Visitor<V>) => VisitorResult<V>;
+    readonly deserializeRecord: <V>(visitor: Visitor<V>) => VisitorResult<V>;
     readonly deserializeVariants: (
         name: string,
     ) => (
         variants: readonly string[],
-    ) => <V>(visitor: Visitor<V>) => Deserial<V>;
+    ) => <V>(visitor: Visitor<V>) => VisitorResult<V>;
 }
 
 /**
  * A function that deserializes a data structure into `T`.
  */
-export type Deserialize<T> = (deserializer: Deserializer) => DeserialReading<T>;
+export type Deserialize<T> = ReaderT<
+    Deserializer,
+    Apply2Only<ResultHkt, DeserializeError>,
+    T
+>;
+
+export const deserialize =
+    (deserializer: Deserializer) =>
+    <T>(de: Deserialize<T>): Result<DeserializeError, T> => de(deserializer);
