@@ -39,36 +39,36 @@ export interface Visitor<S> {
     readonly visitUndefined: () => VisitorRet<S>;
     readonly visitBigInt: (v: bigint) => VisitorRet<S>;
     readonly visitCustom: (deserializer: Deserializer) => VisitorRet<S>;
-    readonly visitArray: (array: ArrayVisitor<S>) => VisitorRet<S>;
-    readonly visitRecord: (record: RecordVisitor<S>) => VisitorRet<S>;
-    readonly visitVariants: (variants: VariantsVisitor<S>) => VisitorRet<S>;
+    readonly visitArray: (array: ArrayAccess<S>) => VisitorRet<S>;
+    readonly visitRecord: (record: RecordAccess<S>) => VisitorRet<S>;
+    readonly visitVariants: (variants: VariantsAccess<S>) => VisitorRet<S>;
 }
 
-export interface ArrayVisitor<S> {
+export interface ArrayAccess<S> {
     readonly nextElement: <T>(
         de: Deserialize<T>,
     ) => VisitorReader<S, Option<T>>;
     readonly sizeHint: Option<number>;
 }
 
-export interface RecordVisitor<S> {
+export interface RecordAccess<S> {
     readonly nextKey: <K>(de: Deserialize<K>) => VisitorReader<S, Option<K>>;
     readonly nextValue: <V>(de: Deserialize<V>) => VisitorReader<S, V>;
     readonly sizeHint: Option<number>;
 }
 
 export interface VariantVisitor<S> {
-    readonly onUnit: () => VisitorReader<S, []>;
-    readonly onTuple: (
+    readonly visitUnit: () => VisitorReader<S, []>;
+    readonly visitTuple: (
         len: number,
     ) => <V>(visitor: Visitor<V>) => VisitorRet<V>;
-    readonly onRecord: (
+    readonly visitRecord: (
         fields: readonly string[],
     ) => <V>(visitor: Visitor<V>) => VisitorRet<V>;
-    readonly onCustom: <T>(de: Deserialize<T>) => VisitorReader<S, T>;
+    readonly visitCustom: <T>(de: Deserialize<T>) => VisitorReader<S, T>;
 }
 
-export interface VariantsVisitor<S> {
+export interface VariantsAccess<S> {
     readonly variant: <V>(
         de: Deserialize<V>,
     ) => VisitorReader<S, [V, VariantVisitor<S>]>;
