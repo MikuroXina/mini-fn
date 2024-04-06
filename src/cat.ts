@@ -75,6 +75,14 @@ export interface CatT<M, CTX> {
      * @returns A reduced value.
      */
     readonly finish: <R>(fn: (ctx: CTX) => R) => Get1<M, R>;
+
+    /**
+     * Reduces the context into a value on `M` by `fn`.
+     *
+     * @param fn - The finishing computation.
+     * @returns A reduced value on `M`.
+     */
+    readonly finishM: <R>(fn: (ctx: CTX) => Get1<M, R>) => Get1<M, R>;
 }
 
 /**
@@ -120,6 +128,7 @@ export const catT =
             )(ctx),
         ),
         finish: <R>(fn: (ctx: CTX) => R) => monad.map(fn)(ctx),
+        finishM: (fn) => monad.flatMap(fn)(ctx),
     });
 
 /**
