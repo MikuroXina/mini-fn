@@ -131,8 +131,7 @@ export const collectArray =
                 "_",
                 ({ arraySer }) => arraySer.serializeElement(serializeT)(item),
             ), cat)
-            .addMWith("end", ({ arraySer }) => arraySer.end())
-            .finish(({ end }) => end) as Serial<S>;
+            .finishM(({ arraySer }) => arraySer.end()) as Serial<S>;
     };
 
 export const collectRecord =
@@ -160,9 +159,7 @@ export const collectRecord =
                     ),
             cat,
         )
-            .addMWith("end", ({ recSer }) => recSer.end()).finish(({ end }) =>
-                end
-            ) as Serial<S>;
+            .finishM(({ recSer }) => recSer.end()) as Serial<S>;
     };
 
 export const collectString =

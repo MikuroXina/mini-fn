@@ -180,6 +180,5 @@ export const serialize =
                     ({ seqSer }) => seqSer.serializeElement(serializeA)(item),
                 )
             )(cat)(v)
-            .addMWith("end", ({ seqSer }) => seqSer.end())
-            .finish(({ end }) => end) as Serial<S>;
+            .finishM(({ seqSer }) => seqSer.end()) as Serial<S>;
     };

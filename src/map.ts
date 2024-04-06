@@ -771,7 +771,5 @@ export const serialize =
                     ),
             cat,
         )
-            .addMWith("end", ({ recSer }) => recSer.end()).finish(({ end }) =>
-                end
-            ) as Serial<S>;
+            .finishM(({ recSer }) => recSer.end()) as Serial<S>;
     };

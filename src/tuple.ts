@@ -298,8 +298,6 @@ export const serialize =
             serTuple.serializeElement(serializeA)(v[0]))
             .addMWith("_", ({ serTuple }) =>
                 serTuple.serializeElement(serializeB)(v[1]))
-            .addMWith("end", ({ serTuple }) =>
-                serTuple.end())
-            .finish(({ end }) =>
-                end
+            .finishM(({ serTuple }) =>
+                serTuple.end()
             ) as Serial<S>;

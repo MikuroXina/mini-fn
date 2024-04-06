@@ -845,5 +845,4 @@ export const serialize = <T>(
             "_",
             ({ serVariant }) => serVariant.serializeElement(serializeT)(v[1]),
         )
-            .addMWith("end", ({ serVariant }) => serVariant.end())
-            .finish(({ end }) => end) as Serial<S>;
+            .finishM(({ serVariant }) => serVariant.end()) as Serial<S>;
