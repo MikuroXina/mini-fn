@@ -6,10 +6,11 @@
  * @packageDocumentation
  */
 
-import type { Apply2Only } from "./hkt.ts";
+import type { Apply2Only, Apply3Only } from "./hkt.ts";
 import type { Option } from "./option.ts";
-import { monadT, type ReaderT } from "./reader.ts";
+import { monadT, type ReaderT, type ReaderTHkt } from "./reader.ts";
 import { err, monad, ok, type Result, type ResultHkt } from "./result.ts";
+import type { Monad } from "./type-class/monad.ts";
 
 export type VisitorResult<S> = Result<DeserializeError, S>;
 export type VisitorReader<S, T> = ReaderT<
@@ -18,6 +19,12 @@ export type VisitorReader<S, T> = ReaderT<
     T
 >;
 export type VisitorRet<S> = VisitorReader<S, S>;
+export type VisitorReaderHkt<S> =
+    & Apply3Only<
+        ReaderTHkt,
+        Visitor<S>
+    >
+    & Apply2Only<ReaderTHkt, Apply2Only<ResultHkt, DeserializeError>>;
 
 /**
  * A visitor that telling the values occurring on deserialization to a `Deserialize` instance.
@@ -70,7 +77,7 @@ export interface VariantsAccess<S> {
     ) => VisitorReader<S, [V, VariantVisitor<S>]>;
 }
 
-export const visitorMonad = <S>() =>
+export const visitorMonad = <S>(): Monad<VisitorReaderHkt<S>> =>
     monadT<Visitor<S>, Apply2Only<ResultHkt, DeserializeError>>(
         monad<DeserializeError>(),
     );
