@@ -11,17 +11,13 @@ import type { Option } from "./option.ts";
 import { monadT, type ReaderT } from "./reader.ts";
 import { err, monad, type Result, type ResultHkt } from "./result.ts";
 
-export interface VisitorHkt {
-    readonly valueType: unknown;
-}
-export type VisitorValue<S> = S extends VisitorHkt ? S["valueType"] : never;
-export type VisitorResult<S> = Result<DeserializeError, VisitorValue<S>>;
+export type VisitorResult<S> = Result<DeserializeError, S>;
 export type VisitorReader<S, T> = ReaderT<
     Visitor<S>,
     Apply2Only<ResultHkt, DeserializeError>,
     T
 >;
-export type VisitorRet<S> = VisitorReader<S, VisitorValue<S>>;
+export type VisitorRet<S> = VisitorReader<S, S>;
 
 /**
  * A visitor that telling the values occurring on deserialization to a `Deserialize` instance.
