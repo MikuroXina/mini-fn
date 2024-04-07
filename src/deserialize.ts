@@ -9,7 +9,7 @@
 import type { Apply2Only } from "./hkt.ts";
 import type { Option } from "./option.ts";
 import { monadT, type ReaderT } from "./reader.ts";
-import { err, monad, type Result, type ResultHkt } from "./result.ts";
+import { err, monad, ok, type Result, type ResultHkt } from "./result.ts";
 
 export type VisitorResult<S> = Result<DeserializeError, S>;
 export type VisitorReader<S, T> = ReaderT<
@@ -133,3 +133,19 @@ export type Deserialize<T> = ReaderT<
 export const deserialize =
     (deserializer: Deserializer) =>
     <T>(de: Deserialize<T>): Result<DeserializeError, T> => de(deserializer);
+
+export const variantsDeserialize = <const VS extends readonly string[]>(
+    variants: VS,
+): Deserialize<VS[number]> =>
+(
+    de,
+) => {
+    const isVariants = (v: string): v is VS[number] =>
+        (variants as readonly string[]).includes(v);
+    return de.deserializeString<VS[number]>(
+        newVisitor("variant key")({
+            visitString: (v) => () =>
+                isVariants(v) ? ok(v) : err(() => `unexpected variant: ${v}`),
+        }),
+    );
+};
