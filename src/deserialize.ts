@@ -86,6 +86,7 @@ export const visitorMonad = <S>(): Monad<VisitorReaderHkt<S>> =>
  * Creates a new visitor from a table of methods. Unprovided methods will be implemented as a function that just returns an unexpected error.
  *
  * @param expecting - Description of the type you are expecting.
+ * @param methods - Methods of a new `Visitor`.
  * @returns The new visitor.
  */
 export const newVisitor = (expecting: string) =>
