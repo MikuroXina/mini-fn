@@ -19,6 +19,14 @@ import {
     type Serializer,
 } from "./serialize.ts";
 import { doT } from "./cat.ts";
+import {
+    type Deserialize,
+    newVisitor,
+    variantsDeserialize,
+    type Visitor,
+    visitorMonad,
+    type VisitorRet,
+} from "./deserialize.ts";
 
 const continueSymbol = Symbol("ControlFlowContinue");
 /**
@@ -129,6 +137,8 @@ export const traversableMonad = <B>(): TraversableMonad<
     ...traversable(),
 });
 
+const VARIANTS = ["Continue", "Break"] as const;
+
 export const serialize = <B>(
     serializeB: Serialize<B>,
 ) =>
@@ -138,13 +148,46 @@ export const serialize = <B>(
     doT(serializeMonad<S>()).addM(
         "serVariant",
         isContinue(v)
-            ? ser.serializeTupleVariant("ControlFlow", 0, "Continue", 1)
-            : ser.serializeTupleVariant("ControlFlow", 1, "Break", 1),
+            ? ser.serializeTupleVariant("ControlFlow", 0, VARIANTS[0], 1)
+            : ser.serializeTupleVariant("ControlFlow", 1, VARIANTS[1], 1),
     ).addMWith("_", ({ serVariant }) =>
         isContinue(v)
             ? serVariant
                 .serializeElement(serializeC)(v[1])
             : serVariant
                 .serializeElement(serializeB)(v[1]))
-        .addMWith("end", ({ serVariant }) => serVariant.end())
-        .finish(({ end }) => end) as Serial<S>;
+        .finishM(({ serVariant }) => serVariant.end()) as Serial<S>;
+
+export const visitor = <B>(deserializeB: Deserialize<B>) =>
+<C>(
+    deserializeC: Deserialize<C>,
+): Visitor<ControlFlow<B, C>> =>
+    newVisitor("ControlFlow")({
+        visitVariants: (variants) => {
+            const m = visitorMonad<ControlFlow<B, C>>();
+            return doT(m)
+                .addM(
+                    "variant",
+                    variants.variant(
+                        variantsDeserialize(VARIANTS),
+                    ),
+                )
+                .finishM((
+                    { variant: [key, access] },
+                ): VisitorRet<ControlFlow<B, C>> =>
+                    key === "Continue"
+                        ? m.map(newContinue<C>)(
+                            access.visitCustom(deserializeC),
+                        )
+                        : m.map(newBreak<B>)(access.visitCustom(deserializeB))
+                );
+        },
+    });
+
+export const deserialize =
+    <B>(deserializeB: Deserialize<B>) =>
+    <C>(deserializeC: Deserialize<C>): Deserialize<ControlFlow<B, C>> =>
+    (de) =>
+        de.deserializeVariants("ControlFlow")(VARIANTS)(
+            visitor(deserializeB)(deserializeC),
+        );

@@ -1,5 +1,5 @@
 import { collectArray, type Serialize } from "./serialize.ts";
-import { cat } from "./cat.ts";
+import { cat, doT } from "./cat.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import * as Option from "./option.ts";
 import { isNone } from "./option.ts";
@@ -19,6 +19,14 @@ import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import type { Reduce } from "./type-class/reduce.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import type { Traversable } from "./type-class/traversable.ts";
+import {
+    type Deserialize,
+    newVisitor,
+    type Visitor,
+    visitorMonad,
+    type VisitorReader,
+    type VisitorRet,
+} from "./deserialize.ts";
 
 /**
  * The list data type with current element and rest list of elements.
@@ -1985,3 +1993,24 @@ export const reduce: Reduce<ListHkt> = {
 export const serialize =
     <T>(serializeT: Serialize<T>): Serialize<List<T>> => (v) =>
         collectArray(serializeT)(toArray(v));
+
+export const visitor = <T>(deserializeT: Deserialize<T>): Visitor<List<T>> =>
+    newVisitor("List")({
+        visitArray: (array) => {
+            const m = visitorMonad<List<T>>();
+            const rec = (items: List<T>) =>
+            (
+                getItem: VisitorReader<List<T>, Option.Option<T>>,
+            ): VisitorRet<List<T>> =>
+                doT(m).addM("newItem", getItem).finishM(({ newItem }) =>
+                    Option.mapOrElse(() => m.pure(items))(
+                        (item: T) => rec(appendToTail(item)(items))(getItem),
+                    )(newItem)
+                );
+            return rec(empty())(array.nextElement(deserializeT));
+        },
+    });
+
+export const deserialize =
+    <T>(deserializeT: Deserialize<T>): Deserialize<List<T>> => (de) =>
+        de.deserializeArray(visitor(deserializeT));

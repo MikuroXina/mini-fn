@@ -5,8 +5,24 @@ import {
     type Serializer,
 } from "./serialize.ts";
 import type { Hkt1 } from "./hkt.ts";
-import { isNone, map as mapOption, none, type Option, some } from "./option.ts";
 import {
+    type Deserialize,
+    newVisitor,
+    type Visitor,
+    visitorMonad,
+    type VisitorReader,
+    type VisitorRet,
+} from "./deserialize.ts";
+import {
+    isNone,
+    map as mapOption,
+    mapOrElse,
+    none,
+    type Option,
+    some,
+} from "./option.ts";
+import {
+    appendToTail,
     deep,
     type Digit,
     empty,
@@ -182,3 +198,26 @@ export const serialize =
             )(cat)(v)
             .finishM(({ seqSer }) => seqSer.end()) as Serial<S>;
     };
+
+export const visitor = <A>(deserializeA: Deserialize<A>): Visitor<Seq<A>> =>
+    newVisitor("Seq")({
+        visitArray: (array) => {
+            const m = visitorMonad<Seq<A>>();
+            const rec = (items: Seq<A>) =>
+            (
+                getItem: VisitorReader<Seq<A>, Option<A>>,
+            ): VisitorRet<Seq<A>> =>
+                doT(m).addM("newItem", getItem).finishM(({ newItem }) =>
+                    mapOrElse(
+                        () => m.pure(items),
+                    )(
+                        (item: A) => rec(appendToTail(item)(items))(getItem),
+                    )(newItem)
+                );
+            return rec(empty)(array.nextElement(deserializeA));
+        },
+    });
+
+export const deserialize =
+    <A>(deserializeA: Deserialize<A>): Deserialize<Seq<A>> => (de) =>
+        de.deserializeArray(visitor(deserializeA));

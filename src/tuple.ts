@@ -5,10 +5,18 @@ import {
     type Serializer,
 } from "./serialize.ts";
 import { doT } from "./cat.ts";
+import {
+    type Deserialize,
+    type DeserializeError,
+    newVisitor,
+    type Visitor,
+    visitorMonad,
+} from "./deserialize.ts";
 import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.ts";
 import { defer as lazyDefer, force, type Lazy } from "./lazy.ts";
-import { andThen, type Option } from "./option.ts";
+import { andThen, mapOrElse, type Option, zip } from "./option.ts";
 import { andThen as thenWith, type Ordering } from "./ordering.ts";
+import { err, ok, type Result } from "./result.ts";
 import { type Applicative, liftA2 } from "./type-class/applicative.ts";
 import { fromBifoldMap } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
@@ -301,3 +309,27 @@ export const serialize =
             .finishM(({ serTuple }) =>
                 serTuple.end()
             ) as Serial<S>;
+
+export const visitor =
+    <A>(deserializeA: Deserialize<A>) =>
+    <B>(deserializeB: Deserialize<B>): Visitor<Tuple<A, B>> =>
+        newVisitor("Tuple")({
+            visitArray: (array) =>
+                doT(visitorMonad<Tuple<A, B>>())
+                    .addM("first", array.nextElement(deserializeA))
+                    .addM("second", array.nextElement(deserializeB))
+                    .finishM(
+                        ({ first, second }) => () =>
+                            mapOrElse((): Result<
+                                DeserializeError,
+                                Tuple<A, B>
+                            > => err(() => "expected two items"))((
+                                [a, b]: [A, B],
+                            ) => ok(make(a)(b)))(zip(first)(second)),
+                    ),
+        });
+
+export const deserialize =
+    <A>(deserializeA: Deserialize<A>) =>
+    <B>(deserializeB: Deserialize<B>): Deserialize<Tuple<A, B>> =>
+    (de) => de.deserializeArray(visitor(deserializeA)(deserializeB));

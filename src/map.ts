@@ -31,6 +31,15 @@ import {
     type Serializer,
 } from "./serialize.ts";
 import { doT } from "./cat.ts";
+import {
+    type Deserialize,
+    newVisitor,
+    type Visitor,
+    visitorMonad,
+    type VisitorReader,
+    type VisitorRet,
+} from "./deserialize.ts";
+import { mapOrElse } from "./option.ts";
 
 export const eq =
     <K, V>(equality: PartialEq<V>) => (l: Map<K, V>, r: Map<K, V>): boolean => {
@@ -773,3 +782,37 @@ export const serialize =
         )
             .finishM(({ recSer }) => recSer.end()) as Serial<S>;
     };
+
+export const visitor =
+    <K>(deserializeK: Deserialize<K>) =>
+    <V>(deserializeV: Deserialize<V>): Visitor<Map<K, V>> =>
+        newVisitor("Map")({
+            visitRecord: (record) => {
+                const m = visitorMonad<Map<K, V>>();
+                const rec =
+                    (items: Map<K, V>) =>
+                    (getKey: VisitorReader<Map<K, V>, Option<K>>) =>
+                    (
+                        getValue: VisitorReader<Map<K, V>, V>,
+                    ): VisitorRet<Map<K, V>> =>
+                        m.flatMap(
+                            mapOrElse(() => m.pure(items))(
+                                (newKey: K) =>
+                                    doT(m).addM("newValue", getValue).finishM(
+                                        ({ newValue }) => {
+                                            items.set(newKey, newValue);
+                                            return rec(items)(getKey)(getValue);
+                                        },
+                                    ),
+                            ),
+                        )(getKey);
+                return rec(new Map())(record.nextKey(deserializeK))(
+                    record.nextValue(deserializeV),
+                );
+            },
+        });
+
+export const deserialize =
+    <K>(deserializeK: Deserialize<K>) =>
+    <V>(deserializeV: Deserialize<V>): Deserialize<Map<K, V>> =>
+    (de) => de.deserializeRecord(visitor(deserializeK)(deserializeV));

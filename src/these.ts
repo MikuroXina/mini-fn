@@ -1,4 +1,12 @@
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
+import {
+    type Deserialize,
+    newVisitor,
+    variantsDeserialize,
+    type Visitor,
+    visitorMonad,
+    type VisitorRet,
+} from "./deserialize.ts";
 import { id } from "./identity.ts";
 import { appendToHead, either, empty, type List } from "./list.ts";
 import { make as makeTuple, type Tuple } from "./tuple.ts";
@@ -531,6 +539,8 @@ export const monad = <A>(
     flatMap: flatMap(semi),
 });
 
+const VARIANTS = ["This", "That", "Both"] as const;
+
 export const serialize =
     <A>(serializeA: Serialize<A>) =>
     <B>(serializeB: Serialize<B>): Serialize<These<A, B>> =>
@@ -540,7 +550,7 @@ export const serialize =
             ? doT(serializeMonad<S>())
                 .addM(
                     "serVariant",
-                    ser.serializeTupleVariant("These", 0, "This", 1),
+                    ser.serializeTupleVariant("These", 0, VARIANTS[0], 1),
                 )
                 .addMWith(
                     "_",
@@ -555,7 +565,7 @@ export const serialize =
             ? doT(serializeMonad<S>())
                 .addM(
                     "serVariant",
-                    ser.serializeTupleVariant("These", 1, "That", 1),
+                    ser.serializeTupleVariant("These", 1, VARIANTS[1], 1),
                 )
                 .addMWith(
                     "_",
@@ -566,7 +576,7 @@ export const serialize =
             : doT(serializeMonad<S>())
                 .addM(
                     "serVariant",
-                    ser.serializeTupleVariant("These", 2, "Both", 2),
+                    ser.serializeTupleVariant("These", 2, VARIANTS[2], 2),
                 )
                 .addMWith(
                     "_",
@@ -578,3 +588,43 @@ export const serialize =
                         serVariant.serializeElement(serializeB)(v[2]),
                 ).addMWith("end", ({ serVariant }) => serVariant.end())
                 .finish(({ end }) => end) as Serial<S>;
+
+export const visitor =
+    <A>(deserializeA: Deserialize<A>) =>
+    <B>(deserializeB: Deserialize<B>): Visitor<These<A, B>> =>
+        newVisitor("These")({
+            visitVariants: (variants) => {
+                const m = visitorMonad<These<A, B>>();
+                return doT(m)
+                    .addM(
+                        "variant",
+                        variants.variant(variantsDeserialize(VARIANTS)),
+                    )
+                    .finishM((
+                        { variant: [key, access] },
+                    ): VisitorRet<These<A, B>> =>
+                        key === "This"
+                            ? m.map(newThis<A>)(
+                                access.visitCustom(deserializeA),
+                            )
+                            : key === "That"
+                            ? m.map(newThat<B>)(
+                                access.visitCustom(deserializeB),
+                            )
+                            : doT(m)
+                                .addM("left", access.visitCustom(deserializeA))
+                                .addM("right", access.visitCustom(deserializeB))
+                                .finish(({ left, right }) =>
+                                    newBoth(left)(right)
+                                )
+                    );
+            },
+        });
+
+export const deserialize =
+    <A>(deserializeA: Deserialize<A>) =>
+    <B>(deserializeB: Deserialize<B>): Deserialize<These<A, B>> =>
+    (de) =>
+        de.deserializeVariants("These")(VARIANTS)(
+            visitor(deserializeA)(deserializeB),
+        );

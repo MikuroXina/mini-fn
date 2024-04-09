@@ -1,4 +1,12 @@
 import { doT } from "./cat.ts";
+import {
+    type Deserialize,
+    newVisitor,
+    variantsDeserialize,
+    type Visitor,
+    visitorMonad,
+    type VisitorRet,
+} from "./deserialize.ts";
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import type { Optic } from "./optical.ts";
 import { newPrism } from "./optical/prism.ts";
@@ -708,6 +716,8 @@ export const ifOk = <E, T, U>(): Optic<Result<E, T>, Result<E, U>, T, U> =>
         either<E, Result<Result<E, U>, T>>((e) => err(err(e)))(ok),
     );
 
+const VARIANTS = ["Err", "Ok"] as const;
+
 export const serialize = <E>(
     serializeE: Serialize<E>,
 ) =>
@@ -717,8 +727,8 @@ export const serialize = <E>(
     doT(serializeMonad<S>()).addM(
         "serVariant",
         isErr(v)
-            ? ser.serializeTupleVariant("Result", 0, "Err", 1)
-            : ser.serializeTupleVariant("Result", 1, "Ok", 1),
+            ? ser.serializeTupleVariant("Result", 0, VARIANTS[0], 1)
+            : ser.serializeTupleVariant("Result", 1, VARIANTS[1], 1),
     ).addMWith("_", ({ serVariant }) =>
         isErr(v)
             ? serVariant
@@ -726,3 +736,32 @@ export const serialize = <E>(
             : serVariant
                 .serializeElement(serializeT)(v[1]))
         .finishM(({ serVariant }) => serVariant.end()) as Serial<S>;
+
+export const visitor =
+    <E>(deserializeE: Deserialize<E>) =>
+    <T>(deserializeT: Deserialize<T>): Visitor<Result<E, T>> =>
+        newVisitor("Result")({
+            visitVariants: (variants) => {
+                const m = visitorMonad<Result<E, T>>();
+                return doT(m)
+                    .addM(
+                        "variant",
+                        variants.variant(variantsDeserialize(VARIANTS)),
+                    )
+                    .finishM((
+                        { variant: [key, access] },
+                    ): VisitorRet<Result<E, T>> =>
+                        key === "Ok"
+                            ? m.map(ok<T>)(access.visitCustom(deserializeT))
+                            : m.map(err<E>)(access.visitCustom(deserializeE))
+                    );
+            },
+        });
+
+export const deserialize =
+    <E>(deserializeE: Deserialize<E>) =>
+    <T>(deserializeT: Deserialize<T>): Deserialize<Result<E, T>> =>
+    (de) =>
+        de.deserializeVariants("Result")(VARIANTS)(
+            visitor(deserializeE)(deserializeT),
+        );

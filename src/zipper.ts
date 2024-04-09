@@ -1,7 +1,9 @@
 import type { Serialize } from "./serialize.ts";
 import type { Hkt1 } from "./hkt.ts";
+import type { Deserialize, DeserializeError } from "./deserialize.ts";
 import {
     appendToHead,
+    deserialize as listDeserialize,
     drop,
     empty,
     head,
@@ -20,9 +22,11 @@ import {
     andThen,
     isNone,
     map as optionMap,
+    okOr,
     type Option,
     unwrap,
 } from "./option.ts";
+import { andThen as resultAndThen } from "./result.ts";
 import { andThen as thenWith, type Ordering } from "./ordering.ts";
 import type { Comonad } from "./type-class/comonad.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
@@ -289,3 +293,11 @@ export const comonad: Comonad<ZipperHkt> = {
 export const serialize =
     <T>(serializeT: Serialize<T>): Serialize<Zipper<T>> => (v) =>
         listSerialize(serializeT)(toList(v));
+
+export const deserialize =
+    <T>(deserializeT: Deserialize<T>): Deserialize<Zipper<T>> => (de) =>
+        resultAndThen((list: List<T>) =>
+            okOr<DeserializeError>(() => "expected one element at least")(
+                fromList(list),
+            )
+        )(listDeserialize(deserializeT)(de));
