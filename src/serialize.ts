@@ -25,16 +25,17 @@
  */
 
 import { doT } from "./cat.ts";
-import type { Apply2Only } from "./hkt.ts";
+import type { Apply2Only, Hkt0 } from "./hkt.ts";
 import { monad, type Result, ResultHkt } from "./result.ts";
 import { monadT } from "./state.ts";
 import type { StateT } from "./state.ts";
 
-export interface SerializerHkt {
+export interface SerializerHkt extends Hkt0 {
     readonly okType: unknown;
     readonly errType: unknown;
 }
 
+export type SerializerSelf<S> = S extends SerializerHkt ? S["type"] : never;
 export type SerializerOk<S> = S extends SerializerHkt ? S["okType"] : never;
 export type SerializerErr<S> = S extends SerializerHkt ? S["errType"] : never;
 export type SerializerResult<S> = S extends SerializerHkt
@@ -42,7 +43,7 @@ export type SerializerResult<S> = S extends SerializerHkt
     : never;
 
 export type SerialWriting<S, T> = S extends SerializerHkt ? StateT<
-        Serializer<S>,
+        SerializerSelf<S>,
         Apply2Only<ResultHkt, SerializerErr<S>>,
         T
     >
@@ -114,7 +115,7 @@ export type Serialize<T> = <S>(
 ) => (serializer: Serializer<S>) => Serial<S>;
 
 export const serializeMonad = <S>() =>
-    monadT<Serializer<S>, Apply2Only<ResultHkt, SerializerErr<S>>>(
+    monadT<SerializerSelf<S>, Apply2Only<ResultHkt, SerializerErr<S>>>(
         monad<SerializerErr<S>>(),
     );
 
