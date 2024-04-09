@@ -39,6 +39,7 @@ import {
 } from "./seq/finger-tree.ts";
 import type { Tuple } from "./tuple.ts";
 import { doT } from "./cat.ts";
+import { runVoidVisitor } from "./deserialize.ts";
 
 /**
  * The sequence of `A`, the homogenous data structure to store finite data. This is an alias of `FingerTree`.
@@ -227,4 +228,4 @@ export const visitor = <A>(
 
 export const deserialize =
     <A>(deserializeA: Deserialize<A>): Deserialize<Seq<A>> => (de) =>
-        de.deserializeArray(visitor(deserializeA));
+        runVoidVisitor(de.deserializeArray(visitor(deserializeA)));

@@ -3,6 +3,7 @@ import {
     type Deserialize,
     type DeserializerError,
     newVisitor,
+    runVoidVisitor,
     type VariantsAccess,
     variantsDeserialize,
     type Visitor,
@@ -594,7 +595,7 @@ export const serialize =
 
 export const visitor =
     <A>(deserializeA: Deserialize<A>) =>
-    <B>(deserializeB: Deserialize<B>): Visitor<These<A, B>> =>
+    <B>(deserializeB: Deserialize<B>): Visitor<VoidVisitorHkt<These<A, B>>> =>
         newVisitor("These")({
             visitVariants: <D>(variants: VariantsAccess<D>) => {
                 const m = visitorMonad<VoidVisitorHkt<These<A, B>>>();
@@ -628,6 +629,8 @@ export const deserialize =
     <A>(deserializeA: Deserialize<A>) =>
     <B>(deserializeB: Deserialize<B>): Deserialize<These<A, B>> =>
     (de) =>
-        de.deserializeVariants("These")(VARIANTS)(
-            visitor(deserializeA)(deserializeB),
+        runVoidVisitor(
+            de.deserializeVariants("These")(VARIANTS)(
+                visitor(deserializeA)(deserializeB),
+            ),
         );

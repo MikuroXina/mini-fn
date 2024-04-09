@@ -9,7 +9,7 @@
 import type { Apply2Only, Apply3Only, Hkt0 } from "./hkt.ts";
 import type { Option } from "./option.ts";
 import { monadT, type StateT, type StateTHkt } from "./state.ts";
-import { err, monad, ok, type Result, type ResultHkt } from "./result.ts";
+import { err, map, monad, ok, type Result, type ResultHkt } from "./result.ts";
 import type { Monad } from "./type-class/monad.ts";
 
 export type DeserializeErrorBase = <T extends object>(msg: T) => string;
@@ -32,11 +32,6 @@ export interface VisitorHkt extends Hkt0 {
     readonly valueType: unknown;
 }
 
-export interface VoidVisitorHkt<T> extends VisitorHkt {
-    valueType: T;
-    type: [];
-}
-
 export type VisitorSelf<V> = V extends VisitorHkt ? V["type"] : never;
 export type VisitorValue<V> = V extends VisitorHkt ? V["valueType"] : never;
 export type VisitorResult<E, V> = Result<E, VisitorValue<V>>;
@@ -50,6 +45,8 @@ export type VisitorStateHkt<V> = Apply2Only<
     Apply3Only<StateTHkt, VisitorSelf<V>>,
     Apply2Only<ResultHkt, DeserializeErrorBase>
 >;
+
+export type VisitOperation<D, V> = VisitorState<DeserializerError<D>, V>;
 
 /**
  * A visitor that telling the values occurring on deserialization to a `Deserialize` instance.
@@ -188,41 +185,25 @@ export const newVisitor = (expecting: string) =>
 });
 
 export interface Deserializer<D> {
-    readonly deserializeUnknown: <V>(
-        v: Visitor<V>,
-    ) => VisitorResult<DeserializerError<D>, V>;
-    readonly deserializeString: <V>(
-        v: Visitor<V>,
-    ) => VisitorResult<DeserializerError<D>, V>;
-    readonly deserializeNumber: <V>(
-        v: Visitor<V>,
-    ) => VisitorResult<DeserializerError<D>, V>;
-    readonly deserializeBoolean: <V>(
-        v: Visitor<V>,
-    ) => VisitorResult<DeserializerError<D>, V>;
-    readonly deserializeNull: <V>(
-        v: Visitor<V>,
-    ) => VisitorResult<DeserializerError<D>, V>;
-    readonly deserializeUndefined: <V>(
-        v: Visitor<V>,
-    ) => VisitorResult<DeserializerError<D>, V>;
-    readonly deserializeBigInt: <V>(
-        v: Visitor<V>,
-    ) => VisitorResult<DeserializerError<D>, V>;
-    readonly deserializeArray: <V>(
-        visitor: Visitor<V>,
-    ) => VisitorResult<DeserializerError<D>, V>;
+    readonly deserializeUnknown: <V>(v: Visitor<V>) => VisitOperation<D, V>;
+    readonly deserializeString: <V>(v: Visitor<V>) => VisitOperation<D, V>;
+    readonly deserializeNumber: <V>(v: Visitor<V>) => VisitOperation<D, V>;
+    readonly deserializeBoolean: <V>(v: Visitor<V>) => VisitOperation<D, V>;
+    readonly deserializeNull: <V>(v: Visitor<V>) => VisitOperation<D, V>;
+    readonly deserializeUndefined: <V>(v: Visitor<V>) => VisitOperation<D, V>;
+    readonly deserializeBigInt: <V>(v: Visitor<V>) => VisitOperation<D, V>;
+    readonly deserializeArray: <V>(visitor: Visitor<V>) => VisitOperation<D, V>;
     readonly deserializeTuple: (
         len: number,
-    ) => <V>(visitor: Visitor<V>) => VisitorResult<DeserializerError<D>, V>;
+    ) => <V>(visitor: Visitor<V>) => VisitOperation<D, V>;
     readonly deserializeRecord: <V>(
         visitor: Visitor<V>,
-    ) => VisitorResult<DeserializerError<D>, V>;
+    ) => VisitOperation<D, V>;
     readonly deserializeVariants: (
         name: string,
     ) => (
         variants: readonly string[],
-    ) => <V>(visitor: Visitor<V>) => VisitorResult<DeserializerError<D>, V>;
+    ) => <V>(visitor: Visitor<V>) => VisitOperation<D, V>;
 }
 
 /**
@@ -237,6 +218,15 @@ export const deserialize =
     <T>(de: Deserialize<T>): Result<DeserializerError<D>, T> =>
         de(deserializer);
 
+export interface VoidVisitorHkt<T> extends VisitorHkt {
+    valueType: T;
+    type: [];
+}
+
+export const runVoidVisitor = <D, T>(
+    op: VisitOperation<D, VoidVisitorHkt<T>>,
+): Result<DeserializerError<D>, T> => map(([value]: [T, []]) => value)(op([]));
+
 export interface VariantsVisitorHkt<VS extends readonly string[]>
     extends VisitorHkt {
     readonly type: [];
@@ -249,17 +239,19 @@ export const variantsDeserialize = <const VS extends readonly string[]>(
 (de) => {
     const isVariants = (v: string): v is VS[number] =>
         (variants as readonly string[]).includes(v);
-    return de.deserializeString<VariantsVisitorHkt<VS>>(
-        newVisitor("variant key")<VariantsVisitorHkt<VS>>({
-            visitString:
-                <E extends DeserializeErrorBase>(v: string) => (state) =>
-                    isVariants(v)
-                        ? ok(
-                            [v, state] as VisitorStateRet<
-                                VariantsVisitorHkt<VS>
-                            >,
-                        )
-                        : err(unexpectedError<E>(`variant: ${v}`)),
-        }),
+    return map(([variant]: [VS[number], []]) => variant)(
+        de.deserializeString<VariantsVisitorHkt<VS>>(
+            newVisitor("variant key")<VariantsVisitorHkt<VS>>({
+                visitString:
+                    <E extends DeserializeErrorBase>(v: string) => (state) =>
+                        isVariants(v)
+                            ? ok(
+                                [v, state] as VisitorStateRet<
+                                    VariantsVisitorHkt<VS>
+                                >,
+                            )
+                            : err(unexpectedError<E>(`variant: ${v}`)),
+            }),
+        )([]),
     );
 };

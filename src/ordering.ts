@@ -9,6 +9,8 @@ import {
     visitorMonad,
 } from "./deserialize.ts";
 import { doT } from "./cat.ts";
+import { runVoidVisitor } from "./deserialize.ts";
+import { VoidVisitorHkt } from "./deserialize.ts";
 
 /**
  * Means that the left term is less than the right term.
@@ -92,9 +94,11 @@ export const serialize: Serialize<Ordering> = (v) => (ser) =>
         ? ser.serializeUnitVariant("Ordering", 1, VARIANTS[1])
         : ser.serializeUnitVariant("Ordering", 2, VARIANTS[2]);
 
-export const visitor: Visitor<Ordering> = newVisitor("Ordering")({
+export const visitor: Visitor<VoidVisitorHkt<Ordering>> = newVisitor(
+    "Ordering",
+)({
     visitVariants: (variants) =>
-        doT(visitorMonad<Ordering>()).addM(
+        doT(visitorMonad<VoidVisitorHkt<Ordering>>()).addM(
             "variant",
             variants.variant(variantsDeserialize(VARIANTS)),
         )
@@ -104,4 +108,4 @@ export const visitor: Visitor<Ordering> = newVisitor("Ordering")({
 });
 
 export const deserialize: Deserialize<Ordering> = (de) =>
-    de.deserializeVariants("Ordering")(VARIANTS)(visitor);
+    runVoidVisitor(de.deserializeVariants("Ordering")(VARIANTS)(visitor));

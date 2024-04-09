@@ -29,6 +29,7 @@ import {
     type VisitorState,
     type VoidVisitorHkt,
 } from "./deserialize.ts";
+import { runVoidVisitor } from "./deserialize.ts";
 
 /**
  * The list data type with current element and rest list of elements.
@@ -2020,4 +2021,4 @@ export const visitor = <T>(
 
 export const deserialize =
     <T>(deserializeT: Deserialize<T>): Deserialize<List<T>> => (de) =>
-        de.deserializeArray(visitor(deserializeT));
+        runVoidVisitor(de.deserializeArray(visitor(deserializeT)));

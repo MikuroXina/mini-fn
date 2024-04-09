@@ -40,9 +40,11 @@ import { doT } from "./cat.ts";
 import {
     type Deserialize,
     newVisitor,
+    runVoidVisitor,
     variantsDeserialize,
     type Visitor,
     visitorMonad,
+    type VoidVisitorHkt,
 } from "./deserialize.ts";
 
 const someSymbol = Symbol("OptionSome");
@@ -856,10 +858,12 @@ export const serialize = <T>(
         )
             .finishM(({ serVariant }) => serVariant.end()) as Serial<S>;
 
-export const visitor = <T>(deserializeT: Deserialize<T>): Visitor<Option<T>> =>
+export const visitor = <T>(
+    deserializeT: Deserialize<T>,
+): Visitor<VoidVisitorHkt<Option<T>>> =>
     newVisitor("Option")({
         visitVariants: (variants) => {
-            const m = visitorMonad<Option<T>>();
+            const m = visitorMonad<VoidVisitorHkt<Option<T>>>();
             return doT(m)
                 .addM(
                     "variant",
@@ -877,4 +881,6 @@ export const visitor = <T>(deserializeT: Deserialize<T>): Visitor<Option<T>> =>
 
 export const deserialize =
     <T>(deserializeT: Deserialize<T>): Deserialize<Option<T>> => (de) =>
-        de.deserializeVariants("Option")(VARIANTS)(visitor(deserializeT));
+        runVoidVisitor(
+            de.deserializeVariants("Option")(VARIANTS)(visitor(deserializeT)),
+        );

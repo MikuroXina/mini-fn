@@ -1,24 +1,41 @@
 import type { Serialize } from "./serialize.ts";
-import { type Deserialize, newVisitor, type Visitor } from "./deserialize.ts";
-import { err, ok } from "./result.ts";
+import {
+    type Deserialize,
+    newVisitor,
+    pure,
+    runVoidVisitor,
+    type Visitor,
+    type VoidVisitorHkt,
+} from "./deserialize.ts";
+import { err } from "./result.ts";
+import { DeserializeErrorBase } from "./deserialize.ts";
 
 export const serialize: Serialize<bigint> = (v) => (ser) =>
     ser.serializeBigInt(v);
 
-export const visitor: Visitor<bigint> = newVisitor("bigint")({
-    visitString: (value) => () => {
+export const visitor: Visitor<VoidVisitorHkt<bigint>> = newVisitor("bigint")({
+    visitString: <E extends DeserializeErrorBase>(value: string) => {
         try {
-            return ok(BigInt(value));
+            return pure<E, VoidVisitorHkt<bigint>>(BigInt(value));
         } catch (_: unknown) {
-            return err(() => `expected integer, but got: ${value}`);
+            return () =>
+                err(
+                    (() =>
+                        `expected integer, but got: ${value}`) as unknown as E,
+                );
         }
     },
-    visitNumber: (value) => () =>
+    visitNumber: <E extends DeserializeErrorBase>(value: number) =>
         Number.isSafeInteger(value)
-            ? ok(BigInt(value))
-            : err(() => `expected safe integer, but got: ${value}`),
-    visitBigInt: (value) => () => ok(value),
+            ? pure<E, VoidVisitorHkt<bigint>>(BigInt(value))
+            : () =>
+                err(
+                    (() =>
+                        `expected safe integer, but got: ${value}`) as unknown as E,
+                ),
+    visitBigInt: <E extends DeserializeErrorBase>(value: bigint) =>
+        pure<E, VoidVisitorHkt<bigint>>(value),
 });
 
 export const deserialize: Deserialize<bigint> = (de) =>
-    de.deserializeBigInt(visitor);
+    runVoidVisitor(de.deserializeBigInt(visitor));

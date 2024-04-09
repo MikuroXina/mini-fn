@@ -30,6 +30,7 @@ import {
     type VisitorState,
     type VoidVisitorHkt,
 } from "./deserialize.ts";
+import { runVoidVisitor } from "./deserialize.ts";
 
 const continueSymbol = Symbol("ControlFlowContinue");
 /**
@@ -191,6 +192,8 @@ export const deserialize =
     <B>(deserializeB: Deserialize<B>) =>
     <C>(deserializeC: Deserialize<C>): Deserialize<ControlFlow<B, C>> =>
     (de) =>
-        de.deserializeVariants("ControlFlow")(VARIANTS)(
-            visitor(deserializeB)(deserializeC),
+        runVoidVisitor(
+            de.deserializeVariants("ControlFlow")(VARIANTS)(
+                visitor(deserializeB)(deserializeC),
+            ),
         );

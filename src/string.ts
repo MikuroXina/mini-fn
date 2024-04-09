@@ -4,8 +4,10 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     type Deserialize,
     newVisitor,
+    runVoidVisitor,
     type Visitor,
     visitorMonad,
+    type VoidVisitorHkt,
 } from "./deserialize.ts";
 
 export const cmp = (lhs: string, rhs: string): Ordering => {
@@ -22,9 +24,9 @@ export const ord: Ord<string> = fromCmp(() => cmp)();
 export const serialize: Serialize<string> = (v) => (ser) =>
     ser.serializeString(v);
 
-export const visitor: Visitor<string> = newVisitor("string")({
-    visitString: (v) => visitorMonad<string>().pure(v),
+export const visitor: Visitor<VoidVisitorHkt<string>> = newVisitor("string")({
+    visitString: (v) => visitorMonad<VoidVisitorHkt<string>>().pure(v),
 });
 
 export const deserialize: Deserialize<string> = (de) =>
-    de.deserializeString(visitor);
+    runVoidVisitor(de.deserializeString(visitor));

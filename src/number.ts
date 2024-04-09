@@ -18,6 +18,7 @@ import {
     type Visitor,
     VoidVisitorHkt,
 } from "./deserialize.ts";
+import { runVoidVisitor } from "./deserialize.ts";
 
 export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
     if (Number.isNaN(lhs) || Number.isNaN(rhs)) {
@@ -68,4 +69,4 @@ export const visitor: Visitor<VoidVisitorHkt<number>> = newVisitor("number")({
 });
 
 export const deserialize: Deserialize<number> = (de) =>
-    de.deserializeNumber(visitor);
+    runVoidVisitor(de.deserializeNumber(visitor));

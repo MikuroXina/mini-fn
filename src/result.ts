@@ -1,4 +1,5 @@
 import { doT } from "./cat.ts";
+import { runVoidVisitor } from "./deserialize.ts";
 import {
     type Deserialize,
     type DeserializerError,
@@ -742,7 +743,7 @@ export const serialize = <E>(
 
 export const visitor =
     <E>(deserializeE: Deserialize<E>) =>
-    <T>(deserializeT: Deserialize<T>): Visitor<Result<E, T>> =>
+    <T>(deserializeT: Deserialize<T>): Visitor<VoidVisitorHkt<Result<E, T>>> =>
         newVisitor("Result")({
             visitVariants: <D>(variants: VariantsAccess<D>) => {
                 const m = visitorMonad<VoidVisitorHkt<Result<E, T>>>();
@@ -767,6 +768,8 @@ export const deserialize =
     <E>(deserializeE: Deserialize<E>) =>
     <T>(deserializeT: Deserialize<T>): Deserialize<Result<E, T>> =>
     (de) =>
-        de.deserializeVariants("Result")(VARIANTS)(
-            visitor(deserializeE)(deserializeT),
+        runVoidVisitor(
+            de.deserializeVariants("Result")(VARIANTS)(
+                visitor(deserializeE)(deserializeT),
+            ),
         );

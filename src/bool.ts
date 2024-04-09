@@ -6,6 +6,7 @@ import {
     type Deserialize,
     newVisitor,
     pure,
+    runVoidVisitor,
     type Visitor,
     type VoidVisitorHkt,
 } from "./deserialize.ts";
@@ -40,4 +41,4 @@ export const visitor: Visitor<VoidVisitorHkt<boolean>> = newVisitor("boolean")({
 });
 
 export const deserialize: Deserialize<boolean> = (de) =>
-    de.deserializeBoolean(visitor);
+    runVoidVisitor(de.deserializeBoolean(visitor));

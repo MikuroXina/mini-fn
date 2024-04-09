@@ -6,17 +6,21 @@ import {
 } from "./serialize.ts";
 import { doT } from "./cat.ts";
 import {
+    type ArrayAccess,
     type Deserialize,
-    type DeserializeErrorBase,
+    type DeserializerError,
     newVisitor,
+    runVoidVisitor,
     type Visitor,
     visitorMonad,
+    type VisitorState,
+    type VoidVisitorHkt,
 } from "./deserialize.ts";
 import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.ts";
 import { defer as lazyDefer, force, type Lazy } from "./lazy.ts";
 import { andThen, mapOrElse, type Option, zip } from "./option.ts";
 import { andThen as thenWith, type Ordering } from "./ordering.ts";
-import { err, ok, type Result } from "./result.ts";
+import { err } from "./result.ts";
 import { type Applicative, liftA2 } from "./type-class/applicative.ts";
 import { fromBifoldMap } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
@@ -312,24 +316,37 @@ export const serialize =
 
 export const visitor =
     <A>(deserializeA: Deserialize<A>) =>
-    <B>(deserializeB: Deserialize<B>): Visitor<Tuple<A, B>> =>
+    <B>(deserializeB: Deserialize<B>): Visitor<VoidVisitorHkt<Tuple<A, B>>> =>
         newVisitor("Tuple")({
-            visitArray: (array) =>
-                doT(visitorMonad<Tuple<A, B>>())
+            visitArray: <D>(array: ArrayAccess<D>) => {
+                const m = visitorMonad<VoidVisitorHkt<Tuple<A, B>>>();
+                return doT(m)
                     .addM("first", array.nextElement(deserializeA))
                     .addM("second", array.nextElement(deserializeB))
                     .finishM(
-                        ({ first, second }) => () =>
-                            mapOrElse((): Result<
-                                DeserializeErrorBase,
-                                Tuple<A, B>
-                            > => err(() => "expected two items"))((
+                        ({ first, second }) =>
+                            mapOrElse((): VisitorState<
+                                DeserializerError<D>,
+                                VoidVisitorHkt<Tuple<A, B>>
+                            > =>
+                            () =>
+                                err(
+                                    (() =>
+                                        "expected two items") as unknown as DeserializerError<
+                                            D
+                                        >,
+                                )
+                            )((
                                 [a, b]: [A, B],
-                            ) => ok(make(a)(b)))(zip(first)(second)),
-                    ),
+                            ) => m.pure(make(a)(b)))(zip(first)(second)),
+                    );
+            },
         });
 
 export const deserialize =
     <A>(deserializeA: Deserialize<A>) =>
     <B>(deserializeB: Deserialize<B>): Deserialize<Tuple<A, B>> =>
-    (de) => de.deserializeArray(visitor(deserializeA)(deserializeB));
+    (de) =>
+        runVoidVisitor(
+            de.deserializeArray(visitor(deserializeA)(deserializeB)),
+        );
