@@ -1,11 +1,14 @@
 import { doT } from "./cat.ts";
 import {
     type Deserialize,
+    type DeserializerError,
     newVisitor,
+    type VariantsAccess,
     variantsDeserialize,
     type Visitor,
     visitorMonad,
-    type VisitorRet,
+    type VisitorState,
+    type VoidVisitorHkt,
 } from "./deserialize.ts";
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import type { Optic } from "./optical.ts";
@@ -741,8 +744,8 @@ export const visitor =
     <E>(deserializeE: Deserialize<E>) =>
     <T>(deserializeT: Deserialize<T>): Visitor<Result<E, T>> =>
         newVisitor("Result")({
-            visitVariants: (variants) => {
-                const m = visitorMonad<Result<E, T>>();
+            visitVariants: <D>(variants: VariantsAccess<D>) => {
+                const m = visitorMonad<VoidVisitorHkt<Result<E, T>>>();
                 return doT(m)
                     .addM(
                         "variant",
@@ -750,10 +753,12 @@ export const visitor =
                     )
                     .finishM((
                         { variant: [key, access] },
-                    ): VisitorRet<Result<E, T>> =>
-                        key === "Ok"
-                            ? m.map(ok<T>)(access.visitCustom(deserializeT))
-                            : m.map(err<E>)(access.visitCustom(deserializeE))
+                    ): VisitorState<
+                        DeserializerError<D>,
+                        VoidVisitorHkt<Result<E, T>>
+                    > => key === "Ok"
+                        ? m.map(ok<T>)(access.visitCustom(deserializeT))
+                        : m.map(err<E>)(access.visitCustom(deserializeE))
                     );
             },
         });

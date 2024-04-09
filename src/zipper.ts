@@ -1,6 +1,6 @@
 import type { Serialize } from "./serialize.ts";
 import type { Hkt1 } from "./hkt.ts";
-import type { Deserialize, DeserializeError } from "./deserialize.ts";
+import type { Deserialize } from "./deserialize.ts";
 import {
     appendToHead,
     deserialize as listDeserialize,
@@ -37,6 +37,8 @@ import {
     type PartialEq,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
+import { Deserializer } from "./deserialize.ts";
+import { DeserializerError } from "./deserialize.ts";
 
 /**
  * The zipper represents the cursor of non-empty list.
@@ -295,9 +297,13 @@ export const serialize =
         listSerialize(serializeT)(toList(v));
 
 export const deserialize =
-    <T>(deserializeT: Deserialize<T>): Deserialize<Zipper<T>> => (de) =>
+    <T>(deserializeT: Deserialize<T>): Deserialize<Zipper<T>> =>
+    <D>(de: Deserializer<D>) =>
         resultAndThen((list: List<T>) =>
-            okOr<DeserializeError>(() => "expected one element at least")(
-                fromList(list),
-            )
+            okOr(
+                (() =>
+                    "expected one element at least") as unknown as DeserializerError<
+                        D
+                    >,
+            )(fromList(list))
         )(listDeserialize(deserializeT)(de));

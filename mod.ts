@@ -19,6 +19,7 @@ export * as Frozen from "./src/frozen.ts";
 export * as Func from "./src/func.ts";
 export * as Hkt from "./src/hkt.ts";
 export * as Identity from "./src/identity.ts";
+export * as Json from "./src/json.ts";
 export * as Kleisli from "./src/kleisli.ts";
 export * as Lazy from "./src/lazy.ts";
 export * as List from "./src/list.ts";

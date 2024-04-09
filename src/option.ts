@@ -43,7 +43,6 @@ import {
     variantsDeserialize,
     type Visitor,
     visitorMonad,
-    type VisitorRet,
 } from "./deserialize.ts";
 
 const someSymbol = Symbol("OptionSome");
@@ -866,7 +865,7 @@ export const visitor = <T>(deserializeT: Deserialize<T>): Visitor<Option<T>> =>
                     "variant",
                     variants.variant(variantsDeserialize(VARIANTS)),
                 )
-                .finishM(({ variant: [key, access] }): VisitorRet<Option<T>> =>
+                .finishM(({ variant: [key, access] }) =>
                     key === "None"
                         ? m.pure(none() as Option<T>)
                         : m.map(some<T>)(

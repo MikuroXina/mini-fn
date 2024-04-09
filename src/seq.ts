@@ -6,12 +6,14 @@ import {
 } from "./serialize.ts";
 import type { Hkt1 } from "./hkt.ts";
 import {
+    type ArrayAccess,
     type Deserialize,
+    type DeserializerError,
     newVisitor,
     type Visitor,
     visitorMonad,
-    type VisitorReader,
-    type VisitorRet,
+    type VisitorState,
+    type VoidVisitorHkt,
 } from "./deserialize.ts";
 import {
     isNone,
@@ -199,14 +201,19 @@ export const serialize =
             .finishM(({ seqSer }) => seqSer.end()) as Serial<S>;
     };
 
-export const visitor = <A>(deserializeA: Deserialize<A>): Visitor<Seq<A>> =>
+export const visitor = <A>(
+    deserializeA: Deserialize<A>,
+): Visitor<VoidVisitorHkt<Seq<A>>> =>
     newVisitor("Seq")({
-        visitArray: (array) => {
-            const m = visitorMonad<Seq<A>>();
+        visitArray: <D>(array: ArrayAccess<D>) => {
+            const m = visitorMonad<VoidVisitorHkt<Seq<A>>>();
             const rec = (items: Seq<A>) =>
             (
-                getItem: VisitorReader<Seq<A>, Option<A>>,
-            ): VisitorRet<Seq<A>> =>
+                getItem: VisitorState<
+                    DeserializerError<D>,
+                    VoidVisitorHkt<Option<A>>
+                >,
+            ): VisitorState<DeserializerError<D>, VoidVisitorHkt<Seq<A>>> =>
                 doT(m).addM("newItem", getItem).finishM(({ newItem }) =>
                     mapOrElse(
                         () => m.pure(items),

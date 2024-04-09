@@ -20,12 +20,14 @@ import type { Reduce } from "./type-class/reduce.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 import {
+    type ArrayAccess,
     type Deserialize,
+    type DeserializerError,
     newVisitor,
     type Visitor,
     visitorMonad,
-    type VisitorReader,
-    type VisitorRet,
+    type VisitorState,
+    type VoidVisitorHkt,
 } from "./deserialize.ts";
 
 /**
@@ -1994,14 +1996,19 @@ export const serialize =
     <T>(serializeT: Serialize<T>): Serialize<List<T>> => (v) =>
         collectArray(serializeT)(toArray(v));
 
-export const visitor = <T>(deserializeT: Deserialize<T>): Visitor<List<T>> =>
+export const visitor = <T>(
+    deserializeT: Deserialize<T>,
+): Visitor<VoidVisitorHkt<List<T>>> =>
     newVisitor("List")({
-        visitArray: (array) => {
-            const m = visitorMonad<List<T>>();
+        visitArray: <D>(array: ArrayAccess<D>) => {
+            const m = visitorMonad<VoidVisitorHkt<List<T>>>();
             const rec = (items: List<T>) =>
             (
-                getItem: VisitorReader<List<T>, Option.Option<T>>,
-            ): VisitorRet<List<T>> =>
+                getItem: VisitorState<
+                    DeserializerError<D>,
+                    VoidVisitorHkt<Option.Option<T>>
+                >,
+            ): VisitorState<DeserializerError<D>, VoidVisitorHkt<List<T>>> =>
                 doT(m).addM("newItem", getItem).finishM(({ newItem }) =>
                     Option.mapOrElse(() => m.pure(items))(
                         (item: T) => rec(appendToTail(item)(items))(getItem),

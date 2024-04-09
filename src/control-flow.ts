@@ -21,11 +21,14 @@ import {
 import { doT } from "./cat.ts";
 import {
     type Deserialize,
+    type DeserializerError,
     newVisitor,
+    type VariantsAccess,
     variantsDeserialize,
     type Visitor,
     visitorMonad,
-    type VisitorRet,
+    type VisitorState,
+    type VoidVisitorHkt,
 } from "./deserialize.ts";
 
 const continueSymbol = Symbol("ControlFlowContinue");
@@ -161,25 +164,25 @@ export const serialize = <B>(
 export const visitor = <B>(deserializeB: Deserialize<B>) =>
 <C>(
     deserializeC: Deserialize<C>,
-): Visitor<ControlFlow<B, C>> =>
-    newVisitor("ControlFlow")({
-        visitVariants: (variants) => {
-            const m = visitorMonad<ControlFlow<B, C>>();
+): Visitor<VoidVisitorHkt<ControlFlow<B, C>>> =>
+    newVisitor("ControlFlow")<VoidVisitorHkt<ControlFlow<B, C>>>({
+        visitVariants: <D>(variants: VariantsAccess<D>) => {
+            const m = visitorMonad<VoidVisitorHkt<ControlFlow<B, C>>>();
             return doT(m)
                 .addM(
                     "variant",
-                    variants.variant(
-                        variantsDeserialize(VARIANTS),
-                    ),
+                    variants.variant(variantsDeserialize(VARIANTS)),
                 )
                 .finishM((
                     { variant: [key, access] },
-                ): VisitorRet<ControlFlow<B, C>> =>
-                    key === "Continue"
-                        ? m.map(newContinue<C>)(
-                            access.visitCustom(deserializeC),
-                        )
-                        : m.map(newBreak<B>)(access.visitCustom(deserializeB))
+                ): VisitorState<
+                    DeserializerError<D>,
+                    VoidVisitorHkt<ControlFlow<B, C>>
+                > => key === "Continue"
+                    ? m.map(newContinue<C>)(
+                        access.visitCustom(deserializeC),
+                    )
+                    : m.map(newBreak<B>)(access.visitCustom(deserializeB))
                 );
         },
     });

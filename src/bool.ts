@@ -2,8 +2,14 @@ import type { Serialize } from "./serialize.ts";
 import { fromEquality } from "./type-class/eq.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import { type Deserialize, newVisitor, type Visitor } from "./deserialize.ts";
-import { ok } from "./result.ts";
+import {
+    type Deserialize,
+    newVisitor,
+    pure,
+    type Visitor,
+    type VoidVisitorHkt,
+} from "./deserialize.ts";
+import { DeserializeErrorBase } from "./deserialize.ts";
 
 /**
  * The instance of `Monoid` about logical AND operation.
@@ -28,8 +34,9 @@ export const eq = fromEquality(() => equality)();
 export const serialize: Serialize<boolean> = (v) => (ser) =>
     ser.serializeBoolean(v);
 
-export const visitor: Visitor<boolean> = newVisitor("boolean")({
-    visitBoolean: (value) => () => ok(value),
+export const visitor: Visitor<VoidVisitorHkt<boolean>> = newVisitor("boolean")({
+    visitBoolean: <E extends DeserializeErrorBase>(value: boolean) =>
+        pure<E, VoidVisitorHkt<boolean>>(value),
 });
 
 export const deserialize: Deserialize<boolean> = (de) =>

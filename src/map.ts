@@ -36,10 +36,12 @@ import {
     newVisitor,
     type Visitor,
     visitorMonad,
-    type VisitorReader,
-    type VisitorRet,
+    type VisitorState,
 } from "./deserialize.ts";
 import { mapOrElse } from "./option.ts";
+import { VoidVisitorHkt } from "./deserialize.ts";
+import { RecordAccess } from "./deserialize.ts";
+import { DeserializerError } from "./deserialize.ts";
 
 export const eq =
     <K, V>(equality: PartialEq<V>) => (l: Map<K, V>, r: Map<K, V>): boolean => {
@@ -785,27 +787,37 @@ export const serialize =
 
 export const visitor =
     <K>(deserializeK: Deserialize<K>) =>
-    <V>(deserializeV: Deserialize<V>): Visitor<Map<K, V>> =>
+    <V>(deserializeV: Deserialize<V>): Visitor<VoidVisitorHkt<Map<K, V>>> =>
         newVisitor("Map")({
-            visitRecord: (record) => {
-                const m = visitorMonad<Map<K, V>>();
+            visitRecord: <D>(record: RecordAccess<D>) => {
+                const m = visitorMonad<VoidVisitorHkt<Map<K, V>>>();
                 const rec =
                     (items: Map<K, V>) =>
-                    (getKey: VisitorReader<Map<K, V>, Option<K>>) =>
                     (
-                        getValue: VisitorReader<Map<K, V>, V>,
-                    ): VisitorRet<Map<K, V>> =>
-                        m.flatMap(
-                            mapOrElse(() => m.pure(items))(
-                                (newKey: K) =>
-                                    doT(m).addM("newValue", getValue).finishM(
-                                        ({ newValue }) => {
-                                            items.set(newKey, newValue);
-                                            return rec(items)(getKey)(getValue);
-                                        },
-                                    ),
-                            ),
-                        )(getKey);
+                        getKey: VisitorState<
+                            DeserializerError<D>,
+                            VoidVisitorHkt<Option<K>>
+                        >,
+                    ) =>
+                    (
+                        getValue: VisitorState<
+                            DeserializerError<D>,
+                            VoidVisitorHkt<V>
+                        >,
+                    ): VisitorState<
+                        DeserializerError<D>,
+                        VoidVisitorHkt<Map<K, V>>
+                    > => m.flatMap(
+                        mapOrElse(() => m.pure(items))(
+                            (newKey: K) =>
+                                doT(m).addM("newValue", getValue).finishM(
+                                    ({ newValue }) => {
+                                        items.set(newKey, newValue);
+                                        return rec(items)(getKey)(getValue);
+                                    },
+                                ),
+                        ),
+                    )(getKey);
                 return rec(new Map())(record.nextKey(deserializeK))(
                     record.nextValue(deserializeV),
                 );

@@ -1,11 +1,14 @@
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import {
     type Deserialize,
+    type DeserializerError,
     newVisitor,
+    type VariantsAccess,
     variantsDeserialize,
     type Visitor,
     visitorMonad,
-    type VisitorRet,
+    type VisitorState,
+    type VoidVisitorHkt,
 } from "./deserialize.ts";
 import { id } from "./identity.ts";
 import { appendToHead, either, empty, type List } from "./list.ts";
@@ -593,8 +596,8 @@ export const visitor =
     <A>(deserializeA: Deserialize<A>) =>
     <B>(deserializeB: Deserialize<B>): Visitor<These<A, B>> =>
         newVisitor("These")({
-            visitVariants: (variants) => {
-                const m = visitorMonad<These<A, B>>();
+            visitVariants: <D>(variants: VariantsAccess<D>) => {
+                const m = visitorMonad<VoidVisitorHkt<These<A, B>>>();
                 return doT(m)
                     .addM(
                         "variant",
@@ -602,21 +605,21 @@ export const visitor =
                     )
                     .finishM((
                         { variant: [key, access] },
-                    ): VisitorRet<These<A, B>> =>
-                        key === "This"
-                            ? m.map(newThis<A>)(
-                                access.visitCustom(deserializeA),
-                            )
-                            : key === "That"
-                            ? m.map(newThat<B>)(
-                                access.visitCustom(deserializeB),
-                            )
-                            : doT(m)
-                                .addM("left", access.visitCustom(deserializeA))
-                                .addM("right", access.visitCustom(deserializeB))
-                                .finish(({ left, right }) =>
-                                    newBoth(left)(right)
-                                )
+                    ): VisitorState<
+                        DeserializerError<D>,
+                        VoidVisitorHkt<These<A, B>>
+                    > => key === "This"
+                        ? m.map(newThis<A>)(
+                            access.visitCustom(deserializeA),
+                        )
+                        : key === "That"
+                        ? m.map(newThat<B>)(
+                            access.visitCustom(deserializeB),
+                        )
+                        : doT(m)
+                            .addM("left", access.visitCustom(deserializeA))
+                            .addM("right", access.visitCustom(deserializeB))
+                            .finish(({ left, right }) => newBoth(left)(right))
                     );
             },
         });

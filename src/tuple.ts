@@ -7,7 +7,7 @@ import {
 import { doT } from "./cat.ts";
 import {
     type Deserialize,
-    type DeserializeError,
+    type DeserializeErrorBase,
     newVisitor,
     type Visitor,
     visitorMonad,
@@ -321,7 +321,7 @@ export const visitor =
                     .finishM(
                         ({ first, second }) => () =>
                             mapOrElse((): Result<
-                                DeserializeError,
+                                DeserializeErrorBase,
                                 Tuple<A, B>
                             > => err(() => "expected two items"))((
                                 [a, b]: [A, B],
