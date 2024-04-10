@@ -1,30 +1,6 @@
-import {
-    type Serial,
-    type Serialize,
-    serializeMonad,
-    type Serializer,
-} from "./serialize.ts";
 import type { Hkt1 } from "./hkt.ts";
+import { isNone, map as mapOption, none, type Option, some } from "./option.ts";
 import {
-    type ArrayAccess,
-    type Deserialize,
-    type DeserializerError,
-    newVisitor,
-    type Visitor,
-    visitorMonad,
-    type VisitorState,
-    type VoidVisitorHkt,
-} from "./deserialize.ts";
-import {
-    isNone,
-    map as mapOption,
-    mapOrElse,
-    none,
-    type Option,
-    some,
-} from "./option.ts";
-import {
-    appendToTail,
     deep,
     type Digit,
     empty,
@@ -34,12 +10,8 @@ import {
     isSingle,
     type Node,
     reduceDigit,
-    reduceTree,
-    size,
 } from "./seq/finger-tree.ts";
 import type { Tuple } from "./tuple.ts";
-import { doT } from "./cat.ts";
-import { runVoidVisitor } from "./deserialize.ts";
 
 /**
  * The sequence of `A`, the homogenous data structure to store finite data. This is an alias of `FingerTree`.
@@ -183,49 +155,3 @@ export const headR = <A>(tree: Seq<A>): Option<A> =>
  */
 export const tailR = <A>(tree: Seq<A>): Option<Seq<A>> =>
     mapOption(([tail]: Tuple<Seq<A>, A>) => tail)(viewR(tree));
-
-export const serialize =
-    <A>(serializeA: Serialize<A>): Serialize<Seq<A>> =>
-    <S>(v: Seq<A>) =>
-    (ser: Serializer<S>): Serial<S> => {
-        const cat = doT(serializeMonad<S>()).addM(
-            "seqSer",
-            ser.serializeArray(size(v)),
-        );
-        return reduceTree
-            .reduceL((prev: typeof cat) => (item: A): typeof cat =>
-                prev.addMWith(
-                    "_",
-                    ({ seqSer }) => seqSer.serializeElement(serializeA)(item),
-                )
-            )(cat)(v)
-            .finishM(({ seqSer }) => seqSer.end()) as Serial<S>;
-    };
-
-export const visitor = <A>(
-    deserializeA: Deserialize<A>,
-): Visitor<VoidVisitorHkt<Seq<A>>> =>
-    newVisitor("Seq")({
-        visitArray: <D>(array: ArrayAccess<D>) => {
-            const m = visitorMonad<VoidVisitorHkt<Seq<A>>>();
-            const rec = (items: Seq<A>) =>
-            (
-                getItem: VisitorState<
-                    DeserializerError<D>,
-                    VoidVisitorHkt<Option<A>>
-                >,
-            ): VisitorState<DeserializerError<D>, VoidVisitorHkt<Seq<A>>> =>
-                doT(m).addM("newItem", getItem).finishM(({ newItem }) =>
-                    mapOrElse(
-                        () => m.pure(items),
-                    )(
-                        (item: A) => rec(appendToTail(item)(items))(getItem),
-                    )(newItem)
-                );
-            return rec(empty)(array.nextElement(deserializeA));
-        },
-    });
-
-export const deserialize =
-    <A>(deserializeA: Deserialize<A>): Deserialize<Seq<A>> => (de) =>
-        runVoidVisitor(de.deserializeArray(visitor(deserializeA)));

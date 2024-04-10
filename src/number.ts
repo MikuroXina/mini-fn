@@ -1,4 +1,3 @@
-import type { Serialize } from "./serialize.ts";
 import { none, type Option, some } from "./option.ts";
 import { equal, greater, less, type Ordering } from "./ordering.ts";
 import {
@@ -10,15 +9,6 @@ import type { Field } from "./type-class/field.ts";
 import { fromPartialCmp } from "./type-class/partial-ord.ts";
 import type { Ring } from "./type-class/ring.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import {
-    type Deserialize,
-    type DeserializeErrorBase,
-    newVisitor,
-    pure,
-    type Visitor,
-    VoidVisitorHkt,
-} from "./deserialize.ts";
-import { runVoidVisitor } from "./deserialize.ts";
 
 export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
     if (Number.isNaN(lhs) || Number.isNaN(rhs)) {
@@ -59,14 +49,3 @@ export const field: Field<number> = {
     additive: addAbelianGroup,
     multiplication: mulAbelianGroup,
 };
-
-export const serialize: Serialize<number> = (v) => (ser) =>
-    ser.serializeNumber(v);
-
-export const visitor: Visitor<VoidVisitorHkt<number>> = newVisitor("number")({
-    visitNumber: <E extends DeserializeErrorBase>(v: number) =>
-        pure<E, VoidVisitorHkt<number>>(v),
-});
-
-export const deserialize: Deserialize<number> = (de) =>
-    runVoidVisitor(de.deserializeNumber(visitor));

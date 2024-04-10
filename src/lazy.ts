@@ -1,4 +1,3 @@
-import type { Serialize } from "./serialize.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import type { Applicative } from "./type-class/applicative.ts";
 import { fromProjection as eqFromProjection } from "./type-class/eq.ts";
@@ -8,8 +7,6 @@ import { fromProjection as ordFromProjection } from "./type-class/ord.ts";
 import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.ts";
 import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.ts";
 import type { Traversable } from "./type-class/traversable.ts";
-import type { Deserialize } from "./deserialize.ts";
-import { map as resultMap } from "./result.ts";
 
 const lazyNominal = Symbol("Lazy");
 
@@ -142,11 +139,3 @@ export const traversable: Traversable<LazyHkt> = {
     foldR,
     traverse,
 };
-
-export const serialize =
-    <T>(serializeT: Serialize<T>): Serialize<Lazy<T>> => (v) =>
-        serializeT(force(v));
-
-export const deserialize =
-    <T>(deserializeT: Deserialize<T>): Deserialize<Lazy<T>> => (de) =>
-        resultMap((t: T) => defer(() => t))(deserializeT(de));

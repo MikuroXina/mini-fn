@@ -1,16 +1,5 @@
-import type { Serialize } from "./serialize.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import {
-    type Deserialize,
-    newVisitor,
-    variantsDeserialize,
-    type Visitor,
-    visitorMonad,
-} from "./deserialize.ts";
-import { doT } from "./cat.ts";
-import { runVoidVisitor } from "./deserialize.ts";
-import { VoidVisitorHkt } from "./deserialize.ts";
 
 /**
  * Means that the left term is less than the right term.
@@ -84,28 +73,3 @@ export const monoid: Monoid<Ordering> = {
     identity: equal,
     [semiGroupSymbol]: true,
 };
-
-const VARIANTS = ["Less", "Equal", "Greater"] as const;
-
-export const serialize: Serialize<Ordering> = (v) => (ser) =>
-    isLt(v)
-        ? ser.serializeUnitVariant("Ordering", 0, VARIANTS[0])
-        : isEq(v)
-        ? ser.serializeUnitVariant("Ordering", 1, VARIANTS[1])
-        : ser.serializeUnitVariant("Ordering", 2, VARIANTS[2]);
-
-export const visitor: Visitor<VoidVisitorHkt<Ordering>> = newVisitor(
-    "Ordering",
-)({
-    visitVariants: (variants) =>
-        doT(visitorMonad<VoidVisitorHkt<Ordering>>()).addM(
-            "variant",
-            variants.variant(variantsDeserialize(VARIANTS)),
-        )
-            .finish(({ variant: [key] }) =>
-                key === "Less" ? less : key === "Equal" ? equal : greater
-            ),
-});
-
-export const deserialize: Deserialize<Ordering> = (de) =>
-    runVoidVisitor(de.deserializeVariants("Ordering")(VARIANTS)(visitor));

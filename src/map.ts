@@ -24,25 +24,6 @@ import { fromPartialEquality, PartialEq } from "./type-class/partial-eq.ts";
 import { fromPartialCmp } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import { Traversable } from "./type-class/traversable.ts";
-import {
-    type Serial,
-    type Serialize,
-    serializeMonad,
-    type Serializer,
-} from "./serialize.ts";
-import { doT } from "./cat.ts";
-import {
-    type Deserialize,
-    newVisitor,
-    type Visitor,
-    visitorMonad,
-    type VisitorState,
-} from "./deserialize.ts";
-import { mapOrElse } from "./option.ts";
-import { VoidVisitorHkt } from "./deserialize.ts";
-import { RecordAccess } from "./deserialize.ts";
-import { DeserializerError } from "./deserialize.ts";
-import { runVoidVisitor } from "./deserialize.ts";
 
 export const eq =
     <K, V>(equality: PartialEq<V>) => (l: Map<K, V>, r: Map<K, V>): boolean => {
@@ -756,78 +737,3 @@ export const traversable = <K>(): Traversable<Apply2Only<MapHkt, K>> => ({
     foldR,
     traverse,
 });
-
-export const serialize =
-    <K>(serializeK: Serialize<K>) =>
-    <V>(serializeV: Serialize<V>): Serialize<Map<K, V>> =>
-    <S>(rec: Map<K, V>) =>
-    (ser: Serializer<S>): Serial<S> => {
-        const keys = [...rec.keys()];
-        ser.serializeRecord(keys.length);
-        const cat = doT(serializeMonad<S>()).addM(
-            "recSer",
-            ser.serializeRecord(
-                keys.length,
-            ),
-        );
-        return keys.reduce(
-            (prev, key) =>
-                prev.addMWith(
-                    "_",
-                    ({ recSer }) => recSer.serializeKey(serializeK)(key),
-                )
-                    .addMWith(
-                        "_",
-                        ({ recSer }) =>
-                            recSer.serializeKey(serializeV)(rec.get(key)!),
-                    ),
-            cat,
-        )
-            .finishM(({ recSer }) => recSer.end()) as Serial<S>;
-    };
-
-export const visitor =
-    <K>(deserializeK: Deserialize<K>) =>
-    <V>(deserializeV: Deserialize<V>): Visitor<VoidVisitorHkt<Map<K, V>>> =>
-        newVisitor("Map")({
-            visitRecord: <D>(record: RecordAccess<D>) => {
-                const m = visitorMonad<VoidVisitorHkt<Map<K, V>>>();
-                const rec = (items: Map<K, V>) =>
-                (
-                    getKey: VisitorState<
-                        DeserializerError<D>,
-                        VoidVisitorHkt<Option<K>>
-                    >,
-                ) =>
-                (
-                    getValue: VisitorState<
-                        DeserializerError<D>,
-                        VoidVisitorHkt<V>
-                    >,
-                ): VisitorState<
-                    DeserializerError<D>,
-                    VoidVisitorHkt<Map<K, V>>
-                > => m.flatMap(
-                    mapOrElse(() => m.pure(items))(
-                        (newKey: K) =>
-                            doT(m).addM("newValue", getValue).finishM(
-                                ({ newValue }) => {
-                                    items.set(newKey, newValue);
-                                    return rec(items)(getKey)(getValue);
-                                },
-                            ),
-                    ),
-                )(getKey);
-                return rec(new Map())(record.nextKey(deserializeK))(
-                    record.nextValue(deserializeV),
-                );
-            },
-        });
-
-export const deserialize =
-    <K>(deserializeK: Deserialize<K>) =>
-    <V>(deserializeV: Deserialize<V>): Deserialize<Map<K, V>> =>
-    (de) =>
-        runVoidVisitor(
-            de.deserializeRecord(visitor(deserializeK)(deserializeV)),
-        );

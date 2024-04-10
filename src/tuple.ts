@@ -1,26 +1,7 @@
-import {
-    type Serial,
-    type Serialize,
-    serializeMonad,
-    type Serializer,
-} from "./serialize.ts";
-import { doT } from "./cat.ts";
-import {
-    type ArrayAccess,
-    type Deserialize,
-    type DeserializerError,
-    newVisitor,
-    runVoidVisitor,
-    type Visitor,
-    visitorMonad,
-    type VisitorState,
-    type VoidVisitorHkt,
-} from "./deserialize.ts";
 import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.ts";
 import { defer as lazyDefer, force, type Lazy } from "./lazy.ts";
-import { andThen, mapOrElse, type Option, zip } from "./option.ts";
+import { andThen, type Option } from "./option.ts";
 import { andThen as thenWith, type Ordering } from "./ordering.ts";
-import { err } from "./result.ts";
 import { type Applicative, liftA2 } from "./type-class/applicative.ts";
 import { fromBifoldMap } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
@@ -297,56 +278,3 @@ export const bitraversable: Bitraversable<TupleHkt> = {
     ...bifoldable,
     bitraverse,
 };
-
-export const serialize =
-    <A>(serializeA: Serialize<A>) =>
-    <B>(serializeB: Serialize<B>): Serialize<Tuple<A, B>> =>
-    <S>(v: Tuple<A, B>) =>
-    (ser: Serializer<S>): Serial<S> =>
-        doT(serializeMonad<S>()).addM(
-            "serTuple",
-            ser.serializeTuple(2),
-        ).addMWith("_", ({ serTuple }) =>
-            serTuple.serializeElement(serializeA)(v[0]))
-            .addMWith("_", ({ serTuple }) =>
-                serTuple.serializeElement(serializeB)(v[1]))
-            .finishM(({ serTuple }) =>
-                serTuple.end()
-            ) as Serial<S>;
-
-export const visitor =
-    <A>(deserializeA: Deserialize<A>) =>
-    <B>(deserializeB: Deserialize<B>): Visitor<VoidVisitorHkt<Tuple<A, B>>> =>
-        newVisitor("Tuple")({
-            visitArray: <D>(array: ArrayAccess<D>) => {
-                const m = visitorMonad<VoidVisitorHkt<Tuple<A, B>>>();
-                return doT(m)
-                    .addM("first", array.nextElement(deserializeA))
-                    .addM("second", array.nextElement(deserializeB))
-                    .finishM(
-                        ({ first, second }) =>
-                            mapOrElse((): VisitorState<
-                                DeserializerError<D>,
-                                VoidVisitorHkt<Tuple<A, B>>
-                            > =>
-                            () =>
-                                err(
-                                    (() =>
-                                        "expected two items") as unknown as DeserializerError<
-                                            D
-                                        >,
-                                )
-                            )((
-                                [a, b]: [A, B],
-                            ) => m.pure(make(a)(b)))(zip(first)(second)),
-                    );
-            },
-        });
-
-export const deserialize =
-    <A>(deserializeA: Deserialize<A>) =>
-    <B>(deserializeB: Deserialize<B>): Deserialize<Tuple<A, B>> =>
-    (de) =>
-        runVoidVisitor(
-            de.deserializeArray(visitor(deserializeA)(deserializeB)),
-        );

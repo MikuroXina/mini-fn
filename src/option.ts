@@ -30,22 +30,6 @@ import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import { TraversableMonad } from "./type-class/traversable-monad.ts";
 import type { Traversable } from "./type-class/traversable.ts";
-import {
-    Serial,
-    type Serialize,
-    serializeMonad,
-    Serializer,
-} from "./serialize.ts";
-import { doT } from "./cat.ts";
-import {
-    type Deserialize,
-    newVisitor,
-    runVoidVisitor,
-    variantsDeserialize,
-    type Visitor,
-    visitorMonad,
-    type VoidVisitorHkt,
-} from "./deserialize.ts";
 
 const someSymbol = Symbol("OptionSome");
 /**
@@ -839,48 +823,3 @@ export const ifNone = <T>(): OpticSimple<Option<T>, void> =>
     newPrismSimple<void, Option<T>>(none)(
         mapOrElse<Option<void>>(() => some(undefined))(none),
     );
-
-const VARIANTS = ["None", "Some"] as const;
-
-export const serialize = <T>(
-    serializeT: Serialize<T>,
-): Serialize<Option<T>> =>
-(v) =>
-<S>(ser: Serializer<S>): Serial<S> =>
-    isNone(v)
-        ? ser.serializeUnitVariant("Option", 0, VARIANTS[0])
-        : doT(serializeMonad<S>()).addM(
-            "serVariant",
-            ser.serializeTupleVariant("Option", 1, VARIANTS[1], 1),
-        ).addMWith(
-            "_",
-            ({ serVariant }) => serVariant.serializeElement(serializeT)(v[1]),
-        )
-            .finishM(({ serVariant }) => serVariant.end()) as Serial<S>;
-
-export const visitor = <T>(
-    deserializeT: Deserialize<T>,
-): Visitor<VoidVisitorHkt<Option<T>>> =>
-    newVisitor("Option")({
-        visitVariants: (variants) => {
-            const m = visitorMonad<VoidVisitorHkt<Option<T>>>();
-            return doT(m)
-                .addM(
-                    "variant",
-                    variants.variant(variantsDeserialize(VARIANTS)),
-                )
-                .finishM(({ variant: [key, access] }) =>
-                    key === "None"
-                        ? m.pure(none() as Option<T>)
-                        : m.map(some<T>)(
-                            access.visitCustom(deserializeT),
-                        )
-                );
-        },
-    });
-
-export const deserialize =
-    <T>(deserializeT: Deserialize<T>): Deserialize<Option<T>> => (de) =>
-        runVoidVisitor(
-            de.deserializeVariants("Option")(VARIANTS)(visitor(deserializeT)),
-        );

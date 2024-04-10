@@ -1,16 +1,4 @@
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
-import {
-    type Deserialize,
-    type DeserializerError,
-    newVisitor,
-    runVoidVisitor,
-    type VariantsAccess,
-    variantsDeserialize,
-    type Visitor,
-    visitorMonad,
-    type VisitorState,
-    type VoidVisitorHkt,
-} from "./deserialize.ts";
 import { id } from "./identity.ts";
 import { appendToHead, either, empty, type List } from "./list.ts";
 import { make as makeTuple, type Tuple } from "./tuple.ts";
@@ -22,13 +10,6 @@ import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { PartialEq } from "./type-class/partial-eq.ts";
 import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.ts";
-import {
-    type Serial,
-    type Serialize,
-    serializeMonad,
-    type Serializer,
-} from "./serialize.ts";
-import { doT } from "./cat.ts";
 
 const thisSymbol = Symbol("TheseThis");
 /**
@@ -542,95 +523,3 @@ export const monad = <A>(
     ...app(semi),
     flatMap: flatMap(semi),
 });
-
-const VARIANTS = ["This", "That", "Both"] as const;
-
-export const serialize =
-    <A>(serializeA: Serialize<A>) =>
-    <B>(serializeB: Serialize<B>): Serialize<These<A, B>> =>
-    <S>(v: These<A, B>) =>
-    (ser: Serializer<S>): Serial<S> =>
-        isThis(v)
-            ? doT(serializeMonad<S>())
-                .addM(
-                    "serVariant",
-                    ser.serializeTupleVariant("These", 0, VARIANTS[0], 1),
-                )
-                .addMWith(
-                    "_",
-                    ({ serVariant }) =>
-                        serVariant.serializeElement(serializeA)(v[1]),
-                ).addMWith(
-                    "end",
-                    ({ serVariant }) => serVariant.end(),
-                )
-                .finish(({ end }) => end) as Serial<S>
-            : isThat(v)
-            ? doT(serializeMonad<S>())
-                .addM(
-                    "serVariant",
-                    ser.serializeTupleVariant("These", 1, VARIANTS[1], 1),
-                )
-                .addMWith(
-                    "_",
-                    ({ serVariant }) =>
-                        serVariant.serializeElement(serializeB)(v[1]),
-                ).addMWith("end", ({ serVariant }) => serVariant.end())
-                .finish(({ end }) => end) as Serial<S>
-            : doT(serializeMonad<S>())
-                .addM(
-                    "serVariant",
-                    ser.serializeTupleVariant("These", 2, VARIANTS[2], 2),
-                )
-                .addMWith(
-                    "_",
-                    ({ serVariant }) =>
-                        serVariant.serializeElement(serializeA)(v[1]),
-                ).addMWith(
-                    "_",
-                    ({ serVariant }) =>
-                        serVariant.serializeElement(serializeB)(v[2]),
-                ).addMWith("end", ({ serVariant }) => serVariant.end())
-                .finish(({ end }) => end) as Serial<S>;
-
-export const visitor =
-    <A>(deserializeA: Deserialize<A>) =>
-    <B>(deserializeB: Deserialize<B>): Visitor<VoidVisitorHkt<These<A, B>>> =>
-        newVisitor("These")({
-            visitVariants: <D>(variants: VariantsAccess<D>) => {
-                const m = visitorMonad<VoidVisitorHkt<These<A, B>>>();
-                return doT(m)
-                    .addM(
-                        "variant",
-                        variants.variant(variantsDeserialize(VARIANTS)),
-                    )
-                    .finishM((
-                        { variant: [key, access] },
-                    ): VisitorState<
-                        DeserializerError<D>,
-                        VoidVisitorHkt<These<A, B>>
-                    > => key === "This"
-                        ? m.map(newThis<A>)(
-                            access.visitCustom(deserializeA),
-                        )
-                        : key === "That"
-                        ? m.map(newThat<B>)(
-                            access.visitCustom(deserializeB),
-                        )
-                        : doT(m)
-                            .addM("left", access.visitCustom(deserializeA))
-                            .addM("right", access.visitCustom(deserializeB))
-                            .finish(({ left, right }) => newBoth(left)(right))
-                    );
-            },
-        });
-
-export const deserialize =
-    <A>(deserializeA: Deserialize<A>) =>
-    <B>(deserializeB: Deserialize<B>): Deserialize<These<A, B>> =>
-    (de) =>
-        runVoidVisitor(
-            de.deserializeVariants("These")(VARIANTS)(
-                visitor(deserializeA)(deserializeB),
-            ),
-        );

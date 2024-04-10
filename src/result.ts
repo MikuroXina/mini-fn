@@ -1,16 +1,4 @@
 import { doT } from "./cat.ts";
-import { runVoidVisitor } from "./deserialize.ts";
-import {
-    type Deserialize,
-    type DeserializerError,
-    newVisitor,
-    type VariantsAccess,
-    variantsDeserialize,
-    type Visitor,
-    visitorMonad,
-    type VisitorState,
-    type VoidVisitorHkt,
-} from "./deserialize.ts";
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import type { Optic } from "./optical.ts";
 import { newPrism } from "./optical/prism.ts";
@@ -22,12 +10,6 @@ import {
     toArray as optionToArray,
 } from "./option.ts";
 import { greater, less, type Ordering } from "./ordering.ts";
-import {
-    type Serial,
-    type Serialize,
-    serializeMonad,
-    type Serializer,
-} from "./serialize.ts";
 import type { Applicative } from "./type-class/applicative.ts";
 import type { Bifoldable } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";

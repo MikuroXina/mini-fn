@@ -12,25 +12,6 @@ import type { Get1 } from "./hkt.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 import type { TraversableMonad } from "./type-class/traversable-monad.ts";
-import {
-    type Serial,
-    type Serialize,
-    serializeMonad,
-    type Serializer,
-} from "./serialize.ts";
-import { doT } from "./cat.ts";
-import {
-    type Deserialize,
-    type DeserializerError,
-    newVisitor,
-    type VariantsAccess,
-    variantsDeserialize,
-    type Visitor,
-    visitorMonad,
-    type VisitorState,
-    type VoidVisitorHkt,
-} from "./deserialize.ts";
-import { runVoidVisitor } from "./deserialize.ts";
 
 const continueSymbol = Symbol("ControlFlowContinue");
 /**
@@ -140,60 +121,3 @@ export const traversableMonad = <B>(): TraversableMonad<
     ...monad(),
     ...traversable(),
 });
-
-const VARIANTS = ["Continue", "Break"] as const;
-
-export const serialize = <B>(
-    serializeB: Serialize<B>,
-) =>
-<C>(serializeC: Serialize<C>): Serialize<ControlFlow<B, C>> =>
-(v) =>
-<S>(ser: Serializer<S>): Serial<S> =>
-    doT(serializeMonad<S>()).addM(
-        "serVariant",
-        isContinue(v)
-            ? ser.serializeTupleVariant("ControlFlow", 0, VARIANTS[0], 1)
-            : ser.serializeTupleVariant("ControlFlow", 1, VARIANTS[1], 1),
-    ).addMWith("_", ({ serVariant }) =>
-        isContinue(v)
-            ? serVariant
-                .serializeElement(serializeC)(v[1])
-            : serVariant
-                .serializeElement(serializeB)(v[1]))
-        .finishM(({ serVariant }) => serVariant.end()) as Serial<S>;
-
-export const visitor = <B>(deserializeB: Deserialize<B>) =>
-<C>(
-    deserializeC: Deserialize<C>,
-): Visitor<VoidVisitorHkt<ControlFlow<B, C>>> =>
-    newVisitor("ControlFlow")<VoidVisitorHkt<ControlFlow<B, C>>>({
-        visitVariants: <D>(variants: VariantsAccess<D>) => {
-            const m = visitorMonad<VoidVisitorHkt<ControlFlow<B, C>>>();
-            return doT(m)
-                .addM(
-                    "variant",
-                    variants.variant(variantsDeserialize(VARIANTS)),
-                )
-                .finishM((
-                    { variant: [key, access] },
-                ): VisitorState<
-                    DeserializerError<D>,
-                    VoidVisitorHkt<ControlFlow<B, C>>
-                > => key === "Continue"
-                    ? m.map(newContinue<C>)(
-                        access.visitCustom(deserializeC),
-                    )
-                    : m.map(newBreak<B>)(access.visitCustom(deserializeB))
-                );
-        },
-    });
-
-export const deserialize =
-    <B>(deserializeB: Deserialize<B>) =>
-    <C>(deserializeC: Deserialize<C>): Deserialize<ControlFlow<B, C>> =>
-    (de) =>
-        runVoidVisitor(
-            de.deserializeVariants("ControlFlow")(VARIANTS)(
-                visitor(deserializeB)(deserializeC),
-            ),
-        );

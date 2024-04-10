@@ -1,9 +1,6 @@
-import type { Serialize } from "./serialize.ts";
 import type { Hkt1 } from "./hkt.ts";
-import type { Deserialize } from "./deserialize.ts";
 import {
     appendToHead,
-    deserialize as listDeserialize,
     drop,
     empty,
     head,
@@ -14,7 +11,6 @@ import {
     partialOrd as listPartialOrd,
     plus,
     reverse,
-    serialize as listSerialize,
     singleton as listSingleton,
     unCons,
 } from "./list.ts";
@@ -22,11 +18,9 @@ import {
     andThen,
     isNone,
     map as optionMap,
-    okOr,
     type Option,
     unwrap,
 } from "./option.ts";
-import { andThen as resultAndThen } from "./result.ts";
 import { andThen as thenWith, type Ordering } from "./ordering.ts";
 import type { Comonad } from "./type-class/comonad.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
@@ -37,8 +31,6 @@ import {
     type PartialEq,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
-import { Deserializer } from "./deserialize.ts";
-import { DeserializerError } from "./deserialize.ts";
 
 /**
  * The zipper represents the cursor of non-empty list.
@@ -291,19 +283,3 @@ export const comonad: Comonad<ZipperHkt> = {
     extract,
     duplicate,
 };
-
-export const serialize =
-    <T>(serializeT: Serialize<T>): Serialize<Zipper<T>> => (v) =>
-        listSerialize(serializeT)(toList(v));
-
-export const deserialize =
-    <T>(deserializeT: Deserialize<T>): Deserialize<Zipper<T>> =>
-    <D>(de: Deserializer<D>) =>
-        resultAndThen((list: List<T>) =>
-            okOr(
-                (() =>
-                    "expected one element at least") as unknown as DeserializerError<
-                        D
-                    >,
-            )(fromList(list))
-        )(listDeserialize(deserializeT)(de));
