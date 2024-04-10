@@ -23,44 +23,44 @@ import { traversable } from "./array.ts";
 import { applicative, err, map, ok, type Result } from "./result.ts";
 import { sequenceA } from "./type-class/traversable.ts";
 
-const stringNominal = Symbol("SerialString");
+export const stringNominal = Symbol("SerialString");
 export type SerialString = [typeof stringNominal, value: string];
 
-const numberNominal = Symbol("SerialNumber");
+export const numberNominal = Symbol("SerialNumber");
 export type SerialNumber = [typeof numberNominal, value: number];
 
-const booleanNominal = Symbol("SerialBoolean");
+export const booleanNominal = Symbol("SerialBoolean");
 export type SerialBoolean = [typeof booleanNominal, value: boolean];
 
-const nullNominal = Symbol("SerialNull");
+export const nullNominal = Symbol("SerialNull");
 export type SerialNull = [typeof nullNominal];
 
-const undefinedNominal = Symbol("SerialUndefined");
+export const undefinedNominal = Symbol("SerialUndefined");
 export type SerialUndefined = [typeof undefinedNominal];
 
-const bigIntNominal = Symbol("SerialBigInt");
+export const bigIntNominal = Symbol("SerialBigInt");
 export type SerialBigInt = [typeof bigIntNominal, value: bigint];
 
-const tupleNominal = Symbol("SerialTuple");
+export const tupleNominal = Symbol("SerialTuple");
 export type SerialTuple = [typeof tupleNominal, value: readonly Serial[]];
 
-const arrayNominal = Symbol("SerialArray");
+export const arrayNominal = Symbol("SerialArray");
 export type SerialArray = [typeof arrayNominal, value: readonly Serial[]];
 
-const recordNominal = Symbol("SerialRecord");
+export const recordNominal = Symbol("SerialRecord");
 export type SerialRecord = [
     typeof recordNominal,
     value: Readonly<Record<string, Serial>>,
 ];
 
-const variantNominal = Symbol("SerialVariant");
+export const variantNominal = Symbol("SerialVariant");
 export type SerialVariant = [
     typeof variantNominal,
     variantIndex: number,
     value: Serial,
 ];
 
-const customNominal = Symbol("SerialCustom");
+export const customNominal = Symbol("SerialCustom");
 export type SerialCustom = [
     typeof customNominal,
     typeName: string,
