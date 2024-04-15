@@ -1,3 +1,5 @@
+import { doT } from "./cat.ts";
+import { decI8, Decoder, encI8, Encoder, monadForDecoder } from "./serial.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
@@ -73,3 +75,8 @@ export const monoid: Monoid<Ordering> = {
     identity: equal,
     [semiGroupSymbol]: true,
 };
+
+export const enc: Encoder<Ordering> = encI8;
+export const dec: Decoder<Ordering> = doT(monadForDecoder)
+    .addM("variant", decI8)
+    .finish(({ variant }): Ordering => Math.sign(variant) as Ordering);

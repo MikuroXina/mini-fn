@@ -1,5 +1,13 @@
 import type { Get1, Hkt1 } from "./hkt.ts";
+import {
+    type Decoder,
+    decU32Be,
+    encFoldable,
+    flatMapDecoder,
+    pureDecoder,
+} from "./serial.ts";
 import { type Applicative, liftA2 } from "./type-class/applicative.ts";
+import { type Foldable } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Reduce } from "./type-class/reduce.ts";
@@ -37,6 +45,8 @@ export const monad: Monad<ArrayHkt> = {
     apply: (fns) => (ts) => fns.flatMap((fn) => ts.map((t) => fn(t))),
     flatMap: (fn) => (t) => t.flatMap(fn),
 };
+
+export const foldable: Foldable<ArrayHkt> = { foldR };
 
 export const traversable: Traversable<ArrayHkt> = {
     ...functor,
@@ -89,4 +99,15 @@ export const reduceL: <A, B>(
 export const reduce: Reduce<ArrayHkt> = {
     reduceR,
     reduceL,
+};
+
+export const enc = encFoldable(foldable);
+export const dec = <A>(decA: Decoder<A>): Decoder<A[]> => {
+    const go = (l: A[]) => (lenToRead: number): Decoder<A[]> =>
+        lenToRead === 0
+            ? pureDecoder(l)
+            : flatMapDecoder((item: A) => go([...l, item])(lenToRead - 1))(
+                decA,
+            );
+    return flatMapDecoder(go([]))(decU32Be);
 };

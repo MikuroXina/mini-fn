@@ -2,12 +2,19 @@ import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.ts";
 import { defer as lazyDefer, force, type Lazy } from "./lazy.ts";
 import { andThen, type Option } from "./option.ts";
 import { andThen as thenWith, type Ordering } from "./ordering.ts";
+import {
+    type Decoder,
+    Encoder,
+    flatMapCodeM,
+    monadForDecoder,
+} from "./serial.ts";
 import { type Applicative, liftA2 } from "./type-class/applicative.ts";
 import { fromBifoldMap } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
 import type { Bitraversable } from "./type-class/bitraversable.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
 import type { Functor } from "./type-class/functor.ts";
+import { liftM2 } from "./type-class/monad.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
@@ -278,3 +285,13 @@ export const bitraversable: Bitraversable<TupleHkt> = {
     ...bifoldable,
     bitraverse,
 };
+
+export const enc =
+    <A>(encA: Encoder<A>) =>
+    <B>(encB: Encoder<B>): Encoder<Tuple<A, B>> =>
+    (value) => flatMapCodeM(() => encB(value[1]))(encA(value[0]));
+export const dec =
+    <A>(decA: Decoder<A>) => <B>(decB: Decoder<B>): Decoder<Tuple<A, B>> =>
+        liftM2(monadForDecoder)((a: A) => (b: B) => [a, b] as const)(decA)(
+            decB,
+        );

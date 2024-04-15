@@ -49,12 +49,20 @@ export interface CatT<M, CTX> {
     ) => CatT<M, Record<K, A> & CTX>;
 
     /**
-     * Runs the computation and overwrites the context with its return value.
+     * Runs the computation.
      *
      * @param computation - The computation to run.
      * @returns A new `CatT` with modified environment.
      */
-    readonly run: <T>(computation: Get1<M, T>) => CatT<M, T>;
+    readonly run: (computation: Get1<M, []>) => CatT<M, CTX>;
+
+    /**
+     * Runs the computation with the context.
+     *
+     * @param computation - The computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly runWith: (computation: (ctx: CTX) => Get1<M, []>) => CatT<M, CTX>;
 
     /**
      * Binds a new value wrapped by the monad, calculated from `ctx` by `fn`.
@@ -116,7 +124,15 @@ export const catT =
             )(ctx),
         ),
         run: (computation) =>
-            catT(monad)(monad.flatMap(() => computation)(ctx)),
+            catT(monad)(
+                monad.flatMap((c: CTX) => monad.map(() => c)(computation))(ctx),
+            ),
+        runWith: (computation) =>
+            catT(monad)(
+                monad.flatMap(
+                    (c: CTX) => monad.map(() => c)(computation(c)),
+                )(ctx),
+            ),
         addMWith: <const K extends PropertyKey, A>(
             key: K,
             fn: (ctx: CTX) => Get1<M, A>,

@@ -12,6 +12,16 @@ import type { Get1 } from "./hkt.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 import type { TraversableMonad } from "./type-class/traversable-monad.ts";
+import {
+    type Decoder,
+    decU8,
+    type Encoder,
+    encU8,
+    flatMapCodeM,
+    mapDecoder,
+    monadForDecoder,
+} from "./serial.ts";
+import { doT } from "./cat.ts";
 
 const continueSymbol = Symbol("ControlFlowContinue");
 /**
@@ -121,3 +131,21 @@ export const traversableMonad = <B>(): TraversableMonad<
     ...monad(),
     ...traversable(),
 });
+
+export const enc =
+    <B>(encB: Encoder<B>) =>
+    <C>(encC: Encoder<C>): Encoder<ControlFlow<B, C>> =>
+    (value) =>
+        isBreak(value)
+            ? flatMapCodeM(() => encB(value[1]))(encU8(0))
+            : flatMapCodeM(() => encC(value[1]))(encU8(1));
+export const get =
+    <B>(decB: Decoder<B>) =>
+    <C>(decC: Decoder<C>): Decoder<ControlFlow<B, C>> =>
+        doT(monadForDecoder)
+            .addM("tag", decU8)
+            .finishM(({ tag }): Decoder<ControlFlow<B, C>> =>
+                tag === 0
+                    ? mapDecoder(newBreak)(decB)
+                    : mapDecoder(newContinue)(decC)
+            );

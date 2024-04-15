@@ -3,9 +3,17 @@ import type { Get1, Hkt1 } from "./hkt.ts";
 import * as Option from "./option.ts";
 import { isNone } from "./option.ts";
 import { andThen, type Ordering } from "./ordering.ts";
+import {
+    type Decoder,
+    decU32Be,
+    encFoldable,
+    flatMapDecoder,
+    pureDecoder,
+} from "./serial.ts";
 import type { Tuple } from "./tuple.ts";
 import { type Applicative, liftA2 } from "./type-class/applicative.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
+import type { Foldable } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Monoid } from "./type-class/monoid.ts";
@@ -1958,6 +1966,11 @@ export const monad: Monad<ListHkt> = {
 };
 
 /**
+ * The instance of `Foldable` for `List`.
+ */
+export const foldable: Foldable<ListHkt> = { foldR };
+
+/**
  * The instance of `Traversable` for `List`.
  */
 export const traversable: Traversable<ListHkt> = {
@@ -1979,4 +1992,15 @@ export const traversable: Traversable<ListHkt> = {
 export const reduce: Reduce<ListHkt> = {
     reduceL: foldL,
     reduceR: (reducer) => (fa) => (b) => foldR(reducer)(b)(fa),
+};
+
+export const enc = encFoldable(foldable);
+export const dec = <A>(decA: Decoder<A>): Decoder<List<A>> => {
+    const go = (l: List<A>) => (lenToRead: number): Decoder<List<A>> =>
+        lenToRead === 0
+            ? pureDecoder(reverse(l))
+            : flatMapDecoder((item: A) =>
+                go(appendToHead(item)(l))(lenToRead - 1)
+            )(decA);
+    return flatMapDecoder(go(empty<A>()))(decU32Be);
 };
