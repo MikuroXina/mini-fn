@@ -589,7 +589,7 @@ export const codeMonoid: Monoid<Code> = {
  * An `Encoder` of `Builder`. It just wraps into a tuple.
  * @alias builderEncoder
  */
-export const tell: Encoder<Builder> = (b) => [[], b] as const;
+export const tell: Encoder<Builder> = (b) => [[], b];
 /**
  * An `Encoder` of `Builder`. It just wraps into a tuple.
  * @alias tell
