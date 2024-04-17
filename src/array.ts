@@ -1,4 +1,6 @@
 import type { Get1, Hkt1 } from "./hkt.ts";
+import { andThen, map, type Option, some } from "./option.ts";
+import { and, type Ordering } from "./ordering.ts";
 import {
     type Decoder,
     decU32Be,
@@ -7,11 +9,46 @@ import {
     pureDecoder,
 } from "./serial.ts";
 import { type Applicative, liftA2 } from "./type-class/applicative.ts";
+import { type Eq, fromEquality } from "./type-class/eq.ts";
 import { type Foldable } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
+import { fromCmp, type Ord } from "./type-class/ord.ts";
+import {
+    fromPartialEquality,
+    type PartialEq,
+} from "./type-class/partial-eq.ts";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import type { Reduce } from "./type-class/reduce.ts";
 import type { Traversable } from "./type-class/traversable.ts";
+
+export const partialEquality =
+    <T>(equality: PartialEq<T>) => (l: readonly T[], r: readonly T[]) =>
+        l.length === r.length &&
+        l.every((left, i) => equality.eq(left, r[i]));
+export const partialEq = fromPartialEquality(partialEquality);
+export const partialCmp =
+    <T>(order: PartialOrd<T>) =>
+    (l: readonly T[], r: readonly T[]): Option<Ordering> =>
+        foldR((
+            next: Option<Ordering>,
+        ): (acc: Option<Ordering>) => Option<Ordering> =>
+            andThen((a: Ordering) => map(and(a))(next))
+        )(some(Math.sign(l.length - r.length) as Ordering))(
+            l.map((left, i) => order.partialCmp(left, r[i])),
+        );
+export const partialOrd = fromPartialCmp(partialCmp);
+export const equality =
+    <T>(equality: Eq<T>) => (l: readonly T[], r: readonly T[]) =>
+        l.length === r.length &&
+        l.every((left, i) => equality.eq(left, r[i]));
+export const eq = fromEquality(equality);
+export const cmp =
+    <T>(order: Ord<T>) => (l: readonly T[], r: readonly T[]): Ordering =>
+        foldR(and)(Math.sign(l.length - r.length) as Ordering)(
+            l.map((left, i) => order.cmp(left, r[i])),
+        );
+export const ord = fromCmp(cmp);
 
 export interface ArrayHkt extends Hkt1 {
     readonly type: readonly this["arg1"][];
