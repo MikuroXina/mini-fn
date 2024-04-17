@@ -9,11 +9,15 @@ import {
 import { isNone, isSome, none, Option, some } from "./option.ts";
 import { Ordering } from "./ordering.ts";
 import { isOk, Result } from "./result.ts";
+import { Decoder, type Encoder, mapDecoder } from "./serial.ts";
 import {
+    dec as decTuple,
+    enc as encTuple,
     ord as tupleOrd,
     partialOrd as tuplePartialOrd,
     Tuple,
 } from "./tuple.ts";
+import { dec as decArray, enc as encArray } from "./array.ts";
 import { Applicative } from "./type-class/applicative.ts";
 import { fromEquality } from "./type-class/eq.ts";
 import { Foldable } from "./type-class/foldable.ts";
@@ -737,3 +741,13 @@ export const traversable = <K>(): Traversable<Apply2Only<MapHkt, K>> => ({
     foldR,
     traverse,
 });
+
+export const enc =
+    <K>(encK: Encoder<K>) =>
+    <V>(encV: Encoder<V>): Encoder<Map<K, V>> =>
+    (value) => encArray(encTuple(encK)(encV))([...value.entries()]);
+export const dec =
+    <K>(decK: Decoder<K>) => <V>(decV: Decoder<V>): Decoder<Map<K, V>> =>
+        mapDecoder((kv: Tuple<K, V>[]) => new Map(kv))(
+            decArray(decTuple(decK)(decV)),
+        );

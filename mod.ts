@@ -33,6 +33,7 @@ export * as MonadReader from "./src/reader/monad.ts";
 export * as Record from "./src/record.ts";
 export * as Result from "./src/result.ts";
 export * as Reverse from "./src/reverse.ts";
+export * as Serial from "./src/serial.ts";
 export * as Seq from "./src/seq.ts";
 export * as FingerTree from "./src/seq/finger-tree.ts";
 export * as Star from "./src/star.ts";

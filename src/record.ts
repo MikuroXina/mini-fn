@@ -25,6 +25,25 @@ import { fromPartialCmp } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import { Traversable } from "./type-class/traversable.ts";
 import { cmp as stringCmp, ord as stringOrd } from "./string.ts";
+import {
+    type Code,
+    type Decoder,
+    decU32Be,
+    decUtf8,
+    type Encoder,
+    encU32Be,
+    encUtf8,
+    failDecoder,
+    flatMapDecoder,
+    monadForCodeM,
+    monadForDecoder,
+    pureCodeM,
+    pureDecoder,
+    pureForDecoder,
+} from "./serial.ts";
+import { foldR as foldRArray } from "./array.ts";
+import { doT } from "./cat.ts";
+import { when } from "./type-class/pure.ts";
 
 export const eq =
     <K extends string, V>(equality: PartialEq<V>) =>
@@ -775,3 +794,41 @@ export const traversable = <K extends string>(): Traversable<
     foldR,
     traverse,
 });
+
+export const enc = <K extends string, V>(
+    encoders: Record<K, Encoder<V>>,
+): Encoder<Record<K, V>> =>
+(value) => {
+    const entries = Object.entries(value) as [K, V][];
+    return doT(monadForCodeM)
+        .run(encU32Be(entries.length))
+        .finishM(() =>
+            foldRArray(([key, code]: [K, Code]) => (acc: Code): Code =>
+                doT(monadForCodeM)
+                    .addM("key", encUtf8(key))
+                    .run(code)
+                    .finishM(() => acc)
+            )(pureCodeM([]))(entries.map((
+                [key, value],
+            ): [K, Code] => [key, encoders[key](value)]))
+        );
+};
+export const dec = <K extends string, V>(
+    decoders: Record<K, Decoder<V>>,
+): Decoder<Record<K, V>> => {
+    const go = (entries: [K, V][]) => (len: number): Decoder<Record<K, V>> =>
+        len === 0
+            ? pureDecoder(Object.fromEntries(entries) as Record<K, V>)
+            : doT(monadForDecoder)
+                .addM("key", decUtf8())
+                .runWith(({ key }) =>
+                    when(pureForDecoder)(!Object.hasOwn(decoders, key))(
+                        failDecoder(`unknown key found: ${key}`),
+                    )
+                )
+                .addMWith("value", ({ key }) => decoders[key as K])
+                .finishM(({ key, value }) =>
+                    go([...entries, [key, value] as [K, V]])(len - 1)
+                );
+    return flatMapDecoder(go([]))(decU32Be());
+};

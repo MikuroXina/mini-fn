@@ -145,26 +145,6 @@ export const ord = fromCmp(cmp);
  * @param monad - The instance of `Monad` for `F`.
  * @param fr - The instance of `Free`.
  * @returns The reduction of `F`.
- *
- * # Examples
- *
- * ```ts
- * import * as Option from "./option.ts";
- * import { retract, liftF, monad } from "./free.ts";
- * import { assertEquals } from "../deps.ts";
- * import { catT } from "./cat.ts";
- *
- * const retractOption = retract(Option.monad);
- * const m = monad<Option.OptionHkt>(Option.functor);
- * const lift = liftF<Option.OptionHkt>(Option.monad);
- * const retracted = retractOption<string>(
- *     catT(m)(lift(Option.some("hoge")))
- *         .run(lift(Option.some("fuga")))
- *         .run(lift<string>(Option.none()))
- *         .run(lift(Option.some("foo"))).ctx,
- * );
- * assertEquals(Option.isNone(retracted), true);
- * ```
  */
 export const retract =
     <F>(monad: Monad<F>) => <T>(fr: Free<F, T>): Get1<F, T> => {
@@ -181,25 +161,6 @@ export const retract =
  * @param fn - The function to be applied.
  * @param fr - The instance of `Free`.
  * @returns The reduction of `F`.
- *
- * # Examples
- *
- * ```ts
- * import { iter, liftF, monad, retract } from "./free.ts";
- * import { assertEquals } from "../deps.ts";
- * import { catT } from "./cat.ts";
- * import * as Option from "./option.ts";
- *
- * const iterOption = iter<Option.OptionHkt>(Option.monad)(Option.unwrap);
- * const m = monad<Option.OptionHkt>(Option.functor);
- * const lift = liftF<Option.OptionHkt>(Option.monad);
- * const iterated = iterOption<string>(
- *     catT(m)(lift(Option.some("hoge")))
- *         .run(lift(Option.some("fuga")))
- *         .run(lift(Option.some("foo"))).ctx,
- * );
- * assertEquals(iterated, "foo");
- * ```
  */
 export const iter =
     <F>(functor: Functor<F>) =>

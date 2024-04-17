@@ -1,3 +1,4 @@
+import { doT } from "./cat.ts";
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import type { Optic } from "./optical.ts";
 import { newPrism } from "./optical/prism.ts";
@@ -9,6 +10,15 @@ import {
     toArray as optionToArray,
 } from "./option.ts";
 import { greater, less, type Ordering } from "./ordering.ts";
+import {
+    Decoder,
+    decU8,
+    Encoder,
+    encU8,
+    flatMapCodeM,
+    mapDecoder,
+    monadForDecoder,
+} from "./serial.ts";
 import type { Applicative } from "./type-class/applicative.ts";
 import type { Bifoldable } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
@@ -700,3 +710,18 @@ export const ifOk = <E, T, U>(): Optic<Result<E, T>, Result<E, U>, T, U> =>
     newPrism<U, Result<E, U>>(ok)(
         either<E, Result<Result<E, U>, T>>((e) => err(err(e)))(ok),
     );
+
+export const enc =
+    <E>(encE: Encoder<E>) =>
+    <T>(encT: Encoder<T>): Encoder<Result<E, T>> =>
+    (value) =>
+        isErr(value)
+            ? flatMapCodeM(() => encE(value[1]))(encU8(0))
+            : flatMapCodeM(() => encT(value[1]))(encU8(1));
+export const dec =
+    <E>(decE: Decoder<E>) => <T>(decT: Decoder<T>): Decoder<Result<E, T>> =>
+        doT(monadForDecoder)
+            .addM("tag", decU8())
+            .finishM(({ tag }): Decoder<Result<E, T>> =>
+                tag === 0 ? mapDecoder(err)(decE) : mapDecoder(ok)(decT)
+            );

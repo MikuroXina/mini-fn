@@ -3,6 +3,7 @@ import { compose, id } from "../func.ts";
 import type { Get1 } from "../hkt.ts";
 import { build, type List } from "../list.ts";
 import { isNone, none, type Option, some, unwrapOrElse } from "../option.ts";
+import type { Monad } from "./monad.ts";
 import { append, type Monoid } from "./monoid.ts";
 import type { PartialEq } from "./partial-eq.ts";
 
@@ -218,3 +219,23 @@ export const contains = <T, A>(
     compose<(a: A) => boolean, (list: Get1<T, A>) => boolean>(any(foldable))(
         (l: A) => (r: A) => eq.eq(l, r),
     );
+
+/**
+ * Maps each item of the structure `data` to a monadic action, and evaluates them from left to right, then ignores the result.
+ *
+ * @param foldable - A `Foldable` instance for `T`.
+ * @param monad - A `Monad` instance for `M`.
+ * @param visitor - A visitor function, which takes an item and returns the action on `M`.
+ * @param data - Data to be traversed.
+ * @returns The collected result of actions.
+ */
+export const mapMIgnore = <T, M, A, B>(
+    foldable: Foldable<T>,
+    monad: Monad<M>,
+) =>
+(
+    visitor: (a: A) => Get1<M, B>,
+): (data: Get1<T, A>) => Get1<M, []> =>
+    foldable.foldR((x: A) => (k: Get1<M, []>) =>
+        monad.flatMap(() => k)(visitor(x))
+    )(monad.pure([]));

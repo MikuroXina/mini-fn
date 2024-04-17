@@ -1,8 +1,8 @@
-import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
+import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
 import { type IdentityHkt, monad as identityMonad } from "./identity.ts";
 import type { Tuple } from "./tuple.ts";
 import type { Functor } from "./type-class/functor.ts";
-import type { Monad } from "./type-class/monad.ts";
+import { liftM, type Monad } from "./type-class/monad.ts";
 import type { Profunctor } from "./type-class/profunctor.ts";
 
 /**
@@ -279,6 +279,27 @@ export const diMap =
     (r: Reader<B, C>): Reader<A, D> =>
     (t) => g(r(f(t)));
 
+export const mapT =
+    <M>(monad: Monad<M>) =>
+    <T, U>(fn: (t: T) => U): <R>(t: ReaderT<R, M, T>) => ReaderT<R, M, U> =>
+        mapReaderT(liftM(monad)(fn));
+
+export const pureT =
+    <M>(monad: Monad<M>) => <R, T>(t: T): ReaderT<R, M, T> => () =>
+        monad.pure(t);
+
+export const applyT =
+    <M>(monad: Monad<M>) =>
+    <R, T, U>(fn: ReaderT<R, M, (t: T) => U>) =>
+    (t: ReaderT<R, M, T>): ReaderT<R, M, U> =>
+    (record) => monad.apply(fn(record))(t(record));
+
+export const flatMapT =
+    <M>(monad: Monad<M>) =>
+    <R, T, U>(fn: (t: T) => ReaderT<R, M, U>) =>
+    (t: ReaderT<R, M, T>): ReaderT<R, M, U> =>
+    (record) => monad.flatMap((t: T) => fn(t)(record))(t(record));
+
 export interface ReaderTHkt extends Hkt3 {
     readonly type: ReaderT<this["arg3"], this["arg2"], this["arg1"]>;
 }
@@ -303,3 +324,23 @@ export const monad = <R>(): Monad<Apply2Only<ReaderHkt, R>> => ({
  * The instance of `Profunctor` for `Reader`.
  */
 export const profunctor: Profunctor<ReaderHkt> = { diMap };
+
+/**
+ * The instance of `Functor` for `ReaderT<R, M, _>`.
+ */
+export const functorT = <R, M>(
+    monad: Monad<M>,
+): Functor<Apply3Only<ReaderTHkt, R> & Apply2Only<ReaderTHkt, M>> => ({
+    map: mapT(monad),
+});
+/**
+ * The instance of `Monad` for `ReaderT<R, M, _>`.
+ */
+export const monadT = <R, M>(
+    monad: Monad<M>,
+): Monad<Apply3Only<ReaderTHkt, R> & Apply2Only<ReaderTHkt, M>> => ({
+    pure: pureT(monad),
+    map: mapT(monad),
+    flatMap: flatMapT(monad),
+    apply: applyT(monad),
+});

@@ -1,4 +1,5 @@
 import type { Get1, Hkt1 } from "./hkt.ts";
+import { type Decoder, type Encoder, mapDecoder } from "./serial.ts";
 import type { Applicative } from "./type-class/applicative.ts";
 import { fromProjection as eqFromProjection } from "./type-class/eq.ts";
 import type { Functor } from "./type-class/functor.ts";
@@ -139,3 +140,8 @@ export const traversable: Traversable<LazyHkt> = {
     foldR,
     traverse,
 };
+
+export const enc = <T>(encT: Encoder<T>): Encoder<Lazy<T>> => (value) =>
+    encT(force(value));
+export const dec = <T>(decT: Decoder<T>): Decoder<Lazy<T>> =>
+    mapDecoder((v: T) => defer(() => v))(decT);

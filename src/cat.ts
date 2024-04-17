@@ -49,12 +49,20 @@ export interface CatT<M, CTX> {
     ) => CatT<M, Record<K, A> & CTX>;
 
     /**
-     * Runs the computation and overwrites the context with its return value.
+     * Runs the computation.
      *
      * @param computation - The computation to run.
      * @returns A new `CatT` with modified environment.
      */
-    readonly run: <T>(computation: Get1<M, T>) => CatT<M, T>;
+    readonly run: (computation: Get1<M, []>) => CatT<M, CTX>;
+
+    /**
+     * Runs the computation with the context.
+     *
+     * @param computation - The computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly runWith: (computation: (ctx: CTX) => Get1<M, []>) => CatT<M, CTX>;
 
     /**
      * Binds a new value wrapped by the monad, calculated from `ctx` by `fn`.
@@ -75,6 +83,14 @@ export interface CatT<M, CTX> {
      * @returns A reduced value.
      */
     readonly finish: <R>(fn: (ctx: CTX) => R) => Get1<M, R>;
+
+    /**
+     * Reduces the context into a value on `M` by `fn`.
+     *
+     * @param fn - The finishing computation.
+     * @returns A reduced value on `M`.
+     */
+    readonly finishM: <R>(fn: (ctx: CTX) => Get1<M, R>) => Get1<M, R>;
 }
 
 /**
@@ -108,7 +124,15 @@ export const catT =
             )(ctx),
         ),
         run: (computation) =>
-            catT(monad)(monad.flatMap(() => computation)(ctx)),
+            catT(monad)(
+                monad.flatMap((c: CTX) => monad.map(() => c)(computation))(ctx),
+            ),
+        runWith: (computation) =>
+            catT(monad)(
+                monad.flatMap(
+                    (c: CTX) => monad.map(() => c)(computation(c)),
+                )(ctx),
+            ),
         addMWith: <const K extends PropertyKey, A>(
             key: K,
             fn: (ctx: CTX) => Get1<M, A>,
@@ -120,6 +144,7 @@ export const catT =
             )(ctx),
         ),
         finish: <R>(fn: (ctx: CTX) => R) => monad.map(fn)(ctx),
+        finishM: (fn) => monad.flatMap(fn)(ctx),
     });
 
 /**
@@ -128,8 +153,8 @@ export const catT =
  * @param monad - The monad implementation for `M`.
  * @returns A new `CatT`.
  */
-export const doVoidT = <M>(monad: Monad<M>): CatT<M, void> =>
-    catT(monad)(monad.pure(undefined));
+export const doVoidT = <M>(monad: Monad<M>): CatT<M, []> =>
+    catT(monad)(monad.pure([]));
 
 /**
  * Creates a new `CatT` with an empty context.
