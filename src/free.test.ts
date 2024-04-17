@@ -69,17 +69,17 @@ Deno.test("hello language", async (t) => {
         }
     };
 
-    const hello: Free<HelloLangHkt, void> = liftF(functor)({
+    const hello: Free<HelloLangHkt, []> = liftF(functor)({
         type: "Hello",
-        next: undefined,
+        next: [],
     });
-    const hey: Free<HelloLangHkt, void> = liftF(functor)({
+    const hey: Free<HelloLangHkt, []> = liftF(functor)({
         type: "Hey",
-        next: undefined,
+        next: [],
     });
-    const yearsOld = (years: number): Free<HelloLangHkt, void> =>
-        liftF(functor)({ type: "YearsOld", years, next: undefined });
-    const bye: Free<HelloLangHkt, void> = liftF(functor)({ type: "Bye" });
+    const yearsOld = (years: number): Free<HelloLangHkt, []> =>
+        liftF(functor)({ type: "YearsOld", years, next: [] });
+    const bye: Free<HelloLangHkt, []> = liftF(functor)({ type: "Bye" });
 
     const m = freeMonad(functor);
 

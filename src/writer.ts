@@ -138,7 +138,7 @@ export const mapWriter =
  * @param w - The new state to tell.
  * @returns The empty computation which returns the new state.
  */
-export const tell = <W>(w: W): Writer<W, void> => () => [undefined, w];
+export const tell = <W>(w: W): Writer<W, []> => () => [[], w];
 /**
  * Creates an action that executes `writer` and adds its output to the value of the computation.
  *

@@ -153,8 +153,8 @@ export const catT =
  * @param monad - The monad implementation for `M`.
  * @returns A new `CatT`.
  */
-export const doVoidT = <M>(monad: Monad<M>): CatT<M, void> =>
-    catT(monad)(monad.pure(undefined));
+export const doVoidT = <M>(monad: Monad<M>): CatT<M, []> =>
+    catT(monad)(monad.pure([]));
 
 /**
  * Creates a new `CatT` with an empty context.
