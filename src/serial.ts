@@ -43,7 +43,7 @@ import { Foldable, length, mapMIgnore } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Monoid } from "./type-class/monoid.ts";
-import { type Pure, when } from "./type-class/pure.ts";
+import type { Pure } from "./type-class/pure.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
 /**
@@ -1264,10 +1264,9 @@ const splitAt = (firstLen: number) =>
 export const isolate =
     (blockLen: number) => <T>(decoder: Decoder<T>): Decoder<T> =>
         doT(monadForDecoder)
-            .run(
-                when(pureForDecoder)(blockLen < 0)(
-                    failDecoder("block length must not be negative"),
-                ),
+            .when(
+                () => blockLen < 0,
+                () => failDecoder("block length must not be negative"),
             )
             .addM("bytes", ensure(blockLen))
             .addWith("splitted", ({ bytes }) => splitAt(blockLen)(bytes))
@@ -1275,10 +1274,9 @@ export const isolate =
             .runWith(({ splitted, curr }) => putRaw(splitted[0])(curr))
             .addM("value", decoder)
             .addM("raw", decodeRaw)
-            .runWith(({ raw }) =>
-                when(pureForDecoder)(raw.byteLength === 0)(
-                    failDecoder("not all bytes parsed"),
-                )
+            .when(
+                ({ raw }) => raw.byteLength === 0,
+                () => failDecoder("not all bytes parsed"),
             )
             .runWith(({ splitted, curr }) =>
                 putRaw(splitted[1])(curr + blockLen)
@@ -1341,8 +1339,9 @@ export const lookAheadSome = <T>(
         .addM("bytes", decodeRaw)
         .addM("pre", parsedBytes)
         .addM("opt", decoder)
-        .runWith(({ bytes, pre, opt }) =>
-            when(pureForDecoder)(isNone(opt))(putRaw(bytes)(pre))
+        .when(
+            ({ opt }) => isNone(opt),
+            ({ bytes, pre }) => putRaw(bytes)(pre),
         )
         .finish(({ opt }) => opt);
 
@@ -1359,9 +1358,11 @@ export const lookAheadOk = <E, T>(
         .addM("bytes", decodeRaw)
         .addM("pre", parsedBytes)
         .addM("res", g)
-        .runWith(({ bytes, pre, res }) =>
-            when(pureForDecoder)(isErr(res))(putRaw(bytes)(pre))
-        ).finish(({ res }) => res);
+        .when(
+            ({ res }) => isErr(res),
+            ({ bytes, pre }) => putRaw(bytes)(pre),
+        )
+        .finish(({ res }) => res);
 
 /**
  * Gets the length of bytes which has already read.

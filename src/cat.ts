@@ -77,6 +77,18 @@ export interface CatT<M, CTX> {
     ) => CatT<M, Record<K, A> & CTX>;
 
     /**
+     * Runs a computation if only `cond` is satisfied.
+     *
+     * @param cond - A condition function.
+     * @param computation - A monadic operation used only if `cond` returns `true`.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly when: (
+        cond: (ctx: CTX) => boolean,
+        computation: (ctx: CTX) => Get1<M, []>,
+    ) => CatT<M, CTX>;
+
+    /**
      * Reduces the context into a value by `fn`.
      *
      * @param fn - The finishing computation.
@@ -143,6 +155,15 @@ export const catT =
                 )
             )(ctx),
         ),
+        when: (cond, computation) =>
+            catT(monad)(
+                monad.flatMap(
+                    (c: CTX) =>
+                        monad.map(() => c)(
+                            cond(c) ? computation(c) : monad.pure([]),
+                        ),
+                )(ctx),
+            ),
         finish: <R>(fn: (ctx: CTX) => R) => monad.map(fn)(ctx),
         finishM: (fn) => monad.flatMap(fn)(ctx),
     });

@@ -39,11 +39,9 @@ import {
     monadForDecoder,
     pureCodeM,
     pureDecoder,
-    pureForDecoder,
 } from "./serial.ts";
 import { foldR as foldRArray } from "./array.ts";
 import { doT } from "./cat.ts";
-import { when } from "./type-class/pure.ts";
 
 export const eq =
     <K extends string, V>(equality: PartialEq<V>) =>
@@ -821,10 +819,9 @@ export const dec = <K extends string, V>(
             ? pureDecoder(Object.fromEntries(entries) as Record<K, V>)
             : doT(monadForDecoder)
                 .addM("key", decUtf8())
-                .runWith(({ key }) =>
-                    when(pureForDecoder)(!Object.hasOwn(decoders, key))(
-                        failDecoder(`unknown key found: ${key}`),
-                    )
+                .when(
+                    ({ key }) => !Object.hasOwn(decoders, key),
+                    ({ key }) => failDecoder(`unknown key found: ${key}`),
                 )
                 .addMWith("value", ({ key }) => decoders[key as K])
                 .finishM(({ key, value }) =>
