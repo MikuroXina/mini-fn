@@ -104,17 +104,22 @@ export const newRetriable =
  * Creates a retriable optical by exponential backoff method. It increases the delay duration (100 milliseconds) multiplied by the power of two, but its exponent stops at 23.
  *
  * @param maxRetries - Maximum retry counts.
+ * @param waiter - The waiter function to delay. Defaults to `setTimeout` method.
  * @param triable - An operation that may fail.
  * @param set - A function to substitute the data `S`.
  * @returns The retriable optical.
  */
-export const exponentialBackoff =
-    (maxRetries: number) => <E, T>(fallback: (err: E) => T) =>
-        newRetriable(promiseMonad)(0)((err: E) => async (attempt) => {
-            if (attempt >= maxRetries) {
-                return newBreak(fallback(err));
-            }
-            const delay = 100 << Math.min(23, attempt);
-            await new Promise((resolve) => setTimeout(resolve, delay));
-            return newContinue(attempt + 1);
-        });
+export const exponentialBackoff = (
+    maxRetries: number,
+    waiter: (milliseconds: number) => Promise<void> = (ms) =>
+        new Promise((resolve) => setTimeout(resolve, ms)),
+) =>
+<E, T>(fallback: (err: E) => T) =>
+    newRetriable(promiseMonad)(0)((err: E) => async (attempt) => {
+        if (attempt >= maxRetries) {
+            return newBreak(fallback(err));
+        }
+        const delay = 100 << Math.min(23, attempt);
+        await waiter(delay);
+        return newContinue(attempt + 1);
+    });
