@@ -553,7 +553,7 @@ export const enc =
 export const dec =
     <A>(decA: Decoder<A>) => <B>(decB: Decoder<B>): Decoder<These<A, B>> =>
         doT(monadForDecoder)
-            .addM("tag", decU8)
+            .addM("tag", decU8())
             .finishM(({ tag }): Decoder<These<A, B>> =>
                 tag === 0
                     ? mapDecoder(newThis)(decA)

@@ -839,7 +839,7 @@ export const enc = <T>(encT: Encoder<T>): Encoder<Option<T>> => (value) =>
     isNone(value) ? encU8(0) : flatMapCodeM(() => encT(value[1]))(encU8(1));
 export const dec = <T>(decT: Decoder<T>): Decoder<Option<T>> =>
     doT(monadForDecoder)
-        .addM("tag", decU8)
+        .addM("tag", decU8())
         .finishM(({ tag }): Decoder<Option<T>> =>
             tag === 0 ? pureDecoder(none()) : mapDecoder(some)(decT)
         );

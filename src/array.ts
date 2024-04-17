@@ -109,5 +109,5 @@ export const dec = <A>(decA: Decoder<A>): Decoder<A[]> => {
             : flatMapDecoder((item: A) => go([...l, item])(lenToRead - 1))(
                 decA,
             );
-    return flatMapDecoder(go([]))(decU32Be);
+    return flatMapDecoder(go([]))(decU32Be());
 };

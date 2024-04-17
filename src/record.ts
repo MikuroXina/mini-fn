@@ -820,7 +820,7 @@ export const dec = <K extends string, V>(
         len === 0
             ? pureDecoder(Object.fromEntries(entries) as Record<K, V>)
             : doT(monadForDecoder)
-                .addM("key", decUtf8)
+                .addM("key", decUtf8())
                 .runWith(({ key }) =>
                     when(pureForDecoder)(!Object.hasOwn(decoders, key))(
                         failDecoder(`unknown key found: ${key}`),
@@ -830,5 +830,5 @@ export const dec = <K extends string, V>(
                 .finishM(({ key, value }) =>
                     go([...entries, [key, value] as [K, V]])(len - 1)
                 );
-    return flatMapDecoder(go([]))(decU32Be);
+    return flatMapDecoder(go([]))(decU32Be());
 };

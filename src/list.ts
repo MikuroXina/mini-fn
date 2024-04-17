@@ -1994,7 +1994,7 @@ export const reduce: Reduce<ListHkt> = {
     reduceR: (reducer) => (fa) => (b) => foldR(reducer)(b)(fa),
 };
 
-export const enc = encFoldable(foldable);
+export const enc = () => encFoldable(foldable);
 export const dec = <A>(decA: Decoder<A>): Decoder<List<A>> => {
     const go = (l: List<A>) => (lenToRead: number): Decoder<List<A>> =>
         lenToRead === 0
@@ -2002,5 +2002,5 @@ export const dec = <A>(decA: Decoder<A>): Decoder<List<A>> => {
             : flatMapDecoder((item: A) =>
                 go(appendToHead(item)(l))(lenToRead - 1)
             )(decA);
-    return flatMapDecoder(go(empty<A>()))(decU32Be);
+    return flatMapDecoder(go(empty<A>()))(decU32Be());
 };

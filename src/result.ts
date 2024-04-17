@@ -721,7 +721,7 @@ export const enc =
 export const dec =
     <E>(decE: Decoder<E>) => <T>(decT: Decoder<T>): Decoder<Result<E, T>> =>
         doT(monadForDecoder)
-            .addM("tag", decU8)
+            .addM("tag", decU8())
             .finishM(({ tag }): Decoder<Result<E, T>> =>
                 tag === 0 ? mapDecoder(err)(decE) : mapDecoder(ok)(decT)
             );

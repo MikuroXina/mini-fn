@@ -784,9 +784,9 @@ export const neededLen = (len: ReadLen): number =>
 export type Buffer = Option<DataView>;
 
 /**
- * A new zero-sized buffer that cannot be written.
+ * Creates a new zero-sized buffer that cannot be written.
  */
-export const emptyBuffer: Buffer = some(new DataView(new ArrayBuffer(0)));
+export const emptyBuffer = (): Buffer => some(new DataView(new ArrayBuffer(0)));
 
 /**
  * Concatenates `DataView`s into one.
@@ -1307,7 +1307,7 @@ export const lookAhead =
     (ctx) =>
     <S>(onF: FailureHandler<S>) =>
     (onS: SuccessHandler<T, S>) =>
-        decoder<S>({ ...ctx, buffer: emptyBuffer })((ctxF) =>
+        decoder<S>({ ...ctx, buffer: emptyBuffer() })((ctxF) =>
             onF({
                 ...ctxF,
                 input: ctx.input,
@@ -1391,93 +1391,108 @@ export const decBytes = (nBytes: number): Decoder<DataView> =>
 /**
  * Decodes one byte from the input as a signed 8-bit integer.
  */
-export const decI8: Decoder<number> = doT(monadForDecoder)
-    .addM("view", decBytes(1))
-    .finish(({ view }) => view.getInt8(0));
+export const decI8 = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(1))
+        .finish(({ view }) => view.getInt8(0));
 /**
  * Decodes two bytes from the input as a signed 16-bit integer in big endian.
  */
-export const decI16Be: Decoder<number> = doT(monadForDecoder)
-    .addM("view", decBytes(2))
-    .finish(({ view }) => view.getInt16(0));
+export const decI16Be = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(2))
+        .finish(({ view }) => view.getInt16(0));
 /**
  * Decodes two bytes from the input as a signed 16-bit integer in little endian.
  */
-export const decI16Le: Decoder<number> = doT(monadForDecoder)
-    .addM("view", decBytes(2))
-    .finish(({ view }) => view.getInt16(0, true));
+export const decI16Le = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(2))
+        .finish(({ view }) => view.getInt16(0, true));
 /**
  * Decodes four bytes from the input as a signed 32-bit integer in big endian.
  */
-export const decI32Be: Decoder<number> = doT(monadForDecoder)
-    .addM("view", decBytes(4))
-    .finish(({ view }) => view.getInt32(0));
+export const decI32Be = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(4))
+        .finish(({ view }) => view.getInt32(0));
 /**
  * Decodes four bytes from the input as a signed 32-bit integer in little endian.
  */
-export const decI32Le: Decoder<number> = doT(monadForDecoder)
-    .addM("view", decBytes(4))
-    .finish(({ view }) => view.getInt32(0, true));
+export const decI32Le = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(4))
+        .finish(({ view }) => view.getInt32(0, true));
 /**
  * Decodes eight bytes from the input as a signed 64-bit integer in big endian.
  */
-export const decI64Be: Decoder<bigint> = doT(monadForDecoder)
-    .addM("view", decBytes(8))
-    .finish(({ view }) => view.getBigInt64(0));
+export const decI64Be = (): Decoder<bigint> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(8))
+        .finish(({ view }) => view.getBigInt64(0));
 /**
  * Decodes eight bytes from the input as a signed 64-bit integer in little endian.
  */
-export const decI64Le: Decoder<bigint> = doT(monadForDecoder)
-    .addM("view", decBytes(8))
-    .finish(({ view }) => view.getBigInt64(0, true));
+export const decI64Le = (): Decoder<bigint> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(8))
+        .finish(({ view }) => view.getBigInt64(0, true));
 
 /**
  * Decodes one byte from the input as an unsigned 8-bit integer.
  */
-export const decU8: Decoder<number> = doT(monadForDecoder)
-    .addM("view", decBytes(1))
-    .finish(({ view }) => view.getUint8(0));
+export const decU8 = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(1))
+        .finish(({ view }) => view.getUint8(0));
 /**
  * Decodes two bytes from the input as an unsigned 16-bit integer in big endian.
  */
-export const decU16Be: Decoder<number> = doT(monadForDecoder)
-    .addM("view", decBytes(2))
-    .finish(({ view }) => view.getUint16(0));
+export const decU16Be = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(2))
+        .finish(({ view }) => view.getUint16(0));
 /**
  * Decodes two bytes from the input as an unsigned 16-bit integer in little endian.
  */
-export const decU16Le: Decoder<number> = doT(monadForDecoder)
-    .addM("view", decBytes(2))
-    .finish(({ view }) => view.getUint16(0, true));
+export const decU16Le = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(2))
+        .finish(({ view }) => view.getUint16(0, true));
 /**
  * Decodes four bytes from the input as an unsigned 32-bit integer in big endian.
  */
-export const decU32Be: Decoder<number> = doT(monadForDecoder)
-    .addM("view", decBytes(4))
-    .finish(({ view }) => view.getUint32(0));
+export const decU32Be = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(4))
+        .finish(({ view }) => view.getUint32(0));
 /**
  * Decodes four bytes from the input as an unsigned 32-bit integer in little endian.
  */
-export const decU32Le: Decoder<number> = doT(monadForDecoder)
-    .addM("view", decBytes(4))
-    .finish(({ view }) => view.getUint32(0, true));
+export const decU32Le = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(4))
+        .finish(({ view }) => view.getUint32(0, true));
 /**
  * Decodes eight bytes from the input as an unsigned 64-bit integer in big endian.
  */
-export const decU64Be: Decoder<bigint> = doT(monadForDecoder)
-    .addM("view", decBytes(8))
-    .finish(({ view }) => view.getBigUint64(0));
+export const decU64Be = (): Decoder<bigint> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(8))
+        .finish(({ view }) => view.getBigUint64(0));
 /**
  * Decodes eight bytes from the input as an unsigned 64-bit integer in little endian.
  */
-export const decU64Le: Decoder<bigint> = doT(monadForDecoder)
-    .addM("view", decBytes(8))
-    .finish(({ view }) => view.getBigUint64(0, true));
+export const decU64Le = (): Decoder<bigint> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(8))
+        .finish(({ view }) => view.getBigUint64(0, true));
 
 /**
  * Decodes bytes from the input as an UTF-8 sequence with its length.
  */
-export const decUtf8: Decoder<string> = doT(monadForDecoder)
-    .addM("len", decU32Be)
-    .addMWith("bytes", ({ len }) => decBytes(len))
-    .finish(({ bytes }) => new TextDecoder().decode(bytes));
+export const decUtf8 = (): Decoder<string> =>
+    doT(monadForDecoder)
+        .addM("len", decU32Be())
+        .addMWith("bytes", ({ len }) => decBytes(len))
+        .finish(({ bytes }) => new TextDecoder().decode(bytes));

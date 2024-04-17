@@ -76,7 +76,8 @@ export const monoid: Monoid<Ordering> = {
     [semiGroupSymbol]: true,
 };
 
-export const enc: Encoder<Ordering> = encI8;
-export const dec: Decoder<Ordering> = doT(monadForDecoder)
-    .addM("variant", decI8)
-    .finish(({ variant }): Ordering => Math.sign(variant) as Ordering);
+export const enc = (): Encoder<Ordering> => encI8;
+export const dec = (): Decoder<Ordering> =>
+    doT(monadForDecoder)
+        .addM("variant", decI8())
+        .finish(({ variant }): Ordering => Math.sign(variant) as Ordering);

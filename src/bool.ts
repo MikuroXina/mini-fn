@@ -29,5 +29,5 @@ export const orMonoid: Monoid<boolean> = {
 export const equality = (lhs: boolean, rhs: boolean): boolean => lhs === rhs;
 export const eq = fromEquality(() => equality)();
 
-export const enc: Encoder<boolean> = (value) => encU8(value ? 1 : 0);
-export const dec: Decoder<boolean> = mapDecoder((v) => v !== 0)(decU8);
+export const enc = (): Encoder<boolean> => (value) => encU8(value ? 1 : 0);
+export const dec = (): Decoder<boolean> => mapDecoder((v) => v !== 0)(decU8());

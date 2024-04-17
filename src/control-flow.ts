@@ -139,11 +139,11 @@ export const enc =
         isBreak(value)
             ? flatMapCodeM(() => encB(value[1]))(encU8(0))
             : flatMapCodeM(() => encC(value[1]))(encU8(1));
-export const get =
+export const dec =
     <B>(decB: Decoder<B>) =>
     <C>(decC: Decoder<C>): Decoder<ControlFlow<B, C>> =>
         doT(monadForDecoder)
-            .addM("tag", decU8)
+            .addM("tag", decU8())
             .finishM(({ tag }): Decoder<ControlFlow<B, C>> =>
                 tag === 0
                     ? mapDecoder(newBreak)(decB)
