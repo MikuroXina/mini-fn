@@ -5,7 +5,7 @@ import { err, ok } from "../result.ts";
 import { assertEquals } from "../../deps.ts";
 
 Deno.test("exponential backoff", async () => {
-    const optic = exponentialBackoff(3)(
+    const optic = exponentialBackoff(3, () => Promise.resolve())(
         () => ({ bar: 3 } as Record<string, number>),
     )(
         (record: Record<string, number>) => (attempt) =>
