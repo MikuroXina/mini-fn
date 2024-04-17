@@ -515,10 +515,10 @@ export const safeStrategy = (firstLen: number): AllocationStrategy => ({
 export const intoBytesWith =
     (strategy: AllocationStrategy) =>
     async (builder: Builder): Promise<ArrayBuffer> => {
+        let buf = await strategy.allocator(none());
+        let currentIndex = 0;
+        let step = runBuilder(builder);
         while (true) {
-            let buf = await strategy.allocator(none());
-            let currentIndex = 0;
-            let step = runBuilder(builder);
             const signal = await step([
                 currentIndex,
                 buf.byteLength - currentIndex,
