@@ -1,7 +1,6 @@
 import { cat } from "./cat.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import * as Option from "./option.ts";
-import { isNone } from "./option.ts";
 import { andThen, type Ordering } from "./ordering.ts";
 import {
     type Decoder,
@@ -37,7 +36,7 @@ export interface List<T> {
 
 export const partialEquality = <T>(equalityT: PartialEq<T>) => {
     const self = (l: List<T>, r: List<T>): boolean =>
-        (isNone(l.current()) && isNone(r.current())) ||
+        (Option.isNone(l.current()) && Option.isNone(r.current())) ||
         (Option.partialEq(equalityT).eq(l.current(), r.current()) &&
             self(l.rest(), r.rest()));
 
@@ -46,7 +45,7 @@ export const partialEquality = <T>(equalityT: PartialEq<T>) => {
 export const partialEq = fromPartialEquality(partialEquality);
 export const equality = <T>(equalityT: Eq<T>) => {
     const self = (l: List<T>, r: List<T>): boolean =>
-        (isNone(l.current()) && isNone(r.current())) ||
+        (Option.isNone(l.current()) && Option.isNone(r.current())) ||
         (Option.eq(equalityT).eq(l.current(), r.current()) &&
             self(l.rest(), r.rest()));
     return self;
@@ -67,7 +66,7 @@ export const cmp = <T>(order: Ord<T>) => {
         );
     return self;
 };
-export const ord = fromCmp(cmp);
+export const ord = <T>(x: Ord<T>) => fromCmp(cmp)(x);
 
 /**
  * Checks whether the list has a current element.
