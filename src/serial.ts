@@ -56,7 +56,7 @@ export type BuildStep<T> = (range: BufferRange) => Promise<BuildSignal<T>>;
  */
 export type BufferRange = [startIndex: number, length: number];
 
-export const doneNominal = Symbol("BuildSignalDone");
+export const buildDoneNominal = Symbol("BuildSignalBuildDone");
 export const bufferFullNominal = Symbol("BuildSignalBufferFull");
 export const insertChunkNominal = Symbol("BuildSignalInsertChunk");
 /**
@@ -64,7 +64,7 @@ export const insertChunkNominal = Symbol("BuildSignalInsertChunk");
  */
 export type BuildSignal<T> = Readonly<
     | {
-        type: typeof doneNominal;
+        type: typeof buildDoneNominal;
         /**
          * A position where another one can write into next time.
          */
@@ -134,7 +134,7 @@ export const fillWithBuildStep =
     async (range: BufferRange): Promise<U> => {
         const signal = await step(range);
         switch (signal.type) {
-            case doneNominal:
+            case buildDoneNominal:
                 return onDone(signal.nextFreeIndex)(signal.computed);
             case bufferFullNominal:
                 return onBufferFull(signal.neededMinimalSize)(
@@ -153,7 +153,11 @@ export const fillWithBuildStep =
  * An identity build step that does nothing.
  */
 export const finalStep: BuildStep<[]> = ([start]) =>
-    Promise.resolve({ type: doneNominal, nextFreeIndex: start, computed: [] });
+    Promise.resolve({
+        type: buildDoneNominal,
+        nextFreeIndex: start,
+        computed: [],
+    });
 
 /**
  * A function that transforms between build steps on any type `I`.
@@ -524,7 +528,7 @@ export const intoBytesWith =
                 buf.byteLength - currentIndex,
             ]);
             switch (signal.type) {
-                case doneNominal:
+                case buildDoneNominal:
                     currentIndex = signal.nextFreeIndex;
                     if (
                         strategy.shouldBeTrimmed(currentIndex)(buf.byteLength)
@@ -865,12 +869,15 @@ export type DecContext = {
     offset: number;
 };
 
+export const failureNominal = Symbol("ParseResultFailure");
+export const partialNominal = Symbol("ParseResultPartial");
+export const parseDoneNominal = Symbol("ParseResultParseDone");
 /**
  * A result of parsing with a state `S`.
  */
 export type ParseResult<S> = Readonly<
     | {
-        type: "failure";
+        type: typeof failureNominal;
         /**
          * An error message.
          */
@@ -881,7 +888,7 @@ export type ParseResult<S> = Readonly<
         input: DataView;
     }
     | {
-        type: "partial";
+        type: typeof partialNominal;
         /**
          * A function for to continue to parse.
          *
@@ -891,7 +898,7 @@ export type ParseResult<S> = Readonly<
         resume: (buf: ArrayBufferLike) => ParseResult<S>;
     }
     | {
-        type: "done";
+        type: typeof parseDoneNominal;
         /**
          * A computation result state.
          */
@@ -1038,7 +1045,7 @@ export const monadForDecoder: Monad<DecoderHkt> = {
  */
 export const onFailureIdentity =
     <S>(): FailureHandler<S> => (ctx) => (trace) => (msg) => ({
-        type: "failure",
+        type: failureNominal,
         message: `${msg}\n${
             trace.map((entry, i) => `${i + 1}: ${entry}`).join("\n")
         }`,
@@ -1050,7 +1057,7 @@ export const onFailureIdentity =
  */
 export const onSuccessIdentity =
     <T>(): SuccessHandler<T, T> => (ctx) => (result) => ({
-        type: "done",
+        type: parseDoneNominal,
         state: result,
         rest: new DataView(ctx.input.buffer.slice(ctx.offset)),
     });
@@ -1073,11 +1080,11 @@ export const runDecoder =
             onSuccessIdentity(),
         );
         switch (res.type) {
-            case "failure":
+            case failureNominal:
                 return err(res.message);
-            case "done":
+            case parseDoneNominal:
                 return ok(res.state);
-            case "partial":
+            case partialNominal:
                 return err("unexpected partial result");
         }
     };
@@ -1129,11 +1136,11 @@ export const runDecoderStateAndRest =
             offset: 0,
         })(onFailureIdentity())(onSuccessIdentity());
         switch (res.type) {
-            case "failure":
+            case failureNominal:
                 return [err(res.message), res.input];
-            case "done":
+            case parseDoneNominal:
                 return [ok(res.state), res.rest];
-            case "partial":
+            case partialNominal:
                 return [err(""), new DataView(new ArrayBuffer(0))];
         }
     };
@@ -1199,7 +1206,7 @@ export const ensure =
                 }
                 const [, moreRequired] = ctx.more;
                 return {
-                    type: "partial",
+                    type: partialNominal,
                     resume: (b) => {
                         if (b.byteLength === 0) {
                             return tooFewBytes();
