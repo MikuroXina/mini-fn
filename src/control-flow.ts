@@ -22,6 +22,7 @@ import {
     monadForDecoder,
 } from "./serial.ts";
 import { doT } from "./cat.ts";
+import type { Bifunctor } from "./type-class/bifunctor.ts";
 
 const continueSymbol = Symbol("ControlFlowContinue");
 /**
@@ -131,6 +132,8 @@ export const traversableMonad = <B>(): TraversableMonad<
     ...monad(),
     ...traversable(),
 });
+
+export const bifunctor: Bifunctor<ControlFlowHkt> = { biMap };
 
 export const enc =
     <B>(encB: Encoder<B>) =>
