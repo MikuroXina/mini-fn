@@ -10,6 +10,9 @@ import type { Monad } from "./type-class/monad.ts";
 import type { Pure } from "./type-class/pure.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
+/**
+ * Calculation on a space `X` and mapping function from `X` to an inclusion space `A`.
+ */
 export type CoyonedaT<F, A, X> = [map: (shape: X) => A, image: Get1<F, X>];
 
 export interface CoyonedaTHkt extends Hkt3 {
@@ -25,14 +28,27 @@ export interface CoyonedaHkt extends Hkt2 {
     readonly type: Coyoneda<this["arg2"], this["arg1"]>;
 }
 
+/**
+ * Creates a new `Coyoneda` from mapping function `map` and calculation on `F`.
+ *
+ * @param map - A mapping function from `A` to `B`.
+ * @param image - A calculation that results `A` on `F`.
+ * @returns A new `Coyoneda`.
+ */
 export const coyoneda =
     <A, B>(map: (a: A) => B) => <F>(image: Get1<F, A>): Coyoneda<F, B> =>
         newExists<Coyoneda<F, B>, A>([map, image]);
 
+/**
+ * Unwraps a `Coyoneda` with running `runner`.
+ *
+ * @param runner - An extracting function.
+ * @returns The result of `runner`.
+ */
 export const unCoyoneda =
-    <F, A, R>(runner: <B>(map: (shape: B) => A) => (image: Get1<F, B>) => R) =>
+    <F, A, R>(runner: <X>(map: (shape: X) => A) => (image: Get1<F, X>) => R) =>
     (coy: Coyoneda<F, A>): R =>
-        runExists<Coyoneda<F, A>, R>(<B>([map, image]: CoyonedaT<F, A, B>) =>
+        runExists<Coyoneda<F, A>, R>(<X>([map, image]: CoyonedaT<F, A, X>) =>
             runner(map)(image)
         )(coy);
 
