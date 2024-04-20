@@ -1,8 +1,6 @@
 export * as Array from "./src/array.ts";
 export * as Bool from "./src/bool.ts";
 export * as Cat from "./src/cat.ts";
-export * as CatList from "./src/cat-list.ts";
-export * as CatQueue from "./src/cat-queue.ts";
 export * as Cofree from "./src/cofree.ts";
 export * as ComonadCofree from "./src/cofree/comonad.ts";
 export * as Const from "./src/const.ts";
