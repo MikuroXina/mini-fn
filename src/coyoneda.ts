@@ -36,8 +36,8 @@ export interface CoyonedaHkt extends Hkt2 {
  * @returns A new `Coyoneda`.
  */
 export const coyoneda =
-    <A, B>(map: (a: A) => B) => <F>(image: Get1<F, A>): Coyoneda<F, B> =>
-        newExists<Coyoneda<F, B>, A>([map, image]);
+    <X, A>(map: (a: X) => A) => <F>(image: Get1<F, X>): Coyoneda<F, A> =>
+        newExists<Coyoneda<F, A>, X>([map, image]);
 
 /**
  * Unwraps a `Coyoneda` with running `runner`.
