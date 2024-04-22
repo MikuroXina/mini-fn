@@ -1,3 +1,9 @@
+/**
+ * This package provides a `Free` monad which makes any kind `F` into a `Monad` instance. It is useful for creating your own domain-specific-language (DSL) and its interpreter.
+ *
+ * @packageDocumentation
+ */
+
 import {
     type ControlFlow,
     isBreak,
@@ -32,31 +38,61 @@ import type { Pure } from "./type-class/pure.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
 const returnNominal = Symbol("FreePure");
+/**
+ * `Return` denotes a terminal symbol of your language.
+ */
 export type Return<T> = readonly [typeof returnNominal, T];
+/**
+ * Creates a new `Return` from the internal item.
+ */
 export const newReturn = <T>(item: T): Return<T> => [returnNominal, item];
 export const isReturn = <F, T>(fr: Free<F, T>): fr is Return<T> =>
     fr[0] === returnNominal;
 
 const bindNominal = Symbol("FreeBind");
+/**
+ * `Bind` denotes a non-terminal symbol of your language `F`.
+ */
 export type Bind<F, T> = readonly [
     typeof bindNominal,
     Coyoneda.Coyoneda<F, Free<F, T>>,
 ];
+/**
+ * Creates a new `Bind` from the internal item.
+ */
 export const newBind = <F, T>(
     item: Coyoneda.Coyoneda<F, Free<F, T>>,
 ): Bind<F, T> => [bindNominal, item];
 export const isBind = <F, T>(fr: Free<F, T>): fr is Bind<F, T> =>
     fr[0] === bindNominal;
 
+/**
+ * A `Free` monad, which represents a list of tokens of your domain-specific-language (DSL).
+ *
+ * `F` can be any kind and not required a `Functor` instance, but it may be needed when to interpret by functions such as `runFree`.
+ */
 export type Free<F, T> = Return<T> | Bind<F, T>;
 
+/**
+ * Wraps a `Free` item on `F` into a new `Free`.
+ */
 export const wrap = <F, T>(
     f: Get1<F, Free<F, T>>,
 ): Free<F, T> => newBind(Coyoneda.lift(f));
 
+/**
+ * It is equivalent to `Free.wrap(p.pure(f))`.
+ */
 export const suspendF = <F>(p: Pure<F>) => <T>(f: Free<F, T>): Free<F, T> =>
     wrap(p.pure(f));
 
+/**
+ * Substitute the kind `F` of `Free<F, _>` with `G` by a natural transformation from `F` to `G`.
+ *
+ * @param nat - A natural transformation from `F` to `G`.
+ * @param f - A list of tokens to be mapped.
+ * @returns The mapped new `Free`.
+ */
 export const substFree = <F, G>(
     nat: Nt<F, Apply2Only<FreeHkt, G>>,
 ): <T>(f: Free<F, T>) => Free<G, T> => {
@@ -68,6 +104,14 @@ export const substFree = <F, G>(
     return go;
 };
 
+/**
+ * Executes and interprets tokens of your language `F` by `runner`.
+ *
+ * @param functor - A `Functor` instance for `F`.
+ * @param runner - A function that interprets tokens on `F` as `Get1<F, Free<F, T>>` and folds into a new `Free<F, T>`.
+ * @param fr - A list of tokens to be run.
+ * @returns The execution result.
+ */
 export const runFree =
     <F>(functor: Functor<F>) =>
     <T>(runner: (token: Get1<F, Free<F, T>>) => Free<F, T>) =>
@@ -78,6 +122,15 @@ export const runFree =
         return fr[1];
     };
 
+/**
+ * Executes and interprets tokens of your language `F` by `runner` on environment `M`.
+ *
+ * @param functor - A `Functor` instance for `F`.
+ * @param m - A `MonadRec` instance for `M`.
+ * @param runner - A function that interprets tokens on `F` as `Get1<F, Free<F, T>>` and folds into a new `Free<F, T>` on `M`.
+ * @param fr - A list of tokens to be run.
+ * @returns The execution result on `M`.
+ */
 export const runFreeM = <F>(functor: Functor<F>) =>
 <M>(m: MonadRec<M>) =>
 <T>(
@@ -94,6 +147,14 @@ export const runFreeM = <F>(functor: Functor<F>) =>
         },
     );
 
+/**
+ * Converts a `Free` into a function of continuation passing style.
+ *
+ * @param onBind - A function called on `Bind` value.
+ * @param onReturn - A function called on `Return` value.
+ * @param data - A `Free` item to be converted.
+ * @returns The continuation result of given functions.
+ */
 export const intoCont = <F, T, R>(
     onBind: <S>(next: (s: S) => Free<F, T>) => (data: Get1<F, S>) => R,
 ) =>
@@ -103,6 +164,13 @@ export const intoCont = <F, T, R>(
         ? onReturn(data[1])
         : Coyoneda.unCoyoneda(onBind)(data[1]);
 };
+/**
+ * Converts a `Free` into a `Result` value. A `Return` will be mapped to an `Err` and a `Bind` will be mapped to an `Ok`.
+ *
+ * @param functor - A `Functor` instance for `F`.
+ * @param f - A `Free` item to be converted.
+ * @returns The mapped result value.
+ */
 export const intoResult =
     <F>(functor: Functor<F>) =>
     <T>(f: Free<F, T>): Result.Result<T, Get1<F, Free<F, T>>> =>
@@ -114,6 +182,9 @@ export const intoResult =
                 Result.ok(functor.map(next)(data)),
         )(Result.err)(f);
 
+/**
+ * Wraps a value of `T` into a new `Free<F, T>`. It is equivalent to `newReturn`.
+ */
 export const pure = <F, T>(item: T): Free<F, T> => newReturn(item);
 
 export const map = <T, U>(fn: (t: T) => U) => <F>(f: Free<F, T>): Free<F, U> =>
@@ -269,8 +340,8 @@ export const ord = fromCmp(cmp);
 /**
  * Reduces `Free` with the internal items.
  *
- * @param monad - The instance of `Monad` for `F`.
- * @param fr - The instance of `Free`.
+ * @param monad - A `Monad` instance for `F`.
+ * @param fr - The `Free` item.
  * @returns The reduction of `F`.
  */
 export const retract =
@@ -284,9 +355,9 @@ export const retract =
 /**
  * Reduces `Free` with the internal items.
  *
- * @param functor - The instance of `Functor` for `F`.
- * @param fn - The function to be applied.
- * @param fr - The instance of `Free`.
+ * @param functor - A `Functor` instance for `F`.
+ * @param fn - A function to be applied.
+ * @param fr - A `Free` instance.
  * @returns The reduction of `F`.
  */
 export const iter =
@@ -304,10 +375,10 @@ export const iter =
 /**
  * Reduces `Free` with the internal items.
  *
- * @param app - The instance of `Applicative` for `F`.
- * @param functor - The instance of `Functor` for `F`.
- * @param fn - The function to be applied on `A`.
- * @param fr - The instance of `Free`.
+ * @param app - An `Applicative` instance for `F`.
+ * @param functor - A `Functor` instance for `F`.
+ * @param fn - A function to be applied on `A`.
+ * @param fr - A `Free` instance.
  * @returns The reduction of `F`.
  */
 export const iterA =
@@ -326,10 +397,10 @@ export const iterA =
 /**
  * Reduces `Free` with the internal items.
  *
- * @param monad - The instance of `Monad` for `M`.
- * @param functor - The instance of `Functor` for `F`.
- * @param fn - The function to be applied on `M`.
- * @param fr - The instance of `Free`.
+ * @param monad - A `Monad` instance for `M`.
+ * @param functor - A `Functor` instance for `F`.
+ * @param fn - A function to be applied on `M`.
+ * @param fr - A `Free` instance.
  * @returns The reduction of `F`.
  */
 export const iterM =
@@ -347,9 +418,9 @@ export const iterM =
     };
 
 /**
- * Hoists the items of `Free` by the natural transformation.
+ * Hoists the items of `Free` by a natural transformation `nat`.
  *
- * @param nat - The natural transformation.
+ * @param nat - A natural transformation from `F` to `G`.
  * @returns The lifted transformation of `Free`.
  */
 export const hoistFree = <F, G>(
@@ -358,11 +429,11 @@ export const hoistFree = <F, G>(
     substFree({ nt: <T>(ft: Get1<F, T>): Free<G, T> => liftF(nat.nt(ft)) });
 
 /**
- * Make a product from two `Free`s.
+ * Makes a product from two `Free`s.
  *
- * @param app - The instance of `Applicative` for `F`.
- * @param a - The left-side of a product.
- * @param b - The right-side of a product.
+ * @param app - An `Applicative` instance for `F`.
+ * @param a - A left-side of a product.
+ * @param b - A right-side of a product.
  * @returns The product of two `Free`s.
  */
 export const productT =
@@ -370,11 +441,11 @@ export const productT =
         flatMap((a: A) => map((b: B): Tuple<A, B> => [a, b])(b))(a);
 
 /**
- * Folds all the values in `Free` with monad `M`.
+ * Folds all the values in `Free<F, _>` with monad `M`.
  *
- * @param m - The instance of `Monad` for `M`.
- * @param fn - The folder for `M`.
- * @param fr - The instance of `Free`.
+ * @param m - A `Monad` instance for `M`.
+ * @param nat - A natural transformation from `F` to `M`.
+ * @param ft - A `Free` instance.
  * @returns The folded value contained by `M`.
  */
 export const foldFree = <M>(m: MonadRec<M>) =>
@@ -399,7 +470,7 @@ export const foldFree = <M>(m: MonadRec<M>) =>
 /**
  * Lifts up the item into a `Free`.
  *
- * @param ft - The instance of `F` to be lifted.
+ * @param ft - A `F` instance to be lifted.
  * @returns The new `Free`.
  */
 export const liftF = <F, T>(
