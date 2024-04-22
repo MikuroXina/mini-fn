@@ -10,7 +10,18 @@ import { replace } from "./functor.ts";
 import type { Monad } from "./monad.ts";
 import type { Monoid } from "./monoid.ts";
 
+/**
+ * An extended `Monad` also supports the `tailRecM` operation.
+ */
 export interface MonadRec<M> extends Monad<M> {
+    /**
+     * Executes a `stepper` while it returns a `Continue<A>`. This exits only if `stepper` returned a `Break<A>` and forwards it.
+     *
+     * Almost all of the `MonadRec` instances are implemented with a simple `while` loop because JavaScript runtime rarely optimizes a tail call.
+     *
+     * @param stepper - A function to run with its control flow.
+     * @returns The execution result.
+     */
     readonly tailRecM: <X, A>(
         stepper: (state: A) => Get1<M, ControlFlow<X, A>>,
     ) => (state: A) => Get1<M, X>;
@@ -39,6 +50,9 @@ export const tailRecM3 = <M>(m: MonadRec<M>) =>
         c,
     ]);
 
+/**
+ * A `MonadRec` instance for `Identity`.
+ */
 export const tailRec = <X, A>(stepper: (a: A) => ControlFlow<X, A>) =>
 (
     initialA: A,
@@ -72,12 +86,26 @@ export const tailRec3 = <X, A, B, C>(
         initialC,
     ]);
 
+/**
+ * Starts an infinite loop of the operation `op`.
+ *
+ * @param m - A `MonadRec` instance for `M`.
+ * @returns The infinite loop operation.
+ */
 export const forever =
     <M>(m: MonadRec<M>) => <A, B>(op: Get1<M, A>): Get1<M, B> =>
         m.tailRecM((state: []): Get1<M, ControlFlow<B, []>> =>
             replace(m)(newContinue(state))(op)
         )([]);
 
+/**
+ * Executes an optional operation `optionOp` while it returns a `Some` value. The accumulated result of it will be returned.
+ *
+ * @param mon - A `Monoid` instance for `T`.
+ * @param m - A `MonadRec` instance for `M`.
+ * @param optionOp - An optional operation.
+ * @returns The looping and accumulating operation.
+ */
 export const whileSome =
     <T>(mon: Monoid<T>) =>
     <M>(m: MonadRec<M>) =>
@@ -90,6 +118,13 @@ export const whileSome =
             )(optionOp)
         )(mon.identity);
 
+/**
+ * Executes an optional operation `optionOp` until it returns a `Some` value.
+ *
+ * @param m - A `MonadRec` instance for `M`.
+ * @param optionOp - An optional operation.
+ * @returns The retrying operation.
+ */
 export const untilSome =
     <M>(m: MonadRec<M>) => <T>(optionOp: Get1<M, Option<T>>): Get1<M, T> =>
         m.tailRecM((_: []): Get1<M, ControlFlow<T, []>> =>
