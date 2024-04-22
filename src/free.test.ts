@@ -1,13 +1,13 @@
 import { assertEquals } from "../deps.ts";
-import { doVoidT } from "./cat.ts";
+import { catT, doVoidT } from "./cat.ts";
 import {
     eq,
     type Free,
-    isPure,
     liftF,
     monad as freeMonad,
-    node,
     pure,
+    runFree,
+    wrap,
 } from "./free.ts";
 import type { Hkt1 } from "./hkt.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
@@ -51,37 +51,32 @@ Deno.test("hello language", async (t) => {
         };
     const functor: Functor<HelloLangHkt> = { map };
 
-    const runProgram = <T>(code: Free<HelloLangHkt, T>): string => {
-        if (isPure(code)) {
-            return `return ${code[1]}`;
-        }
-        switch (code[1].type) {
-            case "Hello":
-                return `Hello.\n${runProgram(code[1].next)}`;
-            case "Hey":
-                return `Hey.\n${runProgram(code[1].next)}`;
-            case "YearsOld":
-                return `I'm ${code[1].years} years old.\n${
-                    runProgram(code[1].next)
-                }`;
-            case "Bye":
-                return "Bye.\n";
-        }
-    };
+    const runProgram = runFree(functor)<string>(
+        (
+            op: HelloLang<Free<HelloLangHkt, string>>,
+        ): Free<HelloLangHkt, string> => {
+            switch (op.type) {
+                case "Hello":
+                    return pure(`Hello.\n${runProgram(op.next)}`);
+                case "Hey":
+                    return pure(`Hey.\n${runProgram(op.next)}`);
+                case "YearsOld":
+                    return pure(
+                        `I'm ${op.years} years old.\n${runProgram(op.next)}`,
+                    );
+                case "Bye":
+                    return pure("Bye.\n");
+            }
+        },
+    );
 
-    const hello: Free<HelloLangHkt, []> = liftF(functor)({
-        type: "Hello",
-        next: [],
-    });
-    const hey: Free<HelloLangHkt, []> = liftF(functor)({
-        type: "Hey",
-        next: [],
-    });
+    const hello: Free<HelloLangHkt, []> = liftF({ type: "Hello", next: [] });
+    const hey: Free<HelloLangHkt, []> = liftF({ type: "Hey", next: [] });
     const yearsOld = (years: number): Free<HelloLangHkt, []> =>
-        liftF(functor)({ type: "YearsOld", years, next: [] });
-    const bye: Free<HelloLangHkt, []> = liftF(functor)({ type: "Bye" });
+        liftF({ type: "YearsOld", years, next: [] });
+    const bye: Free<HelloLangHkt, []> = liftF({ type: "Bye" });
 
-    const m = freeMonad(functor);
+    const m = freeMonad<HelloLangHkt>();
 
     const comparator = eq<HelloLangHkt, unknown>({
         equalityA: fromEquality(() => () => true)(),
@@ -105,21 +100,14 @@ Deno.test("hello language", async (t) => {
                 }
             },
         ),
+        functor,
     });
 
     await t.step("syntax tree", () => {
-        const empty: Free<HelloLangHkt, unknown> = pure({} as unknown);
-        const example: Free<HelloLangHkt, unknown> = node<
-            HelloLangHkt,
-            HelloLang<unknown>
-        >({
+        const empty: Free<HelloLangHkt, unknown> = pure({});
+        const example: Free<HelloLangHkt, string> = wrap({
             type: "Hello",
-            next: node<HelloLangHkt, HelloLang<unknown>>({
-                type: "Hello",
-                next: node<HelloLangHkt, HelloLang<unknown>>({
-                    type: "Bye",
-                }),
-            }),
+            next: wrap({ type: "Hello", next: wrap({ type: "Bye" }) }),
         });
         assertEquals(comparator.eq(example, example), true);
         assertEquals(comparator.eq(example, empty), false);
@@ -134,7 +122,7 @@ Deno.test("hello language", async (t) => {
     await t.step("program monad", () => {
         const subRoutine = doVoidT(m).run(hello).run(yearsOld(25)).ctx;
         const program =
-            doVoidT(m).run(hey).run(subRoutine).run(hey).run(bye).ctx;
+            catT(m)(pure("")).run(hey).run(subRoutine).run(hey).run(bye).ctx;
 
         assertEquals(
             runProgram(program),

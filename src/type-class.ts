@@ -25,6 +25,7 @@ export * as Indexed from "./type-class/indexed.ts";
 export * as Iso from "./type-class/iso.ts";
 export * as Magma from "./type-class/magma.ts";
 export * as Monad from "./type-class/monad.ts";
+export * as MonadRec from "./type-class/monad-rec.ts";
 export * as Monoid from "./type-class/monoid.ts";
 export * as Monoidal from "./type-class/monoidal.ts";
 export * as Nt from "./type-class/nt.ts";

@@ -12,7 +12,9 @@ import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import type { SemiGroupal } from "./type-class/semi-groupal.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 import type { TraversableMonad } from "./type-class/traversable-monad.ts";
-import { Pure } from "./type-class/pure.ts";
+import type { Pure } from "./type-class/pure.ts";
+import type { MonadRec } from "./type-class/monad-rec.ts";
+import { type ControlFlow, isContinue, newContinue } from "./control-flow.ts";
 
 /**
  * Monad transformer `PromiseT`, a generic form of `Promise`.
@@ -201,6 +203,17 @@ export const callCC = <A, B>(
         );
     });
 
+export const tailRecM = <X, A>(
+    stepper: (state: A) => Promise<ControlFlow<X, A>>,
+) =>
+async (state: A): Promise<X> => {
+    let flow: ControlFlow<X, A> = newContinue(state);
+    while (isContinue(flow)) {
+        flow = await stepper(flow[1]);
+    }
+    return flow[1];
+};
+
 export interface PromiseHkt extends Hkt1 {
     readonly type: Promise<this["arg1"]>;
 }
@@ -256,3 +269,5 @@ export const monadPromise: MonadPromise<PromiseHkt> = {
     ...monad,
     liftPromise: id,
 };
+
+export const monadRec: MonadRec<PromiseHkt> = { ...monad, tailRecM };

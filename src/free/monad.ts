@@ -1,4 +1,4 @@
-import { type FreeHkt, monad as monadF, node } from "../free.ts";
+import { type FreeHkt, monad as monadF, wrap } from "../free.ts";
 import { compose } from "../func.ts";
 import type { Apply2Only, Get1, Get2 } from "../hkt.ts";
 import type { MonadTrans, MonadTransHkt } from "../trans.ts";
@@ -26,9 +26,10 @@ export const wrapT = <F, M, T extends MonadTransHkt>(
         ),
     );
 
-export const functorMonadFree = <F>(
-    functor: Functor<F>,
-): MonadFree<F, Apply2Only<FreeHkt, F>> => ({
-    ...monadF(functor),
-    wrap: node,
+export const functorMonadFree = <F>(): MonadFree<
+    F,
+    Apply2Only<FreeHkt, F>
+> => ({
+    ...monadF(),
+    wrap,
 });

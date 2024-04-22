@@ -701,6 +701,9 @@ export const concatMap =
  */
 export const flatMap = concatMap;
 
+export const apply = <T, U>(fns: List<(t: T) => U>) => (t: List<T>): List<U> =>
+    concat(map((fn: (t: T) => U) => map(fn)(t))(fns));
+
 /**
  * Scans the list from left. It is useful to make the partial sum list.
  *
@@ -1960,8 +1963,7 @@ export const monad: Monad<ListHkt> = {
     pure: singleton,
     map,
     flatMap,
-    apply: <T1, U1>(fns: List<(t: T1) => U1>) => (t: List<T1>): List<U1> =>
-        concat(map((fn: (t: T1) => U1) => map(fn)(t))(fns)),
+    apply,
 };
 
 /**
