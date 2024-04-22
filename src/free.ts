@@ -33,6 +33,7 @@ import type { Traversable } from "./type-class/traversable.ts";
 
 const returnNominal = Symbol("FreePure");
 export type Return<T> = readonly [typeof returnNominal, T];
+export const newReturn = <T>(item: T): Return<T> => [returnNominal, item];
 export const isReturn = <F, T>(fr: Free<F, T>): fr is Return<T> =>
     fr[0] === returnNominal;
 
@@ -41,6 +42,9 @@ export type Bind<F, T> = readonly [
     typeof bindNominal,
     Coyoneda.Coyoneda<F, Free<F, T>>,
 ];
+export const newBind = <F, T>(
+    item: Coyoneda.Coyoneda<F, Free<F, T>>,
+): Bind<F, T> => [bindNominal, item];
 export const isBind = <F, T>(fr: Free<F, T>): fr is Bind<F, T> =>
     fr[0] === bindNominal;
 
@@ -48,19 +52,21 @@ export type Free<F, T> = Return<T> | Bind<F, T>;
 
 export const wrap = <F, T>(
     f: Get1<F, Free<F, T>>,
-): Free<F, T> => [bindNominal, Coyoneda.lift(f)];
+): Free<F, T> => newBind(Coyoneda.lift(f));
 
 export const suspendF = <F>(p: Pure<F>) => <T>(f: Free<F, T>): Free<F, T> =>
     wrap(p.pure(f));
 
 export const substFree = <F, G>(
     nat: Nt<F, Apply2Only<FreeHkt, G>>,
-) =>
-<T>(f: Free<F, T>): Free<G, T> =>
-    isReturn(f) ? pure(f[1]) : [
-        bindNominal,
-        Coyoneda.hoist<F, Apply2Only<FreeHkt, G>>(nat.nt)<Free<F, T>>(f[1]),
-    ] as unknown as Bind<G, T>;
+): <T>(f: Free<F, T>) => Free<G, T> => {
+    const go = <T>(f: Free<F, T>): Free<G, T> =>
+        isReturn(f) ? pure(f[1]) : Coyoneda.unCoyoneda(
+            <X>(mapper: (shape: X) => Free<F, T>) => (image: Get1<F, X>) =>
+                flatMap((x: X) => go(mapper(x)))(nat.nt(image)),
+        )(f[1]);
+    return go;
+};
 
 export const runFree =
     <F>(functor: Functor<F>) =>
@@ -108,7 +114,7 @@ export const intoResult =
                 Result.ok(functor.map(next)(data)),
         )(Result.err)(f);
 
-export const pure = <F, T>(item: T): Free<F, T> => [returnNominal, item];
+export const pure = <F, T>(item: T): Free<F, T> => newReturn(item);
 
 export const map = <T, U>(fn: (t: T) => U) => <F>(f: Free<F, T>): Free<F, U> =>
     flatMap((t: T): Free<F, U> => pure(fn(t)))(f);
@@ -117,13 +123,17 @@ export const apply =
     <F, T, U>(fn: Free<F, (t: T) => U>) => (f: Free<F, T>): Free<F, U> =>
         flatMap((fn: (t: T) => U) => map(fn)(f))(fn);
 
-export const flatMap =
-    <F, T, U>(fn: (t: T) => Free<F, U>) => (f: Free<F, T>): Free<F, U> => {
+export const flatMap = <F, T, U>(
+    fn: (t: T) => Free<F, U>,
+): (f: Free<F, T>) => Free<F, U> => {
+    const go = (f: Free<F, T>): Free<F, U> => {
         if (isReturn(f)) {
             return fn(f[1]);
         }
-        return [bindNominal, Coyoneda.map(flatMap(fn))(f[1])];
+        return newBind(Coyoneda.map(go)(f[1]));
     };
+    return go;
+};
 
 export const flatten = <F, T>(nested: Free<F, Free<F, T>>): Free<F, T> =>
     flatMap((x: Free<F, T>) => x)(nested);
@@ -392,8 +402,9 @@ export const foldFree = <M>(m: MonadRec<M>) =>
  * @param ft - The instance of `F` to be lifted.
  * @returns The new `Free`.
  */
-export const liftF = <F, T>(ft: Get1<F, T>): Free<F, T> =>
-    [bindNominal, Coyoneda.lift(ft)] as Bind<F, T>;
+export const liftF = <F, T>(
+    ft: Get1<F, T>,
+): Free<F, T> => newBind(Coyoneda.coyoneda(pure<F, T>)(ft));
 
 /**
  * Cuts off the tree of computations at n-th index. If `n` is zero or less, the empty operation will be returned.
