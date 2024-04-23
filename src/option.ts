@@ -11,7 +11,6 @@
  *
  * @packageDocumentation
  */
-import { doT } from "./cat.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import type { Optic, OpticSimple } from "./optical.ts";
 import { newPrism, newPrismSimple } from "./optical/prism.ts";
@@ -19,12 +18,13 @@ import { equal, greater, less, type Ordering } from "./ordering.ts";
 import { err, isOk, ok, type Result } from "./result.ts";
 import {
     type Decoder,
+    decSum,
     decU8,
     type Encoder,
+    encSum,
     encU8,
-    flatMapCodeM,
+    encUnit,
     mapDecoder,
-    monadForDecoder,
     pureDecoder,
 } from "./serial.ts";
 import type { Applicative } from "./type-class/applicative.ts";
@@ -835,11 +835,10 @@ export const ifNone = <T>(): OpticSimple<Option<T>, void> =>
         mapOrElse<Option<void>>(() => some(undefined))(none),
     );
 
-export const enc = <T>(encT: Encoder<T>): Encoder<Option<T>> => (value) =>
-    isNone(value) ? encU8(0) : flatMapCodeM(() => encT(value[1]))(encU8(1));
+export const enc = <T>(encT: Encoder<T>): Encoder<Option<T>> =>
+    encSum({
+        [noneSymbol]: (_value: None) => encUnit([]),
+        [someSymbol]: (value: Some<T>) => encT(value[1]),
+    })(([key]) => key)((type) => encU8(type === noneSymbol ? 0 : 1));
 export const dec = <T>(decT: Decoder<T>): Decoder<Option<T>> =>
-    doT(monadForDecoder)
-        .addM("tag", decU8())
-        .finishM(({ tag }): Decoder<Option<T>> =>
-            tag === 0 ? pureDecoder(none()) : mapDecoder(some)(decT)
-        );
+    decSum(decU8())<Option<T>>([pureDecoder(none()), mapDecoder(some)(decT)]);

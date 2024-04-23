@@ -4,8 +4,10 @@ import { id } from "./identity.ts";
 import { appendToHead, either, empty, type List } from "./list.ts";
 import {
     Decoder,
+    decSum,
     decU8,
     Encoder,
+    encSum,
     encU8,
     mapDecoder,
     monadForCodeM,
@@ -535,32 +537,26 @@ export const monad = <A>(
 });
 
 export const enc =
-    <A>(encA: Encoder<A>) =>
-    <B>(encB: Encoder<B>): Encoder<These<A, B>> =>
-    (value) =>
-        isThis(value)
-            ? doT(monadForCodeM)
-                .run(encU8(0))
-                .finishM(() => encA(value[1]))
-            : isThat(value)
-            ? doT(monadForCodeM)
-                .run(encU8(1))
-                .finishM(() => encB(value[1]))
-            : doT(monadForCodeM)
-                .run(encU8(2))
-                .run(encA(value[1]))
-                .finishM(() => encB(value[2]));
+    <A>(encA: Encoder<A>) => <B>(encB: Encoder<B>): Encoder<These<A, B>> =>
+        encSum({
+            [thisSymbol]: ([, a]: This<A>) => encA(a),
+            [thatSymbol]: ([, b]: That<B>) => encB(b),
+            [bothSymbol]: ([, a, b]: Both<A, B>) =>
+                doT(monadForCodeM)
+                    .run(encA(a))
+                    .finishM(() => encB(b)),
+        })(([key]) => key)((key) =>
+            encU8(
+                key === thisSymbol ? 0 : (key === thatSymbol ? 1 : 2),
+            )
+        );
 export const dec =
     <A>(decA: Decoder<A>) => <B>(decB: Decoder<B>): Decoder<These<A, B>> =>
-        doT(monadForDecoder)
-            .addM("tag", decU8())
-            .finishM(({ tag }): Decoder<These<A, B>> =>
-                tag === 0
-                    ? mapDecoder(newThis)(decA)
-                    : tag === 1
-                    ? mapDecoder(newThat)(decB)
-                    : doT(monadForDecoder)
-                        .addM("left", decA)
-                        .addM("right", decB)
-                        .finish(({ left, right }) => newBoth(left)(right))
-            );
+        decSum(decU8())<These<A, B>>([
+            mapDecoder(newThis)(decA),
+            mapDecoder(newThat)(decB),
+            doT(monadForDecoder)
+                .addM("left", decA)
+                .addM("right", decB)
+                .finish(({ left, right }) => newBoth(left)(right)),
+        ]);

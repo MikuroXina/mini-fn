@@ -14,14 +14,13 @@ import type { Traversable } from "./type-class/traversable.ts";
 import type { TraversableMonad } from "./type-class/traversable-monad.ts";
 import {
     type Decoder,
+    decSum,
     decU8,
     type Encoder,
+    encSum,
     encU8,
-    flatMapCodeM,
     mapDecoder,
-    monadForDecoder,
 } from "./serial.ts";
-import { doT } from "./cat.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
 
 const continueSymbol = Symbol("ControlFlowContinue");
@@ -138,17 +137,14 @@ export const bifunctor: Bifunctor<ControlFlowHkt> = { biMap };
 export const enc =
     <B>(encB: Encoder<B>) =>
     <C>(encC: Encoder<C>): Encoder<ControlFlow<B, C>> =>
-    (value) =>
-        isBreak(value)
-            ? flatMapCodeM(() => encB(value[1]))(encU8(0))
-            : flatMapCodeM(() => encC(value[1]))(encU8(1));
+        encSum({
+            [breakSymbol]: ([, b]: Break<B>) => encB(b),
+            [continueSymbol]: ([, c]: Continue<C>) => encC(c),
+        })(([key]) => key)((key) => encU8(key === breakSymbol ? 0 : 1));
 export const dec =
     <B>(decB: Decoder<B>) =>
     <C>(decC: Decoder<C>): Decoder<ControlFlow<B, C>> =>
-        doT(monadForDecoder)
-            .addM("tag", decU8())
-            .finishM(({ tag }): Decoder<ControlFlow<B, C>> =>
-                tag === 0
-                    ? mapDecoder(newBreak)(decB)
-                    : mapDecoder(newContinue)(decC)
-            );
+        decSum(decU8())<ControlFlow<B, C>>([
+            mapDecoder(newBreak)(decB),
+            mapDecoder(newContinue)(decC),
+        ]);
