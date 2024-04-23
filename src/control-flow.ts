@@ -14,14 +14,13 @@ import type { Traversable } from "./type-class/traversable.ts";
 import type { TraversableMonad } from "./type-class/traversable-monad.ts";
 import {
     type Decoder,
+    decSum,
     decU8,
     type Encoder,
     encSum,
     encU8,
     mapDecoder,
-    monadForDecoder,
 } from "./serial.ts";
-import { doT } from "./cat.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
 
 const continueSymbol = Symbol("ControlFlowContinue");
@@ -145,10 +144,7 @@ export const enc =
 export const dec =
     <B>(decB: Decoder<B>) =>
     <C>(decC: Decoder<C>): Decoder<ControlFlow<B, C>> =>
-        doT(monadForDecoder)
-            .addM("tag", decU8())
-            .finishM(({ tag }): Decoder<ControlFlow<B, C>> =>
-                tag === 0
-                    ? mapDecoder(newBreak)(decB)
-                    : mapDecoder(newContinue)(decC)
-            );
+        decSum(decU8())<ControlFlow<B, C>>([
+            mapDecoder(newBreak)(decB),
+            mapDecoder(newContinue)(decC),
+        ]);

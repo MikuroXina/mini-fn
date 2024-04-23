@@ -1552,3 +1552,24 @@ export const decUtf8 = (): Decoder<string> =>
         .addM("len", decU32Be())
         .addMWith("bytes", ({ len }) => decBytes(len))
         .finish(({ bytes }) => new TextDecoder().decode(bytes));
+
+/**
+ * Decodes a sum type value with the `keyDecoder` and `decoders`.
+ *
+ * @param keyDecoder - A decoder that decodes the index key of the sum type.
+ * @param variantDecoders - A table of decoders for each variant of the sum type.
+ * @returns The sum type decoder.
+ */
+export const decSum =
+    <K extends PropertyKey>(keyDecoder: Decoder<K>) =>
+    <T>(variantDecoders: Record<K, Decoder<T>>): Decoder<T> =>
+        doT(monadForDecoder)
+            .addM("key", keyDecoder)
+            .when(
+                ({ key }) => !Object.hasOwn(variantDecoders, key),
+                () =>
+                    failDecoder(
+                        "entry of key was not owned by the variantDecoders",
+                    ),
+            )
+            .finishM(({ key }) => variantDecoders[key]);
