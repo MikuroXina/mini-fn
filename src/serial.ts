@@ -791,23 +791,31 @@ export const encFoldable =
  * @param variantEncoders - Encoders for each variant of the sum type.
  * @returns The encoder for the sum type.
  */
-export const encSum =
-    <O, K extends PropertyKey = keyof O, T = Encoding<O[keyof O]>>(
-        variantEncoders: O,
-    ) =>
-    (keyExtractor: (value: T) => K) =>
-    (keyEncoder: Encoder<K>): Encoder<T> =>
-    (value) => {
-        const key = keyExtractor(value);
-        return doT(monadForCodeM)
-            .run(keyEncoder(key))
-            .run(
-                (variantEncoders[key as unknown as keyof O] as Encoder<T>)(
-                    value,
-                ),
-            )
-            .finish(() => []);
-    };
+export const encSum = <
+    O extends object,
+    K extends PropertyKey = keyof O,
+    T = Encoding<O[keyof O]>,
+>(
+    variantEncoders: O,
+) =>
+(keyExtractor: (value: T) => K) =>
+(keyEncoder: Encoder<K>): Encoder<T> =>
+(value) => {
+    const key = keyExtractor(value);
+    if (!Object.hasOwn(variantEncoders, key)) {
+        throw new Error(
+            `entry of key was not owned by the variantEncoders`,
+        );
+    }
+    return doT(monadForCodeM)
+        .run(keyEncoder(key))
+        .run(
+            (variantEncoders[key as unknown as keyof O] as Encoder<T>)(
+                value,
+            ),
+        )
+        .finish(() => []);
+};
 
 /**
  * A result that reports how many bytes has the data read.
