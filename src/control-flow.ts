@@ -16,8 +16,8 @@ import {
     type Decoder,
     decU8,
     type Encoder,
+    encSum,
     encU8,
-    flatMapCodeM,
     mapDecoder,
     monadForDecoder,
 } from "./serial.ts";
@@ -138,10 +138,10 @@ export const bifunctor: Bifunctor<ControlFlowHkt> = { biMap };
 export const enc =
     <B>(encB: Encoder<B>) =>
     <C>(encC: Encoder<C>): Encoder<ControlFlow<B, C>> =>
-    (value) =>
-        isBreak(value)
-            ? flatMapCodeM(() => encB(value[1]))(encU8(0))
-            : flatMapCodeM(() => encC(value[1]))(encU8(1));
+        encSum({
+            [breakSymbol]: ([, b]: Break<B>) => encB(b),
+            [continueSymbol]: ([, c]: Continue<C>) => encC(c),
+        })(([key]) => key)((key) => encU8(key === breakSymbol ? 0 : 1));
 export const dec =
     <B>(decB: Decoder<B>) =>
     <C>(decC: Decoder<C>): Decoder<ControlFlow<B, C>> =>

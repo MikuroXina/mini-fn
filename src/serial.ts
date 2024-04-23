@@ -576,6 +576,15 @@ export type Code = CodeM<[]>;
  */
 export type Encoder<T> = (value: T) => Code;
 
+export interface EncoderHkt extends Hkt1 {
+    readonly type: Encoder<this["arg1"]>;
+}
+
+/**
+ * Retrieves the encoding type from an `Encoder`.
+ */
+export type Encoding<E> = E extends Encoder<infer T> ? T : never;
+
 /**
  * A `Monoid` instance for `Code`.
  */
@@ -686,6 +695,11 @@ export const monadForCodeM: Monad<CodeMHkt> = {
 export const flushCode: Code = tell(flush);
 
 /**
+ * Encodes nothing. It is an identity encoder.
+ */
+export const encUnit: Encoder<[]> = compose(tell)(() => empty);
+
+/**
  * Encodes a number as a signed 8-bit integer.
  */
 export const encI8: Encoder<number> = compose(tell)(i8Builder);
@@ -768,6 +782,32 @@ export const encFoldable =
                         encT,
                     )(data),
             );
+
+/**
+ * Encodes a sum type value with encoders and functions for index key.
+ *
+ * @param keyExtractor - A function that extracts the index key of `variantEncoders` from a sum type value.
+ * @param keyEncoder - An encoder for the index key value of a sum type value.
+ * @param variantEncoders - Encoders for each variant of the sum type.
+ * @returns The encoder for the sum type.
+ */
+export const encSum =
+    <O, K extends PropertyKey = keyof O, T = Encoding<O[keyof O]>>(
+        variantEncoders: O,
+    ) =>
+    (keyExtractor: (value: T) => K) =>
+    (keyEncoder: Encoder<K>): Encoder<T> =>
+    (value) => {
+        const key = keyExtractor(value);
+        return doT(monadForCodeM)
+            .run(keyEncoder(key))
+            .run(
+                (variantEncoders[key as unknown as keyof O] as Encoder<T>)(
+                    value,
+                ),
+            )
+            .finish(() => []);
+    };
 
 /**
  * A result that reports how many bytes has the data read.

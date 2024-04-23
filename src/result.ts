@@ -14,8 +14,8 @@ import {
     Decoder,
     decU8,
     Encoder,
+    encSum,
     encU8,
-    flatMapCodeM,
     mapDecoder,
     monadForDecoder,
 } from "./serial.ts";
@@ -712,12 +712,11 @@ export const ifOk = <E, T, U>(): Optic<Result<E, T>, Result<E, U>, T, U> =>
     );
 
 export const enc =
-    <E>(encE: Encoder<E>) =>
-    <T>(encT: Encoder<T>): Encoder<Result<E, T>> =>
-    (value) =>
-        isErr(value)
-            ? flatMapCodeM(() => encE(value[1]))(encU8(0))
-            : flatMapCodeM(() => encT(value[1]))(encU8(1));
+    <E>(encE: Encoder<E>) => <T>(encT: Encoder<T>): Encoder<Result<E, T>> =>
+        encSum({
+            [errSymbol]: ([, err]: Err<E>) => encE(err),
+            [okSymbol]: ([, ok]: Ok<T>) => encT(ok),
+        })(([key]) => key)((type) => encU8(type === errSymbol ? 0 : 1));
 export const dec =
     <E>(decE: Decoder<E>) => <T>(decT: Decoder<T>): Decoder<Result<E, T>> =>
         doT(monadForDecoder)
