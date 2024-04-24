@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.0.0](https://github.com/MikuroXina/mini-fn/compare/v5.7.0...v6.0.0) (2024-04-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* Enforce Free as a Freer ([#176](https://github.com/MikuroXina/mini-fn/issues/176))
+
+### Features
+
+* Add encSum and decSum ([#177](https://github.com/MikuroXina/mini-fn/issues/177)) ([97340eb](https://github.com/MikuroXina/mini-fn/commit/97340eba1b009b234d1d329e3c2ab27592c1b17d))
+* Add Serial for serialization/deserialization ([#171](https://github.com/MikuroXina/mini-fn/issues/171)) ([10bd666](https://github.com/MikuroXina/mini-fn/commit/10bd6665ed81110ad5d83c4e2e709b45988c8042))
+* Add waiter parameter for exponentialBackoff ([#173](https://github.com/MikuroXina/mini-fn/issues/173)) ([0dd89ac](https://github.com/MikuroXina/mini-fn/commit/0dd89acc074e1201dee14c40c731877e392c8f2b))
+* Add when for CatT ([#175](https://github.com/MikuroXina/mini-fn/issues/175)) ([fef7065](https://github.com/MikuroXina/mini-fn/commit/fef70657be47a4eae7546fde13ad789f12f61d17))
+* Enforce Free as a Freer ([#176](https://github.com/MikuroXina/mini-fn/issues/176)) ([8c31c3c](https://github.com/MikuroXina/mini-fn/commit/8c31c3c8b559534c22e5760b229a8a57cac7d6e1))
+* Impl Eq and Ord for Array ([#174](https://github.com/MikuroXina/mini-fn/issues/174)) ([73c96b0](https://github.com/MikuroXina/mini-fn/commit/73c96b0e0a2480becab920deecd04f7ec168e7b3))
+
 ## [5.7.0](https://github.com/MikuroXina/mini-fn/compare/v5.6.0...v5.7.0) (2024-03-30)
 
 
