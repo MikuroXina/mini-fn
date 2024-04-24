@@ -1,3 +1,84 @@
+/**
+ * `Result<E, T>` shows an error handling with the variants, `Err<E>`, representing error and containing an error value, and `Ok<T>`, representing success and containing a passing value.
+ *
+ * # Functions overview
+ *
+ * Almost of all, you don't need to access the internal value with `[0]` or `[1]` to check whether a `Result<E, T>` is `Err<E>` or `Ok<T>`. Instead you can use the functions provided by this module.
+ *
+ * ## Constructors
+ *
+ * `ok` and `err` functions construct the `Result` from value to contain. They have individual type `Ok<T>` and `Err<E>`, respectively. So sometimes you need to upcast into `Result<E, T>`.
+ *
+ * ## Querying the variant
+ *
+ * `isOk` and `isErr` functions return `true` if the `Result` is `Ok` or `Err`, respectively. These provides the type assertion on TypeScript.
+ *
+ * ## Extracting contained values
+ *
+ * These functions extract the contained value in a `Result<E, T>` when it is the `Ok` variant. If it is `Err`:
+ *
+ * - `unwrap` throws an `Error` with a generic message
+ * - `unwrapOr` returns the provided the default value
+ * - `unwrapOrElse` returns the result of evaluating the provided function
+ *
+ * And this function extracts the contained error value `E` in a `Result<E, T>`. If it is `Ok`:
+ *
+ * - `unwrapErr` throws an `Error` with a generic message
+ *
+ * ## Transforming contained values
+ *
+ * These functions transform `Result` to `Option`:
+ *
+ * - `optionOk` transforms `Result<E, T>` into `Option<T>`, mapping `Ok<T>` to `Some<T>` and `Err<E>` to `None`
+ * - `optionErr` transforms `Result<E, T>` into `Option<E>`, mapping `Err<E>` to `Some<E>` and `Ok<T>` to `None`
+ * - `resOptToOptRes` transposes a `Result` of an `Option` into an `Option` of a `Result`
+ *
+ * This function transforms the contained value of the `Ok` variant:
+ *
+ * - `map` transforms `Result<E, T>` into `Result<E, U>` by applying the provided function `(t: T) => U` to the contained value of `Ok` and leaving `Err` values unchanged
+ * - `product` transforms `Result<E, T>` and `Result<E, U>` into a new `Result<E, [T, U]>` and leaving `Err` values occurred at first
+ *
+ * This function transforms the contained value of the `Err` variant:
+ *
+ * - `mapErr` transforms `Result<E, T>` into `Result<F, T>` by applying the provided function to the contained value of `Err` and leaving `Ok` values unchanged
+ *
+ * These functions transform a `Result<E, T>` into a value of possibly different type `U`:
+ *
+ * - `mapOr` applies the provided function to the contained value of `Ok`, or returns the provided default value if the `Result` is `Err`
+ * - `mapOrElse` applies the provided function to the contained value of `Ok`, or applies the provided default fallback function to the contained value of `Err`
+ *
+ * This functions transform both of the contained value at same time.
+ *
+ * - `biMap` applies the two provided functions to the each contained value
+ * - `mergeOkErr` merges the contained values of `Result<T, T>` into `T`
+ *
+ * ## Boolean operators
+ *
+ * These functions treat the `Result` as a boolean value, where `Ok` acts like `true` and `Err` acts like `false`. There are two categories of these methods: ones that take a `Result` as input, and ones that take a function as input (to be lazily evaluated).
+ *
+ * The `and` and `or` methods take another `Result` as input, and produce a `Result` as output. The `and` method can produce a `Result<E, U>` value having a different inner type `U` than `Result<E, T>`. The `or` method can produce a `Result<F, T>` value having a different error type `F` than `Result<E, T>`. Note that the order of parameters are reversed because of convenience of partial applying.
+ *
+ * | function | first parameter | second parameter (as self) | output   |
+ * | :------- | :-------------- | :------------------------- | :------- |
+ * | `and`    | *ignored*       | `err(e)`                   | `err(e)` |
+ * | `and`    | `err(d)`        | `ok(x)`                    | `err(d)` |
+ * | `and`    | `ok(y)`         | `ok(x)`                    | `ok(y)`  |
+ * | `or`     | `err(d)`        | `err(e)`                   | `err(d)` |
+ * | `or`     | `ok(y)`         | `err(e)`                   | `ok(y)`  |
+ * | `or`     | *ignored*       | `ok(x)`                    | `ok(x)`  |
+ *
+ *  The `andThen` and `orElse` functions take a function as input, and only evaluate the function when they need to produce a new value. The `andThen` function can produce a `Result<E, T>` value having a different inner type `U` than `Result<E, T>`. The `orElse` function can produce a `Result<F, T>` value having a different error type `F` than `Result<E, T>`.
+ *
+ * | function  | first parameter | second parameter (as self) | output   |
+ * | :-------- | :-------------- | :------------------------- | :------- |
+ * | `andThen` | *ignored*       | `err(e)`                   | `err(e)` |
+ * | `andThen` | `f`             | `ok(x)`                    | `f(x)`   |
+ * | `orElse`  | *ignored*       | `ok(x)`                    | `ok(x)`  |
+ * | `orElse`  | `f`             | `err(e)`                   | `f(e)`   |
+ *
+ * @packageDocumentation
+ */
+
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import type { Optic } from "./optical.ts";
 import { newPrism } from "./optical/prism.ts";
