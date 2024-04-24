@@ -5,7 +5,10 @@
  *
  * @packageDocumentation
  */
+import { type ControlFlow, isBreak } from "./control-flow.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
+import { foldL } from "./list.ts";
+import { List } from "./list.ts";
 import { fromProjection as eqFromProjection } from "./type-class/eq.ts";
 import type { Monad } from "./type-class/monad.ts";
 import { fromProjection as ordFromProjection } from "./type-class/ord.ts";
@@ -89,6 +92,42 @@ export interface CatT<M, CTX> {
     ) => CatT<M, CTX>;
 
     /**
+     * Runs a looping computation while it returns `Continue<S>`.
+     *
+     * @param initState - An initial state.
+     * @param body - A computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly loop: <S>(
+        initState: S,
+        body: (state: S, ctx: CTX) => Get1<M, ControlFlow<[], S>>,
+    ) => CatT<M, CTX>;
+
+    /**
+     * Runs a looping computation while `cond` returns `true`.
+     *
+     * @param cond - A function to decide to continue the loop.
+     * @param body - A computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly while: (
+        cond: (ctx: CTX) => boolean,
+        body: (ctx: CTX) => Get1<M, []>,
+    ) => CatT<M, CTX>;
+
+    /**
+     * Runs a looping computation with items from the list.
+     *
+     * @param iter - A list to be iterated.
+     * @param body - A computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly foreach: <T>(
+        iter: List<T>,
+        body: (item: T, ctx: CTX) => Get1<M, []>,
+    ) => CatT<M, CTX>;
+
+    /**
      * Reduces the context into a value by `fn`.
      *
      * @param fn - The finishing computation.
@@ -163,6 +202,38 @@ export const catT =
                             cond(c) ? computation(c) : monad.pure([]),
                         ),
                 )(ctx),
+            ),
+        loop: <S>(
+            initialState: S,
+            body: (state: S, ctx: CTX) => Get1<M, ControlFlow<[], S>>,
+        ): CatT<M, CTX> => {
+            const go = (state: S): Get1<M, CTX> =>
+                monad.flatMap((c: CTX) =>
+                    monad.flatMap((flow: ControlFlow<[], S>): Get1<M, CTX> =>
+                        isBreak(flow) ? monad.pure(c) : go(flow[1])
+                    )(body(state, c))
+                )(ctx);
+            return catT(monad)(go(initialState));
+        },
+        while: (cond, body) => {
+            const go = (ctx: Get1<M, CTX>): Get1<M, CTX> =>
+                monad.flatMap((c: CTX) =>
+                    cond(c)
+                        ? monad.flatMap(() => go(ctx))(body(c))
+                        : monad.pure(c)
+                )(ctx);
+            return catT(monad)(go(ctx));
+        },
+        foreach: <T>(
+            iter: List<T>,
+            body: (item: T, ctx: CTX) => Get1<M, []>,
+        ): CatT<M, CTX> =>
+            catT(monad)(
+                foldL((acc: Get1<M, CTX>) => (item: T) =>
+                    monad.flatMap((c: CTX) =>
+                        monad.map(() => c)(body(item, c))
+                    )(acc)
+                )(ctx)(iter),
             ),
         finish: <R>(fn: (ctx: CTX) => R) => monad.map(fn)(ctx),
         finishM: (fn) => monad.flatMap(fn)(ctx),
