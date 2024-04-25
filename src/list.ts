@@ -30,7 +30,13 @@ import type { Traversable } from "./type-class/traversable.ts";
  * The list data type with current element and rest list of elements.
  */
 export interface List<T> {
+    /**
+     * @returns A current heading item of the list.
+     */
     readonly current: () => Option.Option<T>;
+    /**
+     * @returns Rest items of the list.
+     */
     readonly rest: () => List<T>;
 }
 
@@ -1179,6 +1185,7 @@ export const subsequencesExceptEmpty = <T>(list: List<T>): List<List<T>> =>
  * const subSeq = subsequences(fromArray([1, 2, 3, 4]));
  * const sequences = toArray(subSeq).map((seq) => toArray(seq));
  * assertEquals(sequences, [
+ *     [],
  *     [1],
  *     [2],
  *     [1, 2],
@@ -1198,7 +1205,7 @@ export const subsequencesExceptEmpty = <T>(list: List<T>): List<List<T>> =>
  * ```
  */
 export const subsequences = <T>(list: List<T>): List<List<T>> =>
-    plus<List<T>>(empty())(subsequencesExceptEmpty(list));
+    plus<List<T>>(singleton(empty()))(subsequencesExceptEmpty(list));
 
 /**
  * Creates permutations of the list.
