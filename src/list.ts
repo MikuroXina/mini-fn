@@ -1,3 +1,125 @@
+/**
+ * `List` is a package for dealing with iterators.
+ *
+ * # Features
+ *
+ * `List` data structure represents the pair of current and rest items.
+ *
+ * There are many functions to use `List`s, so they are categorized here.
+ *
+ * ## Generators
+ *
+ * These functions generate a new list from some data:
+ *
+ * - `build` creates a list from an appending function.
+ * - `digits` makes a number a list of digits.
+ * - `empty` creates a list with no items.
+ * - `range` creates a list of numbers for the right half-open interval.
+ * - `repeat` creates an infinite list that repeats a value.
+ * - `repeatWith` creates an infinite list that repeats to call a function.
+ * - `replicate` creates a list that repeats a value specified times.
+ * - `singleton` creates a list with the item.
+ * - `singletonWith` creates a list with item from the function.
+ * - `successors` creates an infinite list with mutating by the function.
+ * - `unfoldR` creates a list with the builder function.
+ *
+ * These function convert from the data structure into a list:
+ *
+ * - `fromArray` converts from an `Array`.
+ * - `fromIterable` converts from an `Iterable`.
+ * - `fromOption` converts from an `Option`.
+ * - `fromReduce` converts from a data structure that is an instance of `Reduce`.
+ * - `fromString` converts from a `String`.
+ *
+ * These function convert from a list into the data structure:
+ *
+ * - `toArray` converts into an eager `Array` of items.
+ * - `toIterator` converts a lazy `Iterator`.
+ * - `toString` converts a list of `string`s by join method.
+ *
+ * ## Queries
+ *
+ * There are some functions to query the item in a list:
+ *
+ * - `atMay` gets the n-th item of list.
+ * - `elemIndex` finds the index of matching element.
+ * - `elemIndices` finds the indices of matching element.
+ * - `findIndex` finds the index of element satisfies the predicate.
+ * - `findIndices` finds the indices of element satisfies the predicate.
+ * - `head` gets the first item of list.
+ * - `isNull` returns whether the list is empty.
+ * - `last` gets the last item of list.
+ * - `length` finds the length of list.
+ * - `tail` gets the items of list except the first.
+ * - `unCons` decomposes the option having head item and rest items.
+ *
+ * ## Manipulators
+ *
+ * These functions operate a list of list:
+ *
+ * - `cartesianProduct` works with combinations from two lists.
+ * - `choices` creates unsorted combinations from two lists.
+ * - `concat` flattens a list of list.
+ * - `concatMap` transforms a list into the list of list and flattens it.
+ * - `diagonal` extracts the sequential diagonal from a two-dimensional list.
+ * - `diagonals` leaves the sequential diagonal of a two-dimensional list.
+ * - `group` unifies the equal adjacent elements.
+ * - `groupBy` unifies the adjacent elements which satisfies the predicate.
+ * - `intercalate` inserts items among each list of list.
+ * - `interleave` transposes and flattens a two-dimensional list.
+ * - `interleaveTwoWay` transposes and flattens two lists.
+ * - `intersperse` joins lists with a separator.
+ * - `permutations` creates a list of permutations.
+ * - `subsequences` creates a list of subsequences.
+ * - `subsequencesExceptEmpty`  creates a list of subsequences except the empty list.
+ * - `transpose` transposes a two-dimensional list.
+ * - `tupleCartesian` composes two lists into a list of tuple of combinations.
+ * - `zip` composes two lists as a list of tuple.
+ * - `zip3` composes three lists as a list of tuple.
+ * - `zip4` composes four lists as a list of tuple.
+ * - `zipWith` composes two lists as a list of item made by the function.
+ *
+ * These functions modify elements of list:
+ *
+ * - `apply` exhausts items of the list with applying each function of the list.
+ * - `applyCartesian` applies the parameters to the functions with all combinations.
+ * - `drop` ignores prefix items by the count.
+ * - `dropWhile` ignores prefix items which satisfies the predicate.
+ * - `dropWhileEnd` ignores suffix items which satisfies the predicate.
+ * - `filter` passes only if the item satisfies the predicate.
+ * - `flatMap` maps items of the list by the function and flattens it.
+ * - `init` removes the last item of the list.
+ * - `map` transforms items of the list by the function.
+ * - `reverse` reverses the list items.
+ * - `stripPrefix` strips the matching prefix.
+ * - `take` takes prefix items by the count.
+ * - `takeWhile` takes prefix items while the item satisfies the predicate.
+ *
+ * These functions add elements to list:
+ *
+ * - `appendToHead` adds the item to the head of list.
+ * - `appendToTail` adds the item to the tail of list.
+ * - `plus` concatenates two lists.
+ *
+ * These functions decompose list into other ones:
+ *
+ * - `span` splits the list with the predicate.
+ * - `spanNot` splits the list with the negative predicate.
+ * - `splitAt` splits the list at the position.
+ * - `unzip` decomposes the list of tuples into a tuple of lists.
+ *
+ * These functions fold values of list:
+ *
+ * - `either` transforms the list either the head value exists or not.
+ * - `foldL` folds values of the list from the left-side with an initial value.
+ * - `foldL1` folds values of the list from the left-side.
+ * - `foldR` folds values of the list from the right-side with an initial value.
+ * - `foldR1` folds values of the list from the right-side.
+ * - `scanL` folds values of the list with leaving breadcrumbs.
+ *
+ * @packageDocumentation
+ */
+
 import { cat } from "./cat.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import * as Option from "./option.ts";
@@ -1341,7 +1463,7 @@ export const unfoldR =
         });
 
 /**
- * Takes only the suffix of length `count`. If `count >= length(list)`, the list itself will be returned.
+ * Takes only the prefix of length `count`. If `count >= length(list)`, the list itself will be returned.
  *
  * @param count - The length to take.
  * @param list - The source list.
@@ -1372,7 +1494,7 @@ export const take = (count: number) => <T>(list: List<T>): List<T> => {
 };
 
 /**
- * Drops the suffix of length `count`. If `count >= length(list)`, the empty list will be returned.
+ * Drops the prefix of length `count`. If `count >= length(list)`, the empty list will be returned.
  *
  * @param count - The length to drop.
  * @param list - The source list.
