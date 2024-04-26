@@ -1,3 +1,127 @@
+/**
+ * `List` is a package for dealing with iterators.
+ *
+ * # Features
+ *
+ * `List` data structure represents the pair of current and rest items.
+ *
+ * There are many functions to use `List`s, so they are categorized here.
+ *
+ * ## Generators
+ *
+ * These functions generate a new list from some data:
+ *
+ * - `build` creates a list from an appending function.
+ * - `digits` makes a number a list of digits.
+ * - `empty` creates a list with no items.
+ * - `iota` is an infinite list of integers.
+ * - `range` creates a list of numbers for the right half-open interval.
+ * - `repeat` creates an infinite list that repeats a value.
+ * - `repeatWith` creates an infinite list that repeats to call a function.
+ * - `replicate` creates a list that repeats a value specified times.
+ * - `singleton` creates a list with the item.
+ * - `singletonWith` creates a list with item from the function.
+ * - `successors` creates an infinite list with mutating by the function.
+ * - `unfoldR` creates a list with the builder function.
+ *
+ * These function convert from the data structure into a list:
+ *
+ * - `fromArray` converts from an `Array`.
+ * - `fromIterable` converts from an `Iterable`.
+ * - `fromOption` converts from an `Option`.
+ * - `fromReduce` converts from a data structure that is an instance of `Reduce`.
+ * - `fromString` converts from a `String`.
+ *
+ * These function convert from a list into the data structure:
+ *
+ * - `toArray` converts into an eager `Array` of items.
+ * - `toIterator` converts a lazy `Iterator`.
+ * - `toString` converts a list of `string`s by join method.
+ *
+ * ## Queries
+ *
+ * There are some functions to query the item in a list:
+ *
+ * - `atMay` gets the n-th item of list.
+ * - `elemIndex` finds the index of matching element.
+ * - `elemIndices` finds the indices of matching element.
+ * - `findIndex` finds the index of element satisfies the predicate.
+ * - `findIndices` finds the indices of element satisfies the predicate.
+ * - `head` gets the first item of list.
+ * - `isNull` returns whether the list is empty.
+ * - `last` gets the last item of list.
+ * - `length` finds the length of list.
+ * - `tail` gets the items of list except the first.
+ * - `unCons` decomposes the option having head item and rest items.
+ *
+ * ## Manipulators
+ *
+ * These functions operate a list of list:
+ *
+ * - `cartesianProduct` works with combinations from two lists.
+ * - `choices` creates unsorted combinations from two lists.
+ * - `concat` flattens a list of list.
+ * - `concatMap` transforms a list into the list of list and flattens it.
+ * - `diagonal` extracts the sequential diagonal from a two-dimensional list.
+ * - `diagonals` leaves the sequential diagonal of a two-dimensional list.
+ * - `enumerate` appends the indices.
+ * - `group` unifies the equal adjacent elements.
+ * - `groupBy` unifies the adjacent elements which satisfies the predicate.
+ * - `intercalate` inserts items among each list of list.
+ * - `interleave` transposes and flattens a two-dimensional list.
+ * - `interleaveTwoWay` transposes and flattens two lists.
+ * - `intersperse` joins lists with a separator.
+ * - `permutations` creates a list of permutations.
+ * - `subsequences` creates a list of subsequences.
+ * - `subsequencesExceptEmpty`  creates a list of subsequences except the empty list.
+ * - `transpose` transposes a two-dimensional list.
+ * - `tupleCartesian` composes two lists into a list of tuple of combinations.
+ * - `zip` composes two lists as a list of tuple.
+ * - `zip3` composes three lists as a list of tuple.
+ * - `zip4` composes four lists as a list of tuple.
+ * - `zipWith` composes two lists as a list of item made by the function.
+ *
+ * These functions modify elements of list:
+ *
+ * - `apply` exhausts items of the list with applying each function of the list.
+ * - `applyCartesian` applies the parameters to the functions with all combinations.
+ * - `drop` ignores prefix items by the count.
+ * - `dropWhile` ignores prefix items which satisfies the predicate.
+ * - `dropWhileEnd` ignores suffix items which satisfies the predicate.
+ * - `filter` passes only if the item satisfies the predicate.
+ * - `flatMap` maps items of the list by the function and flattens it.
+ * - `init` removes the last item of the list.
+ * - `map` transforms items of the list by the function.
+ * - `reverse` reverses the list items.
+ * - `stripPrefix` strips the matching prefix.
+ * - `take` takes prefix items by the count.
+ * - `takeWhile` takes prefix items while the item satisfies the predicate.
+ *
+ * These functions add elements to list:
+ *
+ * - `appendToHead` adds the item to the head of list.
+ * - `appendToTail` adds the item to the tail of list.
+ * - `plus` concatenates two lists.
+ *
+ * These functions decompose list into other ones:
+ *
+ * - `span` splits the list with the predicate.
+ * - `spanNot` splits the list with the negative predicate.
+ * - `splitAt` splits the list at the position.
+ * - `unzip` decomposes the list of tuples into a tuple of lists.
+ *
+ * These functions fold values of list:
+ *
+ * - `either` transforms the list either the head value exists or not.
+ * - `foldL` folds values of the list from the left-side with an initial value.
+ * - `foldL1` folds values of the list from the left-side.
+ * - `foldR` folds values of the list from the right-side with an initial value.
+ * - `foldR1` folds values of the list from the right-side.
+ * - `scanL` folds values of the list with leaving breadcrumbs.
+ *
+ * @packageDocumentation
+ */
+
 import { cat } from "./cat.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import * as Option from "./option.ts";
@@ -30,7 +154,13 @@ import type { Traversable } from "./type-class/traversable.ts";
  * The list data type with current element and rest list of elements.
  */
 export interface List<T> {
+    /**
+     * @returns A current heading item of the list.
+     */
     readonly current: () => Option.Option<T>;
+    /**
+     * @returns Rest items of the list.
+     */
     readonly rest: () => List<T>;
 }
 
@@ -96,10 +226,9 @@ export const isNull = <T>(list: List<T>): boolean =>
  * # Examples
  *
  * ```ts
- * import { successors, toIterator } from "./list.ts";
+ * import { iota, successors, toIterator } from "./list.ts";
  * import { assertEquals } from "../deps.ts";
  *
- * const iota = successors((x: number) => x + 1)(0);
  * const iter = toIterator(iota);
  * assertEquals(iter.next(), { value: 0, done: false });
  * assertEquals(iter.next(), { value: 1, done: false });
@@ -175,10 +304,9 @@ export const either =
  * # Examples
  *
  * ```ts
- * import { successors, toIterator, map } from "./list.ts";
+ * import { iota, successors, toIterator, map } from "./list.ts";
  * import { assertEquals } from "../deps.ts";
  *
- * const iota = successors((x: number) => x + 1)(0);
  * const mapped = toIterator(map((x: number) => x * 3 + 1)(iota));
  * assertEquals(mapped.next(), { value: 1, done: false });
  * assertEquals(mapped.next(), { value: 4, done: false });
@@ -373,6 +501,11 @@ export const successors = <T>(succ: (t: T) => T) => (init: T): List<T> => ({
     current: () => Option.some(init),
     rest: () => successors(succ)(succ(init)),
 });
+
+/**
+ * The infinite list of integers that starts from zero.
+ */
+export const iota: List<number> = successors((x: number) => x + 1)(0);
 
 /**
  * Creates the list of numbers from `start` to `end` with stepping, adding by `step`.
@@ -875,6 +1008,16 @@ export const zip =
     });
 
 /**
+ * Appends the list of items to its index.
+ *
+ * @param items - The items list.
+ * @returns The list with indices.
+ */
+export const enumerate: <T>(items: List<T>) => List<[index: number, T]> = zip(
+    iota,
+);
+
+/**
  * Zips three lists as the list of tuple.
  *
  * @param aList - The left-side list.
@@ -1179,6 +1322,7 @@ export const subsequencesExceptEmpty = <T>(list: List<T>): List<List<T>> =>
  * const subSeq = subsequences(fromArray([1, 2, 3, 4]));
  * const sequences = toArray(subSeq).map((seq) => toArray(seq));
  * assertEquals(sequences, [
+ *     [],
  *     [1],
  *     [2],
  *     [1, 2],
@@ -1198,7 +1342,7 @@ export const subsequencesExceptEmpty = <T>(list: List<T>): List<List<T>> =>
  * ```
  */
 export const subsequences = <T>(list: List<T>): List<List<T>> =>
-    plus<List<T>>(empty())(subsequencesExceptEmpty(list));
+    plus<List<T>>(singleton(empty()))(subsequencesExceptEmpty(list));
 
 /**
  * Creates permutations of the list.
@@ -1334,7 +1478,7 @@ export const unfoldR =
         });
 
 /**
- * Takes only the suffix of length `count`. If `count >= length(list)`, the list itself will be returned.
+ * Takes only the prefix of length `count`. If `count >= length(list)`, the list itself will be returned.
  *
  * @param count - The length to take.
  * @param list - The source list.
@@ -1365,7 +1509,7 @@ export const take = (count: number) => <T>(list: List<T>): List<T> => {
 };
 
 /**
- * Drops the suffix of length `count`. If `count >= length(list)`, the empty list will be returned.
+ * Drops the prefix of length `count`. If `count >= length(list)`, the empty list will be returned.
  *
  * @param count - The length to drop.
  * @param list - The source list.
@@ -1552,15 +1696,28 @@ export const findIndices =
         }
         return indices;
     };
+export const findIndicesLazy =
+    <T>(pred: (value: T) => boolean) => (list: List<T>): List<number> =>
+        map(([i]: [index: number, T]) => i)(
+            filter(([, item]: [index: number, T]) => pred(item))(
+                enumerate(list),
+            ),
+        );
 /**
  * Finds the positions of element which equals to `target` in the list. If the list is infinite, this will hang forever.
  *
  * @param equalityT - The equality for `T`.
  * @param target - The element to find.
+ * @param list - Items to be searched.
  * @returns The found positions.
  */
-export const elemIndices = <T>(equalityT: PartialEq<T>) => (target: T) =>
-    findIndices((value: T) => equalityT.eq(value, target));
+export const elemIndices =
+    <T>(equalityT: PartialEq<T>) => (target: T): (list: List<T>) => number[] =>
+        findIndices((value: T) => equalityT.eq(value, target));
+export const elemIndicesLazy =
+    <T>(equalityT: PartialEq<T>) =>
+    (target: T): (list: List<T>) => List<number> =>
+        findIndicesLazy((value: T) => equalityT.eq(value, target));
 
 /**
  * Takes while the element satisfies `pred`. If the element matches `pred`, the list will fuse at the element.
