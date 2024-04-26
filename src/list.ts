@@ -14,6 +14,7 @@
  * - `build` creates a list from an appending function.
  * - `digits` makes a number a list of digits.
  * - `empty` creates a list with no items.
+ * - `iota` is an infinite list of integers.
  * - `range` creates a list of numbers for the right half-open interval.
  * - `repeat` creates an infinite list that repeats a value.
  * - `repeatWith` creates an infinite list that repeats to call a function.
@@ -224,10 +225,9 @@ export const isNull = <T>(list: List<T>): boolean =>
  * # Examples
  *
  * ```ts
- * import { successors, toIterator } from "./list.ts";
+ * import { iota, successors, toIterator } from "./list.ts";
  * import { assertEquals } from "../deps.ts";
  *
- * const iota = successors((x: number) => x + 1)(0);
  * const iter = toIterator(iota);
  * assertEquals(iter.next(), { value: 0, done: false });
  * assertEquals(iter.next(), { value: 1, done: false });
@@ -303,10 +303,9 @@ export const either =
  * # Examples
  *
  * ```ts
- * import { successors, toIterator, map } from "./list.ts";
+ * import { iota, successors, toIterator, map } from "./list.ts";
  * import { assertEquals } from "../deps.ts";
  *
- * const iota = successors((x: number) => x + 1)(0);
  * const mapped = toIterator(map((x: number) => x * 3 + 1)(iota));
  * assertEquals(mapped.next(), { value: 1, done: false });
  * assertEquals(mapped.next(), { value: 4, done: false });
@@ -501,6 +500,11 @@ export const successors = <T>(succ: (t: T) => T) => (init: T): List<T> => ({
     current: () => Option.some(init),
     rest: () => successors(succ)(succ(init)),
 });
+
+/**
+ * The infinite list of integers that starts from zero.
+ */
+export const iota: List<number> = successors((x: number) => x + 1)(0);
 
 /**
  * Creates the list of numbers from `start` to `end` with stepping, adding by `step`.
