@@ -1696,15 +1696,28 @@ export const findIndices =
         }
         return indices;
     };
+export const findIndicesLazy =
+    <T>(pred: (value: T) => boolean) => (list: List<T>): List<number> =>
+        map(([i]: [index: number, T]) => i)(
+            filter(([, item]: [index: number, T]) => pred(item))(
+                enumerate(list),
+            ),
+        );
 /**
  * Finds the positions of element which equals to `target` in the list. If the list is infinite, this will hang forever.
  *
  * @param equalityT - The equality for `T`.
  * @param target - The element to find.
+ * @param list - Items to be searched.
  * @returns The found positions.
  */
-export const elemIndices = <T>(equalityT: PartialEq<T>) => (target: T) =>
-    findIndices((value: T) => equalityT.eq(value, target));
+export const elemIndices =
+    <T>(equalityT: PartialEq<T>) => (target: T): (list: List<T>) => number[] =>
+        findIndices((value: T) => equalityT.eq(value, target));
+export const elemIndicesLazy =
+    <T>(equalityT: PartialEq<T>) =>
+    (target: T): (list: List<T>) => List<number> =>
+        findIndicesLazy((value: T) => equalityT.eq(value, target));
 
 /**
  * Takes while the element satisfies `pred`. If the element matches `pred`, the list will fuse at the element.
