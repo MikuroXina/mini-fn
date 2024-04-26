@@ -64,6 +64,7 @@
  * - `concatMap` transforms a list into the list of list and flattens it.
  * - `diagonal` extracts the sequential diagonal from a two-dimensional list.
  * - `diagonals` leaves the sequential diagonal of a two-dimensional list.
+ * - `enumerate` appends the indices.
  * - `group` unifies the equal adjacent elements.
  * - `groupBy` unifies the adjacent elements which satisfies the predicate.
  * - `intercalate` inserts items among each list of list.
@@ -1005,6 +1006,16 @@ export const zip =
         current: () => Option.zip(aList.current())(bList.current()),
         rest: () => zip(aList.rest())(bList.rest()),
     });
+
+/**
+ * Appends the list of items to its index.
+ *
+ * @param items - The items list.
+ * @returns The list with indices.
+ */
+export const enumerate: <T>(items: List<T>) => List<[index: number, T]> = zip(
+    iota,
+);
 
 /**
  * Zips three lists as the list of tuple.
