@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.1](https://github.com/MikuroXina/mini-fn/compare/v6.1.0...v6.1.1) (2024-04-28)
+
+
+### Bug Fixes
+
+* Migrate dnt to latest to hotfix ([#184](https://github.com/MikuroXina/mini-fn/issues/184)) ([f05b74d](https://github.com/MikuroXina/mini-fn/commit/f05b74de383300333ab6e77bd3dc52de445aea07))
+
 ## [6.1.0](https://github.com/MikuroXina/mini-fn/compare/v6.0.0...v6.1.0) (2024-04-28)
 
 
