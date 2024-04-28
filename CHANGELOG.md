@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.1.0](https://github.com/MikuroXina/mini-fn/compare/v6.0.0...v6.1.0) (2024-04-28)
+
+
+### Features
+
+* Add Dom module ([#182](https://github.com/MikuroXina/mini-fn/issues/182)) ([f7cf96d](https://github.com/MikuroXina/mini-fn/commit/f7cf96de02b805cae54451f3a8ea50e768632179))
+* Add loop, while and foreach for CatT ([#179](https://github.com/MikuroXina/mini-fn/issues/179)) ([c27ef38](https://github.com/MikuroXina/mini-fn/commit/c27ef38741d24f4eb1556625c8cb29687ea45ccd))
+* Improve List and add more docs ([#181](https://github.com/MikuroXina/mini-fn/issues/181)) ([7df2a84](https://github.com/MikuroXina/mini-fn/commit/7df2a847fcc18a6b16a036b8b926f9d8ffcd2ba9))
+
 ## [6.0.0](https://github.com/MikuroXina/mini-fn/compare/v5.7.0...v6.0.0) (2024-04-24)
 
 
