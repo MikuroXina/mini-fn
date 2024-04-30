@@ -81,15 +81,16 @@ export const keys = <
     O extends Readonly<Record<K[number], unknown>>,
 >(
     keysToUpdate: K,
-) => newLens<O, Entries<O, K>>(
-    (source) =>
-        keysToUpdate.map((k: K[number]) => [k, source[k]]) as Entries<O, K>,
-)((source) => (parts: Entries<O, K>) => {
-    const obj = { ...source } as Record<PropertyKey, unknown>;
-    for (const [k, v] of parts) {
-        if (Object.hasOwn(obj, k)) {
-            obj[k] = v;
+): Optic<O, O, Entries<O, K>, Entries<O, K>> =>
+    newLens<O, Entries<O, K>>(
+        (source) =>
+            keysToUpdate.map((k: K[number]) => [k, source[k]]) as Entries<O, K>,
+    )((source) => (parts: Entries<O, K>) => {
+        const obj = { ...source } as Record<PropertyKey, unknown>;
+        for (const [k, v] of parts) {
+            if (Object.hasOwn(obj, k)) {
+                obj[k] = v;
+            }
         }
-    }
-    return obj as O;
-});
+        return obj as O;
+    });

@@ -48,5 +48,4 @@ export const wrap = <F, G>(nt: NaturalTransformation<F, G>): Nt<F, G> => ({
     nt,
 });
 
-export const unwrap = <F, G, T>({ transform }: Transformation<F, G, T>) =>
-    transform;
+export const unwrap = <F, G, T>(t: Transformation<F, G, T>) => t.transform;

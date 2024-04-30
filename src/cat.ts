@@ -8,12 +8,24 @@
 import { type ControlFlow, isBreak } from "./control-flow.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import { foldL } from "./list.ts";
-import { List } from "./list.ts";
-import { fromProjection as eqFromProjection } from "./type-class/eq.ts";
+import type { List } from "./list.ts";
+import {
+    type Eq,
+    fromProjection as eqFromProjection,
+} from "./type-class/eq.ts";
 import type { Monad } from "./type-class/monad.ts";
-import { fromProjection as ordFromProjection } from "./type-class/ord.ts";
-import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.ts";
-import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.ts";
+import {
+    fromProjection as ordFromProjection,
+    type Ord,
+} from "./type-class/ord.ts";
+import {
+    fromProjection as partialEqFromProjection,
+    type PartialEq,
+} from "./type-class/partial-eq.ts";
+import {
+    fromProjection as partialOrdFromProjection,
+    type PartialOrd,
+} from "./type-class/partial-ord.ts";
 
 /**
  * Contains a `ctx` and can be transformed into another one by some methods.
@@ -356,19 +368,25 @@ export const get = <T>({ value }: Cat<T>): T => value;
 /**
  * Creates a `PartialEq` comparator for `Cat` from another existing one.
  */
-export const partialEq = partialEqFromProjection<CatHkt>(get);
+export const partialEq: <T>(equality: PartialEq<T>) => PartialEq<Cat<T>> =
+    partialEqFromProjection<CatHkt>(get);
 /**
  * Creates a `Eq` comparator for `Cat` from another existing one.
  */
-export const eq = eqFromProjection<CatHkt>(get);
+export const eq: <T>(equality: Eq<T>) => Eq<Cat<T>> = eqFromProjection<CatHkt>(
+    get,
+);
 /**
  * Creates a `PartialOrd` comparator for `Cat` from another existing one.
  */
-export const partialOrd = partialOrdFromProjection<CatHkt>(get);
+export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<Cat<T>> =
+    partialOrdFromProjection<CatHkt>(get);
 /**
  * Creates a `Ord` comparator for `Cat` from another existing one.
  */
-export const ord = ordFromProjection<CatHkt>(get);
+export const ord: <T>(order: Ord<T>) => Ord<Cat<T>> = ordFromProjection<CatHkt>(
+    get,
+);
 
 /**
  * Inspects the passing value with an inspector. It is useful for using some side effects.
@@ -391,7 +409,7 @@ export const ord = ordFromProjection<CatHkt>(get);
  * assertEquals(result.value, "9");
  * ```
  */
-export const inspect = <T>(inspector: (t: T) => void) => (t: T) => {
+export const inspect = <T>(inspector: (t: T) => void) => (t: T): T => {
     inspector(t);
     return t;
 };
@@ -399,35 +417,35 @@ export const inspect = <T>(inspector: (t: T) => void) => (t: T) => {
 /**
  * An inspector which applied `console.log` to `inspect`.
  */
-export const log = <T>(t: T) => inspect<T>(console.log)(t);
+export const log = <T>(t: T): T => inspect<T>(console.log)(t);
 /**
  * An inspector which applied `console.debug` to `inspect`.
  */
-export const debug = <T>(t: T) => inspect<T>(console.debug)(t);
+export const debug = <T>(t: T): T => inspect<T>(console.debug)(t);
 /**
  * An inspector which applied `console.info` to `inspect`.
  */
-export const info = <T>(t: T) => inspect<T>(console.info)(t);
+export const info = <T>(t: T): T => inspect<T>(console.info)(t);
 /**
  * An inspector which applied `console.warn` to `inspect`.
  */
-export const warn = <T>(t: T) => inspect<T>(console.warn)(t);
+export const warn = <T>(t: T): T => inspect<T>(console.warn)(t);
 /**
  * An inspector which applied `console.error` to `inspect`.
  */
-export const error = <T>(t: T) => inspect<T>(console.error)(t);
+export const error = <T>(t: T): T => inspect<T>(console.error)(t);
 /**
  * An inspector which applied `console.dir` to `inspect`.
  */
-export const dir = <T>(t: T) => inspect<T>(console.dir)(t);
+export const dir = <T>(t: T): T => inspect<T>(console.dir)(t);
 /**
  * An inspector which applied `console.dirxml` to `inspect`.
  */
-export const dirxml = <T>(t: T) => inspect<T>(console.dirxml)(t);
+export const dirxml = <T>(t: T): T => inspect<T>(console.dirxml)(t);
 /**
  * An inspector which applied `console.table` to `inspect`.
  */
-export const table = <T>(t: T) => inspect<T>(console.table)(t);
+export const table = <T>(t: T): T => inspect<T>(console.table)(t);
 
 /**
  * Flattens a nested `Cat`. Only it extracts the contained `value`.

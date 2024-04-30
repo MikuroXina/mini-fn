@@ -60,7 +60,13 @@ export const partialEquality = <F, A>({
     })).eq;
     return self;
 };
-export const partialEq = fromPartialEquality(partialEquality);
+export const partialEq: <F, A>({
+    equalityA,
+    equalityFA,
+}: {
+    equalityA: PartialEq<A>;
+    equalityFA: <T>(equality: PartialEq<T>) => PartialEq<Get1<F, T>>;
+}) => PartialEq<Cofree<F, A>> = fromPartialEquality(partialEquality);
 export const equality = <F, A>({
     equalityA,
     equalityFA,
@@ -74,7 +80,13 @@ export const equality = <F, A>({
         .eq;
     return self;
 };
-export const eq = fromEquality(equality);
+export const eq: <F, A>({
+    equalityA,
+    equalityFA,
+}: {
+    equalityA: Eq<A>;
+    equalityFA: <T>(equality: Eq<T>) => Eq<Get1<F, T>>;
+}) => Eq<Cofree<F, A>> = fromEquality(equality);
 export const partialCmp = <F, A>({
     orderA,
     orderFA,
@@ -91,7 +103,13 @@ export const partialCmp = <F, A>({
         ).partialCmp;
     return self;
 };
-export const partialOrd = fromPartialCmp(partialCmp);
+export const partialOrd: <F, A>({
+    orderA,
+    orderFA,
+}: {
+    orderA: PartialOrd<A>;
+    orderFA: <T>(order: PartialOrd<T>) => PartialOrd<Get1<F, T>>;
+}) => PartialOrd<Cofree<F, A>> = fromPartialCmp(partialCmp);
 export const cmp = <F, A>({
     orderA,
     orderFA,
@@ -107,7 +125,13 @@ export const cmp = <F, A>({
     ).cmp;
     return self;
 };
-export const ord = fromCmp(cmp);
+export const ord: <F, A>({
+    orderA,
+    orderFA,
+}: {
+    orderA: Ord<A>;
+    orderFA: <T>(order: Ord<T>) => Ord<Get1<F, T>>;
+}) => Ord<Cofree<F, A>> = fromCmp(cmp);
 
 /**
  * Creates a new `Cofree` from the inner function.
@@ -271,7 +295,12 @@ export const unfold =
  * @param init - The seed for `unfolder`.
  * @returns The new instance.
  */
-export const unfoldM = <F, M>(traversable: Traversable<F>, monad: Monad<M>) => {
+export const unfoldM = <F, M>(
+    traversable: Traversable<F>,
+    monad: Monad<M>,
+): <B, A>(
+    unfolder: (b: B) => Get1<M, Lazy<Tuple<A, Get1<F, B>>>>,
+) => (init: B) => Get1<M, Cofree<F, A>> => {
     const partial = <B, A>(
         unfolder: (b: B) => Get1<M, Lazy<Tuple<A, Get1<F, B>>>>,
     ): (init: B) => Get1<M, Cofree<F, A>> =>

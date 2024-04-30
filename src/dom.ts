@@ -187,7 +187,7 @@ export type Dom<T> = Text | Tag<T> | Map<T> | Lazy<T>;
  * @param dom - A target virtual DOM object.
  * @returns The number od descendants.
  */
-export const descendantsCount = <T>(dom: Dom<T>) =>
+export const descendantsCount = <T>(dom: Dom<T>): number =>
     isMap(dom)
         ? runExists<Apply2Only<MapTHkt, T>, number>((map) =>
             map.descendantsCount

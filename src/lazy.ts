@@ -1,12 +1,24 @@
 import type { Get1, Hkt1 } from "./hkt.ts";
 import { type Decoder, type Encoder, mapDecoder } from "./serial.ts";
 import type { Applicative } from "./type-class/applicative.ts";
-import { fromProjection as eqFromProjection } from "./type-class/eq.ts";
+import {
+    type Eq,
+    fromProjection as eqFromProjection,
+} from "./type-class/eq.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
-import { fromProjection as ordFromProjection } from "./type-class/ord.ts";
-import { fromProjection as partialEqFromProjection } from "./type-class/partial-eq.ts";
-import { fromProjection as partialOrdFromProjection } from "./type-class/partial-ord.ts";
+import {
+    fromProjection as ordFromProjection,
+    type Ord,
+} from "./type-class/ord.ts";
+import {
+    fromProjection as partialEqFromProjection,
+    type PartialEq,
+} from "./type-class/partial-eq.ts";
+import {
+    fromProjection as partialOrdFromProjection,
+    type PartialOrd,
+} from "./type-class/partial-ord.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
 const lazyNominal = Symbol("Lazy");
@@ -38,10 +50,16 @@ export const defer = <L>(deferred: () => L): Lazy<L> => ({
  */
 export const force = <L>(lazy: Lazy<L>): L => lazy[lazyNominal]();
 
-export const partialEq = partialEqFromProjection<LazyHkt>(force);
-export const eq = eqFromProjection<LazyHkt>(force);
-export const partialOrd = partialOrdFromProjection<LazyHkt>(force);
-export const ord = ordFromProjection<LazyHkt>(force);
+export const partialEq: <T>(equality: PartialEq<T>) => PartialEq<Lazy<T>> =
+    partialEqFromProjection<LazyHkt>(force);
+export const eq: <T>(equality: Eq<T>) => Eq<Lazy<T>> = eqFromProjection<
+    LazyHkt
+>(force);
+export const partialOrd: <T>(equality: PartialOrd<T>) => PartialOrd<Lazy<T>> =
+    partialOrdFromProjection<LazyHkt>(force);
+export const ord: <T>(equality: Ord<T>) => Ord<Lazy<T>> = ordFromProjection<
+    LazyHkt
+>(force);
 
 /**
  * Wraps the evaluated value as a `Lazy`.

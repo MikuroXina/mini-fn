@@ -130,6 +130,7 @@ import {
     type Decoder,
     decU32Be,
     encFoldable,
+    type Encoder,
     flatMapDecoder,
     pureDecoder,
 } from "./serial.ts";
@@ -164,7 +165,9 @@ export interface List<T> {
     readonly rest: () => List<T>;
 }
 
-export const partialEquality = <T>(equalityT: PartialEq<T>) => {
+export const partialEquality = <T>(
+    equalityT: PartialEq<T>,
+): (l: List<T>, r: List<T>) => boolean => {
     const self = (l: List<T>, r: List<T>): boolean =>
         (Option.isNone(l.current()) && Option.isNone(r.current())) ||
         (Option.partialEq(equalityT).eq(l.current(), r.current()) &&
@@ -172,31 +175,37 @@ export const partialEquality = <T>(equalityT: PartialEq<T>) => {
 
     return self;
 };
-export const partialEq = fromPartialEquality(partialEquality);
-export const equality = <T>(equalityT: Eq<T>) => {
+export const partialEq: <T>(equalityT: PartialEq<T>) => PartialEq<List<T>> =
+    fromPartialEquality(partialEquality);
+export const equality = <T>(
+    equalityT: Eq<T>,
+): (l: List<T>, r: List<T>) => boolean => {
     const self = (l: List<T>, r: List<T>): boolean =>
         (Option.isNone(l.current()) && Option.isNone(r.current())) ||
         (Option.eq(equalityT).eq(l.current(), r.current()) &&
             self(l.rest(), r.rest()));
     return self;
 };
-export const eq = fromEquality(equality);
-export const partialCmp = <T>(order: PartialOrd<T>) => {
+export const eq: <T>(equalityT: Eq<T>) => Eq<List<T>> = fromEquality(equality);
+export const partialCmp = <T>(
+    order: PartialOrd<T>,
+): (l: List<T>, r: List<T>) => Option.Option<Ordering> => {
     const self = (l: List<T>, r: List<T>): Option.Option<Ordering> =>
         Option.andThen(() => self(l.rest(), r.rest()))(
             Option.partialOrd(order).partialCmp(l.current(), r.current()),
         );
     return self;
 };
-export const partialOrd = fromPartialCmp(partialCmp);
-export const cmp = <T>(order: Ord<T>) => {
+export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<List<T>> =
+    fromPartialCmp(partialCmp);
+export const cmp = <T>(order: Ord<T>): (l: List<T>, r: List<T>) => Ordering => {
     const self = (l: List<T>, r: List<T>): Ordering =>
         andThen(() => self(l.rest(), r.rest()))(
             Option.ord(order).cmp(l.current(), r.current()),
         );
     return self;
 };
-export const ord = <T>(x: Ord<T>) => fromCmp(cmp)(x);
+export const ord: <T>(order: Ord<T>) => Ord<List<T>> = fromCmp(cmp);
 
 /**
  * Checks whether the list has a current element.
@@ -474,7 +483,7 @@ export const repeatWith = <T>(elem: () => T): List<T> => ({
  * assertEquals(iter.next(), { value: 13, done: false });
  * ```
  */
-export const repeat = <T>(value: T) => repeatWith(() => value);
+export const repeat = <T>(value: T): List<T> => repeatWith(() => value);
 
 /**
  * Creates an infinite list with mutating by `succ`.
@@ -733,13 +742,14 @@ export const foldL1 = <T>(f: (a: T) => (b: T) => T) => (list: List<T>): T =>
  * );
  * ```
  */
-export const foldR = <T, U>(f: (a: T) => (b: U) => U) => (init: U) => {
-    const go = (list: List<T>): U =>
-        Option.mapOr(init)(([y, ys]: [T, List<T>]) => f(y)(go(ys)))(
-            unCons(list),
-        );
-    return go;
-};
+export const foldR =
+    <T, U>(f: (a: T) => (b: U) => U) => (init: U): (list: List<T>) => U => {
+        const go = (list: List<T>): U =>
+            Option.mapOr(init)(([y, ys]: [T, List<T>]) => f(y)(go(ys)))(
+                unCons(list),
+            );
+        return go;
+    };
 
 /**
  * Folds the elements of list from right. The first value is used as an initial value. If `list` is null, it throws an error.
@@ -759,7 +769,9 @@ export const foldR1 = <T>(f: (a: T) => (b: T) => T) => (list: List<T>): T =>
  * @param list - The list of string.
  * @returns The joined string.
  */
-export const toString = foldL((a: string) => (b: string) => a + b)("");
+export const toString: (list: List<string>) => string = foldL(
+    (a: string) => (b: string) => a + b,
+)("");
 /**
  * Counts elements in the list. If the list is infinite, it hangs forever.
  *
@@ -1661,8 +1673,10 @@ export const findIndex =
  * @param list - The source list.
  * @returns The found position if exists.
  */
-export const elemIndex = <T>(equalityT: PartialEq<T>) => (target: T) =>
-    findIndex((value: T) => equalityT.eq(value, target));
+export const elemIndex =
+    <T>(equalityT: PartialEq<T>) =>
+    (target: T): (list: List<T>) => Option.Option<number> =>
+        findIndex((value: T) => equalityT.eq(value, target));
 /**
  * Finds the positions of element which satisfies `pred` in the list. If the list is infinite, this will hang forever.
  *
@@ -1897,7 +1911,9 @@ export const span =
  * }
  * ```
  */
-export const spanNot = <T>(pred: (t: T) => boolean) => span((t: T) => !pred(t));
+export const spanNot = <T>(
+    pred: (t: T) => boolean,
+): (list: List<T>) => [List<T>, List<T>] => span((t: T) => !pred(t));
 
 /**
  * Strips `list` if matches `prefix`, otherwise returns `none`.
@@ -2152,7 +2168,8 @@ export const reduce: Reduce<ListHkt> = {
     reduceR: (reducer) => (fa) => (b) => foldR(reducer)(b)(fa),
 };
 
-export const enc = () => encFoldable(foldable);
+export const enc = <T>(encT: Encoder<T>): Encoder<List<T>> =>
+    encFoldable(foldable)(encT);
 export const dec = <A>(decA: Decoder<A>): Decoder<List<A>> => {
     const go = (l: List<A>) => (lenToRead: number): Decoder<List<A>> =>
         lenToRead === 0

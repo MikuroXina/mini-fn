@@ -284,7 +284,15 @@ export const partialEquality = <F, A>({
             partialEq({ equalityA, equalityFA, functor }),
         ),
     })(intoResult(functor)(l), intoResult(functor)(r));
-export const partialEq = fromPartialEquality(partialEquality);
+export const partialEq: <F, A>({
+    equalityA,
+    equalityFA,
+    functor,
+}: {
+    equalityA: PartialEq<A>;
+    equalityFA: <T>(equality: PartialEq<T>) => PartialEq<Get1<F, T>>;
+    functor: Functor<F>;
+}) => PartialEq<Free<F, A>> = fromPartialEquality(partialEquality);
 export const equality = <F, A>({
     equalityA,
     equalityFA,
@@ -301,7 +309,15 @@ export const equality = <F, A>({
             eq({ equalityA, equalityFA, functor }),
         ),
     })(intoResult(functor)(l), intoResult(functor)(r));
-export const eq = fromEquality(equality);
+export const eq: <F, A>({
+    equalityA,
+    equalityFA,
+    functor,
+}: {
+    equalityA: Eq<A>;
+    equalityFA: <T>(equality: Eq<T>) => Eq<Get1<F, T>>;
+    functor: Functor<F>;
+}) => Eq<Free<F, A>> = fromEquality(equality);
 export const partialCmp = <F, A>({
     orderA,
     orderFA,
@@ -318,7 +334,15 @@ export const partialCmp = <F, A>({
             partialOrd({ orderA, orderFA, functor }),
         ),
     })(intoResult(functor)(l), intoResult(functor)(r));
-export const partialOrd = fromPartialCmp(partialCmp);
+export const partialOrd: <F, A>({
+    orderA,
+    orderFA,
+    functor,
+}: {
+    orderA: PartialOrd<A>;
+    orderFA: <T>(order: PartialOrd<T>) => PartialOrd<Get1<F, T>>;
+    functor: Functor<F>;
+}) => PartialOrd<Free<F, A>> = fromPartialCmp(partialCmp);
 export const cmp = <F, A>({
     orderA,
     orderFA,
@@ -335,7 +359,15 @@ export const cmp = <F, A>({
             ord({ orderA, orderFA, functor }),
         ),
     })(intoResult(functor)(l), intoResult(functor)(r));
-export const ord = fromCmp(cmp);
+export const ord: <F, A>({
+    orderA,
+    orderFA,
+    functor,
+}: {
+    orderA: Ord<A>;
+    orderFA: <T>(order: Ord<T>) => Ord<Get1<F, T>>;
+    functor: Functor<F>;
+}) => Ord<Free<F, A>> = fromCmp(cmp);
 
 /**
  * Reduces `Free` with the internal items.

@@ -82,7 +82,7 @@ export const absurd = <T>(): T => {
  * ```
  */
 export const pipe =
-    <T, U>(firstDo: Fn<T, U>) => <V>(secondDo: Fn<U, V>) => (t: T) =>
+    <T, U>(firstDo: Fn<T, U>) => <V>(secondDo: Fn<U, V>) => (t: T): V =>
         secondDo(firstDo(t));
 
 /**
@@ -101,7 +101,7 @@ export const pipe =
  * assertEquals(compose((x: number) => x + 1)((x: number) => x * 2)(3), 7);
  * ```
  */
-export const compose = <U, V>(f: Fn<U, V>) => <T>(g: Fn<T, U>) => (t: T) =>
+export const compose = <U, V>(f: Fn<U, V>) => <T>(g: Fn<T, U>) => (t: T): V =>
     f(g(t));
 
 /**

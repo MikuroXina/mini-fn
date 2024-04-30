@@ -37,13 +37,14 @@ export const fromProjection =
         eq: (l, r) => equality.eq(projection(l), projection(r)),
     });
 
-export const strict = <T>() =>
+export const strict = <T>(): PartialEq<T> =>
     fromPartialEquality<T, T>(() => (l, r) => l === r)();
 
-export const identity = fromPartialEquality(() => () => true)();
+export const identity: <Lhs, Rhs>() => PartialEq<Lhs, Rhs> =
+    fromPartialEquality(() => () => true);
 
 export const monoid = <Lhs, Rhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
     combine: (x, y) => ({ eq: (l, r) => x.eq(l, r) && y.eq(l, r) }),
-    identity,
+    identity: identity(),
     [semiGroupSymbol]: true,
 });

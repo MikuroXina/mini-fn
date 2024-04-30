@@ -128,7 +128,9 @@ export const bindT =
                 )(f()),
         );
 
-export const bind = bindT(idMonad);
+export const bind: <B>(f: () => B) => <NK extends PropertyKey>(
+    name: NK,
+) => <A extends object>(ma: A) => Append<A, NK, B> = bindT(idMonad);
 
 export const kleisli =
     <S>(monad: Monad<S>) =>

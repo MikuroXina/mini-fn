@@ -33,7 +33,9 @@ export const partialEquality =
             }
             return true;
         });
-export const partialEq = fromPartialEquality(partialEquality);
+export const partialEq: <S>(
+    equalityDict: { readonly [K in keyof S]: PartialEq<S[K]> },
+) => PartialEq<Frozen<S>> = fromPartialEquality(partialEquality);
 export const equality =
     <S>(equalityDict: { readonly [K in keyof S]: Eq<S[K]> }) =>
     (l: Frozen<S>, r: Frozen<S>): boolean =>
@@ -44,7 +46,9 @@ export const equality =
             }
             return true;
         });
-export const eq = fromEquality(equality);
+export const eq: <S>(
+    equalityDict: { readonly [K in keyof S]: Eq<S[K]> },
+) => Eq<Frozen<S>> = fromEquality(equality);
 export const partialCmp =
     <S>(orderDict: { readonly [K in keyof S]: PartialOrd<S[K]> }) =>
     (l: Frozen<S>, r: Frozen<S>): Option<Ordering> =>
@@ -64,7 +68,9 @@ export const partialCmp =
                     previous: Ordering,
                 ) => (isEq(previous) ? curr : some(previous)))(prev)
             );
-export const partialOrd = fromPartialCmp(partialCmp);
+export const partialOrd: <S>(
+    orderDict: { readonly [K in keyof S]: PartialOrd<S[K]> },
+) => PartialOrd<Frozen<S>> = fromPartialCmp(partialCmp);
 export const cmp =
     <S>(orderDict: { readonly [K in keyof S]: Ord<S[K]> }) =>
     (l: Frozen<S>, r: Frozen<S>): Ordering =>
@@ -77,7 +83,9 @@ export const cmp =
                 throw new Error("`orderDict` must have comparator by own key");
             })
             .reduce((prev, curr) => then(curr)(prev));
-export const ord = fromCmp(cmp);
+export const ord: <S>(
+    orderDict: { readonly [K in keyof S]: Ord<S[K]> },
+) => Ord<Frozen<S>> = fromCmp(cmp);
 
 /**
  * Freeze the value by casting as a `Frozen`.
