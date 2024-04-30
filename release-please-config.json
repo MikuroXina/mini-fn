@@ -1,7 +1,15 @@
 {
+    "$schema": "https://github.com/googleapis/release-please/raw/main/schemas/config.json",
     "packages": {
         ".": {
             "package-name": "@mikuroxina/mini-fn"
         }
-    }
+    },
+    "extra-files": [
+        {
+            "type": "json",
+            "path": "deno.json",
+            "jsonpath": "$.version"
+        }
+    ]
 }
