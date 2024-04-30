@@ -23,5 +23,8 @@
     "lock": false,
     "imports": {
         "@deno/dnt": "jsr:@deno/dnt@^0.41.1"
-    }
+    },
+    "name": "@mikuroxina/mini-fn",
+    "exports": "./mod.ts",
+    "version": "6.1.1"
 }
