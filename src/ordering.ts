@@ -1,5 +1,11 @@
 import { doT } from "./cat.ts";
-import { decI8, type Decoder, encI8, type Encoder, monadForDecoder } from "./serial.ts";
+import {
+    decI8,
+    type Decoder,
+    encI8,
+    type Encoder,
+    monadForDecoder,
+} from "./serial.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 

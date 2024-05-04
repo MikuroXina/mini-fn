@@ -20,7 +20,10 @@ import type { Foldable } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { fromCmp, type Ord } from "./type-class/ord.ts";
-import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.ts";
+import {
+    fromPartialEquality,
+    type PartialEq,
+} from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import type { Traversable } from "./type-class/traversable.ts";
