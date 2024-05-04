@@ -65,12 +65,11 @@ export const flap =
  * @param t - The item in `S`.
  * @returns The bound object in `S`.
  */
-export const bindTo =
-    <S>(func: Functor<S>) =>
-    <N extends PropertyKey>(
-        name: N,
-    ): <T>(t: Get1<S, T>) => Get1<S, Record<N, T>> =>
-        func.map(<T>(a: T) => ({ [name]: a }) as Record<N, T>);
+export const bindTo = <S>(func: Functor<S>) =>
+<N extends PropertyKey>(
+    name: N,
+): <T>(t: Get1<S, T>) => Get1<S, Record<N, T>> =>
+    func.map(<T>(a: T) => ({ [name]: a }) as Record<N, T>);
 
 /**
  * @param func - The instance of `Functor` for `S`.
