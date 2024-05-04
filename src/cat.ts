@@ -4,6 +4,7 @@
  * This package provides a value transformer `Cat` and associated functions.
  *
  * @packageDocumentation
+ * @module
  */
 import { type ControlFlow, isBreak } from "./control-flow.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";

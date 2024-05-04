@@ -2,6 +2,7 @@
  * `Exists` represents an existential quantified type. It is useful to express the model that the object which decides what kind of object is held.
  *
  * @packageDocumentation
+ * @module
  */
 
 import type { Get1 } from "./hkt.ts";

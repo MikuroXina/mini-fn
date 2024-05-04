@@ -1,5 +1,6 @@
 /**
  * @packageDocumentation
+ * @module
  * Traversing combinator for a data structure.
  * ```text
  *    T<A> -----|--[ get ]-> A

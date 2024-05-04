@@ -2,6 +2,7 @@
  * This package provides virtual DOM works.
  *
  * @packageDocumentation
+ * @module
  */
 
 import { type Exists, newExists, runExists } from "./exists.ts";

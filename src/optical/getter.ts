@@ -1,5 +1,6 @@
 /**
  * @packageDocumentation
+ * @module
  * Extraction combinator for a data structure.
  * ```text
  * S --[ extract ]--> A

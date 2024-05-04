@@ -1,5 +1,6 @@
 /**
  * @packageDocumentation
+ * @module
  * Transformation combinator for a data structure.
  * ```text
  * S -----|--[ get ]-> A

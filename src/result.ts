@@ -77,6 +77,7 @@
  * | `orElse`  | `f`             | `err(e)`                   | `f(e)`   |
  *
  * @packageDocumentation
+ * @module
  */
 
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";

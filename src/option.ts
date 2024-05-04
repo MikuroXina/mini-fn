@@ -10,6 +10,7 @@
  * - Optional field of an object
  *
  * @packageDocumentation
+ * @module
  */
 import type { Get1, Hkt1 } from "./hkt.ts";
 import type { Optic, OpticSimple } from "./optical.ts";
