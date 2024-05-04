@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.1.2](https://github.com/MikuroXina/mini-fn/compare/v6.1.1...v6.1.2) (2024-05-04)
+
+
+### Bug Fixes
+
+* Fix to ensure public API type for jsr ([#188](https://github.com/MikuroXina/mini-fn/issues/188)) ([8a243f1](https://github.com/MikuroXina/mini-fn/commit/8a243f186da839c885c37243ea949ee54577dbc2))
+
 ## [6.1.1](https://github.com/MikuroXina/mini-fn/compare/v6.1.0...v6.1.1) (2024-04-28)
 
 
