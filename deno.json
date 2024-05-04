@@ -17,7 +17,8 @@
     "lint": {
         "include": ["src/"],
         "rules": {
-            "tags": ["recommended"]
+            "tags": ["recommended"],
+            "include": ["camelcase", "default-param-last", "eqeqeq", "explicit-function-return-type", "guard-for-in", "no-const-assign", "no-eval", "no-external-import", "no-self-compare", "no-throw-literal", "no-top-level-await", "no-undef", "prefer-ascii", "verbatim-module-syntax"]
         }
     },
     "lock": false,
