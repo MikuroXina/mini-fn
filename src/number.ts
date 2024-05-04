@@ -6,7 +6,7 @@ import {
     abelSymbol,
 } from "./type-class/abelian-group.ts";
 import type { Field } from "./type-class/field.ts";
-import { fromPartialCmp } from "./type-class/partial-ord.ts";
+import { fromPartialCmp, PartialOrd } from "./type-class/partial-ord.ts";
 import type { Ring } from "./type-class/ring.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
@@ -22,7 +22,9 @@ export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
     }
     return some(greater);
 };
-export const partialOrd = fromPartialCmp(() => partialCmp)();
+export const partialOrd: PartialOrd<number> = fromPartialCmp(() =>
+    partialCmp
+)();
 
 export const addAbelianGroup: AbelianGroup<number> = {
     combine: (l, r) => l + r,

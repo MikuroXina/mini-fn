@@ -9,7 +9,7 @@ import {
     monadForDecoder,
 } from "./serial.ts";
 import { type Applicative, liftA2 } from "./type-class/applicative.ts";
-import { fromBifoldMap } from "./type-class/bifoldable.ts";
+import { Bifoldable, fromBifoldMap } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
 import type { Bitraversable } from "./type-class/bitraversable.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
@@ -38,22 +38,33 @@ export const partialEquality = <A, B>(
 ) =>
 (l: Tuple<A, B>, r: Tuple<A, B>): boolean =>
     equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
-export const partialEq = fromPartialEquality(partialEquality);
+export const partialEq: <A, B>(
+    { equalityA, equalityB }: {
+        equalityA: PartialEq<A>;
+        equalityB: PartialEq<B>;
+    },
+) => PartialEq<Tuple<A, B>> = fromPartialEquality(partialEquality);
 export const equality =
     <A, B>({ equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<B> }) =>
     (l: Tuple<A, B>, r: Tuple<A, B>): boolean =>
         equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
-export const eq = fromEquality(equality);
+export const eq: <A, B>(
+    { equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<B> },
+) => Eq<Tuple<A, B>> = fromEquality(equality);
 export const partialCmp =
     <A, B>({ ordA, ordB }: { ordA: PartialOrd<A>; ordB: PartialOrd<B> }) =>
     ([a1, b1]: Tuple<A, B>, [a2, b2]: Tuple<A, B>): Option<Ordering> =>
         andThen(() => ordB.partialCmp(b1, b2))(ordA.partialCmp(a1, a2));
-export const partialOrd = fromPartialCmp(partialCmp);
+export const partialOrd: <A, B>(
+    { ordA, ordB }: { ordA: PartialOrd<A>; ordB: PartialOrd<B> },
+) => PartialOrd<Tuple<A, B>> = fromPartialCmp(partialCmp);
 export const cmp =
     <A, B>({ ordA, ordB }: { ordA: Ord<A>; ordB: Ord<B> }) =>
-    ([a1, b1]: Tuple<A, B>, [a2, b2]: Tuple<A, B>) =>
+    ([a1, b1]: Tuple<A, B>, [a2, b2]: Tuple<A, B>): Ordering =>
         thenWith(() => ordB.cmp(b1, b2))(ordA.cmp(a1, a2));
-export const ord = fromCmp(cmp);
+export const ord: <A, B>(
+    { ordA, ordB }: { ordA: Ord<A>; ordB: Ord<B> },
+) => Ord<Tuple<A, B>> = fromCmp(cmp);
 
 /**
  * Creates a new tuple from two provided values.
@@ -273,7 +284,7 @@ export const bifunctor: Bifunctor<TupleHkt> = { biMap };
 /**
  * The instance of `Bitraversal` for `Tuple<_, _>`.
  */
-export const bifoldable = fromBifoldMap<TupleHkt>(
+export const bifoldable: Bifoldable<TupleHkt> = fromBifoldMap<TupleHkt>(
     (m) => (aMap) => (bMap) => ([a, b]) => m.combine(aMap(a), bMap(b)),
 );
 

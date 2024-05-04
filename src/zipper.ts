@@ -56,9 +56,14 @@ export const partialEquality =
         listPartialEq(equalityT).eq(aZipper.left, bZipper.left) &&
         equalityT.eq(aZipper.current, bZipper.current) &&
         listPartialEq(equalityT).eq(aZipper.right, bZipper.right);
-export const partialEq = fromPartialEquality(partialEquality);
-export const equality = <T>(equalityT: Eq<T>) => partialEquality(equalityT);
-export const eq = fromEquality(equality);
+export const partialEq: <T>(equalityT: PartialEq<T>) => PartialEq<Zipper<T>> =
+    fromPartialEquality(partialEquality);
+export const equality = <T>(
+    equalityT: Eq<T>,
+): (l: Zipper<T>, r: Zipper<T>) => boolean => partialEquality(equalityT);
+export const eq: <T>(
+    equalityT: Eq<T>,
+) => Eq<Zipper<T>> = fromEquality(equality);
 export const partialCmp =
     <T>(order: PartialOrd<T>) =>
     (lhs: Zipper<T>, rhs: Zipper<T>): Option<Ordering> =>
@@ -70,7 +75,8 @@ export const partialCmp =
                 ),
             ),
         );
-export const partialOrd = fromPartialCmp(partialCmp);
+export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<Zipper<T>> =
+    fromPartialCmp(partialCmp);
 export const cmp =
     <T>(order: Ord<T>) => (lhs: Zipper<T>, rhs: Zipper<T>): Ordering =>
         thenWith(() => listOrd(order).cmp(lhs.right, rhs.right))(
@@ -78,7 +84,7 @@ export const cmp =
                 listOrd(order).cmp(reverse(lhs.left), reverse(rhs.left)),
             ),
         );
-export const ord = fromCmp(cmp);
+export const ord: <T>(order: Ord<T>) => Ord<Zipper<T>> = fromCmp(cmp);
 
 /**
  * Creates a new zipper with the value.

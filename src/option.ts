@@ -144,7 +144,7 @@ export const isNone = <T>(opt: Option<T>): opt is None => opt[0] === noneSymbol;
  */
 export const toString = <T>(
     opt: Option<T>,
-) => (isSome(opt) ? `some(${opt[1]})` : "none");
+): string => (isSome(opt) ? `some(${opt[1]})` : "none");
 
 /**
  * Converts into an array.
@@ -173,12 +173,15 @@ export const partialEquality =
     (optA: Option<T>, optB: Option<T>): boolean =>
         (isNone(optA) && isNone(optB)) ||
         (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1]));
-export const partialEq = fromPartialEquality(partialEquality);
+export const partialEq: <T>(equalityT: PartialEq<T>) => PartialEq<Option<T>> =
+    fromPartialEquality(partialEquality);
 export const equality =
     <T>(equalityT: Eq<T>) => (optA: Option<T>, optB: Option<T>): boolean =>
         (isNone(optA) && isNone(optB)) ||
         (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1]));
-export const eq = fromEquality(equality);
+export const eq: <T>(equalityT: Eq<T>) => Eq<Option<T>> = fromEquality(
+    equality,
+);
 export const partialCmp =
     <T>(order: PartialOrd<T>) =>
     (l: Option<T>, r: Option<T>): Option<Ordering> => {
@@ -194,7 +197,8 @@ export const partialCmp =
         }
         return order.partialCmp(l[1], r[1]);
     };
-export const partialOrd = fromPartialCmp(partialCmp);
+export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<Option<T>> =
+    fromPartialCmp(partialCmp);
 export const cmp =
     <T>(order: Ord<T>) => (l: Option<T>, r: Option<T>): Ordering => {
         // considered that None is lesser than Some
@@ -210,7 +214,9 @@ export const cmp =
         return order.cmp(l[1], r[1]);
     };
 // This argument wrapper is needed for avoid cyclic-import problem.
-export const ord = <T>(order: Ord<T, T>) => fromCmp(cmp)(order);
+export const ord: <T>(order: Ord<T>) => Ord<Option<T>> = <T>(
+    order: Ord<T, T>,
+) => fromCmp(cmp)(order);
 
 /**
  * Flattens the nested optional.
@@ -379,7 +385,7 @@ export const orElse =
  * assertEquals(xor(some(100))(some(2)), none());
  * ```
  */
-export const xor = <T>(optB: Option<T>) => (optA: Option<T>) => {
+export const xor = <T>(optB: Option<T>) => (optA: Option<T>): Option<T> => {
     if (isSome(optA) && isNone(optB)) {
         return optA;
     }
@@ -408,14 +414,15 @@ export const xor = <T>(optB: Option<T>) => (optA: Option<T>) => {
  * assertEquals(isEven(some(4)), some(4));
  * ```
  */
-export const filter = <T>(predicate: (t: T) => boolean) => (opt: Option<T>) => {
-    if (isSome(opt)) {
-        if (predicate(opt[1])) {
-            return opt;
+export const filter =
+    <T>(predicate: (t: T) => boolean) => (opt: Option<T>): Option<T> => {
+        if (isSome(opt)) {
+            if (predicate(opt[1])) {
+                return opt;
+            }
         }
-    }
-    return none();
-};
+        return none();
+    };
 
 /**
  * Zips two optionals into one.
@@ -530,7 +537,7 @@ export const zipWith =
  * assertEquals(unwrapOrBike(none()), "bike");
  * ```
  */
-export const unwrapOr = <T>(init: T) => (opt: Option<T>) => {
+export const unwrapOr = <T>(init: T) => (opt: Option<T>): T => {
     if (isSome(opt)) {
         return opt[1];
     }
@@ -555,7 +562,7 @@ export const unwrapOr = <T>(init: T) => (opt: Option<T>) => {
  * assertEquals(unwrapOrCalc(none()), 1296);
  * ```
  */
-export const unwrapOrElse = <T>(fn: () => T) => (opt: Option<T>) => {
+export const unwrapOrElse = <T>(fn: () => T) => (opt: Option<T>): T => {
     if (isSome(opt)) {
         return opt[1];
     }
@@ -663,7 +670,7 @@ export const mapOrElse =
  * assertEquals(hasTwo(none()), false);
  * ```
  */
-export const contains = <T>(x: T) => (opt: Option<T>) =>
+export const contains = <T>(x: T) => (opt: Option<T>): boolean =>
     mapOr(false)((t) => t === x)(opt);
 
 /**
@@ -752,13 +759,13 @@ export const okOrElse = <E>(e: () => E) => <T>(opt: Option<T>): Result<E, T> =>
 export const flatMap = andThen;
 
 export const apply =
-    <T1, U1>(fnOpt: Option<(t: T1) => U1>) => (tOpt: Option<T1>) =>
+    <T1, U1>(fnOpt: Option<(t: T1) => U1>) => (tOpt: Option<T1>): Option<U1> =>
         flatMap((fn: (t: T1) => U1) => map(fn)(tOpt))(fnOpt);
 
 export const foldR =
     <A, B>(folder: (next: A) => (acc: B) => B) =>
     (init: B) =>
-    (data: Option<A>) => {
+    (data: Option<A>): B => {
         if (isNone(data)) {
             return init;
         }

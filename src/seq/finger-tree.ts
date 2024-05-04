@@ -240,7 +240,9 @@ export const appendToHead =
  * @param elem - The element to be appended.
  * @returns The mutated tree.
  */
-export const pushToHead = flip(appendToHead);
+export const pushToHead: <A>(
+    tree: FingerTree<A>,
+) => (elem: A) => FingerTree<A> = flip(appendToHead);
 /**
  * Appends the elements to the head on the tree.
  *
@@ -291,7 +293,9 @@ export const appendToTail =
  * @param elem - The element to be appended.
  * @returns The mutated tree.
  */
-export const pushToTail = flip(appendToTail);
+export const pushToTail: <A>(
+    tree: FingerTree<A>,
+) => (elem: A) => FingerTree<A> = flip(appendToTail);
 /**
  * Appends the elements to the tail on the tree.
  *
@@ -321,7 +325,9 @@ export const fromReduce =
  * @param fa - The elements to be constructed as a tree.
  * @returns The new tree.
  */
-export const fromArray = fromReduce(reduceArray);
+export const fromArray: <A>(fa: readonly A[]) => FingerTree<A> = fromReduce(
+    reduceArray,
+);
 
 const nodes = <A>(middle: readonly A[]): Node<A>[] => {
     if (middle.length < 2) {

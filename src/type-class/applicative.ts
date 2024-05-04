@@ -7,7 +7,9 @@ import { semiGroupSymbol } from "./semi-group.ts";
 
 export interface Applicative<S> extends Apply<S>, Pure<S> {}
 
-export const makeMonoid = <S>(app: Applicative<S>) => {
+export const makeMonoid = <S>(
+    app: Applicative<S>,
+): <T>(m: Monoid<T>) => Monoid<Get1<S, T>> => {
     const semi = makeSemiGroup(app);
     return <T>(m: Monoid<T>): Monoid<Get1<S, T>> => ({
         combine: semi(m).combine,

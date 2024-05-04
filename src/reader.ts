@@ -47,7 +47,7 @@ export type Reader<R, A> = ReaderT<R, IdentityHkt, A>;
  * @param rec - The record needed to run.
  * @returns The result of run.
  */
-export const run = <R, A>(r: Reader<R, A>) => (rec: R) => r(rec);
+export const run = <R, A>(r: Reader<R, A>) => (rec: R): A => r(rec);
 
 /**
  * Fetches the record of the environment with monad `S`.

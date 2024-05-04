@@ -15,13 +15,13 @@ import {
     Tuple,
 } from "./tuple.ts";
 import { Applicative } from "./type-class/applicative.ts";
-import { fromEquality } from "./type-class/eq.ts";
+import { Eq, fromEquality } from "./type-class/eq.ts";
 import { Foldable } from "./type-class/foldable.ts";
 import { Functor } from "./type-class/functor.ts";
 import { Monoid } from "./type-class/monoid.ts";
 import { fromCmp, Ord } from "./type-class/ord.ts";
 import { fromPartialEquality, PartialEq } from "./type-class/partial-eq.ts";
-import { fromPartialCmp } from "./type-class/partial-ord.ts";
+import { fromPartialCmp, PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import { Traversable } from "./type-class/traversable.ts";
 import { cmp as stringCmp, ord as stringOrd } from "./string.ts";
@@ -81,10 +81,18 @@ export const cmp = <K extends string, V>(
     )(sortedL, sortedR);
 };
 
-export const partialEquality = fromPartialEquality(eq);
-export const equality = fromEquality(eq);
-export const partialOrd = fromPartialCmp(partialCmp);
-export const ord = fromCmp(cmp);
+export const partialEquality: <K extends string, V>(
+    equality: PartialEq<V>,
+) => PartialEq<Record<K, V>> = fromPartialEquality(eq);
+export const equality: <K extends string, V>(
+    equality: Eq<V>,
+) => Eq<Record<K, V>> = fromEquality(eq);
+export const partialOrd: <K extends string, V>(
+    ordV: Ord<V>,
+) => PartialOrd<Record<K, V>> = fromPartialCmp(partialCmp);
+export const ord: <K extends string, V>(
+    ordV: Ord<V>,
+) => Ord<Record<K, V>> = fromCmp(cmp);
 
 export const isEmpty = <K extends string, V>(m: Record<K, V>): boolean =>
     Object.keys(m).length === 0;
@@ -749,7 +757,11 @@ export const isSubsetOfBy =
         }
         return true;
     };
-export const isSubsetOf = <V>(equality: PartialEq<V>) =>
+export const isSubsetOf = <V>(
+    equality: PartialEq<V>,
+): <K extends string>(
+    subset: Record<K, V>,
+) => (superset: Record<K, V>) => boolean =>
     isSubsetOfBy((sub: V) => (sup: V) => equality.eq(sub, sup));
 
 export const isProperSubsetOfBy =
@@ -767,7 +779,11 @@ export const isProperSubsetOfBy =
         }
         return entries.length < Object.keys(superset).length;
     };
-export const isProperSubsetOf = <V>(equality: PartialEq<V>) =>
+export const isProperSubsetOf = <V>(
+    equality: PartialEq<V>,
+): <K extends string>(
+    subset: Record<K, V>,
+) => (superset: Record<K, V>) => boolean =>
     isSubsetOfBy((sub: V) => (sup: V) => equality.eq(sub, sup));
 
 export interface RecordHkt extends Hkt2 {

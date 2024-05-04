@@ -52,8 +52,10 @@ export const replace =
  * @param t - The function to apply.
  * @returns The applied item in `S`.
  */
-export const flap = <S>(func: Functor<S>) => <T, U>(item: T) =>
-    func.map((f: (argT: T) => U) => f(item));
+export const flap =
+    <S>(func: Functor<S>) =>
+    <T, U>(item: T): (t: Get1<S, (t: T) => U>) => Get1<S, U> =>
+        func.map((f: (argT: T) => U) => f(item));
 
 /**
  * Binds the item in `S` to a new object with the provided key.
@@ -63,9 +65,11 @@ export const flap = <S>(func: Functor<S>) => <T, U>(item: T) =>
  * @param t - The item in `S`.
  * @returns The bound object in `S`.
  */
-export const bindTo =
-    <S>(func: Functor<S>) => <N extends PropertyKey>(name: N) =>
-        func.map(<T>(a: T) => ({ [name]: a }) as Record<N, T>);
+export const bindTo = <S>(func: Functor<S>) =>
+<N extends PropertyKey>(
+    name: N,
+): <T>(t: Get1<S, T>) => Get1<S, Record<N, T>> =>
+    func.map(<T>(a: T) => ({ [name]: a }) as Record<N, T>);
 
 /**
  * @param func - The instance of `Functor` for `S`.

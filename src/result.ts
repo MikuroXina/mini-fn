@@ -191,11 +191,18 @@ export const partialEquality = <E, T>(
     }
     return false;
 };
-export const partialEq = fromPartialEquality(partialEquality);
+export const partialEq: <E, T>(
+    { equalityE, equalityT }: {
+        equalityE: PartialEq<E>;
+        equalityT: PartialEq<T>;
+    },
+) => PartialEq<Result<E, T>> = fromPartialEquality(partialEquality);
 export const equality = <E, T>(
     equalities: { equalityE: Eq<E>; equalityT: Eq<T> },
-) => partialEquality(equalities);
-export const eq = fromEquality(equality);
+): (l: Result<E, T>, r: Result<E, T>) => boolean => partialEquality(equalities);
+export const eq: <E, T>(
+    equalities: { equalityE: Eq<E>; equalityT: Eq<T> },
+) => Eq<Result<E, T>> = fromEquality(equality);
 export const partialCmp = <E, T>(
     { orderE, orderT }: { orderE: PartialOrd<E>; orderT: PartialOrd<T> },
 ) =>
@@ -212,7 +219,9 @@ export const partialCmp = <E, T>(
     }
     return orderE.partialCmp(l[1], r[1]);
 };
-export const partialOrd = fromPartialCmp(partialCmp);
+export const partialOrd: <E, T>(
+    { orderE, orderT }: { orderE: PartialOrd<E>; orderT: PartialOrd<T> },
+) => PartialOrd<Result<E, T>> = fromPartialCmp(partialCmp);
 export const cmp =
     <E, T>({ orderE, orderT }: { orderE: Ord<E>; orderT: Ord<T> }) =>
     (l: Result<E, T>, r: Result<E, T>): Ordering => {
@@ -229,8 +238,9 @@ export const cmp =
         return orderE.cmp(l[1], r[1]);
     };
 // This argument wrapper is needed for avoid cyclic-import problem.
-export const ord = <E, T>(x: { orderE: Ord<E, E>; orderT: Ord<T, T> }) =>
-    fromCmp(cmp)(x);
+export const ord = <E, T>(
+    x: { orderE: Ord<E, E>; orderT: Ord<T, T> },
+): Ord<Result<E, T>> => fromCmp(cmp)(x);
 
 /**
  * Maps the value in variant by two mappers.
@@ -354,8 +364,9 @@ export const unwrapErr = <E, T>(res: Result<E, T>): E => {
  * assertEquals(and(anotherSuccess)(success), anotherSuccess);
  * ```
  */
-export const and = <U, E>(resB: Result<E, U>) => <T>(resA: Result<E, T>) =>
-    isOk(resA) ? resB : resA;
+export const and =
+    <U, E>(resB: Result<E, U>) => <T>(resA: Result<E, T>): Result<E, U> =>
+        isOk(resA) ? resB : resA;
 
 /**
  * Returns `fn()` if `resA` is an `Ok`, otherwise returns the error `resA`. This is an implementation of `FlatMap`. The order of arguments is reversed because of that it is useful for partial applying.
@@ -383,8 +394,8 @@ export const and = <U, E>(resB: Result<E, U>) => <T>(resA: Result<E, T>) =>
  * ```
  */
 export const andThen =
-    <T, U, E>(fn: (t: T) => Result<E, U>) => (resA: Result<E, T>) =>
-        isOk(resA) ? fn(resA[1]) : resA;
+    <T, U, E>(fn: (t: T) => Result<E, U>) =>
+    (resA: Result<E, T>): Result<E, U> => isOk(resA) ? fn(resA[1]) : resA;
 
 /**
  * Returns `resB` if `resA` is an `Err`, otherwise returns the success `resA`. The order of arguments is reversed because of that it is useful for partial applying.
@@ -411,8 +422,9 @@ export const andThen =
  * assertEquals(or(anotherSuccess)(success), success);
  * ```
  */
-export const or = <E, T>(resB: Result<E, T>) => (resA: Result<E, T>) =>
-    isErr(resA) ? resB : resA;
+export const or =
+    <E, T>(resB: Result<E, T>) => <F>(resA: Result<F, T>): Result<E, T> =>
+        isErr(resA) ? resB : resA;
 
 /**
  * Returns `fn()` if `resA` is an `Err`, otherwise returns the success `resA`. The order of arguments is reversed because of that it is useful for partial applying.
@@ -437,8 +449,8 @@ export const or = <E, T>(resB: Result<E, T>) => (resA: Result<E, T>) =>
  * ```
  */
 export const orElse =
-    <E, T, F>(fn: (error: E) => Result<F, T>) => (resA: Result<E, T>) =>
-        isErr(resA) ? fn(resA[1]) : resA;
+    <F, T, E>(fn: (error: F) => Result<E, T>) =>
+    (resA: Result<F, T>): Result<E, T> => isErr(resA) ? fn(resA[1]) : resA;
 
 /**
  * Takes the success value as an optional if the result is an `Ok`, otherwise returns `None`.
@@ -500,7 +512,7 @@ export const optionErr = <E, T>(res: Result<E, T>): Option<E> =>
  * assertEquals(toString(err("hoge")), "err(hoge)");
  * ```
  */
-export const toString = <E, T>(res: Result<E, T>) =>
+export const toString = <E, T>(res: Result<E, T>): string =>
     isOk(res) ? `ok(${res[1]})` : `err(${res[1]})`;
 
 /**
@@ -519,7 +531,7 @@ export const toString = <E, T>(res: Result<E, T>) =>
  * assertEquals(toArray(err("hoge")), []);
  * ```
  */
-export const toArray = <E, T>(res: Result<E, T>) =>
+export const toArray = <E, T>(res: Result<E, T>): T[] =>
     optionToArray(optionOk(res));
 
 /**
@@ -583,7 +595,7 @@ export const product =
  * @param res - The source result.
  * @returns The unwrapped value.
  */
-export const unwrapOr = <T>(init: T) => <E>(res: Result<E, T>) =>
+export const unwrapOr = <T>(init: T) => <E>(res: Result<E, T>): T =>
     isOk(res) ? res[1] : init;
 /**
  * Unwraps the success value, or returns the fallback value `fallback` if it is an `Err`.
@@ -593,7 +605,7 @@ export const unwrapOr = <T>(init: T) => <E>(res: Result<E, T>) =>
  * @returns The unwrapped value.
  */
 export const unwrapOrElse =
-    <E, T>(fallback: (err: E) => T) => (res: Result<E, T>) =>
+    <E, T>(fallback: (err: E) => T) => (res: Result<E, T>): T =>
         isOk(res) ? res[1] : fallback(res[1]);
 
 /**
@@ -693,7 +705,7 @@ export const bifoldR =
     <A, C>(aFolder: (a: A) => (c: C) => C) =>
     <B>(bFolder: (b: B) => (c: C) => C) =>
     (init: C) =>
-    (data: Result<A, B>) =>
+    (data: Result<A, B>): C =>
         either((a: A) => aFolder(a)(init))((b: B) => bFolder(b)(init))(data);
 
 export const bitraverse =

@@ -34,7 +34,7 @@ import type { Monad } from "../type-class/monad.ts";
 import type { Get1 } from "../hkt.ts";
 import { doT } from "../cat.ts";
 import { callCC, type ContT, lift, monad as contTMonad } from "../cont.ts";
-import { monad as promiseMonad } from "../promise.ts";
+import { monad as promiseMonad, PromiseHkt } from "../promise.ts";
 
 /**
  * Creates a retriable optical which consists three functions:
@@ -114,7 +114,13 @@ export const exponentialBackoff = (
     waiter: (milliseconds: number) => Promise<void> = (ms) =>
         new Promise((resolve) => setTimeout(resolve, ms)),
 ) =>
-<E, T>(fallback: (err: E) => T) =>
+<E, T>(
+    fallback: (err: E) => T,
+): <S, A>(
+    triable: (data: S) => (state: number) => Promise<Result<E, A>>,
+) => <B>(
+    set: (data: S) => (modified: B) => T,
+) => Optical<PromiseHkt, S, T, A, B> =>
     newRetriable(promiseMonad)(0)((err: E) => async (attempt) => {
         if (attempt >= maxRetries) {
             return newBreak(fallback(err));

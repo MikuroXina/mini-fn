@@ -5,6 +5,7 @@ import {
     type Decoder,
     decU32Be,
     encFoldable,
+    type Encoder,
     flatMapDecoder,
     pureDecoder,
 } from "./serial.ts";
@@ -23,10 +24,12 @@ import type { Reduce } from "./type-class/reduce.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
 export const partialEquality =
-    <T>(equality: PartialEq<T>) => (l: readonly T[], r: readonly T[]) =>
+    <T>(equality: PartialEq<T>) =>
+    (l: readonly T[], r: readonly T[]): boolean =>
         l.length === r.length &&
         l.every((left, i) => equality.eq(left, r[i]));
-export const partialEq = fromPartialEquality(partialEquality);
+export const partialEq: <T>(equality: PartialEq<T>) => PartialEq<T[]> =
+    fromPartialEquality(partialEquality);
 export const partialCmp =
     <T>(order: PartialOrd<T>) =>
     (l: readonly T[], r: readonly T[]): Option<Ordering> =>
@@ -37,18 +40,19 @@ export const partialCmp =
         )(some(Math.sign(l.length - r.length) as Ordering))(
             l.map((left, i) => order.partialCmp(left, r[i])),
         );
-export const partialOrd = fromPartialCmp(partialCmp);
+export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<T[]> =
+    fromPartialCmp(partialCmp);
 export const equality =
-    <T>(equality: Eq<T>) => (l: readonly T[], r: readonly T[]) =>
+    <T>(equality: Eq<T>) => (l: readonly T[], r: readonly T[]): boolean =>
         l.length === r.length &&
         l.every((left, i) => equality.eq(left, r[i]));
-export const eq = fromEquality(equality);
+export const eq: <T>(equality: Eq<T>) => Eq<T[]> = fromEquality(equality);
 export const cmp =
     <T>(order: Ord<T>) => (l: readonly T[], r: readonly T[]): Ordering =>
         foldR(and)(Math.sign(l.length - r.length) as Ordering)(
             l.map((left, i) => order.cmp(left, r[i])),
         );
-export const ord = fromCmp(cmp);
+export const ord: <T>(order: Ord<T>) => Ord<T[]> = fromCmp(cmp);
 
 export interface ArrayHkt extends Hkt1 {
     readonly type: readonly this["arg1"][];
@@ -138,7 +142,9 @@ export const reduce: Reduce<ArrayHkt> = {
     reduceL,
 };
 
-export const enc = encFoldable(foldable);
+export const enc: <T>(encT: Encoder<T>) => Encoder<readonly T[]> = encFoldable(
+    foldable,
+);
 export const dec = <A>(decA: Decoder<A>): Decoder<A[]> => {
     const go = (l: A[]) => (lenToRead: number): Decoder<A[]> =>
         lenToRead === 0

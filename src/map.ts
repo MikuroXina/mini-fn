@@ -19,13 +19,13 @@ import {
 } from "./tuple.ts";
 import { dec as decArray, enc as encArray } from "./array.ts";
 import { Applicative } from "./type-class/applicative.ts";
-import { fromEquality } from "./type-class/eq.ts";
+import { Eq, fromEquality } from "./type-class/eq.ts";
 import { Foldable } from "./type-class/foldable.ts";
 import { Functor } from "./type-class/functor.ts";
 import { Monoid } from "./type-class/monoid.ts";
 import { fromCmp, Ord } from "./type-class/ord.ts";
 import { fromPartialEquality, PartialEq } from "./type-class/partial-eq.ts";
-import { fromPartialCmp } from "./type-class/partial-ord.ts";
+import { fromPartialCmp, PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import { Traversable } from "./type-class/traversable.ts";
 
@@ -70,10 +70,20 @@ export const cmp = <K, V>(ord: {
     )(sortedL, sortedR);
 };
 
-export const partialEquality = fromPartialEquality(eq);
-export const equality = fromEquality(eq);
-export const partialOrd = fromPartialCmp(partialCmp);
-export const ord = fromCmp(cmp);
+export const partialEquality: <K, V>(
+    equality: PartialEq<V>,
+) => PartialEq<Map<K, V>> = fromPartialEquality(eq);
+export const equality: <K, V>(
+    equality: Eq<V>,
+) => Eq<Map<K, V>> = fromEquality(eq);
+export const partialOrd: <K, V>(ord: {
+    ordK: Ord<K>;
+    ordV: Ord<V>;
+}) => PartialOrd<Map<K, V>> = fromPartialCmp(partialCmp);
+export const ord: <K, V>(ord: {
+    ordK: Ord<K>;
+    ordV: Ord<V>;
+}) => Ord<Map<K, V>> = fromCmp(cmp);
 
 export const isEmpty = <K, V>(m: Map<K, V>): boolean => m.size === 0;
 export const size = <K, V>(m: Map<K, V>): number => m.size;
@@ -708,7 +718,9 @@ export const isSubsetOfBy =
         }
         return true;
     };
-export const isSubsetOf = <V>(equality: PartialEq<V>) =>
+export const isSubsetOf = <V>(
+    equality: PartialEq<V>,
+): <K>(subset: Map<K, V>) => (superset: Map<K, V>) => boolean =>
     isSubsetOfBy((sub: V) => (sup: V) => equality.eq(sub, sup));
 
 export const isProperSubsetOfBy =
@@ -725,7 +737,9 @@ export const isProperSubsetOfBy =
         }
         return subset.size < superset.size;
     };
-export const isProperSubsetOf = <V>(equality: PartialEq<V>) =>
+export const isProperSubsetOf = <V>(
+    equality: PartialEq<V>,
+): <K>(subset: Map<K, V>) => (superset: Map<K, V>) => boolean =>
     isSubsetOfBy((sub: V) => (sup: V) => equality.eq(sub, sup));
 
 export interface MapHkt extends Hkt2 {

@@ -64,8 +64,9 @@ export const and = (second: Ordering) =>
  * @param first - The first order.
  * @returns The transited order.
  */
-export const andThen = (secondFn: () => Ordering) => (first: Ordering) =>
-    first === equal ? secondFn() : first;
+export const andThen =
+    (secondFn: () => Ordering) => (first: Ordering): Ordering =>
+        first === equal ? secondFn() : first;
 
 /**
  * The instance of `Monoid` about transitive for `Ordering`.
