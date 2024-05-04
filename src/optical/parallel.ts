@@ -1,5 +1,6 @@
 /**
  * @packageDocumentation
+ * @module
  *
  * A parallel combinator that merging two computations `C1` and `C2`.
  *

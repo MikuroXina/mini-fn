@@ -120,6 +120,7 @@
  * - `scanL` folds values of the list with leaving breadcrumbs.
  *
  * @packageDocumentation
+ * @module
  */
 
 import { cat } from "./cat.ts";

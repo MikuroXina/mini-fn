@@ -23,6 +23,7 @@
  * A `Decoder` denotes that
  *
  * @packageDocumentation
+ * @module
  */
 
 import { doT } from "./cat.ts";

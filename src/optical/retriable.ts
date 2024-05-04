@@ -1,5 +1,6 @@
 /**
  * @packageDocumentation
+ * @module
  *
  * A retriable optical which consists three functions:
  *

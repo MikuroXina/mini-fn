@@ -1,5 +1,6 @@
 /**
  * @packageDocumentation
+ * @module
  * Transformation combinator for a data enumerator.
  * ```text
  *                     ok

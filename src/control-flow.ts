@@ -2,6 +2,7 @@
  * This module provides an utility type `ControlFlow<B, C>`, which tells an operation whether it should exit early or go on.
  *
  * @packageDocumentation
+ * @module
  */
 
 import { none, type Option, some } from "./option.ts";

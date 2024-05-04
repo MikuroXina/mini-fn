@@ -2,6 +2,7 @@
  * This package provides a `Free` monad which makes any kind `F` into a `Monad` instance. It is useful for creating your own domain-specific-language (DSL) and its interpreter.
  *
  * @packageDocumentation
+ * @module
  */
 
 import {

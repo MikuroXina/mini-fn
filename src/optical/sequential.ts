@@ -1,5 +1,6 @@
 /**
  * @packageDocumentation
+ * @module
  *
  * A sequential combinator that merging two computations `C1` and `C2`. It computes next computation twice.
  *

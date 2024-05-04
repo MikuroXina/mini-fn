@@ -1,5 +1,6 @@
 /**
  * @packageDocumentation
+ * @module
  * Transformation terminal for a Functor.
  * ```text
  * S --|     never
