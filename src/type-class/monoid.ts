@@ -29,7 +29,7 @@ export const flippedMonoid = <M>(m: Monoid<M>): Monoid<M> => ({
 });
 
 export const minMonoid = (infinity: number): Monoid<number> => ({
-    combine(l, r) {
+    combine(l, r): number {
         return Math.min(l, r);
     },
     identity: infinity,
@@ -37,7 +37,7 @@ export const minMonoid = (infinity: number): Monoid<number> => ({
 });
 
 export const maxMonoid = (negativeInfinity: number): Monoid<number> => ({
-    combine(l, r) {
+    combine(l, r): number {
         return Math.max(l, r);
     },
     identity: negativeInfinity,

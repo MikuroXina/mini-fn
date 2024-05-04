@@ -4,12 +4,12 @@ import { andThen, type Option } from "./option.ts";
 import { andThen as thenWith, type Ordering } from "./ordering.ts";
 import {
     type Decoder,
-    Encoder,
+    type Encoder,
     flatMapCodeM,
     monadForDecoder,
 } from "./serial.ts";
 import { type Applicative, liftA2 } from "./type-class/applicative.ts";
-import { Bifoldable, fromBifoldMap } from "./type-class/bifoldable.ts";
+import { type Bifoldable, fromBifoldMap } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
 import type { Bitraversable } from "./type-class/bitraversable.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";

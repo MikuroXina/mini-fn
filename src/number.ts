@@ -6,7 +6,7 @@ import {
     abelSymbol,
 } from "./type-class/abelian-group.ts";
 import type { Field } from "./type-class/field.ts";
-import { fromPartialCmp, PartialOrd } from "./type-class/partial-ord.ts";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import type { Ring } from "./type-class/ring.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
@@ -14,7 +14,7 @@ export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
     if (Number.isNaN(lhs) || Number.isNaN(rhs)) {
         return none();
     }
-    if (lhs == rhs) {
+    if (lhs === rhs) {
         return some(equal);
     }
     if (lhs < rhs) {
@@ -37,7 +37,7 @@ export const addAbelianGroup: AbelianGroup<number> = {
 export const mulAbelianGroup: AbelianGroupExceptZero<number> = {
     combine: (l, r) => l * r,
     identity: 1,
-    invert: (g) => (g == 0 ? none() : some(1 / g)),
+    invert: (g) => (g === 0 ? none() : some(1 / g)),
     [semiGroupSymbol]: true,
     [abelSymbol]: true,
 };

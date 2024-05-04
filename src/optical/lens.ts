@@ -9,7 +9,7 @@
  * ```
  */
 
-import { type Optic } from "../optical.ts";
+import type { Optic } from "../optical.ts";
 
 /**
  * Creates a new `Lens` optic from the two functions.

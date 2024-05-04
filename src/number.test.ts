@@ -1,7 +1,7 @@
 import { assertEquals } from "../deps.ts";
 import { partialCmp } from "./number.ts";
 import { none, some } from "./option.ts";
-import { equal, greater, less, Ordering } from "./ordering.ts";
+import { equal, greater, less, type Ordering } from "./ordering.ts";
 
 Deno.test("partialCmp", () => {
     assertEquals(partialCmp(1, NaN), none());

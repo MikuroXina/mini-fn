@@ -35,7 +35,7 @@ import type { Monad } from "../type-class/monad.ts";
 import type { Get1 } from "../hkt.ts";
 import { doT } from "../cat.ts";
 import { callCC, type ContT, lift, monad as contTMonad } from "../cont.ts";
-import { monad as promiseMonad, PromiseHkt } from "../promise.ts";
+import { monad as promiseMonad, type PromiseHkt } from "../promise.ts";
 
 /**
  * Creates a retriable optical which consists three functions:

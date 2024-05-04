@@ -40,7 +40,7 @@ import {
     unwrapOrElse,
 } from "./option.ts";
 import { err, isErr, ok, type Result } from "./result.ts";
-import { Foldable, length, mapMIgnore } from "./type-class/foldable.ts";
+import { type Foldable, length, mapMIgnore } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Monoid } from "./type-class/monoid.ts";

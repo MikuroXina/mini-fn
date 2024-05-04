@@ -23,10 +23,10 @@ export const powiEZ =
             throw new Error("`exp` must be an integer");
         }
         const g = (x: G, n: number, c: G): G => {
-            if (n % 2 == 0) {
+            if (n % 2 === 0) {
                 return g(group.combine(x, x), Math.floor(n / 2), c);
             }
-            if (n == 1) {
+            if (n === 1) {
                 return group.combine(x, c);
             }
             return g(
@@ -36,15 +36,15 @@ export const powiEZ =
             );
         };
         const f = (x: G, n: number): G => {
-            if (n % 2 == 0) {
+            if (n % 2 === 0) {
                 return f(group.combine(x, x), Math.floor(n / 2));
             }
-            if (n == 1) {
+            if (n === 1) {
                 return x;
             }
             return g(group.combine(x, x), Math.floor(n / 2), x);
         };
-        if (exp == 0) {
+        if (exp === 0) {
             return some(group.identity);
         }
         if (exp < 0) {

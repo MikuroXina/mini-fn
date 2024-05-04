@@ -4,7 +4,7 @@ import { id } from "../identity.ts";
 import { isNone, mapOr, none, type Option, some } from "../option.ts";
 import { monoid } from "./endo.ts";
 import type { Monad } from "./monad.ts";
-import { type Monoid } from "./monoid.ts";
+import type { Monoid } from "./monoid.ts";
 
 export interface Bifoldable<P> {
     readonly bifoldR: <A, C>(

@@ -1,11 +1,11 @@
 import { assertEquals } from "../deps.ts";
 import { catT } from "./cat.ts";
-import { mapOr, none, Option, some } from "./option.ts";
+import { mapOr, none, type Option, some } from "./option.ts";
 import { local } from "./reader.ts";
 import { run } from "./reader.ts";
 import { ask } from "./reader.ts";
 import { monad } from "./reader.ts";
-import { Reader } from "./reader.ts";
+import type { Reader } from "./reader.ts";
 
 Deno.test("ask", () => {
     interface User {

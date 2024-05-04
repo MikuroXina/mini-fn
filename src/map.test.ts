@@ -2,8 +2,8 @@ import { assertEquals } from "../deps.ts";
 import {
     monad as optionMonad,
     none,
-    Option,
-    OptionHkt,
+    type Option,
+    type OptionHkt,
     partialEq as optionPartialEq,
     some,
 } from "./option.ts";
@@ -11,7 +11,7 @@ import { ord } from "./string.ts";
 import * as Map from "./map.ts";
 import {
     fromIterable,
-    ListHkt,
+    type ListHkt,
     monad,
     partialEq as listPartialEq,
 } from "./list.ts";

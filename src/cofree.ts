@@ -11,7 +11,7 @@ import {
     partialEq as lazyPartialEq,
     partialOrd as lazyPartialOrd,
 } from "./lazy.ts";
-import { type Option } from "./option.ts";
+import type { Option } from "./option.ts";
 import type { Ordering } from "./ordering.ts";
 import {
     eq as tupleEq,

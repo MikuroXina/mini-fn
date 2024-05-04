@@ -3,10 +3,10 @@ import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import { id } from "./identity.ts";
 import { appendToHead, either, empty, type List } from "./list.ts";
 import {
-    Decoder,
+    type Decoder,
     decSum,
     decU8,
-    Encoder,
+    type Encoder,
     encSum,
     encU8,
     mapDecoder,

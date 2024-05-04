@@ -8,7 +8,7 @@ export interface HasInf<A> extends Ord<A> {
 }
 
 export const minMonoid = <A>(order: HasInf<A>): Monoid<A> => ({
-    combine(l, r) {
+    combine(l, r): A {
         return isLt(order.cmp(l, r)) ? l : r;
     },
     identity: order.infinity,

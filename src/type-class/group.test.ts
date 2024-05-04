@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "../../deps.ts";
-import { none, some } from "../option.ts";
+import { none, type Option, some } from "../option.ts";
 import { type GroupExceptZero, powiEZ, subtractEZ } from "./group.ts";
 import { semiGroupSymbol } from "./semi-group.ts";
 
@@ -7,7 +7,7 @@ type Matrix = [a: number, b: number, c: number, d: number];
 
 const matrixGroup: GroupExceptZero<Matrix> = {
     identity: [1, 0, 0, 1],
-    combine([l11, l12, l21, l22], [r11, r12, r21, r22]) {
+    combine([l11, l12, l21, l22], [r11, r12, r21, r22]): Matrix {
         return [
             l11 * r11 + l12 * r21,
             l11 * r12 + l12 * r22,
@@ -15,9 +15,9 @@ const matrixGroup: GroupExceptZero<Matrix> = {
             l21 * r12 + l22 * r22,
         ];
     },
-    invert([m11, m12, m21, m22]) {
+    invert([m11, m12, m21, m22]): Option<Matrix> {
         const det = m11 * m22 - m12 * m21;
-        if (det == 0) {
+        if (det === 0) {
             return none();
         }
         return some([m22 / det, -m12 / det, -m21 / det, m11 / det]);

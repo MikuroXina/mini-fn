@@ -23,7 +23,7 @@ Deno.test("store with life game", () => {
         fromArray(
             [-1, 0, 1]
                 .flatMap((dx) => [-1, 0, 1].map<Coord>((dy) => [dx, dy]))
-                .filter(([px, py]) => !(px == 0 && py == 0))
+                .filter(([px, py]) => !(px === 0 && py === 0))
                 .map(([dx, dy]) => [x + dx, y + dy]),
         );
     const neighborCells: (plane: CellPlane<Conway>) => List<Conway> =
@@ -31,12 +31,12 @@ Deno.test("store with life game", () => {
     const step = (plane: CellPlane<Conway>): Conway => {
         const cell = extract(plane);
         const neighborCount = length(
-            filter((c: Conway) => c == "Alive")(neighborCells(plane)),
+            filter((c: Conway) => c === "Alive")(neighborCells(plane)),
         );
-        if (cell == "Dead" && neighborCount == 3) {
+        if (cell === "Dead" && neighborCount === 3) {
             return "Alive";
         }
-        if (cell == "Alive" && (neighborCount == 2 || neighborCount == 3)) {
+        if (cell === "Alive" && (neighborCount === 2 || neighborCount === 3)) {
             return "Alive";
         }
         return "Dead";
