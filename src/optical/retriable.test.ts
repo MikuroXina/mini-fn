@@ -1,6 +1,6 @@
 import { exponentialBackoff } from "./retriable.ts";
 import { opticalCat } from "../optical.ts";
-import { monad, PromiseHkt } from "../promise.ts";
+import { monad, type PromiseHkt } from "../promise.ts";
 import { err, ok } from "../result.ts";
 import { assertEquals } from "../../deps.ts";
 

@@ -11,7 +11,7 @@ import {
 } from "./serial.ts";
 import { type Applicative, liftA2 } from "./type-class/applicative.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
-import { type Foldable } from "./type-class/foldable.ts";
+import type { Foldable } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import { fromCmp, type Ord } from "./type-class/ord.ts";

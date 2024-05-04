@@ -40,7 +40,7 @@ import {
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import { TraversableMonad } from "./type-class/traversable-monad.ts";
+import type { TraversableMonad } from "./type-class/traversable-monad.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
 const someSymbol = Symbol("OptionSome");

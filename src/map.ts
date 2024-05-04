@@ -1,33 +1,33 @@
-import { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import {
     cmp as listCmp,
     fromIterable,
     isNull,
-    List,
+    type List,
     partialCmp as listPartialCmp,
 } from "./list.ts";
-import { isNone, isSome, none, Option, some } from "./option.ts";
-import { Ordering } from "./ordering.ts";
-import { isOk, Result } from "./result.ts";
-import { Decoder, type Encoder, mapDecoder } from "./serial.ts";
+import { isNone, isSome, none, type Option, some } from "./option.ts";
+import type { Ordering } from "./ordering.ts";
+import { isOk, type Result } from "./result.ts";
+import { type Decoder, type Encoder, mapDecoder } from "./serial.ts";
 import {
     dec as decTuple,
     enc as encTuple,
     ord as tupleOrd,
     partialOrd as tuplePartialOrd,
-    Tuple,
+    type Tuple,
 } from "./tuple.ts";
 import { dec as decArray, enc as encArray } from "./array.ts";
-import { Applicative } from "./type-class/applicative.ts";
-import { Eq, fromEquality } from "./type-class/eq.ts";
-import { Foldable } from "./type-class/foldable.ts";
-import { Functor } from "./type-class/functor.ts";
-import { Monoid } from "./type-class/monoid.ts";
-import { fromCmp, Ord } from "./type-class/ord.ts";
-import { fromPartialEquality, PartialEq } from "./type-class/partial-eq.ts";
-import { fromPartialCmp, PartialOrd } from "./type-class/partial-ord.ts";
+import type { Applicative } from "./type-class/applicative.ts";
+import { type Eq, fromEquality } from "./type-class/eq.ts";
+import type { Foldable } from "./type-class/foldable.ts";
+import type { Functor } from "./type-class/functor.ts";
+import type { Monoid } from "./type-class/monoid.ts";
+import { fromCmp, type Ord } from "./type-class/ord.ts";
+import { fromPartialEquality, type PartialEq } from "./type-class/partial-eq.ts";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import { Traversable } from "./type-class/traversable.ts";
+import type { Traversable } from "./type-class/traversable.ts";
 
 export const eq =
     <K, V>(equality: PartialEq<V>) => (l: Map<K, V>, r: Map<K, V>): boolean => {

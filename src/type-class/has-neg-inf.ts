@@ -8,7 +8,7 @@ export interface HasNegInf<A> extends Ord<A> {
 }
 
 export const maxMonoid = <A>(order: HasNegInf<A>): Monoid<A> => ({
-    combine(l, r) {
+    combine(l, r): A {
         return isLt(order.cmp(l, r)) ? r : l;
     },
     identity: order.negativeInfinity,

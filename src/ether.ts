@@ -7,7 +7,7 @@
 
 import type { Get1, Hkt2, Hkt3 } from "./hkt.ts";
 import type { Monad } from "./type-class/monad.ts";
-import { IdentityHkt } from "./identity.ts";
+import type { IdentityHkt } from "./identity.ts";
 import { doT } from "./cat.ts";
 
 /**

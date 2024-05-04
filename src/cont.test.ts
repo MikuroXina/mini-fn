@@ -1,5 +1,5 @@
 import { cat } from "./cat.ts";
-import { Cont, flatMap, pure, runContT } from "./cont.ts";
+import { type Cont, flatMap, pure, runContT } from "./cont.ts";
 import { assertSpyCall, spy } from "../deps.ts";
 
 Deno.test("simple usage", () => {

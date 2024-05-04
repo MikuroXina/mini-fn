@@ -1,7 +1,7 @@
 import { assertEquals } from "../deps.ts";
 import * as Number from "./number.ts";
 import { some } from "./option.ts";
-import { equal, greater, less, Ordering } from "./ordering.ts";
+import { equal, greater, less, type Ordering } from "./ordering.ts";
 import { partialOrd, pure } from "./reverse.ts";
 
 Deno.test("order", () => {

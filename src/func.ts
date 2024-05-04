@@ -4,7 +4,7 @@ import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.ts";
 import type { Applicative } from "./type-class/applicative.ts";
 import type { Arrow } from "./type-class/arrow.ts";
 import type { Functor } from "./type-class/functor.ts";
-import { type Group } from "./type-class/group.ts";
+import type { Group } from "./type-class/group.ts";
 import type { Monad } from "./type-class/monad.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 

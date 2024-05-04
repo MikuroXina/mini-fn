@@ -58,7 +58,7 @@ Deno.test("listen with collatz sequence", () => {
     const monoid = monoidArray<number>();
 
     const collatz = (n: number) => {
-        if (n % 2 == 0) {
+        if (n % 2 === 0) {
             return n / 2;
         }
         return 3 * n + 1;

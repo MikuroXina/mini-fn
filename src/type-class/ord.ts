@@ -1,5 +1,5 @@
 import type { Get1, Hkt1 } from "../hkt.ts";
-import { some } from "../option.ts";
+import { type Option, some } from "../option.ts";
 import { isEq, type Ordering } from "../ordering.ts";
 import { type Eq, eqSymbol } from "./eq.ts";
 import type { PartialOrd } from "./partial-ord.ts";
@@ -37,7 +37,7 @@ export const fromProjection =
 export const reversed = <Lhs, Rhs>(ord: Ord<Lhs, Rhs>): Ord<Lhs, Rhs> => ({
     ...ord,
     cmp: (lhs, rhs) => -ord.cmp(lhs, rhs) as Ordering,
-    partialCmp(lhs, rhs) {
+    partialCmp(lhs, rhs): Option<Ordering> {
         return some(-ord.cmp(lhs, rhs) as Ordering);
     },
 });

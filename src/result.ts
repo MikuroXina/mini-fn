@@ -92,10 +92,10 @@ import {
 } from "./option.ts";
 import { greater, less, type Ordering } from "./ordering.ts";
 import {
-    Decoder,
+    type Decoder,
     decSum,
     decU8,
-    Encoder,
+    type Encoder,
     encSum,
     encU8,
     mapDecoder,
@@ -114,7 +114,7 @@ import {
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import { TraversableMonad } from "./type-class/traversable-monad.ts";
+import type { TraversableMonad } from "./type-class/traversable-monad.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
 const okSymbol = Symbol("ResultOk");
