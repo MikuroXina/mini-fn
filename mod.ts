@@ -11,6 +11,7 @@ export * as Coyoneda from "./src/coyoneda.ts";
 export * as Curry from "./src/curry.ts";
 export * as Dom from "./src/dom.ts";
 export * as Dual from "./src/dual.ts";
+export * as Envelope from "./src/envelope.ts";
 export * as Ether from "./src/ether.ts";
 export * as Exists from "./src/exists.ts";
 export * as Free from "./src/free.ts";
