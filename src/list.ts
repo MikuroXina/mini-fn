@@ -92,6 +92,7 @@
  * - `flatMap` maps items of the list by the function and flattens it.
  * - `init` removes the last item of the list.
  * - `map` transforms items of the list by the function.
+ * - `mapOption` transforms items of the list, or removes if the function returned a none.
  * - `reverse` reverses the list items.
  * - `stripPrefix` strips the matching prefix.
  * - `take` takes prefix items by the count.
@@ -826,6 +827,25 @@ export const concat = <T>(listList: List<List<T>>): List<T> =>
     build(
         <U>(c: (a: T) => (b: U) => U) => (n: U) =>
             foldR((x: List<T>) => (y: U) => foldR(c)(y)(x))(n)(listList),
+    );
+
+/**
+ * Maps over items of a list, but `fn` can return a `None` to remove the item.
+ *
+ * @param fn - A function to map the item.
+ * @param list - Data to be mapped.
+ * @returns The mapped new list.
+ */
+export const mapOption = <T, U>(
+    fn: (item: T) => Option.Option<U>,
+): (list: List<T>) => List<U> =>
+    either(() => empty<U>())(
+        (x, xs) => {
+            const rest = mapOption(fn)(xs);
+            return Option.mapOr(rest)((item: U) => appendToHead(item)(rest))(
+                fn(x),
+            );
+        },
     );
 
 /**
