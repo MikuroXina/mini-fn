@@ -1,4 +1,5 @@
 export * as Array from "./src/array.ts";
+export * as BinaryHeap from "./src/binary-heap.ts";
 export * as Bool from "./src/bool.ts";
 export * as Cat from "./src/cat.ts";
 export * as Cofree from "./src/cofree.ts";
