@@ -19,6 +19,7 @@ export * as Free from "./src/free.ts";
 export * as MonadFree from "./src/free/monad.ts";
 export * as Frozen from "./src/frozen.ts";
 export * as Func from "./src/func.ts";
+export * as Graph from "./src/graph.ts";
 export * as Hkt from "./src/hkt.ts";
 export * as Identity from "./src/identity.ts";
 export * as Kleisli from "./src/kleisli.ts";
