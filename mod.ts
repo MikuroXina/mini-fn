@@ -41,6 +41,7 @@ export * as Reverse from "./src/reverse.ts";
 export * as Serial from "./src/serial.ts";
 export * as Seq from "./src/seq.ts";
 export * as FingerTree from "./src/seq/finger-tree.ts";
+export * as Mut from "./src/mut.ts";
 export * as Star from "./src/star.ts";
 export * as State from "./src/state.ts";
 export * as StateMonad from "./src/state/monad.ts";
