@@ -10,8 +10,7 @@ import {
 import { doT } from "./cat.ts";
 import { monad, runMut } from "./mut.ts";
 import { none, some } from "./option.ts";
-import type { Ordering } from "./ordering.ts";
-import { fromCmp } from "./type-class/ord.ts";
+import { nonNanOrd } from "./type-class/ord.ts";
 
 Deno.test("simple usage", () => {
     runMut(<S>() => {
@@ -19,11 +18,7 @@ Deno.test("simple usage", () => {
         return doT(m)
             .addM(
                 "heap",
-                empty(
-                    fromCmp(() => (l: number, r: number) =>
-                        Math.sign(l - r) as Ordering
-                    )(),
-                ),
+                empty(nonNanOrd),
             )
             .addMWith("min", ({ heap }) => getMin(heap))
             .runWith(({ min }) => {
