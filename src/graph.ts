@@ -17,6 +17,7 @@ import {
     appendToHead,
     empty,
     filter,
+    foldable,
     fromArray,
     length,
     type List,
@@ -34,6 +35,8 @@ import type { Monoid } from "./type-class/monoid.ts";
 import { fromProjection, type Ord } from "./type-class/ord.ts";
 import type { Hkt1 } from "./hkt.ts";
 import type { HasInf } from "./type-class/has-inf.ts";
+import { monad as mutMonad, type Mut, runMut } from "./mut.ts";
+import { mapMIgnore } from "./type-class/foldable.ts";
 
 declare const vertexNominal: unique symbol;
 /**
@@ -481,26 +484,60 @@ export const dijkstra =
         interface WeightedVertexHkt extends Hkt1 {
             readonly type: [Vertex, this["arg1"]];
         }
-        let heap = BinaryHeap.empty(
-            fromProjection<WeightedVertexHkt>(([, weight]) => weight)(order),
-        );
-        heap = BinaryHeap.insert([start, monoid.identity] as WeightedVertex)(
-            heap,
-        );
-        while (!BinaryHeap.isEmpty(heap)) {
-            const [visiting, visitingDist] = unwrap(BinaryHeap.getMin(heap));
-            heap = BinaryHeap.popMin(heap);
-            visited.add(visiting);
-            dist[visiting] = visitingDist;
-            for (const next of toIterator(adjsFrom(visiting)(graph))) {
-                if (!visited.has(next)) {
-                    const nextWeight = edgeWeight([visiting, next]);
-                    heap = BinaryHeap.insert([
-                        next,
-                        monoid.combine(visitingDist, nextWeight),
-                    ] as WeightedVertex)(heap);
-                }
-            }
-        }
+        runMut(<S>() => {
+            const m = mutMonad<S>();
+            return doT(m)
+                .addM(
+                    "heap",
+                    BinaryHeap.empty(
+                        fromProjection<WeightedVertexHkt>(([, weight]) =>
+                            weight
+                        )(order),
+                    ),
+                )
+                .runWith(({ heap }) =>
+                    BinaryHeap.insert(
+                        [start, monoid.identity] as WeightedVertex,
+                    )(
+                        heap,
+                    )
+                )
+                .finishM(({ heap }) => {
+                    const body: Mut<S, []> = doT(m)
+                        .addM("min", BinaryHeap.popMin(heap))
+                        .finishM(({ min }) => {
+                            const [visiting, visitingDist] = unwrap(min);
+                            visited.add(visiting);
+                            dist[visiting] = visitingDist;
+                            return mapMIgnore(foldable, m)(
+                                (next: Vertex): Mut<S, []> => {
+                                    if (visited.has(next)) {
+                                        return m.pure([] as []);
+                                    }
+                                    const nextWeight = edgeWeight([
+                                        visiting,
+                                        next,
+                                    ]);
+                                    return BinaryHeap.insert([
+                                        next,
+                                        monoid.combine(
+                                            visitingDist,
+                                            nextWeight,
+                                        ),
+                                    ] as WeightedVertex)(heap);
+                                },
+                            )(adjsFrom(visiting)(graph));
+                        });
+                    const loop = (
+                        heap: BinaryHeap.BinaryHeap<S, WeightedVertex>,
+                    ): Mut<S, []> =>
+                        m.flatMap((wasEmpty) =>
+                            wasEmpty
+                                ? m.pure([] as [])
+                                : m.flatMap(() => loop(heap))(body)
+                        )(BinaryHeap.isEmpty(heap));
+                    return loop(heap);
+                });
+        });
         return dist;
     };
