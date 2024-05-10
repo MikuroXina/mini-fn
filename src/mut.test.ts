@@ -7,7 +7,19 @@ import {
     newMutRef,
     readMutRef,
     runMut,
+    writeMutRef,
 } from "./mut.ts";
+
+Deno.test("hello world", () => {
+    const text = runMut(<S>() =>
+        doT(monad<S>())
+            .addM("ref", newMutRef("hello"))
+            .addMWith("text", ({ ref }) => readMutRef(ref))
+            .runWith(({ ref, text }) => writeMutRef(ref)(`${text} world`))
+            .finishM(({ ref }) => readMutRef(ref))
+    );
+    assertEquals(text, "hello world");
+});
 
 Deno.test("counter", () => {
     const count = runMut(<S>() => {
