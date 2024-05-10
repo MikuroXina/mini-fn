@@ -56,7 +56,7 @@ const unwrapVar = <A>(ret: MutVar<A>): A => ret as unknown as A;
  */
 export type Mut<S, A> = (
     thread: Thread<S>,
-) => [thread: Thread<S>, ret: MutVar<A>];
+) => MutVar<A>;
 
 export interface MutHkt extends Hkt2 {
     readonly type: Mut<this["arg2"], this["arg1"]>;
@@ -71,15 +71,14 @@ export interface MutHkt extends Hkt2 {
  * @returns The result of computation.
  */
 export const runMut = <A>(mut: <S>() => Mut<S, A>): A =>
-    unwrapVar(mut()(wrapThread(new Map()))[1]);
+    unwrapVar(mut()(wrapThread(new Map())));
 
-export const pureMut =
-    <S, A>(value: A): Mut<S, A> => (thread) => [thread, wrapVar(value)];
+export const pureMut = <S, A>(value: A): Mut<S, A> => () => wrapVar(value);
 
 export const mapMut =
     <A, B>(fn: (a: A) => B) => <S>(mut: Mut<S, A>): Mut<S, B> => (thread) => {
-        const [newThread, a] = mut(thread);
-        return [newThread, wrapVar(fn(unwrapVar(a)))];
+        const a = mut(thread);
+        return wrapVar(fn(unwrapVar(a)));
     };
 
 export const applyMut =
@@ -90,8 +89,8 @@ export const flatMapMut =
     <S, A, B>(fn: (a: A) => Mut<S, B>) =>
     (mut: Mut<S, A>): Mut<S, B> =>
     (thread) => {
-        const [newThread, a] = mut(thread);
-        return fn(unwrapVar(a))(newThread);
+        const a = mut(thread);
+        return fn(unwrapVar(a))(thread);
     };
 
 export const functor = <S>(): Functor<Apply2Only<MutHkt, S>> => ({
@@ -125,10 +124,8 @@ export interface MutRefHkt extends Hkt2 {
  * @param value - The initial value.
  * @returns The new mutable reference for `value` on `Mut`.
  */
-export const newMutRef = <S, A>(value: A): Mut<S, MutRef<S, A>> => (thread) => [
-    thread,
-    wrapVar(newThreadVar(value)(thread)),
-];
+export const newMutRef = <S, A>(value: A): Mut<S, MutRef<S, A>> => (thread) =>
+    wrapVar(newThreadVar(value)(thread));
 
 /**
  * Reads a value from the reference in a scope of `Mut` environment. It throws on the referent value was not initialized or dropped.
@@ -136,10 +133,8 @@ export const newMutRef = <S, A>(value: A): Mut<S, MutRef<S, A>> => (thread) => [
  * @param ref - A target to read.
  * @returns The reading operation which results the read value.
  */
-export const readMutRef = <S, A>(ref: MutRef<S, A>): Mut<S, A> => (thread) => [
-    thread,
-    readThreadVar(ref)(thread),
-];
+export const readMutRef = <S, A>(ref: MutRef<S, A>): Mut<S, A> =>
+    readThreadVar(ref);
 
 /**
  * Writes a value into the reference in a scope of `Mut` environment.
@@ -151,10 +146,7 @@ export const readMutRef = <S, A>(ref: MutRef<S, A>): Mut<S, A> => (thread) => [
 export const writeMutRef =
     <S, A>(ref: MutRef<S, A>) => (newValue: A): Mut<S, []> => (thread) => {
         writeThreadVar(ref)(newValue)(thread);
-        return [
-            thread,
-            wrapVar([]),
-        ];
+        return wrapVar([]);
     };
 
 /**
@@ -179,8 +171,5 @@ export const modifyMutRef =
  */
 export const dropMutRef = <S, A>(ref: MutRef<S, A>): Mut<S, []> => (thread) => {
     dropThreadVar(ref)(thread);
-    return [
-        thread,
-        wrapVar([]),
-    ];
+    return wrapVar([]);
 };
