@@ -779,7 +779,7 @@ export const encFoldable =
             .run(encU32Be(length(foldable)(data)))
             .finishM(
                 () =>
-                    mapMIgnore<S, CodeMHkt, T, []>(foldable, monadForCodeM)(
+                    mapMIgnore<S, CodeMHkt>(foldable, monadForCodeM)(
                         encT,
                     )(data),
             );

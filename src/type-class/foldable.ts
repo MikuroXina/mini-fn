@@ -229,11 +229,11 @@ export const contains = <T, A>(
  * @param data - Data to be traversed.
  * @returns The collected result of actions.
  */
-export const mapMIgnore = <T, M, A, B>(
+export const mapMIgnore = <T, M>(
     foldable: Foldable<T>,
     monad: Monad<M>,
 ) =>
-(
+<A, B>(
     visitor: (a: A) => Get1<M, B>,
 ): (data: Get1<T, A>) => Get1<M, []> =>
     foldable.foldR((x: A) => (k: Get1<M, []>) =>

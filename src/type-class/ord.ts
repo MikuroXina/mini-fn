@@ -1,7 +1,9 @@
 import type { Get1, Hkt1 } from "../hkt.ts";
 import { type Option, some } from "../option.ts";
 import { isEq, type Ordering } from "../ordering.ts";
+import type { HasNegInf } from "./has-neg-inf.ts";
 import { type Eq, eqSymbol } from "./eq.ts";
+import type { HasInf } from "./has-inf.ts";
 import type { PartialOrd } from "./partial-ord.ts";
 import type { Contravariant } from "./variance.ts";
 
@@ -54,3 +56,17 @@ export const contra: Contravariant<OrdHkt> = {
         [eqSymbol]: true,
     }),
 };
+
+export const nonNanOrd:
+    & Ord<number>
+    & HasInf<number>
+    & HasNegInf<number> = {
+        ...fromCmp(() => (l: number, r: number) => {
+            if (Number.isNaN(l) || Number.isNaN(r)) {
+                throw new Error("NaN detected");
+            }
+            return Math.sign(l - r) as Ordering;
+        })(),
+        infinity: Number.POSITIVE_INFINITY,
+        negativeInfinity: Number.NEGATIVE_INFINITY,
+    };
