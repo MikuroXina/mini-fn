@@ -248,7 +248,7 @@ export const preOrder = (start: Vertex) => (graph: Graph): Vertex[] => {
  */
 export const postOrder = (start: Vertex) => (graph: Graph): Vertex[] => {
     const nodes = [] as Vertex[];
-    const visited = new WeakSet<Vertex>();
+    const visited = new Set<Vertex>();
     const visit = (visiting: Vertex) => {
         visited.add(visiting);
         for (const next of toIterator(adjsFrom(visiting)(graph))) {
@@ -280,7 +280,7 @@ export type CycleError = Readonly<{
  */
 export const topologicalSort = (graph: Graph): Result<CycleError, Vertex[]> => {
     const nodes = [] as Vertex[];
-    const visited = new WeakSet<Vertex>();
+    const visited = new Set<Vertex>();
     const visit = (visiting: Vertex): Result<CycleError, []> => {
         visited.add(visiting);
         for (const next of toIterator(adjsFrom(visiting)(graph))) {
@@ -313,7 +313,7 @@ export const topologicalSort = (graph: Graph): Result<CycleError, Vertex[]> => {
  * @returns Whether a cycle exists.
  */
 export const isCyclic = (graph: Graph): boolean => {
-    const visited = new WeakSet<Vertex>();
+    const visited = new Set<Vertex>();
     const visit = (visiting: Vertex): boolean => {
         visited.add(visiting);
         for (const next of toIterator(adjsFrom(visiting)(graph))) {
@@ -381,7 +381,7 @@ export const connectedComponents = (graph: Graph): Set<Vertex>[] => {
  */
 export const stronglyConnectedComponents = (graph: Graph): Set<Vertex>[] => {
     const deadEnds = [] as Vertex[];
-    const visited = new WeakSet<Vertex>();
+    const visited = new Set<Vertex>();
     const visit = (visiting: Vertex) => {
         visited.add(visiting);
         for (const next of toIterator(adjsFrom(visiting)(graph))) {
@@ -447,7 +447,7 @@ export const reachableVertices =
  */
 export const canReach =
     (start: Vertex) => (goal: Vertex) => (graph: Graph): boolean => {
-        const visited = new WeakSet<Vertex>();
+        const visited = new Set<Vertex>();
         const stack = [start];
         while (stack.length > 0) {
             const visiting = stack.pop()!;
@@ -479,7 +479,7 @@ export const dijkstra =
     (start: Vertex) =>
     (graph: Graph): W[] => {
         const dist = [...new Array(graph.length)].map(() => order.infinity);
-        const visited = new WeakSet<Vertex>();
+        const visited = new Set<Vertex>();
         type WeightedVertex = [Vertex, W];
         interface WeightedVertexHkt extends Hkt1 {
             readonly type: [Vertex, this["arg1"]];
