@@ -17,11 +17,14 @@ export type Thread<S> = { [threadNominal]: S };
 const wrapThread = <S, A>(dict: Map<MutRef<S, A>, MutVar<A>>): Thread<S> =>
     dict as unknown as Thread<S>;
 
-const newThreadVar = <A>(value: A) => <S>(thread: Thread<S>): MutRef<S, A> => {
-    const internal = thread as unknown as Map<MutRef<S, A>, MutVar<A>>;
-    const newRef = Symbol() as unknown as MutRef<S, A>;
-    internal.set(newRef, wrapVar(value));
-    return newRef;
+const newThreadVar = <A>(value: A) => {
+    const newRefSym = Symbol();
+    return <S>(thread: Thread<S>): MutRef<S, A> => {
+        const newRef = newRefSym as unknown as MutRef<S, A>;
+        const internal = thread as unknown as Map<MutRef<S, A>, MutVar<A>>;
+        internal.set(newRef, wrapVar(value));
+        return newRef;
+    };
 };
 
 const readThreadVar =
