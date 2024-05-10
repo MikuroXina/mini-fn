@@ -12,6 +12,9 @@ import type { Monad } from "./type-class/monad.ts";
 import { doT } from "./cat.ts";
 
 declare const threadNominal: unique symbol;
+/**
+ * A thread scope `S` that controls variables in computations on `Mut<S, _>`.
+ */
 export type Thread<S> = { [threadNominal]: S };
 
 const wrapThread = <S, A>(dict: Map<MutRef<S, A>, MutVar<A>>): Thread<S> =>
@@ -50,6 +53,9 @@ const dropThreadVar =
     };
 
 declare const retNominal: unique symbol;
+/**
+ * A foreign value of type `A` as a computation result of `Mut`.
+ */
 export type MutVar<A> = { [retNominal]: A };
 const wrapVar = <A>(value: A): MutVar<A> => value as unknown as MutVar<A>;
 const unwrapVar = <A>(ret: MutVar<A>): A => ret as unknown as A;
@@ -76,18 +82,45 @@ export interface MutHkt extends Hkt2 {
 export const runMut = <A>(mut: <S>() => Mut<S, A>): A =>
     unwrapVar(mut()(wrapThread(new Map())));
 
+/**
+ * Wraps the value of type `A` into `Mut<_, A>`.
+ *
+ * @param value - To be wrapped.
+ * @returns The new `Mut`.
+ */
 export const pureMut = <S, A>(value: A): Mut<S, A> => () => wrapVar(value);
 
+/**
+ * Maps a value over `Mut<S, _>` by `fn`.
+ *
+ * @param fn - A function to map the value.
+ * @param mut - A `Mut` to be mapped.
+ * @returns The mapped new `Mut`.
+ */
 export const mapMut =
     <A, B>(fn: (a: A) => B) => <S>(mut: Mut<S, A>): Mut<S, B> => (thread) => {
         const a = mut(thread);
         return wrapVar(fn(unwrapVar(a)));
     };
 
+/**
+ * Applies a `Mut` of function to a `Mut` of value.
+ *
+ * @param fn - A function over `Mut` to map.
+ * @param mut - A `Mut` to be mapped.
+ * @returns The applied new `Mut`.
+ */
 export const applyMut =
     <S, A, B>(fn: Mut<S, (a: A) => B>) => (mut: Mut<S, A>): Mut<S, B> =>
         flatMapMut((f: (a: A) => B) => mapMut(f)(mut))(fn);
 
+/**
+ * Maps and flattens a `Mut` by `fn`.
+ *
+ * @param fn - A function that returns a `Mut`.
+ * @param mut - A `Mut` to be mapped.
+ * @returns The mapped new `Mut`.
+ */
 export const flatMapMut =
     <S, A, B>(fn: (a: A) => Mut<S, B>) =>
     (mut: Mut<S, A>): Mut<S, B> =>
@@ -96,16 +129,25 @@ export const flatMapMut =
         return fn(unwrapVar(a))(thread);
     };
 
+/**
+ * @returns The `Functor` instance for `Mut<S, _>`.
+ */
 export const functor = <S>(): Functor<Apply2Only<MutHkt, S>> => ({
     map: mapMut,
 });
 
+/**
+ * @returns The `Applicative` instance for `Mut<S, _>`.
+ */
 export const applicative = <S>(): Applicative<Apply2Only<MutHkt, S>> => ({
     map: mapMut,
     pure: pureMut,
     apply: applyMut,
 });
 
+/**
+ * @returns The `Monad` instance for `Mut<S, _>`.
+ */
 export const monad = <S>(): Monad<Apply2Only<MutHkt, S>> => ({
     ...applicative(),
     flatMap: flatMapMut,
