@@ -7,30 +7,61 @@ import {
     length,
     popMin,
 } from "./binary-heap.ts";
-import { cat } from "./cat.ts";
+import { doT } from "./cat.ts";
+import { monad, runMut } from "./mut.ts";
 import { none, some } from "./option.ts";
 import type { Ordering } from "./ordering.ts";
 import { fromCmp } from "./type-class/ord.ts";
 
 Deno.test("simple usage", () => {
-    const heap = empty(
-        fromCmp(() => (l: number, r: number) => Math.sign(l - r) as Ordering)(),
-    );
-    assertEquals(getMin(heap), none());
-
-    let inserted = cat(heap)
-        .feed(insert(1))
-        .feed(insert(5))
-        .feed(insert(2))
-        .value;
-    assertEquals(getMin(inserted), some(1));
-    assertEquals(length(inserted), 3);
-
-    inserted = popMin(inserted);
-    assertEquals(getMin(inserted), some(2));
-    inserted = popMin(inserted);
-    assertEquals(getMin(inserted), some(5));
-    inserted = popMin(inserted);
-    assertEquals(getMin(heap), none());
-    assertEquals(isEmpty(inserted), true);
+    runMut(<S>() => {
+        const m = monad<S>();
+        return doT(m)
+            .addM(
+                "heap",
+                empty(
+                    fromCmp(() => (l: number, r: number) =>
+                        Math.sign(l - r) as Ordering
+                    )(),
+                ),
+            )
+            .addMWith("min", ({ heap }) => getMin(heap))
+            .runWith(({ min }) => {
+                assertEquals(min, none());
+                return m.pure([]);
+            })
+            .runWith(({ heap }) => insert(1)(heap))
+            .runWith(({ heap }) => insert(5)(heap))
+            .runWith(({ heap }) => insert(2)(heap))
+            .addMWith("min", ({ heap }) => getMin(heap))
+            .addMWith("len", ({ heap }) => length(heap))
+            .runWith(({ min, len }) => {
+                assertEquals(min, some(1));
+                assertEquals(len, 3);
+                return m.pure([]);
+            })
+            .addMWith("popped", ({ heap }) => popMin(heap))
+            .addMWith("min", ({ heap }) => getMin(heap))
+            .runWith(({ popped, min }) => {
+                assertEquals(popped, some(1));
+                assertEquals(min, some(2));
+                return m.pure([]);
+            })
+            .addMWith("popped", ({ heap }) => popMin(heap))
+            .addMWith("min", ({ heap }) => getMin(heap))
+            .runWith(({ popped, min }) => {
+                assertEquals(popped, some(2));
+                assertEquals(min, some(5));
+                return m.pure([]);
+            })
+            .addMWith("popped", ({ heap }) => popMin(heap))
+            .addMWith("min", ({ heap }) => getMin(heap))
+            .addMWith("wasEmpty", ({ heap }) => isEmpty(heap))
+            .runWith(({ popped, min, wasEmpty }) => {
+                assertEquals(popped, some(5));
+                assertEquals(min, none());
+                assertEquals(wasEmpty, true);
+                return m.pure([]);
+            }).finish(() => {});
+    });
 });
