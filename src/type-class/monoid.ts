@@ -28,6 +28,22 @@ export const flippedMonoid = <M>(m: Monoid<M>): Monoid<M> => ({
     combine: (l, r) => m.combine(r, l),
 });
 
+export const addMonoid: Monoid<number> = {
+    combine(l: number, r: number): number {
+        return l + r;
+    },
+    identity: 0,
+    [semiGroupSymbol]: true,
+};
+
+export const mulMonoid: Monoid<number> = {
+    combine(l: number, r: number): number {
+        return l * r;
+    },
+    identity: 1,
+    [semiGroupSymbol]: true,
+};
+
 export const minMonoid = (infinity: number): Monoid<number> => ({
     combine(l, r): number {
         return Math.min(l, r);
