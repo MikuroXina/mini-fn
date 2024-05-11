@@ -1,5 +1,8 @@
 /**
  * This module provides a multi-set by the counting method.
+ *
+ * @packageDocumentation
+ * @module
  */
 
 import {
