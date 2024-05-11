@@ -7,15 +7,13 @@ import {
     length,
     popMin,
 } from "./binary-heap.ts";
-import { doT } from "./cat.ts";
-import { monad, runMut } from "./mut.ts";
+import { doMut } from "./mut.ts";
 import { none, some } from "./option.ts";
 import { nonNanOrd } from "./type-class/ord.ts";
 
 Deno.test("simple usage", () => {
-    runMut(<S>() => {
-        const m = monad<S>();
-        return doT(m)
+    doMut((cat) =>
+        cat
             .addM(
                 "heap",
                 empty(nonNanOrd),
@@ -23,7 +21,7 @@ Deno.test("simple usage", () => {
             .addMWith("min", ({ heap }) => getMin(heap))
             .runWith(({ min }) => {
                 assertEquals(min, none());
-                return m.pure([]);
+                return cat.monad.pure([]);
             })
             .runWith(({ heap }) => insert(1)(heap))
             .runWith(({ heap }) => insert(5)(heap))
@@ -33,21 +31,21 @@ Deno.test("simple usage", () => {
             .runWith(({ min, len }) => {
                 assertEquals(min, some(1));
                 assertEquals(len, 3);
-                return m.pure([]);
+                return cat.monad.pure([]);
             })
             .addMWith("popped", ({ heap }) => popMin(heap))
             .addMWith("min", ({ heap }) => getMin(heap))
             .runWith(({ popped, min }) => {
                 assertEquals(popped, some(1));
                 assertEquals(min, some(2));
-                return m.pure([]);
+                return cat.monad.pure([]);
             })
             .addMWith("popped", ({ heap }) => popMin(heap))
             .addMWith("min", ({ heap }) => getMin(heap))
             .runWith(({ popped, min }) => {
                 assertEquals(popped, some(2));
                 assertEquals(min, some(5));
-                return m.pure([]);
+                return cat.monad.pure([]);
             })
             .addMWith("popped", ({ heap }) => popMin(heap))
             .addMWith("min", ({ heap }) => getMin(heap))
@@ -56,7 +54,7 @@ Deno.test("simple usage", () => {
                 assertEquals(popped, some(5));
                 assertEquals(min, none());
                 assertEquals(wasEmpty, true);
-                return m.pure([]);
-            }).finish(() => {});
-    });
+                return cat.monad.pure([]);
+            }).finish(() => {})
+    );
 });

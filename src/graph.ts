@@ -12,7 +12,7 @@
  * @packageDocumentation
  */
 
-import { doT } from "./cat.ts";
+import { type CatT, doT } from "./cat.ts";
 import {
     appendToHead,
     empty,
@@ -33,9 +33,9 @@ import { err, isErr, ok, type Result } from "./result.ts";
 import { BinaryHeap } from "../mod.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { fromProjection, type Ord } from "./type-class/ord.ts";
-import type { Hkt1 } from "./hkt.ts";
+import type { Apply2Only, Hkt1 } from "./hkt.ts";
 import type { HasInf } from "./type-class/has-inf.ts";
-import { monad as mutMonad, type Mut, runMut } from "./mut.ts";
+import { doMut, type Mut, type MutHkt } from "./mut.ts";
 import { mapMIgnore } from "./type-class/foldable.ts";
 
 declare const vertexNominal: unique symbol;
@@ -484,60 +484,54 @@ export const dijkstra =
         interface WeightedVertexHkt extends Hkt1 {
             readonly type: [Vertex, this["arg1"]];
         }
-        runMut(<S>() => {
-            const m = mutMonad<S>();
-            return doT(m)
-                .addM(
-                    "heap",
-                    BinaryHeap.empty(
-                        fromProjection<WeightedVertexHkt>(([, weight]) =>
-                            weight
-                        )(order),
+        doMut(<S>(cat: CatT<Apply2Only<MutHkt, S>, Record<string, never>>) =>
+            cat.addM(
+                "heap",
+                BinaryHeap.empty(
+                    fromProjection<WeightedVertexHkt>(([, weight]) => weight)(
+                        order,
                     ),
-                )
-                .runWith(({ heap }) =>
-                    BinaryHeap.insert(
-                        [start, monoid.identity] as WeightedVertex,
-                    )(
-                        heap,
-                    )
-                )
-                .finishM(({ heap }) => {
-                    const body: Mut<S, never[]> = doT(m)
-                        .addM("min", BinaryHeap.popMin(heap))
-                        .finishM(({ min }) => {
-                            const [visiting, visitingDist] = unwrap(min);
-                            visited.add(visiting);
-                            dist[visiting] = visitingDist;
-                            return mapMIgnore(foldable, m)(
-                                (next: Vertex): Mut<S, never[]> => {
-                                    if (visited.has(next)) {
-                                        return m.pure([]);
-                                    }
-                                    const nextWeight = edgeWeight([
-                                        visiting,
-                                        next,
-                                    ]);
-                                    return BinaryHeap.insert([
-                                        next,
-                                        monoid.combine(
-                                            visitingDist,
-                                            nextWeight,
-                                        ),
-                                    ] as WeightedVertex)(heap);
-                                },
-                            )(adjsFrom(visiting)(graph));
-                        });
-                    const loop = (
-                        heap: BinaryHeap.BinaryHeap<S, WeightedVertex>,
-                    ): Mut<S, never[]> =>
-                        m.flatMap((wasEmpty) =>
-                            wasEmpty
-                                ? m.pure([])
-                                : m.flatMap(() => loop(heap))(body)
-                        )(BinaryHeap.isEmpty(heap));
-                    return loop(heap);
-                });
-        });
+                ),
+            ).runWith(({ heap }) =>
+                BinaryHeap.insert(
+                    [start, monoid.identity] as WeightedVertex,
+                )(heap)
+            ).finishM(({ heap }) => {
+                const body = cat
+                    .addM("min", BinaryHeap.popMin(heap))
+                    .finishM(({ min }) => {
+                        const [visiting, visitingDist] = unwrap(min);
+                        visited.add(visiting);
+                        dist[visiting] = visitingDist;
+                        return mapMIgnore(foldable, cat.monad)(
+                            (next: Vertex) => {
+                                if (visited.has(next)) {
+                                    return cat.monad.pure([]);
+                                }
+                                const nextWeight = edgeWeight([
+                                    visiting,
+                                    next,
+                                ]);
+                                return BinaryHeap.insert([
+                                    next,
+                                    monoid.combine(
+                                        visitingDist,
+                                        nextWeight,
+                                    ),
+                                ] as WeightedVertex)(heap);
+                            },
+                        )(adjsFrom(visiting)(graph));
+                    });
+                const loop = (
+                    heap: BinaryHeap.BinaryHeap<S, WeightedVertex>,
+                ): Mut<S, never[]> =>
+                    cat.monad.flatMap((wasEmpty) =>
+                        wasEmpty
+                            ? cat.monad.pure([])
+                            : cat.monad.flatMap(() => loop(heap))(body)
+                    )(BinaryHeap.isEmpty(heap));
+                return loop(heap);
+            })
+        );
         return dist;
     };
