@@ -167,7 +167,7 @@ export const countItems = <K>(items: List<K>): Map<K, number> => {
         if (m.has(item)) {
             m.set(item, m.get(item)! + 1);
         } else {
-            m.set(item, 0);
+            m.set(item, 1);
         }
     }
     return m;
