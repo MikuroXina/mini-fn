@@ -2,9 +2,9 @@ import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import {
     cmp as listCmp,
     fromIterable,
-    isNull,
     type List,
     partialCmp as listPartialCmp,
+    toIterator,
 } from "./list.ts";
 import { isNone, isSome, none, type Option, some } from "./option.ts";
 import type { Ordering } from "./ordering.ts";
@@ -102,10 +102,8 @@ export const singleton = <K>(key: K) => <V>(value: V): Map<K, V> =>
 
 export const fromList = <K, V>(list: List<Tuple<K, V>>): Map<K, V> => {
     const m = new Map<K, V>();
-    while (!isNull(list)) {
-        const [key, value] = list.current()[1]!;
+    for (const [key, value] of toIterator(list)) {
         m.set(key, value);
-        list = list.rest();
     }
     return m;
 };
@@ -113,14 +111,12 @@ export const fromListWith =
     <V>(combiner: (newValue: V) => (oldValue: V) => V) =>
     <K>(list: List<Tuple<K, V>>): Map<K, V> => {
         const m = new Map<K, V>();
-        while (!isNull(list)) {
-            const [key, value] = list.current()[1]!;
+        for (const [key, value] of toIterator(list)) {
             if (m.has(key)) {
                 m.set(key, combiner(value)(m.get(key)!));
             } else {
                 m.set(key, value);
             }
-            list = list.rest();
         }
         return m;
     };
@@ -128,14 +124,12 @@ export const fromListWithKey =
     <K, V>(combiner: (key: K) => (newValue: V) => (oldValue: V) => V) =>
     (list: List<Tuple<K, V>>): Map<K, V> => {
         const m = new Map<K, V>();
-        while (!isNull(list)) {
-            const [key, value] = list.current()[1]!;
+        for (const [key, value] of toIterator(list)) {
             if (m.has(key)) {
                 m.set(key, combiner(key)(value)(m.get(key)!));
             } else {
                 m.set(key, value);
             }
-            list = list.rest();
         }
         return m;
     };
@@ -160,6 +154,24 @@ export const fromArrayWith =
         }
         return m;
     };
+
+/**
+ * Counts occurring items and record it by item as key.
+ *
+ * @param items - To be counted.
+ * @returns The counts by item.
+ */
+export const countItems = <K>(items: List<K>): Map<K, number> => {
+    const m = new Map<K, number>();
+    for (const item of toIterator(items)) {
+        if (m.has(item)) {
+            m.set(item, m.get(item)! + 1);
+        } else {
+            m.set(item, 0);
+        }
+    }
+    return m;
+};
 
 export const clone = <K, V>(m: Map<K, V>): Map<K, V> => new Map(m);
 
