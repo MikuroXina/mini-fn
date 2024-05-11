@@ -20,9 +20,13 @@ export type SegTreeInner<T> = {
      */
     items: T[];
     /**
-     * The number of the actual stored items, which are stored in the tail of `items`.
+     * The length of source array.
      */
-    size: number;
+    srcLen: number;
+    /**
+     * The number of the actual stored items, or capacity. Primary data are stored from `items[size - 1]` to `items[size - 1 + srcLen]`.
+     */
+    actualLen: number;
     /**
      * The `Monoid` instance for `T`.
      */
@@ -69,7 +73,8 @@ export const withLen = <T>(monoid: Monoid<T>) => (len: number): SegTree<T> => {
     const size = nextPowerOfTwo(len);
     return {
         items: [...new Array(size * 2 - 1)].map(() => monoid.identity),
-        size,
+        srcLen: len,
+        actualLen: size,
         monoid,
     };
 };
@@ -106,7 +111,8 @@ export const withItems =
         go(0);
         return {
             items: caches,
-            size,
+            srcLen: items.length,
+            actualLen: size,
             monoid,
         };
     };
@@ -140,7 +146,7 @@ export const query =
             const right = go(secondChildOf(visiting), mid, lookingEnd);
             return tree.monoid.combine(left, right);
         };
-        return go(0, 0, tree.size);
+        return go(0, 0, tree.actualLen);
     };
 
 /**
@@ -160,7 +166,7 @@ export const get = (index: number): <T>(tree: SegTree<T>) => T =>
  * @returns The shallow copy of stored items.
  */
 export const intoItems = <T>(tree: SegTree<T>): T[] =>
-    tree.items.slice(tree.size - 1);
+    tree.items.slice(tree.actualLen - 1, tree.actualLen - 1 + tree.srcLen);
 
 /**
  * Makes the segment tree into the mutable reference on `Mut` environment.
@@ -198,7 +204,7 @@ export const insert =
     (index: number) =>
     (value: T): Mut<S, never[]> =>
         modifyMutRef(ref)((tree) => {
-            index += tree.size - 1;
+            index += tree.actualLen - 1;
             tree.items[index] = value;
             while (0 < index) {
                 index = parentOf(index);
