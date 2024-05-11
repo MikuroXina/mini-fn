@@ -41,6 +41,11 @@ export interface CatT<M, CTX> {
     readonly ctx: Get1<M, CTX>;
 
     /**
+     * The `Monad` instance for `M`.
+     */
+    readonly monad: Monad<M>;
+
+    /**
      * Binds a new value wrapped by the monad.
      *
      * @param key - The new property key for context
@@ -169,6 +174,7 @@ export interface CatT<M, CTX> {
 export const catT =
     <M>(monad: Monad<M>) => <CTX>(ctx: Get1<M, CTX>): CatT<M, CTX> => ({
         ctx,
+        monad,
         addM: <const K extends PropertyKey, A>(key: K, value: Get1<M, A>) =>
             catT(monad)(
                 monad.flatMap((c: CTX) =>
