@@ -1,4 +1,5 @@
 export * as AbelianGroup from "./type-class/abelian-group.ts";
+export * as AbelianMonoid from "./type-class/abelian-monoid.ts";
 export * as Applicative from "./type-class/applicative.ts";
 export * as Apply from "./type-class/apply.ts";
 export * as Arrow from "./type-class/arrow.ts";
@@ -41,6 +42,7 @@ export * as Ring from "./type-class/ring.ts";
 export * as SemiGroup from "./type-class/semi-group.ts";
 export * as SemiGroupal from "./type-class/semi-groupal.ts";
 export * as SemiGroupoid from "./type-class/semi-groupoid.ts";
+export * as SemiRing from "./type-class/semi-ring.ts";
 export * as Settable from "./type-class/settable.ts";
 export * as Strong from "./type-class/strong.ts";
 export * as Symmetric from "./type-class/symmetric.ts";
