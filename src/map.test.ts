@@ -602,3 +602,14 @@ Deno.test("isProperSubsetOfBy", () => {
         false,
     );
 });
+
+Deno.test("countItems", () => {
+    const res = Map.countItems(fromIterable([1, 4, 2, 3, 5, 2, 3]));
+    assertEquals(res.get(0), undefined);
+    assertEquals(res.get(1), 1);
+    assertEquals(res.get(2), 2);
+    assertEquals(res.get(3), 2);
+    assertEquals(res.get(4), 1);
+    assertEquals(res.get(5), 1);
+    assertEquals(res.get(6), undefined);
+});
