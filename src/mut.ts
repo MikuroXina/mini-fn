@@ -9,7 +9,7 @@ import type { Applicative } from "./type-class/applicative.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Apply2Only, Hkt2 } from "./hkt.ts";
 import type { Monad } from "./type-class/monad.ts";
-import { doT } from "./cat.ts";
+import { type CatT, doT } from "./cat.ts";
 
 declare const threadNominal: unique symbol;
 /**
@@ -81,6 +81,20 @@ export interface MutHkt extends Hkt2 {
  */
 export const runMut = <A>(mut: <S>() => Mut<S, A>): A =>
     unwrapVar(mut()(wrapThread(new Map())));
+
+/**
+ * Executes a `Mut` with `CatT` of `Mut<S, _>>` by a state *thread*.
+ *
+ * To hide the internal state, the type parameter `S` is universal quantified.
+ *
+ * @param mut - To be executed.
+ * @returns The result of computation.
+ */
+export const doMut = <A>(
+    mut: <S>(
+        cat: CatT<Apply2Only<MutHkt, S>, Record<string, never>>,
+    ) => Mut<S, A>,
+): A => unwrapVar(mut(doT(monad()))(wrapThread(new Map())));
 
 /**
  * Wraps the value of type `A` into `Mut<_, A>`.
