@@ -189,7 +189,7 @@ export const readMutRef = <S, A>(ref: MutRef<S, A>): Mut<S, A> =>
  * @returns The writing operation.
  */
 export const writeMutRef =
-    <S, A>(ref: MutRef<S, A>) => (newValue: A): Mut<S, []> => (thread) => {
+    <S, A>(ref: MutRef<S, A>) => (newValue: A): Mut<S, never[]> => (thread) => {
         writeThreadVar(ref)(newValue)(thread);
         return wrapVar([]);
     };
@@ -202,7 +202,8 @@ export const writeMutRef =
  * @returns The modifying operation.
  */
 export const modifyMutRef =
-    <S, A>(ref: MutRef<S, A>) => (modifier: (oldValue: A) => A): Mut<S, []> =>
+    <S, A>(ref: MutRef<S, A>) =>
+    (modifier: (oldValue: A) => A): Mut<S, never[]> =>
         doT(monad<S>())
             .addM("value", readMutRef(ref))
             .addWith("modified", ({ value }) => modifier(value))
@@ -214,7 +215,8 @@ export const modifyMutRef =
  * @param ref - A target to invalidate.
  * @returns The dropping operation.
  */
-export const dropMutRef = <S, A>(ref: MutRef<S, A>): Mut<S, []> => (thread) => {
-    dropThreadVar(ref)(thread);
-    return wrapVar([]);
-};
+export const dropMutRef =
+    <S, A>(ref: MutRef<S, A>): Mut<S, never[]> => (thread) => {
+        dropThreadVar(ref)(thread);
+        return wrapVar([]);
+    };

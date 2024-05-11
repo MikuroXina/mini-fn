@@ -75,7 +75,7 @@ export const subtract = <G>(group: Group<G>) => (l: G) => (r: G): G =>
 export const powi = <G>(group: Group<G>) => (base: G) => (exp: number): G =>
     unwrap(powiEZ(toGroupExceptZero(group))(base)(exp));
 
-export const trivialGroup: Group<[]> = {
+export const trivialGroup: Group<never[]> = {
     combine: () => [],
     identity: [],
     invert: () => [],

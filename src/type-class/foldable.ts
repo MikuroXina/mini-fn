@@ -235,7 +235,7 @@ export const mapMIgnore = <T, M>(
 ) =>
 <A, B>(
     visitor: (a: A) => Get1<M, B>,
-): (data: Get1<T, A>) => Get1<M, []> =>
-    foldable.foldR((x: A) => (k: Get1<M, []>) =>
-        monad.flatMap(() => k)(visitor(x))
+): (data: Get1<T, A>) => Get1<M, never[]> =>
+    foldable.foldR((x: A) => (k: Get1<M, never[]>) =>
+        monad.flatMap<B, never[]>(() => k)(visitor(x))
     )(monad.pure([]));

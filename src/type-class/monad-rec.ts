@@ -94,7 +94,7 @@ export const tailRec3 = <X, A, B, C>(
  */
 export const forever =
     <M>(m: MonadRec<M>) => <A, B>(op: Get1<M, A>): Get1<M, B> =>
-        m.tailRecM((state: []): Get1<M, ControlFlow<B, []>> =>
+        m.tailRecM((state: never[]): Get1<M, ControlFlow<B, never[]>> =>
             replace(m)(newContinue(state))(op)
         )([]);
 
@@ -127,9 +127,9 @@ export const whileSome =
  */
 export const untilSome =
     <M>(m: MonadRec<M>) => <T>(optionOp: Get1<M, Option<T>>): Get1<M, T> =>
-        m.tailRecM((_: []): Get1<M, ControlFlow<T, []>> =>
+        m.tailRecM((_: never[]): Get1<M, ControlFlow<T, never[]>> =>
             m.map(
-                mapOrElse((): ControlFlow<T, []> => newContinue([]))(
+                mapOrElse((): ControlFlow<T, never[]> => newContinue([]))(
                     newBreak<T>,
                 ),
             )(optionOp)

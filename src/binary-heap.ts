@@ -161,12 +161,13 @@ const downHeap =
  * @param heap - To be inserted.
  * @returns The inserted new heap.
  */
-export const insert = <T>(item: T) => <S>(heap: BinaryHeap<S, T>): Mut<S, []> =>
-    modifyMutRef(heap)((heap) => {
-        heap.items.push(item);
-        upHeap(heap.items.length - 1)(heap.order)(heap.items);
-        return heap;
-    });
+export const insert =
+    <T>(item: T) => <S>(heap: BinaryHeap<S, T>): Mut<S, never[]> =>
+        modifyMutRef(heap)((heap) => {
+            heap.items.push(item);
+            upHeap(heap.items.length - 1)(heap.order)(heap.items);
+            return heap;
+        });
 
 /**
  * Removes the minimum item from the heap. It takes `O(log n)`, but also takes `O(n)` to copy the items.

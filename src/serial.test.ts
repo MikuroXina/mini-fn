@@ -13,7 +13,7 @@ Deno.test("multiple integers", async () => {
         .run(encU8(3))
         .run(encU16Be(1))
         .run(encU32Be(4))
-        .finish<[]>(() => []);
+        .finish(() => []);
     const buf = await runCode(code);
     const array = new Uint8Array(buf);
     assertEquals(array[0], 3);

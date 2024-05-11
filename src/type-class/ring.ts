@@ -19,7 +19,7 @@ export interface Ring<R> {
     readonly multiplication: Monoid<R>;
 }
 
-export const trivialRing: Ring<[]> = {
+export const trivialRing: Ring<never[]> = {
     additive: trivialAbelianGroup,
     multiplication: trivialMonoid,
 };

@@ -153,7 +153,7 @@ export const fillWithBuildStep =
 /**
  * An identity build step that does nothing.
  */
-export const finalStep: BuildStep<[]> = ([start]) =>
+export const finalStep: BuildStep<never[]> = ([start]) =>
     Promise.resolve({
         type: buildDoneNominal,
         nextFreeIndex: start,
@@ -171,7 +171,7 @@ export type Builder = <I>(step: BuildStep<I>) => BuildStep<I>;
  * @param builder - An execution target.
  * @returns The identity build step, but transformed by the builder.
  */
-export const runBuilder = (builder: Builder): BuildStep<[]> =>
+export const runBuilder = (builder: Builder): BuildStep<never[]> =>
     builder(finalStep);
 
 /**
@@ -571,7 +571,7 @@ export type CodeM<T> = readonly [result: T, builder: Builder];
 /**
  * Encoded result, having a void computation result.
  */
-export type Code = CodeM<[]>;
+export type Code = CodeM<never[]>;
 /**
  * An `Encoder` that encodes the value of `T` into a `Code`.
  */
@@ -698,7 +698,7 @@ export const flushCode: Code = tell(flush);
 /**
  * Encodes nothing. It is an identity encoder.
  */
-export const encUnit: Encoder<[]> = compose(tell)(() => empty);
+export const encUnit: Encoder<never[]> = compose(tell)(() => empty);
 
 /**
  * Encodes a number as a signed 8-bit integer.
@@ -1009,8 +1009,11 @@ export const decodeRaw: Decoder<DataView> = (ctx) => () => (onS) =>
  * @returns The overwriting decoder.
  */
 export const putRaw =
-    (data: DataView) => (offset: number): Decoder<[]> => (ctx) => () => (onS) =>
-        onS({ ...ctx, input: data, offset })([]);
+    (data: DataView) =>
+    (offset: number): Decoder<never[]> =>
+    (ctx) =>
+    () =>
+    (onS) => onS({ ...ctx, input: data, offset })([]);
 
 /**
  * Labels the stack trace with `note`. It is used for reporting an error on failure.
@@ -1064,7 +1067,7 @@ export const flatMapDecoder =
  * @returns The failing decoder.
  */
 export const failDecoder =
-    (message: string): Decoder<[]> => (ctx) => (onF) => () =>
+    (message: string): Decoder<never[]> => (ctx) => (onF) => () =>
         onF(ctx)([])("read failure: " + message);
 
 export interface DecoderHkt extends Hkt1 {
@@ -1338,7 +1341,7 @@ export const isolate =
  * @param count - The number of bytes to skip.
  * @returns The skipping decoder.
  */
-export const skip = (count: number): Decoder<[]> =>
+export const skip = (count: number): Decoder<never[]> =>
     doT(monadForDecoder)
         .addM("bytes", ensure(count))
         .addM("curr", parsedBytes)

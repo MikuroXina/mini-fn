@@ -28,7 +28,7 @@ Deno.test("counter", () => {
             .addM("count", newMutRef(0))
             .runWith(
                 ({ count }) => {
-                    const loop = (i: number): Mut<S, []> =>
+                    const loop = (i: number): Mut<S, never[]> =>
                         i <= 0 ? m.pure([]) : m.flatMap(() => loop(i - 1))(
                             modifyMutRef(count)((c: number) => c + 1),
                         );

@@ -17,7 +17,7 @@ export interface AbelianGroup<G> extends Group<G> {
     readonly [abelSymbol]: true;
 }
 
-export const trivialAbelianGroup: AbelianGroup<[]> = {
+export const trivialAbelianGroup: AbelianGroup<never[]> = {
     combine: () => [],
     identity: [],
     invert: () => [],
