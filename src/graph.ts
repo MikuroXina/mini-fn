@@ -281,7 +281,7 @@ export type CycleError = Readonly<{
 export const topologicalSort = (graph: Graph): Result<CycleError, Vertex[]> => {
     const nodes = [] as Vertex[];
     const visited = new Set<Vertex>();
-    const visit = (visiting: Vertex): Result<CycleError, []> => {
+    const visit = (visiting: Vertex): Result<CycleError, never[]> => {
         visited.add(visiting);
         for (const next of toIterator(adjsFrom(visiting)(graph))) {
             if (visited.has(next)) {
@@ -293,7 +293,7 @@ export const topologicalSort = (graph: Graph): Result<CycleError, Vertex[]> => {
             }
         }
         nodes.push(visiting);
-        return ok([] as []);
+        return ok([]);
     };
     for (let start = 0 as Vertex; start < graph.length; ++start) {
         if (!visited.has(start)) {
@@ -503,16 +503,16 @@ export const dijkstra =
                     )
                 )
                 .finishM(({ heap }) => {
-                    const body: Mut<S, []> = doT(m)
+                    const body: Mut<S, never[]> = doT(m)
                         .addM("min", BinaryHeap.popMin(heap))
                         .finishM(({ min }) => {
                             const [visiting, visitingDist] = unwrap(min);
                             visited.add(visiting);
                             dist[visiting] = visitingDist;
                             return mapMIgnore(foldable, m)(
-                                (next: Vertex): Mut<S, []> => {
+                                (next: Vertex): Mut<S, never[]> => {
                                     if (visited.has(next)) {
-                                        return m.pure([] as []);
+                                        return m.pure([]);
                                     }
                                     const nextWeight = edgeWeight([
                                         visiting,
@@ -530,10 +530,10 @@ export const dijkstra =
                         });
                     const loop = (
                         heap: BinaryHeap.BinaryHeap<S, WeightedVertex>,
-                    ): Mut<S, []> =>
+                    ): Mut<S, never[]> =>
                         m.flatMap((wasEmpty) =>
                             wasEmpty
-                                ? m.pure([] as [])
+                                ? m.pure([])
                                 : m.flatMap(() => loop(heap))(body)
                         )(BinaryHeap.isEmpty(heap));
                     return loop(heap);

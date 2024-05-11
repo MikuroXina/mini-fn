@@ -17,7 +17,7 @@ export const append = <T>(monoid: Monoid<T>) => (l: T) => (r: T): T =>
 export const concat = <T>(monoid: Monoid<T>): (list: List.List<T>) => T =>
     List.foldL(append(monoid))(monoid.identity);
 
-export const trivialMonoid: Monoid<[]> = {
+export const trivialMonoid: Monoid<never[]> = {
     combine: () => [],
     identity: [],
     [semiGroupSymbol]: true,

@@ -41,7 +41,7 @@ export const newBreak = <B>(b: B): Break<B> => [breakSymbol, b];
 /**
  * An utility type `ControlFlow<B, C>`, which tells an operation whether it should exit early or go on. It's more clear than `boolean` or `Result` to show your code flow control explicity.
  */
-export type ControlFlow<B, C = []> = Continue<C> | Break<B>;
+export type ControlFlow<B, C = never[]> = Continue<C> | Break<B>;
 
 export const isContinue = <B, C>(cf: ControlFlow<B, C>): cf is Continue<C> =>
     cf[0] === continueSymbol;

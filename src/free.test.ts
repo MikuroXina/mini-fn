@@ -70,11 +70,14 @@ Deno.test("hello language", async (t) => {
         },
     );
 
-    const hello: Free<HelloLangHkt, []> = liftF({ type: "Hello", next: [] });
-    const hey: Free<HelloLangHkt, []> = liftF({ type: "Hey", next: [] });
-    const yearsOld = (years: number): Free<HelloLangHkt, []> =>
+    const hello: Free<HelloLangHkt, never[]> = liftF({
+        type: "Hello",
+        next: [],
+    });
+    const hey: Free<HelloLangHkt, never[]> = liftF({ type: "Hey", next: [] });
+    const yearsOld = (years: number): Free<HelloLangHkt, never[]> =>
         liftF({ type: "YearsOld", years, next: [] });
-    const bye: Free<HelloLangHkt, []> = liftF({ type: "Bye" });
+    const bye: Free<HelloLangHkt, never[]> = liftF({ type: "Bye" });
 
     const m = freeMonad<HelloLangHkt>();
 

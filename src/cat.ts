@@ -70,7 +70,7 @@ export interface CatT<M, CTX> {
      * @param computation - The computation to run.
      * @returns A new `CatT` with modified environment.
      */
-    readonly run: (computation: Get1<M, []>) => CatT<M, CTX>;
+    readonly run: (computation: Get1<M, never[]>) => CatT<M, CTX>;
 
     /**
      * Runs the computation with the context.
@@ -78,7 +78,9 @@ export interface CatT<M, CTX> {
      * @param computation - The computation to run.
      * @returns A new `CatT` with modified environment.
      */
-    readonly runWith: (computation: (ctx: CTX) => Get1<M, []>) => CatT<M, CTX>;
+    readonly runWith: (
+        computation: (ctx: CTX) => Get1<M, never[]>,
+    ) => CatT<M, CTX>;
 
     /**
      * Binds a new value wrapped by the monad, calculated from `ctx` by `fn`.
@@ -101,7 +103,7 @@ export interface CatT<M, CTX> {
      */
     readonly when: (
         cond: (ctx: CTX) => boolean,
-        computation: (ctx: CTX) => Get1<M, []>,
+        computation: (ctx: CTX) => Get1<M, never[]>,
     ) => CatT<M, CTX>;
 
     /**
@@ -113,7 +115,7 @@ export interface CatT<M, CTX> {
      */
     readonly loop: <S>(
         initState: S,
-        body: (state: S, ctx: CTX) => Get1<M, ControlFlow<[], S>>,
+        body: (state: S, ctx: CTX) => Get1<M, ControlFlow<never[], S>>,
     ) => CatT<M, CTX>;
 
     /**
@@ -125,7 +127,7 @@ export interface CatT<M, CTX> {
      */
     readonly while: (
         cond: (ctx: CTX) => boolean,
-        body: (ctx: CTX) => Get1<M, []>,
+        body: (ctx: CTX) => Get1<M, never[]>,
     ) => CatT<M, CTX>;
 
     /**
@@ -137,7 +139,7 @@ export interface CatT<M, CTX> {
      */
     readonly foreach: <T>(
         iter: List<T>,
-        body: (item: T, ctx: CTX) => Get1<M, []>,
+        body: (item: T, ctx: CTX) => Get1<M, never[]>,
     ) => CatT<M, CTX>;
 
     /**
@@ -218,11 +220,13 @@ export const catT =
             ),
         loop: <S>(
             initialState: S,
-            body: (state: S, ctx: CTX) => Get1<M, ControlFlow<[], S>>,
+            body: (state: S, ctx: CTX) => Get1<M, ControlFlow<never[], S>>,
         ): CatT<M, CTX> => {
             const go = (state: S): Get1<M, CTX> =>
                 monad.flatMap((c: CTX) =>
-                    monad.flatMap((flow: ControlFlow<[], S>): Get1<M, CTX> =>
+                    monad.flatMap((
+                        flow: ControlFlow<never[], S>,
+                    ): Get1<M, CTX> =>
                         isBreak(flow) ? monad.pure(c) : go(flow[1])
                     )(body(state, c))
                 )(ctx);
@@ -239,7 +243,7 @@ export const catT =
         },
         foreach: <T>(
             iter: List<T>,
-            body: (item: T, ctx: CTX) => Get1<M, []>,
+            body: (item: T, ctx: CTX) => Get1<M, never[]>,
         ): CatT<M, CTX> =>
             catT(monad)(
                 foldL((acc: Get1<M, CTX>) => (item: T) =>
@@ -258,7 +262,7 @@ export const catT =
  * @param monad - The monad implementation for `M`.
  * @returns A new `CatT`.
  */
-export const doVoidT = <M>(monad: Monad<M>): CatT<M, []> =>
+export const doVoidT = <M>(monad: Monad<M>): CatT<M, never[]> =>
     catT(monad)(monad.pure([]));
 
 /**

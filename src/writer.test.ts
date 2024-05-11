@@ -29,7 +29,7 @@ Deno.test("tell with tower of hanoi", () => {
         from: string,
         to: string,
         another: string,
-    ): Writer<[string, string][], []> => {
+    ): Writer<[string, string][], never[]> => {
         if (height < 1) {
             return pure(monoid)([]);
         }

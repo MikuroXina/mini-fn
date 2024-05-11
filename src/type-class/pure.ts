@@ -5,9 +5,11 @@ export interface Pure<S> {
 }
 
 export const when =
-    <S>(app: Pure<S>) => (cond: boolean) => (op: Get1<S, []>): Get1<S, []> =>
-        cond ? op : app.pure([]);
+    <S>(app: Pure<S>) =>
+    (cond: boolean) =>
+    (op: Get1<S, never[]>): Get1<S, never[]> => cond ? op : app.pure([]);
 
 export const unless =
-    <S>(app: Pure<S>) => (cond: boolean) => (op: Get1<S, []>): Get1<S, []> =>
-        cond ? app.pure([]) : op;
+    <S>(app: Pure<S>) =>
+    (cond: boolean) =>
+    (op: Get1<S, never[]>): Get1<S, never[]> => cond ? app.pure([]) : op;
