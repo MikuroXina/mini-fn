@@ -53,6 +53,7 @@ export * as String from "./src/string.ts";
 export * as Tagged from "./src/tagged.ts";
 export * as These from "./src/these.ts";
 export * as Trans from "./src/trans.ts";
+export * as Tropical from "./src/tropical.ts";
 export * as Tuple from "./src/tuple.ts";
 export * as TupleN from "./src/tuple-n.ts";
 export * as TypeClass from "./src/type-class.ts";
