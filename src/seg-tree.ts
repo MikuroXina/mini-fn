@@ -33,6 +33,10 @@ export type SegTreeInner<T> = {
  */
 export type SegTree<T> = Readonly<SegTreeInner<T>>;
 
+const parentOf = (index: number): number => Math.floor((index - 1) / 2);
+const firstChildOf = (index: number): number => index * 2 + 1;
+const secondChildOf = (index: number): number => index * 2 + 2;
+
 const I32_MAX = 2147483649;
 const MAX_LEN = (I32_MAX + 1) / 2;
 const nextPowerOfTwo = (x: number): number => {
@@ -83,44 +87,57 @@ export const withItems =
             throw new Error("too much items");
         }
         const size = nextPowerOfTwo(items.length);
-        return {
-            items: [...new Array(size * 2 - 1)].toSpliced(
+        const caches = [...new Array(size * 2 - 1)].map(() => monoid.identity)
+            .toSpliced(
                 size - 1,
                 items.length,
                 ...items,
-            ),
+            );
+        const go = (visiting: number) => {
+            if (size - 1 <= visiting) {
+                return;
+            }
+            const left = firstChildOf(visiting);
+            go(left);
+            const right = secondChildOf(visiting);
+            go(right);
+            caches[visiting] = monoid.combine(caches[left], caches[right]);
+        };
+        go(0);
+        return {
+            items: caches,
             size,
             monoid,
         };
     };
 
 /**
- * Calculates the monoid sum of items for the querying range between `first` and `last` (inclusive).
+ * Calculates the monoid sum of items for the querying range between `start` (inclusive) and `end` (exclusive).
  *
- * @param first - The first index of the querying range.
- * @param last - The last index of the querying range.
+ * @param start - The start index (inclusive) of the querying range.
+ * @param end - The end index (exclusive) of the querying range.
  * @param tree - To be queried.
  * @returns The monoid sum of items for the querying range.
  */
 export const query =
-    (first: number) => (last: number) => <T>(tree: SegTree<T>): T => {
+    (start: number) => (end: number) => <T>(tree: SegTree<T>): T => {
         const go = (
             visiting: number,
-            lookingFirst: number,
-            lookingLast: number,
+            lookingStart: number,
+            lookingEnd: number,
         ): T => {
-            if (lookingLast < first || last < lookingFirst) {
-                // querying range doesn't contain looking
+            if (lookingEnd <= start || end <= lookingStart) {
+                // looking doesn't contain querying range
                 return tree.monoid.identity;
             }
-            if (first <= lookingFirst && lookingLast <= last) {
-                // querying range completely contains looking
+            if (start <= lookingStart && lookingEnd <= end) {
+                // looking completely contains querying range
                 return tree.items[visiting];
             }
-            const mid = lookingFirst +
-                Math.floor((lookingLast - lookingFirst) / 2);
-            const left = go(firstChildOf(visiting), lookingFirst, mid);
-            const right = go(secondChildOf(visiting), mid, lookingLast);
+            const mid = lookingStart +
+                Math.floor((lookingEnd - lookingStart) / 2);
+            const left = go(firstChildOf(visiting), lookingStart, mid);
+            const right = go(secondChildOf(visiting), mid, lookingEnd);
             return tree.monoid.combine(left, right);
         };
         return go(0, 0, tree.size);
@@ -134,7 +151,7 @@ export const query =
  * @returns The stored item, or the identity of monoid if not found.
  */
 export const get = (index: number): <T>(tree: SegTree<T>) => T =>
-    query(index)(index);
+    query(index)(index + 1);
 
 /**
  * Extracts the stored items from the segment tree.
@@ -167,10 +184,6 @@ export const clear = <S, T>(ref: MutRef<S, SegTree<T>>): Mut<S, never[]> =>
         tree.items.fill(tree.monoid.identity);
         return tree;
     });
-
-const parentOf = (index: number): number => Math.floor((index - 1) / 2);
-const firstChildOf = (index: number): number => index * 2 + 1;
-const secondChildOf = (index: number): number => index * 2 + 2;
 
 /**
  * Updates an item at `index` with `value` in the segment tree on `Mut`.
