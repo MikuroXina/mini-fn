@@ -34,7 +34,7 @@ export type BinaryHeapInner<T> = {
 /**
  * A min-heap with the order of `T`.
  */
-export type BinaryHeap<S, T> = MutRef<S, BinaryHeapInner<T>>;
+export type BinaryHeap<T> = BinaryHeapInner<T>;
 
 /**
  * Creates a new empty min-heap.
@@ -42,7 +42,7 @@ export type BinaryHeap<S, T> = MutRef<S, BinaryHeapInner<T>>;
  * @param order - A total order for `T`.
  * @returns The new empty heap.
  */
-export const empty = <S, T>(order: Ord<T>): Mut<S, BinaryHeap<S, T>> =>
+export const empty = <S, T>(order: Ord<T>): Mut<S, MutRef<S, BinaryHeap<T>>> =>
     newMutRef({
         order,
         items: [],
@@ -56,7 +56,8 @@ export const empty = <S, T>(order: Ord<T>): Mut<S, BinaryHeap<S, T>> =>
  * @returns The new max-heap.
  */
 export const maxHeap =
-    <T>(order: Ord<T>) => <S>(data: readonly T[]): Mut<S, BinaryHeap<S, T>> =>
+    <T>(order: Ord<T>) =>
+    <S>(data: readonly T[]): Mut<S, MutRef<S, BinaryHeap<T>>> =>
         minHeap(reversed(order))(data);
 
 /**
@@ -67,7 +68,8 @@ export const maxHeap =
  * @returns The new min-heap.
  */
 export const minHeap =
-    <T>(order: Ord<T>) => <S>(data: readonly T[]): Mut<S, BinaryHeap<S, T>> =>
+    <T>(order: Ord<T>) =>
+    <S>(data: readonly T[]): Mut<S, MutRef<S, BinaryHeap<T>>> =>
         newMutRef({
             items: data.toSorted((a, b) => order.cmp(a, b)),
             order,
@@ -79,7 +81,9 @@ export const minHeap =
  * @param heap - A heap to be checked.
  * @returns `true` if only has no elements, otherwise `false`.
  */
-export const isEmpty = <S, T>(heap: BinaryHeap<S, T>): Mut<S, boolean> =>
+export const isEmpty = <S, T>(
+    heap: MutRef<S, BinaryHeap<T>>,
+): Mut<S, boolean> =>
     mapMut((heap: BinaryHeapInner<T>) => heap.items.length === 0)(
         readMutRef(heap),
     );
@@ -90,7 +94,7 @@ export const isEmpty = <S, T>(heap: BinaryHeap<S, T>): Mut<S, boolean> =>
  * @param heap - A heap to be queried.
  * @returns The length of heap.
  */
-export const length = <S, T>(heap: BinaryHeap<S, T>): Mut<S, number> =>
+export const length = <S, T>(heap: MutRef<S, BinaryHeap<T>>): Mut<S, number> =>
     mapMut((heap: BinaryHeapInner<T>) => heap.items.length)(readMutRef(heap));
 
 /**
@@ -99,7 +103,9 @@ export const length = <S, T>(heap: BinaryHeap<S, T>): Mut<S, number> =>
  * @param heap - A heap to be queried.
  * @returns The minimum element.
  */
-export const getMin = <S, T>(heap: BinaryHeap<S, T>): Mut<S, Option<T>> =>
+export const getMin = <S, T>(
+    heap: MutRef<S, BinaryHeap<T>>,
+): Mut<S, Option<T>> =>
     mapMut((heap: BinaryHeapInner<T>) =>
         0 in heap.items ? some(heap.items[0]) : none()
     )(readMutRef(heap));
@@ -162,7 +168,7 @@ const downHeap =
  * @returns The inserted new heap.
  */
 export const insert =
-    <T>(item: T) => <S>(heap: BinaryHeap<S, T>): Mut<S, never[]> =>
+    <T>(item: T) => <S>(heap: MutRef<S, BinaryHeap<T>>): Mut<S, never[]> =>
         modifyMutRef(heap)((heap) => {
             heap.items.push(item);
             upHeap(heap.items.length - 1)(heap.order)(heap.items);
@@ -175,7 +181,9 @@ export const insert =
  * @param heap - To be modified.
  * @returns The removed item, or none if empty.
  */
-export const popMin = <S, T>(heap: BinaryHeap<S, T>): Mut<S, Option<T>> =>
+export const popMin = <S, T>(
+    heap: MutRef<S, BinaryHeap<T>>,
+): Mut<S, Option<T>> =>
     doT(mutMonad<S>())
         .addM("heap", readMutRef(heap))
         .addM("wasEmpty", isEmpty(heap))
@@ -198,7 +206,7 @@ export const popMin = <S, T>(heap: BinaryHeap<S, T>): Mut<S, Option<T>> =>
  * @returns The removed item, or none if empty.
  */
 export const popMinAndInsert =
-    <T>(item: T) => <S>(heap: BinaryHeap<S, T>): Mut<S, Option<T>> =>
+    <T>(item: T) => <S>(heap: MutRef<S, BinaryHeap<T>>): Mut<S, Option<T>> =>
         doT(mutMonad<S>())
             .addM("inner", readMutRef(heap))
             .addM("wasEmpty", isEmpty(heap))

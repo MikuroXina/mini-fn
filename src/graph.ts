@@ -35,7 +35,7 @@ import type { Monoid } from "./type-class/monoid.ts";
 import { fromProjection, type Ord } from "./type-class/ord.ts";
 import type { Apply2Only, Hkt1 } from "./hkt.ts";
 import type { HasInf } from "./type-class/has-inf.ts";
-import { doMut, type Mut, type MutHkt } from "./mut.ts";
+import { doMut, type Mut, type MutHkt, type MutRef } from "./mut.ts";
 import { mapMIgnore } from "./type-class/foldable.ts";
 
 declare const vertexNominal: unique symbol;
@@ -523,7 +523,7 @@ export const dijkstra =
                         )(adjsFrom(visiting)(graph));
                     });
                 const loop = (
-                    heap: BinaryHeap.BinaryHeap<S, WeightedVertex>,
+                    heap: MutRef<S, BinaryHeap.BinaryHeap<WeightedVertex>>,
                 ): Mut<S, never[]> =>
                     cat.monad.flatMap((wasEmpty) =>
                         wasEmpty
