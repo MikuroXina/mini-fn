@@ -3,7 +3,6 @@
     "packages": {
         ".": {
             "release-type": "simple",
-            "package-name": "@mikuroxina/mini-fn",
             "changelog-path": "CHANGELOG.md",
             "extra-files": [
                 {
