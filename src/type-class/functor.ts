@@ -8,7 +8,7 @@ import type { Invariant } from "./variance.ts";
  * All instances of the functor `f` must satisfy the following laws:
  *
  * - Identity: `f.map((x) => x)` equals to `(x) => x`,
- * - Composition: For all `f` and `g`; `f.map((x) => g(f(x)))` equals to `(x) => f.map(g)(f.map(f)(x))`.
+ * - Composition: For all `a` and `b`; `f.map((x) => b(a(x)))` equals to `(x) => f.map(b)(f.map(a)(x))`.
  */
 export interface Functor<F> {
     /**
