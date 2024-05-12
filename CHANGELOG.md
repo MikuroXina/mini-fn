@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.2.1](https://github.com/MikuroXina/mini-fn/compare/v6.2.0...v6.2.1) (2024-05-12)
+
+
+### Bug Fixes
+
+* Add dry run publish on CI and fix slow type errors ([#207](https://github.com/MikuroXina/mini-fn/issues/207)) ([c75a911](https://github.com/MikuroXina/mini-fn/commit/c75a911375aab172e4f01a8bce55ed365b80b9b1))
+
 ## [6.2.0](https://github.com/MikuroXina/mini-fn/compare/v6.1.2...v6.2.0) (2024-05-12)
 
 
