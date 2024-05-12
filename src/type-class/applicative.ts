@@ -11,7 +11,7 @@ import { semiGroupSymbol } from "./semi-group.ts";
  * All instances of the applicative `a` must satisfy the following laws:
  *
  * - Identity: For all `x`; `a.apply(a.pure((i) => i))(x)` equals to `x`,
- * - Composition: For all `x`, `y` and `z`; `a.apply((a.apply(a.apply((f) => (g) => (i) => f(g(i)))(x))(y)))(z)` equals to `a.apply(x)(a.apply(y)(z))`,
+ * - Composition: For all `x`, `y` and `z`; `a.apply(a.apply(a.apply((f) => (g) => (i) => f(g(i)))(x))(y))(z)` equals to `a.apply(x)(a.apply(y)(z))`,
  * - Homomorphism: For all `f` and `x`; `a.apply(a.pure(f))(a.pure(x))` equals to `a.pure(f(x))`,
  * - Interchange: For all `f` and `x`; `a.apply(f)(a.pure(x))` equals to `a.apply(a.pure((i) => i(x)))(f)`.
  */
