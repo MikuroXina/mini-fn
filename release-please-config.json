@@ -2,7 +2,9 @@
     "$schema": "https://github.com/googleapis/release-please/raw/main/schemas/config.json",
     "packages": {
         ".": {
+            "release-type": "simple",
             "package-name": "@mikuroxina/mini-fn",
+            "changelog-path": "CHANGELOG.md",
             "extra-files": [
                 {
                     "type": "json",
