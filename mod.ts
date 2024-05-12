@@ -34,6 +34,7 @@ export * as Ordering from "./src/ordering.ts";
 export * as Predicate from "./src/predicate.ts";
 export * as Promise from "./src/promise.ts";
 export * as MonadPromise from "./src/promise/monad.ts";
+export * as RangeQ from "./src/range-q.ts";
 export * as Reader from "./src/reader.ts";
 export * as MonadReader from "./src/reader/monad.ts";
 export * as Record from "./src/record.ts";

@@ -81,3 +81,10 @@ export const trivialGroup: Group<never[]> = {
     invert: () => [],
     [semiGroupSymbol]: true,
 };
+
+export const addGroup: Group<number> = {
+    combine: (l: number, r: number) => l + r,
+    identity: 0,
+    invert: (x: number) => -x,
+    [semiGroupSymbol]: true,
+};
