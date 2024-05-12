@@ -113,6 +113,56 @@ Deno.test("traverse", async () => {
     assertEquals(actual, [3, 4]);
 });
 
+Deno.test("applicative", () => {
+    type NumToNum = (i: number) => number;
+    // identity
+    {
+        const x = [1, 4, 2, 3, 5, 2, 3];
+        assertEquals(monad.apply(monad.pure((i: number) => i))(x), x);
+    }
+
+    // composition
+    {
+        const x = [(i: number) => i + 3, (i: number) => i * 4];
+        const y = [(i: number) => i + 5, (i: number) => i * 3];
+        const z = [1, 4, 2, 3, 5, 2, 3];
+        assertEquals(
+            monad.apply(
+                monad.apply(
+                    monad.apply(
+                        monad.pure(
+                            (f: NumToNum) =>
+                            (g: NumToNum): NumToNum =>
+                            (i: number) => f(g(i)),
+                        ),
+                    )(x),
+                )(y),
+            )(z),
+            monad.apply(x)(monad.apply(y)(z)),
+        );
+    }
+
+    // homomorphism
+    {
+        const x = 42;
+        const add = (x: number) => [x + 1, x + 2, x + 3];
+        assertEquals(
+            monad.apply(monad.pure(add))(monad.pure(x)),
+            monad.pure(add(x)),
+        );
+    }
+
+    // interchange
+    {
+        const f = [(i: number) => i + 3, (i: number) => i * 4];
+        const x = 42;
+        assertEquals(
+            monad.apply(f)(monad.pure(x)),
+            monad.apply(monad.pure((i: NumToNum) => i(x)))(f),
+        );
+    }
+});
+
 Deno.test("monad", () => {
     const data = [1, 4, 2, 3, 5, 2, 3];
     const add = (x: number) => [x + 1, x + 2, x + 3];
@@ -154,7 +204,6 @@ Deno.test("reduceL", () => {
 Deno.test("encode then decode", async () => {
     const data = [1, 4, 2, 3, 5, 2, 3];
     const code = await runCode(enc(encU32Be)(data));
-    console.log(code);
     const decoded = unwrap(runDecoder(dec(decU32Be()))(code));
     assertEquals(decoded, data);
 });
