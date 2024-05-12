@@ -69,7 +69,7 @@ export const traverse =
     (data: readonly A[]): Get1<F, readonly B[]> => {
         let res = app.pure([] as readonly B[]);
         for (const a of data) {
-            res = liftA2(app)((b: B) => (bs: readonly B[]) => [b, ...bs])(
+            res = liftA2(app)((b: B) => (bs: readonly B[]) => [...bs, b])(
                 visitor(a),
             )(res);
         }
