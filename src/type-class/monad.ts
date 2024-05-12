@@ -5,6 +5,13 @@ import { monad as idMonad } from "../identity.ts";
 import type { Applicative } from "./applicative.ts";
 import type { FlatMap } from "./flat-map.ts";
 
+/**
+ * A sequential computation framework with wrapping the type `S`. All instances of the monad `m` must satisfy the following laws:
+ *
+ * - Left identity: For all `f` and `a`; `m.flatMap(f)(m.pure(a))` equals to `f(a)`,
+ * - Right identity: For all `a`; `m.flatMap(m.pure)(a)` equals to `a`,
+ * - Associativity: For all `f`, `g` and `a`; `m.flatMap(f)(m.flatMap(g)(a))` equals to `m.flatMap((x) => m.flatMap(f)(g(x)))(a)`.
+ */
 export interface Monad<S> extends Applicative<S>, FlatMap<S> {}
 
 export const flat = <S>(

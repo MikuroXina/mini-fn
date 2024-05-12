@@ -5,10 +5,10 @@ import type { Invariant } from "./variance.ts";
 /**
  * A structure which able to lift up in `F`.
  *
- * An instance of `Functor<F>` must satisfy following rules:
+ * All instances of the functor `f` must satisfy the following laws:
  *
- * - Identity: `map(id) == id`,
- * - Composition: for all `f` and `g`; `map(pipe(f)(g)) == pipe(map(f))(map(g))`.
+ * - Identity: `f.map((x) => x)` equals to `(x) => x`,
+ * - Composition: For all `a` and `b`; `f.map((x) => b(a(x)))` equals to `(x) => f.map(b)(f.map(a)(x))`.
  */
 export interface Functor<F> {
     /**

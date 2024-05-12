@@ -1299,7 +1299,7 @@ const splitAt = (firstLen: number) =>
     const src = new Uint8Array(data.buffer);
     const leftBuf = new ArrayBuffer(Math.min(firstLen, data.byteLength));
     const rightBuf = new ArrayBuffer(Math.max(data.byteLength - firstLen, 0));
-    new Uint8Array(leftBuf).set(src);
+    new Uint8Array(leftBuf).set(src.slice(0, firstLen));
     new Uint8Array(rightBuf).set(src.slice(firstLen));
     return [new DataView(leftBuf), new DataView(rightBuf)];
 };
