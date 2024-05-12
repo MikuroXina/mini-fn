@@ -1,5 +1,24 @@
 # Changelog
 
+## [6.2.0](https://github.com/MikuroXina/mini-fn/compare/v6.1.2...v6.2.0) (2024-05-12)
+
+
+### Features
+
+* Add countItems ([#199](https://github.com/MikuroXina/mini-fn/issues/199)) ([e2b049c](https://github.com/MikuroXina/mini-fn/commit/e2b049c5fe9f1a2569a25b1b00d175c0defc8a9d))
+* Add Envelope ([#195](https://github.com/MikuroXina/mini-fn/issues/195)) ([8a410bc](https://github.com/MikuroXina/mini-fn/commit/8a410bcfb104db29b4d3ae7c84e8e3c5d944b7c0))
+* Add MultiSet, doMut and monad field on CatT ([#200](https://github.com/MikuroXina/mini-fn/issues/200)) ([136ded7](https://github.com/MikuroXina/mini-fn/commit/136ded7bb7d80003a2019cd3c9501b5b9a35f8b4))
+* Add Mut, Graph and BinaryHeap ([#197](https://github.com/MikuroXina/mini-fn/issues/197)) ([712fdb9](https://github.com/MikuroXina/mini-fn/commit/712fdb934e806c2199066807e9cbe63d554c19b9))
+* Add RangeQ ([#205](https://github.com/MikuroXina/mini-fn/issues/205)) ([726d9b6](https://github.com/MikuroXina/mini-fn/commit/726d9b63bd4fa3fbcd6551bd30804ddd10975fa4))
+* Add SegTree ([#204](https://github.com/MikuroXina/mini-fn/issues/204)) ([b999a4b](https://github.com/MikuroXina/mini-fn/commit/b999a4bc88f1129316c7c6e8da0ab635edc38898))
+* Add Tropical ([#202](https://github.com/MikuroXina/mini-fn/issues/202)) ([5eb7ae3](https://github.com/MikuroXina/mini-fn/commit/5eb7ae357bfd541358bd0545dca0b2a2c17af0e3))
+
+
+### Bug Fixes
+
+* Remove S type parameter from BinaryHeap ([#203](https://github.com/MikuroXina/mini-fn/issues/203)) ([afb8063](https://github.com/MikuroXina/mini-fn/commit/afb8063bd3407dcd381267f17bcff9132e0b98d7))
+* Replace empty tuple with never[] ([#198](https://github.com/MikuroXina/mini-fn/issues/198)) ([643836a](https://github.com/MikuroXina/mini-fn/commit/643836a4c1032869170e243a531895c689a51586))
+
 ## [6.1.2](https://github.com/MikuroXina/mini-fn/compare/v6.1.1...v6.1.2) (2024-05-04)
 
 
