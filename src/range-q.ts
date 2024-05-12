@@ -75,7 +75,11 @@ export const isEmpty = <T>(range: RangeQ<T>): boolean => range.acc.length === 0;
  * @returns The group sum for the range.
  */
 export const sumFromStartTo = (end: number) => <T>(range: RangeQ<T>): T =>
-    (end - 1) in range.acc ? range.acc[end - 1] : range.group.identity;
+    (end <= 0 || range.acc.length === 0)
+        ? range.group.identity
+        : end >= range.acc.length
+        ? range.acc[range.acc.length - 1]
+        : range.acc[end - 1];
 
 /**
  * Sums up the elements for a range between `start` (inclusive) and `end` (exclusive). It takes only constant time (`O(1)`).
