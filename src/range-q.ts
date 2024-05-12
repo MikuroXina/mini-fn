@@ -91,7 +91,7 @@ export const sumFromStartTo = (end: number) => <T>(range: RangeQ<T>): T =>
  */
 export const sum =
     (start: number) => (end: number) => <T>(range: RangeQ<T>): T =>
-        range.group.combine(
+        start >= end ? range.group.identity : range.group.combine(
             range.group.invert(sumFromStartTo(start)(range)),
             sumFromStartTo(end)(range),
         );
