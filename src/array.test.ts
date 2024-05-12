@@ -113,6 +113,23 @@ Deno.test("traverse", async () => {
     assertEquals(actual, [3, 4]);
 });
 
+Deno.test("functor", () => {
+    const data = [1, 4, 2, 3, 5, 2, 3];
+    // identity
+    assertEquals(
+        monad.map((x: number) => x)(data),
+        data,
+    );
+
+    // composition
+    const alpha = (x: number) => x + 3;
+    const beta = (x: number) => x * 4;
+    assertEquals(
+        monad.map((x: number) => beta(alpha(x)))(data),
+        monad.map(beta)(monad.map(alpha)(data)),
+    );
+});
+
 Deno.test("applicative", () => {
     type NumToNum = (i: number) => number;
     // identity
