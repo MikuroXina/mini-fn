@@ -119,7 +119,7 @@ export const getMin = <S, T>(
 export const intoItems = <T>(heap: BinaryHeapInner<T>): readonly T[] =>
     heap.items;
 
-const parentOf = (index: number) => Math.floor((index - 1) / 2);
+const parentOf = (index: number): number => Math.floor((index - 1) / 2);
 const leftChildOf = (index: number) => 2 * index + 1;
 const rightChildOf = (index: number) => 2 * index + 2;
 
