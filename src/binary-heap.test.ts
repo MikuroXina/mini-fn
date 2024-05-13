@@ -1,15 +1,15 @@
 import { assertEquals } from "../deps.ts";
-import { intoItems } from "./binary-heap.ts";
-import { popMinAndInsert } from "./binary-heap.ts";
 import {
     empty,
     getMin,
     insert,
+    intoItems,
     isEmpty,
     length,
     maxHeap,
     minHeap,
     popMin,
+    popMinAndInsert,
     sortItems,
 } from "./binary-heap.ts";
 import { doMut, readMutRef } from "./mut.ts";
@@ -177,6 +177,22 @@ Deno.test("popMinAndInsert", () => {
             .addMWith("min", ({ heap }) => popMinAndInsert(4)(heap))
             .runWith(({ min }) => {
                 assertEquals(min, none());
+                return cat.monad.pure([]);
+            }).addMWith("min", ({ heap }) => popMin(heap))
+            .finishM(({ min }) => {
+                assertEquals(min, some(4));
+                return cat.monad.pure([]);
+            })
+    );
+    doMut((cat) =>
+        cat.addM("heap", minHeap(nonNanOrd)([1, 4]))
+            .addMWith("min", ({ heap }) => popMinAndInsert(2)(heap))
+            .runWith(({ min }) => {
+                assertEquals(min, some(1));
+                return cat.monad.pure([]);
+            }).addMWith("min", ({ heap }) => popMin(heap))
+            .runWith(({ min }) => {
+                assertEquals(min, some(2));
                 return cat.monad.pure([]);
             }).addMWith("min", ({ heap }) => popMin(heap))
             .finishM(({ min }) => {
