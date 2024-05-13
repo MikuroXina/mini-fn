@@ -111,13 +111,26 @@ export const getMin = <S, T>(
     )(readMutRef(heap));
 
 /**
- * Extracts the internal items from the heap.
+ * Extracts the internal items from the heap. If you want to get sorted all items, you can use `sortItems`.
  *
  * @param heap - A heap to be extracted.
  * @returns The internal items array that consists the heap.
  */
 export const intoItems = <T>(heap: BinaryHeapInner<T>): readonly T[] =>
     heap.items;
+
+/**
+ * Sorts and extracts the internal items of the heap. It will take `O(n log n)`.
+ *
+ * @param heap - A heap to sort.
+ * @returns The sorted items.
+ */
+export const sortItems = <S, T>(
+    heap: MutRef<S, BinaryHeapInner<T>>,
+): Mut<S, readonly T[]> =>
+    mapMut((heap: BinaryHeapInner<T>) => heap.items.sort(heap.order.cmp))(
+        readMutRef(heap),
+    );
 
 const parentOf = (index: number): number => Math.floor((index - 1) / 2);
 const leftChildOf = (index: number) => 2 * index + 1;
