@@ -310,8 +310,9 @@ export const liftPromise =
  * @returns The composed computation.
  */
 export const when =
-    (cond: boolean) => <R>(cont: Cont<R, void>): Cont<R, void> =>
-        cond ? cont : pure(undefined);
+    (cond: boolean) =>
+    <R, M>(cont: ContT<R, M, never[]>): ContT<R, M, never[]> =>
+        cond ? cont : pure([]);
 /**
  * Provides a branch statement for `Cont`. `cont` will be evaluated if `cond` is `false`, otherwise it will be an empty computation.
  *
@@ -320,8 +321,9 @@ export const when =
  * @returns The composed computation.
  */
 export const unless =
-    (cond: boolean) => <R>(cont: Cont<R, void>): Cont<R, void> =>
-        cond ? pure(undefined) : cont;
+    (cond: boolean) =>
+    <R, M>(cont: ContT<R, M, never[]>): ContT<R, M, never[]> =>
+        cond ? pure([]) : cont;
 /**
  * Provides an assertion statement for `Cont`. It will returns an empty computation if `cond` is true, otherwise it will occur an exception.
  *
@@ -330,7 +332,7 @@ export const unless =
  */
 export const guard = <R>(
     cond: boolean,
-): Cont<R, void> => (cond ? pure(undefined) : absurd);
+): Cont<R, never[]> => (cond ? pure([]) : absurd);
 
 export interface ContHkt extends Hkt2 {
     readonly type: Cont<this["arg2"], this["arg1"]>;
