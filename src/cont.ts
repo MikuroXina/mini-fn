@@ -124,21 +124,21 @@ export const shiftT = <M>(monad: Monad<M>) =>
  *
  * @param monad - The instance of `Monad` for `M`.
  * @param ask - The instance of `S` wrapped by `M`.
- * @param local - The cleanup function to be yielded.
- * @param f - The local computation to be lifted.
- * @param m - The computation of source.
+ * @param cleanup - The cleanup function to be yielded.
+ * @param local - The local computation to be lifted.
+ * @param src - The computation of source.
  * @returns The lifted computation.
  */
 export const liftLocal =
     <M>(monad: Monad<M>) =>
     <S>(ask: Get1<M, S>) =>
-    <R>(local: (callback: (s: S) => S) => (mr: Get1<M, R>) => Get1<M, R>) =>
-    (f: (s: S) => S) =>
-    <A>(m: ContT<R, M, A>): ContT<R, M, A> =>
+    <R>(cleanup: (callback: (s: S) => S) => (mr: Get1<M, R>) => Get1<M, R>) =>
+    (local: (s: S) => S) =>
+    <A>(src: ContT<R, M, A>): ContT<R, M, A> =>
     (c) =>
-        monad.flatMap((r: S) => local(f)(m((x) => local(constant(r))(c(x)))))(
-            ask,
-        );
+        monad.flatMap((r: S) =>
+            cleanup(local)(src((x) => cleanup(constant(r))(c(x))))
+        )(ask);
 
 /**
  * Continuation monad which expresses a CPS (continuation passing style) computation, produces an intermediate result of type a within the computation whose final result type is `R`.
