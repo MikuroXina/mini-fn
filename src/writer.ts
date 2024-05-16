@@ -43,8 +43,8 @@ export const mapWriterT =
  * @returns The computation which puts the output.
  */
 export const tellM =
-    <M>(monad: Monad<M>) => <W>(w: W): WriterT<W, M, void> => () =>
-        monad.pure([undefined, w]);
+    <M>(monad: Monad<M>) => <W>(w: W): WriterT<W, M, never[]> => () =>
+        monad.pure([[], w]);
 /**
  * Creates an action that executes `writer` and adds its output to the value of the computation.
  *

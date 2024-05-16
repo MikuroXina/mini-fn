@@ -223,7 +223,7 @@ export const get = <S>(): State<S, S> => (state: S) => [state, state];
  * @param state - The new state value.
  * @returns The computation which sets the new state.
  */
-export const put = <S>(state: S): State<S, void> => () => [undefined, state];
+export const put = <S>(state: S): State<S, never[]> => () => [[], state];
 
 /**
  * Makes two computations into a product about the result type.
