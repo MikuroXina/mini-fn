@@ -155,6 +155,22 @@ export const newEther = <
 ): Ether<D, T> => ({ selfSymbol, handler, depSymbols });
 
 /**
+ * Lifts up an `Ether` over the monad `M`.
+ *
+ * @param monad - The `Monad` instance for `M`.
+ * @param ether - An `Ether` to lift over `M`.
+ * @returns The lifted `Ether`.
+ */
+export const liftEther =
+    <M>(monad: Monad<M>) =>
+    <const D extends Record<string, symbol>, T>(
+        ether: Ether<D, T>,
+    ): EtherT<D, M, T> => ({
+        ...ether,
+        handler: (resolved) => monad.pure(ether.handler(resolved)),
+    });
+
+/**
  * Composes two `Ether`s into a new one. Injects `lower` into `upper`.
  *
  * @param lower The lower dependency, which will be injected, such as a database adaptor.
