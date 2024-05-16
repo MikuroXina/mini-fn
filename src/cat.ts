@@ -131,7 +131,7 @@ export interface CatT<M, CTX> {
      * @returns A new `CatT` with modified environment.
      */
     readonly while: (
-        cond: (ctx: CTX) => boolean,
+        cond: (ctx: CTX) => Get1<M, boolean>,
         body: (ctx: CTX) => Get1<M, never[]>,
     ) => CatT<M, CTX>;
 
@@ -241,9 +241,11 @@ export const catT =
         while: (cond, body) => {
             const go = (ctx: Get1<M, CTX>): Get1<M, CTX> =>
                 monad.flatMap((c: CTX) =>
-                    cond(c)
-                        ? monad.flatMap(() => go(ctx))(body(c))
-                        : monad.pure(c)
+                    monad.flatMap((bool: boolean) =>
+                        bool
+                            ? monad.flatMap(() => go(ctx))(body(c))
+                            : monad.pure(c)
+                    )(cond(c))
                 )(ctx);
             return catT(monad)(go(ctx));
         },
