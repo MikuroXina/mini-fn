@@ -72,10 +72,10 @@ export const withContT = <M, A, B, R>(
  *
  * const validateName =
  *     (name: string) =>
- *     (exit: (a: string) => Cont<string, void>): Cont<string, void> =>
+ *     (exit: (a: string) => Cont<string, never[]>): Cont<string, never[]> =>
  *         when(name.length === 0)(exit("expected at least 1 character"));
  * const whatYourName = (name: string): string => {
- *     const cont = callCC<string, IdentityHkt, string, void>(
+ *     const cont = callCC<string, IdentityHkt, string, never[]>(
  *         (exit) =>
  *             cat(validateName(name)(exit)).feed(
  *                 flatMap(() => pure(`Welcome, ${name}!`)),
@@ -124,21 +124,21 @@ export const shiftT = <M>(monad: Monad<M>) =>
  *
  * @param monad - The instance of `Monad` for `M`.
  * @param ask - The instance of `S` wrapped by `M`.
- * @param local - The cleanup function to be yielded.
- * @param f - The local computation to be lifted.
- * @param m - The computation of source.
+ * @param cleanup - The cleanup function to be yielded.
+ * @param local - The local computation to be lifted.
+ * @param src - The computation of source.
  * @returns The lifted computation.
  */
 export const liftLocal =
     <M>(monad: Monad<M>) =>
     <S>(ask: Get1<M, S>) =>
-    <R>(local: (callback: (s: S) => S) => (mr: Get1<M, R>) => Get1<M, R>) =>
-    (f: (s: S) => S) =>
-    <A>(m: ContT<R, M, A>): ContT<R, M, A> =>
+    <R>(cleanup: (callback: (s: S) => S) => (mr: Get1<M, R>) => Get1<M, R>) =>
+    (local: (s: S) => S) =>
+    <A>(src: ContT<R, M, A>): ContT<R, M, A> =>
     (c) =>
-        monad.flatMap((r: S) => local(f)(m((x) => local(constant(r))(c(x)))))(
-            ask,
-        );
+        monad.flatMap((r: S) =>
+            cleanup(local)(src((x) => cleanup(constant(r))(c(x))))
+        )(ask);
 
 /**
  * Continuation monad which expresses a CPS (continuation passing style) computation, produces an intermediate result of type a within the computation whose final result type is `R`.
@@ -310,8 +310,9 @@ export const liftPromise =
  * @returns The composed computation.
  */
 export const when =
-    (cond: boolean) => <R>(cont: Cont<R, void>): Cont<R, void> =>
-        cond ? cont : pure(undefined);
+    (cond: boolean) =>
+    <R, M>(cont: ContT<R, M, never[]>): ContT<R, M, never[]> =>
+        cond ? cont : pure([]);
 /**
  * Provides a branch statement for `Cont`. `cont` will be evaluated if `cond` is `false`, otherwise it will be an empty computation.
  *
@@ -320,8 +321,9 @@ export const when =
  * @returns The composed computation.
  */
 export const unless =
-    (cond: boolean) => <R>(cont: Cont<R, void>): Cont<R, void> =>
-        cond ? pure(undefined) : cont;
+    (cond: boolean) =>
+    <R, M>(cont: ContT<R, M, never[]>): ContT<R, M, never[]> =>
+        cond ? pure([]) : cont;
 /**
  * Provides an assertion statement for `Cont`. It will returns an empty computation if `cond` is true, otherwise it will occur an exception.
  *
@@ -330,7 +332,7 @@ export const unless =
  */
 export const guard = <R>(
     cond: boolean,
-): Cont<R, void> => (cond ? pure(undefined) : absurd);
+): Cont<R, never[]> => (cond ? pure([]) : absurd);
 
 export interface ContHkt extends Hkt2 {
     readonly type: Cont<this["arg2"], this["arg1"]>;
