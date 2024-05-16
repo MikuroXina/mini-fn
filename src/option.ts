@@ -838,9 +838,9 @@ export const ifSome = <T, U>(): Optic<Option<T>, Option<U>, T, U> =>
     newPrism<U, Option<U>>(some)(
         mapOrElse<Result<Option<U>, T>>(() => err(none()))(ok),
     );
-export const ifNone = <T>(): OpticSimple<Option<T>, void> =>
-    newPrismSimple<void, Option<T>>(none)(
-        mapOrElse<Option<void>>(() => some(undefined))(none),
+export const ifNone = <T>(): OpticSimple<Option<T>, never[]> =>
+    newPrismSimple<never[], Option<T>>(none)(
+        mapOrElse<Option<never[]>>(() => some([]))(none),
     );
 
 export const enc = <T>(encT: Encoder<T>): Encoder<Option<T>> =>
