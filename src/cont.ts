@@ -72,10 +72,10 @@ export const withContT = <M, A, B, R>(
  *
  * const validateName =
  *     (name: string) =>
- *     (exit: (a: string) => Cont<string, void>): Cont<string, void> =>
+ *     (exit: (a: string) => Cont<string, never[]>): Cont<string, never[]> =>
  *         when(name.length === 0)(exit("expected at least 1 character"));
  * const whatYourName = (name: string): string => {
- *     const cont = callCC<string, IdentityHkt, string, void>(
+ *     const cont = callCC<string, IdentityHkt, string, never[]>(
  *         (exit) =>
  *             cat(validateName(name)(exit)).feed(
  *                 flatMap(() => pure(`Welcome, ${name}!`)),
