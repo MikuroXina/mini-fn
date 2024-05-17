@@ -4,6 +4,7 @@ export * as Bool from "./src/bool.ts";
 export * as Cat from "./src/cat.ts";
 export * as Cofree from "./src/cofree.ts";
 export * as ComonadCofree from "./src/cofree/comonad.ts";
+export * as Compose from "./src/compose.ts";
 export * as Const from "./src/const.ts";
 export * as Cont from "./src/cont.ts";
 export * as MonadCont from "./src/cont/monad.ts";
