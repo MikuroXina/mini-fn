@@ -6,6 +6,12 @@ import type { Monad } from "./monad.ts";
 
 /**
  * A structure which can be traversed to the structure of same shape by performing `Applicative` action.
+ *
+ * All instances of the traversable functor `tra` must satisfy the following laws:
+ *
+ * - Naturality: For all `t`, `f` and `x`; `t(tra.traverse(app)(f)(x))` equals to `tra.traverse((item) => t(f(item)))(x)`,
+ * - Identity: For all `f`; `tra.traverse(Identity.applicative)(f)` equals to `f`,
+ * - Composition: For all `f`, `g`, `x` and composed applicative functor `app` for `Compose<F, G, _>`; `tra.traverse(app)((item) => app.map(g)(f(item)))(x)` equals to `app.map(tra.traverse(app)(g))(tra.traverse(app)(f)(x))`.
  */
 export interface Traversable<T> extends Functor<T>, Foldable<T> {
     /**
