@@ -80,6 +80,12 @@ export const functor: Functor<ArrayHkt> = {
     map: (fn) => (t) => t.map(fn),
 };
 
+export const applicative: Applicative<ArrayHkt> = {
+    map: (fn) => (t) => t.map(fn),
+    pure: (t) => [t],
+    apply: (fns) => (ts) => fns.flatMap((fn) => ts.map((t) => fn(t))),
+};
+
 export const monad: Monad<ArrayHkt> = {
     map: (fn) => (t) => t.map(fn),
     pure: (t) => [t],
