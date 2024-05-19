@@ -68,7 +68,7 @@ export const apply =
         fns.flatMap((fn) => ts.map((t) => fn(t)));
 
 export const flatMap =
-    <T, U>(fn: (t: T) => readonly U[]) => (src: readonly T[]) =>
+    <T, U>(fn: (t: T) => readonly U[]) => (src: readonly T[]): readonly U[] =>
         src.flatMap(fn);
 
 export const foldR: <A, B>(
