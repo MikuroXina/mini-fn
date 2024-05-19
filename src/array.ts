@@ -1,5 +1,5 @@
 import type { Get1, Hkt1 } from "./hkt.ts";
-import { andThen, map, type Option, some } from "./option.ts";
+import { andThen, map as mapOption, type Option, some } from "./option.ts";
 import { and, type Ordering } from "./ordering.ts";
 import {
     type Decoder,
@@ -36,7 +36,7 @@ export const partialCmp =
         foldR((
             next: Option<Ordering>,
         ): (acc: Option<Ordering>) => Option<Ordering> =>
-            andThen((a: Ordering) => map(and(a))(next))
+            andThen((a: Ordering) => mapOption(and(a))(next))
         )(some(Math.sign(l.length - r.length) as Ordering))(
             l.map((left, i) => order.partialCmp(left, r[i])),
         );
@@ -58,6 +58,19 @@ export interface ArrayHkt extends Hkt1 {
     readonly type: readonly this["arg1"][];
 }
 
+export const map =
+    <T, U>(fn: (t: T) => U) => (src: readonly T[]): readonly U[] => src.map(fn);
+
+export const pure = <T>(item: T): readonly T[] => [item];
+
+export const apply =
+    <T, U>(fns: readonly ((t: T) => U)[]) => (ts: readonly T[]): readonly U[] =>
+        fns.flatMap((fn) => ts.map((t) => fn(t)));
+
+export const flatMap =
+    <T, U>(fn: (t: T) => readonly U[]) => (src: readonly T[]) =>
+        src.flatMap(fn);
+
 export const foldR: <A, B>(
     folder: (next: A) => (acc: B) => B,
 ) => (init: B) => (data: readonly A[]) => B = (folder) => (init) => (data) =>
@@ -76,22 +89,11 @@ export const traverse =
         return res;
     };
 
-export const functor: Functor<ArrayHkt> = {
-    map: (fn) => (t) => t.map(fn),
-};
+export const functor: Functor<ArrayHkt> = { map };
 
-export const applicative: Applicative<ArrayHkt> = {
-    map: (fn) => (t) => t.map(fn),
-    pure: (t) => [t],
-    apply: (fns) => (ts) => fns.flatMap((fn) => ts.map((t) => fn(t))),
-};
+export const applicative: Applicative<ArrayHkt> = { map, pure, apply };
 
-export const monad: Monad<ArrayHkt> = {
-    map: (fn) => (t) => t.map(fn),
-    pure: (t) => [t],
-    apply: (fns) => (ts) => fns.flatMap((fn) => ts.map((t) => fn(t))),
-    flatMap: (fn) => (t) => t.flatMap(fn),
-};
+export const monad: Monad<ArrayHkt> = { map, pure, apply, flatMap };
 
 export const foldable: Foldable<ArrayHkt> = { foldR };
 
