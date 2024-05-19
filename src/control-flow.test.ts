@@ -28,11 +28,14 @@ import {
     some,
 } from "./option.ts";
 import { unwrap } from "./result.ts";
-import { decUtf8 } from "./serial.ts";
-import { decU32Be } from "./serial.ts";
-import { runDecoder } from "./serial.ts";
-import { runCode } from "./serial.ts";
-import { encU32Be, encUtf8 } from "./serial.ts";
+import {
+    decU32Be,
+    decUtf8,
+    encU32Be,
+    encUtf8,
+    runCode,
+    runDecoder,
+} from "./serial.ts";
 
 const cases = [newContinue("foo"), newBreak("bar")] as const;
 
