@@ -804,6 +804,15 @@ export const functor: Functor<OptionHkt> = {
 };
 
 /**
+ * The `Applicative` instance for `Option`.
+ */
+export const applicative: Applicative<OptionHkt> = {
+    map,
+    pure: some,
+    apply,
+};
+
+/**
  * The instance of `Monad` for `Option`.
  */
 export const monad: Monad<OptionHkt> = {

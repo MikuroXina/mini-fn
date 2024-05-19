@@ -1,5 +1,6 @@
 import { flip, id } from "./func.ts";
 import type { Hkt1 } from "./hkt.ts";
+import type { Applicative } from "./type-class/applicative.ts";
 import type { Comonad } from "./type-class/comonad.ts";
 import type { Distributive } from "./type-class/distributive.ts";
 import type { Functor } from "./type-class/functor.ts";
@@ -28,6 +29,15 @@ export const run = id;
  */
 export const functor: Functor<IdentityHkt> = {
     map: id,
+};
+
+/**
+ * The `Applicative` instance for `Identity`.
+ */
+export const applicative: Applicative<IdentityHkt> = {
+    pure: id,
+    map: id,
+    apply: id,
 };
 
 /**
