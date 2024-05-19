@@ -1,6 +1,7 @@
 import { assertEquals } from "../deps.ts";
 import { Array, Compose } from "../mod.ts";
 import {
+    apply,
     biMap,
     breakValue,
     continueValue,
@@ -97,15 +98,15 @@ Deno.test("applicative laws", () => {
     const a = monad<never[]>();
     const data = newContinue("2");
     // identity
-    assertEquals(a.apply(a.pure((x: string) => x))(data), data);
+    assertEquals(apply(a.pure((x: string) => x))(data), data);
 
     // composition
     const strLen = a.pure((x: string) => x.length);
     const question = a.pure((x: string) => x + "?");
     assertEquals(
-        a.apply(
-            a.apply(
-                a.apply(
+        apply(
+            apply(
+                apply(
                     a.pure(
                         (f: (x: string) => number) =>
                         (g: (x: string) => string) =>
@@ -114,19 +115,19 @@ Deno.test("applicative laws", () => {
                 )(strLen),
             )(question),
         )(data),
-        a.apply(strLen)(a.apply(question)(data)),
+        apply(strLen)(apply(question)(data)),
     );
 
     // homomorphism
     assertEquals(
-        a.apply(a.pure((x: string) => x + "!"))(a.pure("foo")),
+        apply(a.pure((x: string) => x + "!"))(a.pure("foo")),
         a.pure("foo!"),
     );
 
     // interchange
     assertEquals(
-        a.apply(strLen)(a.pure("boo")),
-        a.apply(a.pure((f: (x: string) => number) => f("boo")))(strLen),
+        apply(strLen)(a.pure("boo")),
+        apply(a.pure((f: (x: string) => number) => f("boo")))(strLen),
     );
 });
 
