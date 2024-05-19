@@ -9,6 +9,7 @@ import {
     dec,
     enc,
     flatten,
+    foldR,
     functor,
     isBreak,
     isContinue,
@@ -158,6 +159,21 @@ Deno.test("monad laws", () => {
             m.flatMap(continuing)(m.flatMap(breaking)(data)),
             m.flatMap((x: string) => m.flatMap(continuing)(breaking(x)))(data),
         );
+    }
+});
+
+Deno.test("foldR", () => {
+    {
+        const actual = foldR((next: string) => (acc: string) => next + acc)("")(
+            cases[0],
+        );
+        assertEquals(actual, "foo");
+    }
+    {
+        const actual = foldR((next: string) => (acc: string) => next + acc)("")(
+            cases[1],
+        );
+        assertEquals(actual, "");
     }
 });
 
