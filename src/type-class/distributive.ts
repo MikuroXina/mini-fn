@@ -2,7 +2,22 @@ import type { Get1 } from "../hkt.ts";
 import type { Functor } from "./functor.ts";
 import type { Monad } from "./monad.ts";
 
+/**
+ * The dual of traversable functor, allows zipping a nested structure efficiently.
+ *
+ * All instances of the distributive functor `g` must satisfy the following laws for all functor `f` and data `x`:
+ *
+ * - Identity: `distribute(f)(map((a) => a))(x)` equals to `x`,
+ * - Reversibility: `distribute(f)(distribute(f)(x))` equals to `x`.
+ */
 export interface Distributive<G> extends Functor<G> {
+    /**
+     * The dual of `sequenceA` of traversable functor.
+     *
+     * @param functor - The `Functor` instance for `F`.
+     * @param fga - Data of type `A` on `F<G<_>>`.
+     * @returns The distributed type onto `G<F<_>>`.
+     */
     readonly distribute: <F>(
         functor: Functor<F>,
     ) => <A>(fga: Get1<F, Get1<G, A>>) => Get1<G, Get1<F, A>>;
