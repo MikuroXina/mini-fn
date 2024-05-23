@@ -9,7 +9,11 @@ import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Pure } from "./type-class/pure.ts";
 import type { Traversable } from "./type-class/traversable.ts";
-import type { PartialEqUnary } from "./type-class/partial-eq.ts";
+import {
+    fromPartialEquality,
+    type PartialEq,
+    type PartialEqUnary,
+} from "./type-class/partial-eq.ts";
 
 /**
  * Calculation on a space `X` and mapping function from `X` to an inclusion space `A`.
@@ -49,6 +53,15 @@ export const partialEqUnary = <F>(
                     )(r),
             )(l),
 });
+
+export const partialEquality = <F, A>({ lifter, equality }: {
+    lifter: PartialEqUnary<F>;
+    equality: (l: A, r: A) => boolean;
+}): (l: Coyoneda<F, A>, r: Coyoneda<F, A>) => boolean =>
+    partialEqUnary(lifter).liftEq(equality);
+export const partialEq: <F, A>(
+    deps: { lifter: PartialEqUnary<F>; equality: (l: A, r: A) => boolean },
+) => PartialEq<Coyoneda<F, A>> = fromPartialEquality(partialEquality);
 
 /**
  * Creates a new `Coyoneda` from mapping function `map` and calculation on `F`.
