@@ -161,7 +161,7 @@ export const distributeT =
 /**
  * The instance of `Functor` for `Coyoneda`.
  */
-export const functor: Functor<CoyonedaHkt> = { map };
+export const functor = <F>(): Functor<Apply2Only<CoyonedaHkt, F>> => ({ map });
 
 export const applicative = <F>(
     app: Applicative<F>,
