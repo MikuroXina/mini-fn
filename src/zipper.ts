@@ -8,6 +8,7 @@ import {
     map as listMap,
     ord as listOrd,
     partialEq as listPartialEq,
+    partialEqUnary as listPartialEqUnary,
     partialOrd as listPartialOrd,
     plus,
     reverse,
@@ -29,6 +30,7 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     fromPartialEquality,
     type PartialEq,
+    type PartialEqUnary,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 
@@ -85,6 +87,15 @@ export const cmp =
             ),
         );
 export const ord: <T>(order: Ord<T>) => Ord<Zipper<T>> = fromCmp(cmp);
+
+export const partialEqUnary: PartialEqUnary<ZipperHkt> = {
+    liftEq:
+        <Lhs, Rhs>(equality: (l: Lhs, r: Rhs) => boolean) =>
+        (l: Zipper<Lhs>, r: Zipper<Rhs>): boolean =>
+            equality(l.current, r.current) &&
+            listPartialEqUnary.liftEq(equality)(l.left, r.left) &&
+            listPartialEqUnary.liftEq(equality)(l.right, r.right),
+};
 
 /**
  * Creates a new zipper with the value.
