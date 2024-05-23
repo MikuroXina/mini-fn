@@ -147,6 +147,7 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     fromPartialEquality,
     type PartialEq,
+    type PartialEqUnary,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import type { Reduce } from "./type-class/reduce.ts";
@@ -208,6 +209,20 @@ export const cmp = <T>(order: Ord<T>): (l: List<T>, r: List<T>) => Ordering => {
     return self;
 };
 export const ord: <T>(order: Ord<T>) => Ord<List<T>> = fromCmp(cmp);
+
+export const partialEqUnary: PartialEqUnary<ListHkt> = {
+    liftEq: <Lhs, Rhs>(
+        equality: (l: Lhs, r: Rhs) => boolean,
+    ): (l: List<Lhs>, r: List<Rhs>) => boolean => {
+        const go = (l: List<Lhs>, r: List<Rhs>): boolean =>
+            either(() => isNull(r))((l: Lhs, ls: List<Lhs>): boolean =>
+                either(() => false)((r: Rhs, rs: List<Rhs>): boolean =>
+                    equality(l, r) && go(ls, rs)
+                )(r)
+            )(l);
+        return go;
+    },
+};
 
 /**
  * Checks whether the list has a current element.
