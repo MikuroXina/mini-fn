@@ -7,7 +7,7 @@ import type { Monad } from "./monad.ts";
  *
  * All instances of the distributive functor `g` must satisfy the following laws:
  *
- * - Identity: For all functor `f` and data `x`; `g.distribute(f)(g.map((a) => a))(x)` equals to `x`,
+ * - Identity: For all functor `f` and data `x`; `distribute(f)(x)` equals to `distribute(f)(map(id)(x))`,
  * - Reversibility: For all distributive functor `f` and data `x`; `g.distribute(f)(f.distribute(g)(x))` equals to `x`.
  */
 export interface Distributive<G> extends Functor<G> {
