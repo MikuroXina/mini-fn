@@ -18,6 +18,7 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     fromPartialEquality,
     type PartialEq,
+    type PartialEqUnary,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import type { Reduce } from "./type-class/reduce.ts";
@@ -53,6 +54,14 @@ export const cmp =
             l.map((left, i) => order.cmp(left, r[i])),
         );
 export const ord: <T>(order: Ord<T>) => Ord<T[]> = fromCmp(cmp);
+
+export const partialEqUnary: PartialEqUnary<ArrayHkt> = {
+    liftEq:
+        <Lhs, Rhs = Lhs>(equality: (l: Lhs, r: Rhs) => boolean) =>
+        (l: readonly Lhs[], r: readonly Rhs[]) =>
+            l.length === r.length &&
+            l.every((lItem, i) => equality(lItem, r[i])),
+};
 
 export interface ArrayHkt extends Hkt1 {
     readonly type: readonly this["arg1"][];
