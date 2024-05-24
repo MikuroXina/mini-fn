@@ -5,10 +5,10 @@ import type { Monad } from "./monad.ts";
 /**
  * The dual of traversable functor, allows zipping a nested structure efficiently.
  *
- * All instances of the distributive functor `g` must satisfy the following laws for all functor `f` and data `x`:
+ * All instances of the distributive functor `g` must satisfy the following laws:
  *
- * - Identity: `distribute(f)(map((a) => a))(x)` equals to `x`,
- * - Reversibility: `distribute(f)(distribute(f)(x))` equals to `x`.
+ * - Identity: For all functor `f` and data `x`; `g.distribute(f)(g.map((a) => a))(x)` equals to `x`,
+ * - Reversibility: For all distributive functor `f` and data `x`; `g.distribute(f)(f.distribute(g)(x))` equals to `x`.
  */
 export interface Distributive<G> extends Functor<G> {
     /**
