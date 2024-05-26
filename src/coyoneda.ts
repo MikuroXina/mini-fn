@@ -9,6 +9,11 @@ import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Pure } from "./type-class/pure.ts";
 import type { Traversable } from "./type-class/traversable.ts";
+import {
+    fromPartialEquality,
+    type PartialEq,
+    type PartialEqUnary,
+} from "./type-class/partial-eq.ts";
 
 /**
  * Calculation on a space `X` and mapping function from `X` to an inclusion space `A`.
@@ -27,6 +32,36 @@ export type Coyoneda<F, A> = Exists<Apply2Only<Apply3Only<CoyonedaTHkt, F>, A>>;
 export interface CoyonedaHkt extends Hkt2 {
     readonly type: Coyoneda<this["arg2"], this["arg1"]>;
 }
+
+/**
+ * Lifts the partial equality onto `Coyoneda`.
+ */
+export const partialEqUnary = <F>(
+    lifter: PartialEqUnary<F>,
+): PartialEqUnary<Apply2Only<CoyonedaHkt, F>> => ({
+    liftEq:
+        <Lhs, Rhs>(equality: (l: Lhs, r: Rhs) => boolean) =>
+        (l: Coyoneda<F, Lhs>, r: Coyoneda<F, Rhs>): boolean =>
+            unCoyoneda(
+                <X>(lMap: (shape: X) => Lhs) => (lImage: Get1<F, X>): boolean =>
+                    unCoyoneda(
+                        <Y>(rMap: (shape: Y) => Rhs) =>
+                        (rImage: Get1<F, Y>): boolean =>
+                            lifter.liftEq((lhs: X, rhs: Y) =>
+                                equality(lMap(lhs), rMap(rhs))
+                            )(lImage, rImage),
+                    )(r),
+            )(l),
+});
+
+export const partialEquality = <F, A>({ lifter, equality }: {
+    lifter: PartialEqUnary<F>;
+    equality: (l: A, r: A) => boolean;
+}): (l: Coyoneda<F, A>, r: Coyoneda<F, A>) => boolean =>
+    partialEqUnary(lifter).liftEq(equality);
+export const partialEq: <F, A>(
+    deps: { lifter: PartialEqUnary<F>; equality: (l: A, r: A) => boolean },
+) => PartialEq<Coyoneda<F, A>> = fromPartialEquality(partialEquality);
 
 /**
  * Creates a new `Coyoneda` from mapping function `map` and calculation on `F`.
@@ -161,7 +196,7 @@ export const distributeT =
 /**
  * The instance of `Functor` for `Coyoneda`.
  */
-export const functor: Functor<CoyonedaHkt> = { map };
+export const functor = <F>(): Functor<Apply2Only<CoyonedaHkt, F>> => ({ map });
 
 export const applicative = <F>(
     app: Applicative<F>,

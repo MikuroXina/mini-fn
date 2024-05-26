@@ -1,8 +1,9 @@
-import type { Apply2Only, Hkt2 } from "./hkt.ts";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import type { MonadReader } from "./reader/monad.ts";
 import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.ts";
 import type { Applicative } from "./type-class/applicative.ts";
 import type { Arrow } from "./type-class/arrow.ts";
+import type { Distributive } from "./type-class/distributive.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Group } from "./type-class/group.ts";
 import type { Monad } from "./type-class/monad.ts";
@@ -273,6 +274,17 @@ export const applicative = <X>(): Applicative<Apply2Only<FnHkt, X>> => ({
 export const monad = <X>(): Monad<Apply2Only<FnHkt, X>> => ({
     ...applicative(),
     flatMap: flatMap(),
+});
+
+/**
+ * The `Distributive` instance for `Fn<X, _>`.
+ */
+export const distributive = <X>(): Distributive<Apply2Only<FnHkt, X>> => ({
+    map: map(),
+    distribute:
+        <F>(functor: Functor<F>) =>
+        <A>(f: Get1<F, (x: X) => A>) =>
+        (x: X): Get1<F, A> => functor.map((fn: (x: X) => A) => fn(x))(f),
 });
 
 /**

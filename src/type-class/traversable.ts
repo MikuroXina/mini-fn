@@ -9,7 +9,7 @@ import type { Monad } from "./monad.ts";
  *
  * All instances of the traversable functor `tra` must satisfy the following laws:
  *
- * - Naturality: For all `t`, `f` and `x`; `t(tra.traverse(app)(f)(x))` equals to `tra.traverse(app)((item) => t(f(item)))(x)`,
+ * - Naturality: For all `t`, `f` and `x`; `t(tra.traverse(app1)(f)(x))` equals to `tra.traverse(app2)((item) => t(f(item)))(x)`, where `app1` and `app2` are appropriate applicative functors about `f` and `t` respectively,
  * - Identity: For all x; `tra.traverse(Identity.applicative)((a) => a)(x)` equals to `x`,
  * - Composition: For all `f`, `g`, `x` and composed applicative functor `app` for `Compose<F, G, _>`; `tra.traverse(app)((item) => app.map(g)(f(item)))(x)` equals to `app.map(tra.traverse(app)(g))(tra.traverse(app)(f)(x))`.
  */

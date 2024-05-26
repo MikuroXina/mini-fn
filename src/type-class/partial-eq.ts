@@ -48,3 +48,23 @@ export const monoid = <Lhs, Rhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
     identity: identity(),
     [semiGroupSymbol]: true,
 });
+
+export interface PartialEqUnary<F> {
+    readonly liftEq: <Lhs, Rhs = Lhs>(
+        equality: (l: Lhs, r: Rhs) => boolean,
+    ) => (l: Get1<F, Lhs>, r: Get1<F, Rhs>) => boolean;
+}
+
+/**
+ * Creates the new lifter of equality from a transformer of `PartialEq`.
+ *
+ * @param lifter - The function transforming about `PartialEq`.
+ * @returns The new `PartialEqUnary` for `F`.
+ */
+export const fromLifter = <F>(
+    lifter: <Lhs, Rhs>(
+        eq: PartialEq<Lhs, Rhs>,
+    ) => PartialEq<Get1<F, Lhs>, Get1<F, Rhs>>,
+): PartialEqUnary<F> => ({
+    liftEq: (equality) => (l, r) => lifter({ eq: equality }).eq(l, r),
+});
