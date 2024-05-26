@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.3.1](https://github.com/MikuroXina/mini-fn/compare/v6.3.0...v6.3.1) (2024-05-26)
+
+
+### Bug Fixes
+
+* Fix Ether's bug on removing self symbol ([#232](https://github.com/MikuroXina/mini-fn/issues/232)) ([5ff7fb6](https://github.com/MikuroXina/mini-fn/commit/5ff7fb6e341cd029a9b215e6c7054677face1172))
+
 ## [6.3.0](https://github.com/MikuroXina/mini-fn/compare/v6.2.1...v6.3.0) (2024-05-26)
 
 
