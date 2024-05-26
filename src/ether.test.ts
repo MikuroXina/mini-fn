@@ -83,24 +83,39 @@ Deno.test("deps on Promise", async () => {
             }),
     );
 
+    type PrivateRepository = {
+        fetch: () => Promise<unknown>;
+    };
+    const privateRepositorySymbol = newEtherSymbol<PrivateRepository>();
+    const privateRepository = newEther(privateRepositorySymbol, () => ({
+        fetch: () => Promise.resolve({ flag: "YOU_ARE_AN_IDIOT" }),
+    }));
+
     type PrivateFetcher = {
         fetch: (token: string) => Promise<unknown>;
     };
     const privateFetcherSymbol = newEtherSymbol<PrivateFetcher>();
-    const privateFetcher = newEther(privateFetcherSymbol, ({ verifier }) => ({
-        fetch: async (token) => {
-            if (!(await verifier.verify(token))) {
-                throw new Error("token verification failure");
-            }
-            return { flag: "YOU_ARE_AN_IDIOT" };
+    const privateFetcher = newEther(
+        privateFetcherSymbol,
+        ({ verifier, repo }) => ({
+            fetch: async (token) => {
+                if (!(await verifier.verify(token))) {
+                    throw new Error("token verification failure");
+                }
+                return repo.fetch();
+            },
+        }),
+        {
+            verifier: tokenVerifierSymbol,
+            repo: privateRepositorySymbol,
         },
-    }), {
-        verifier: tokenVerifierSymbol,
-    });
+    );
 
     const composePromise = composeT(monad);
-    const composed = await cat(liftEther(monad)(privateFetcher))
+    const liftPromise = liftEther(monad);
+    const composed = await cat(liftPromise(privateFetcher))
         .feed(composePromise(tokenVerifier))
+        .feed(composePromise(liftPromise(privateRepository)))
         .feed(runEtherT).value;
 
     assertEquals(await composed.fetch("foo"), { flag: "YOU_ARE_AN_IDIOT" });
