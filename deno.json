@@ -12,12 +12,19 @@
         "semiColons": true,
         "singleQuote": false,
         "proseWrap": "always",
-        "exclude": [".release-please-manifest.json", "CHANGELOG.md"]
+        "exclude": [
+            ".release-please-manifest.json",
+            "CHANGELOG.md"
+        ]
     },
     "lint": {
-        "include": ["src/"],
+        "include": [
+            "src/"
+        ],
         "rules": {
-            "tags": ["recommended"],
+            "tags": [
+                "recommended"
+            ],
             "include": [
                 "camelcase",
                 "default-param-last",
@@ -42,5 +49,5 @@
     },
     "name": "@mikuroxina/mini-fn",
     "exports": "./mod.ts",
-    "version": "6.2.1"
+    "version": "6.3.0"
 }

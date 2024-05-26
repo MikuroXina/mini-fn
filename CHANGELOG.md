@@ -1,5 +1,25 @@
 # Changelog
 
+## [6.3.0](https://github.com/MikuroXina/mini-fn/compare/v6.2.1...v6.3.0) (2024-05-26)
+
+
+### Features
+
+* Add Compose and Add tests for ControlFlow ([#224](https://github.com/MikuroXina/mini-fn/issues/224)) ([9cec7be](https://github.com/MikuroXina/mini-fn/commit/9cec7be300998485bb799436c41a3d848a8539cb))
+* Add liftEther ([#222](https://github.com/MikuroXina/mini-fn/issues/222)) ([c8f61d7](https://github.com/MikuroXina/mini-fn/commit/c8f61d79eb3d55429492c890504cf3a4f39283e5))
+* Add PartialEqUnary and Improve doc and test ([#228](https://github.com/MikuroXina/mini-fn/issues/228)) ([d3ccda7](https://github.com/MikuroXina/mini-fn/commit/d3ccda750b07f938df21fc668742f476db5bef8c))
+* Add sortItems and Enforce tests for BinaryHeap ([#217](https://github.com/MikuroXina/mini-fn/issues/217)) ([707397b](https://github.com/MikuroXina/mini-fn/commit/707397b84e578543356bb0b3f775efb0d01de2ad))
+
+
+### Bug Fixes
+
+* Fix bugs and Add test for Array ([#213](https://github.com/MikuroXina/mini-fn/issues/213)) ([af67916](https://github.com/MikuroXina/mini-fn/commit/af67916c1bbafb83933c28a0f219e285590c8346))
+* Fix bugs and cover Array with test ([#216](https://github.com/MikuroXina/mini-fn/issues/216)) ([93084d7](https://github.com/MikuroXina/mini-fn/commit/93084d7a00daf9b1cb47a06f5d73170265c97f81))
+* Fix bugs and Enforce tests for Cont ([#219](https://github.com/MikuroXina/mini-fn/issues/219)) ([ab13f1e](https://github.com/MikuroXina/mini-fn/commit/ab13f1e9a28880136d97c8e7c002bb1516bb71eb))
+* Fix typing of EtherT definition and Add test ([#231](https://github.com/MikuroXina/mini-fn/issues/231)) ([a34dd78](https://github.com/MikuroXina/mini-fn/commit/a34dd7852713f803dbf4e6ef6e6238f24842fe1a))
+* Improve minor definition and Enforce tests ([#223](https://github.com/MikuroXina/mini-fn/issues/223)) ([e9bd270](https://github.com/MikuroXina/mini-fn/commit/e9bd27031d265d7117dc31d5f9a993a174334a6f))
+* Replace returning undefined with never[] ([#220](https://github.com/MikuroXina/mini-fn/issues/220)) ([1190bf0](https://github.com/MikuroXina/mini-fn/commit/1190bf09e197d34b7a7df004b73debcdc14b7299))
+
 ## [6.2.1](https://github.com/MikuroXina/mini-fn/compare/v6.2.0...v6.2.1) (2024-05-12)
 
 
