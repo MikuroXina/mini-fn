@@ -2,7 +2,7 @@
     "tasks": {
         "dev": "deno run --watch mod.ts",
         "test": "deno test -A src/ && deno test -A --doc src/",
-        "coverage": "deno test -A --coverage=./coverage/cov_profile src/",
+        "coverage": "deno test -A --doc --coverage=./coverage/cov_profile src/",
         "doc": "deno run --allow-read --allow-write --allow-env --deny-run npm:typedoc@0.25.3 --tsconfig tsconfig.doc.json --skipErrorChecking --name @mikuroxina/mini-fn mod.ts"
     },
     "fmt": {
