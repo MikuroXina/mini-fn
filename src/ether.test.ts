@@ -1,5 +1,15 @@
 import { assertEquals } from "../deps.ts";
-import { compose, newEther, newEtherSymbol, runEther } from "./ether.ts";
+import { cat } from "./cat.ts";
+import { composeT, liftEther } from "./ether.ts";
+import {
+    compose,
+    newEther,
+    newEtherSymbol,
+    newEtherT,
+    runEther,
+    runEtherT,
+} from "./ether.ts";
+import { monad, type PromiseHkt } from "./promise.ts";
 
 type Article = {
     createdAt: string;
@@ -58,4 +68,40 @@ Deno.test("runs an Ether", async () => {
         timestamp: "2020-01-01T13:17:00Z",
         body: "Hello, World!",
     });
+});
+
+Deno.test("deps on Promise", async () => {
+    type TokenVerifier = {
+        verify: (token: string) => Promise<boolean>;
+    };
+    const tokenVerifierSymbol = newEtherSymbol<TokenVerifier>();
+    const tokenVerifier = newEtherT<PromiseHkt>()(
+        tokenVerifierSymbol,
+        () =>
+            Promise.resolve({
+                verify: (token) => Promise.resolve(token.length === 3),
+            }),
+    );
+
+    type PrivateFetcher = {
+        fetch: (token: string) => Promise<unknown>;
+    };
+    const privateFetcherSymbol = newEtherSymbol<PrivateFetcher>();
+    const privateFetcher = newEther(privateFetcherSymbol, ({ verifier }) => ({
+        fetch: async (token) => {
+            if (!(await verifier.verify(token))) {
+                throw new Error("token verification failure");
+            }
+            return { flag: "YOU_ARE_AN_IDIOT" };
+        },
+    }), {
+        verifier: tokenVerifierSymbol,
+    });
+
+    const composePromise = composeT(monad);
+    const composed = await cat(liftEther(monad)(privateFetcher))
+        .feed(composePromise(tokenVerifier))
+        .feed(runEtherT).value;
+
+    assertEquals(await composed.fetch("foo"), { flag: "YOU_ARE_AN_IDIOT" });
 });
