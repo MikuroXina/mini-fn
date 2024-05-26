@@ -97,25 +97,27 @@ export const composeT =
         const targetKeys = Object.entries(upper.depSymbols).filter(([, sym]) =>
             sym === lower.selfSymbol
         ).map(([key]) => key);
+        const composedHandler = (deps: EtherDeps<OmitType<E, T> & D>) =>
+            doT(monad).addM("resolved", lower.handler(deps))
+                .addMWith("ret", ({ resolved }) => {
+                    const depsForUpper: Record<string, unknown> = {
+                        ...deps,
+                    };
+                    for (const targetKey of targetKeys) {
+                        depsForUpper[targetKey] = resolved;
+                    }
+                    return upper.handler(depsForUpper as EtherDeps<E>);
+                }).finish(({ ret }) => ret);
+        const symbolsDeletedSelf = Object.fromEntries(
+            Object.entries({ ...upper.depSymbols, ...lower.depSymbols })
+                .filter(
+                    ([, depSym]) => depSym !== lower.selfSymbol,
+                ),
+        );
         return {
             selfSymbol: upper.selfSymbol,
-            handler: (deps) =>
-                doT(monad).addM("resolved", lower.handler(deps))
-                    .addMWith("ret", ({ resolved }) => {
-                        const depsForUpper: Record<string, unknown> = {
-                            ...deps,
-                        };
-                        for (const targetKey of targetKeys) {
-                            depsForUpper[targetKey] = resolved;
-                        }
-                        return upper.handler(depsForUpper as EtherDeps<E>);
-                    }).finish(({ ret }) => ret),
-            depSymbols: Object.fromEntries(
-                Object.entries({ ...upper.depSymbols, ...lower.depSymbols })
-                    .filter(
-                        ([, depSym]) => depSym === lower.selfSymbol,
-                    ),
-            ) as OmitType<E, T> & D,
+            handler: composedHandler,
+            depSymbols: symbolsDeletedSelf as OmitType<E, T> & D,
         };
     };
 
@@ -185,22 +187,24 @@ export const compose =
         const targetKeys = Object.entries(upper.depSymbols).filter(([, sym]) =>
             sym === lower.selfSymbol
         ).map(([key]) => key);
+        const composedHandler = (deps: EtherDeps<OmitType<E, T> & D>) => {
+            const resolved = lower.handler(deps);
+            const depsForUpper: Record<string, unknown> = { ...deps };
+            for (const targetKey of targetKeys) {
+                depsForUpper[targetKey] = resolved;
+            }
+            return upper.handler(depsForUpper as EtherDeps<E>);
+        };
+        const symbolsDeletedSelf = Object.fromEntries(
+            Object.entries({ ...upper.depSymbols, ...lower.depSymbols })
+                .filter(
+                    ([, depSym]) => depSym !== lower.selfSymbol,
+                ),
+        );
         return {
             selfSymbol: upper.selfSymbol,
-            handler: (deps) => {
-                const resolved = lower.handler(deps);
-                const depsForUpper: Record<string, unknown> = { ...deps };
-                for (const targetKey of targetKeys) {
-                    depsForUpper[targetKey] = resolved;
-                }
-                return upper.handler(depsForUpper as EtherDeps<E>);
-            },
-            depSymbols: Object.fromEntries(
-                Object.entries({ ...upper.depSymbols, ...lower.depSymbols })
-                    .filter(
-                        ([, depSym]) => depSym === lower.selfSymbol,
-                    ),
-            ) as OmitType<E, T> & D,
+            handler: composedHandler,
+            depSymbols: symbolsDeletedSelf as OmitType<E, T> & D,
         };
     };
 
