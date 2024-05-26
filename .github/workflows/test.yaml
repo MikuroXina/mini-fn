@@ -20,9 +20,8 @@ jobs:
           deno lint
       - name: Generate coverage
         run: |
-          deno task test
           deno task coverage
-          deno coverage --lcov --output=coverage/cov.lcov coverage/cov_profile
+          deno coverage --lcov --output=coverage/cov.lcov coverage/cov_profile/
       - uses: codecov/codecov-action@v4
         with:
           files: ./coverage/cov.lcov
