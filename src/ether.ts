@@ -46,11 +46,11 @@ export type OmitType<D, T> = {
 /**
  * EtherT is a function which needs dependencies `D` and returns `M<T>`.
  */
-export interface EtherT<D, M, T> {
+export type EtherT<D, M, T> = {
     readonly selfSymbol: EtherSymbol<T>;
     readonly handler: (resolved: EtherDeps<D>) => Get1<M, T>;
     readonly depSymbols: D;
-}
+};
 
 /**
  * Executes an `EtherT` which requires no dependencies.
