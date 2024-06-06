@@ -1,5 +1,6 @@
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import type { MonadReader } from "./reader/monad.ts";
+import type { Tuple } from "./tuple.ts";
 import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.ts";
 import type { Applicative } from "./type-class/applicative.ts";
 import type { Arrow } from "./type-class/arrow.ts";
@@ -248,6 +249,18 @@ export const flatMap =
     <X>() => <A, B>(fn: (a: A) => Fn<X, B>) => (a: Fn<X, A>): Fn<X, B> => (x) =>
         fn(a(x))(x);
 
+/**
+ * Splits two inputs between two functions.
+ *
+ * @param arrow1 - The function to be mapped on the first.
+ * @param arrow2 - The function to be mapped on the second.
+ * @returns The composed function.
+ */
+export const split: <B1, C1>(
+    arrow1: Fn<B1, C1>,
+) => <B2, C2>(arrow2: Fn<B2, C2>) => Fn<Tuple<B1, B2>, Tuple<C1, C2>> =
+    (arrow1) => (arrow2) => ([b1, b2]) => [arrow1(b1), arrow2(b2)];
+
 export interface FnHkt extends Hkt2 {
     readonly type: Fn<this["arg2"], this["arg1"]>;
 }
@@ -303,7 +316,7 @@ export const fnArrow: Arrow<FnHkt> = {
     compose,
     identity: () => id,
     arr: id,
-    split: (arrow1) => (arrow2) => ([b1, b2]) => [arrow1(b1), arrow2(b2)],
+    split,
 };
 
 /**
