@@ -10,7 +10,7 @@ import { type Category, pipe } from "./category.ts";
  * - Identity arrow: `a.arr(Func.id)` equals to `a.identity()`,
  * - Composition arrow: For all functions `f` and `g`; `a.arr(Func.compose(f)(g))` equals to `a.compose(a.arr(f))(a.arr(g))`,
  * - Left interchange: For all `f`; `a.split(a.arr(f))(a.identity())` equals to `a.arr(a.split(f)(a.identity()))`,
- * - Left composition: For all functions `f` and `g`; `a.split(Func.compose(f)(g))(a.identity)` equals to `a.compose(a.split(f)(a.identity())(a.split(g)(a.identity))`,
+ * - Left composition: For all functions `f` and `g`; `a.split(Func.compose(f)(g))(a.identity())` equals to `a.compose(a.split(f)(a.identity()))(a.split(g)(a.identity()))`,
  * - Extracting first interchange: For all `f`; `a.compose(a.arr(Tuple.first))(a.split(f)(a.identity()))` equals to `a.compose(f)(a.arr(Tuple.first))`,
  * - Independence: For all `f` and `g`; `a.compose(a.arr(Func.split(Func.id)(g)))(a.split(f)(a.identity()))` equals to `a.compose(a.split(f)(a.identity()))(a.arr(Func.split(Func.id)(g)))`,
  * - Idempotence: `a.compose(a.arr(Tuple.assocR))(a.split(a.split(f)(a.identity()))(a.identity()))` equals to `a.compose(a.split(f)(a.identity()))(a.arr(Tuple.assocR))`.
