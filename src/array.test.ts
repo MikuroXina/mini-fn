@@ -19,8 +19,8 @@ import { equal, greater, less, type Ordering } from "./ordering.ts";
 import { monad as promiseMonad, type PromiseHkt } from "./promise.ts";
 import { unwrap } from "./result.ts";
 import { decU32Be, encU32Be, runCode, runDecoder } from "./serial.ts";
-import { type Eq, eqSymbol } from "./type-class/eq.ts";
-import type { Ord } from "./type-class/ord.ts";
+import { stringEq } from "./type-class/eq.ts";
+import { stringOrd } from "./type-class/ord.ts";
 import { strict } from "./type-class/partial-eq.ts";
 
 Deno.test("partial equality", () => {
@@ -36,11 +36,6 @@ Deno.test("partial equality", () => {
     assertEquals(partialEq([4, 0], [0]), false);
 });
 
-const stringEq: Eq<string> = {
-    eq: (l, r) => l === r,
-    [eqSymbol]: true,
-};
-
 Deno.test("equality", () => {
     const eq = equality(stringEq);
 
@@ -53,12 +48,6 @@ Deno.test("equality", () => {
     assertEquals(eq(["0"], ["0", "3"]), false);
     assertEquals(eq(["4", "0"], ["0"]), false);
 });
-
-const stringOrd: Ord<string> = {
-    ...stringEq,
-    cmp: (l, r) => l < r ? -1 : l === r ? 0 : 1,
-    partialCmp: (l, r) => some(l < r ? -1 : l === r ? 0 : 1),
-};
 
 Deno.test("partial order", () => {
     const cmp = partialCmp(stringOrd);

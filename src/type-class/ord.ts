@@ -2,7 +2,7 @@ import type { Get1, Hkt1 } from "../hkt.ts";
 import { type Option, some } from "../option.ts";
 import { isEq, type Ordering } from "../ordering.ts";
 import type { HasNegInf } from "./has-neg-inf.ts";
-import { type Eq, eqSymbol } from "./eq.ts";
+import { type Eq, eqSymbol, stringEq } from "./eq.ts";
 import type { HasInf } from "./has-inf.ts";
 import type { PartialOrd } from "./partial-ord.ts";
 import type { Contravariant } from "./variance.ts";
@@ -17,6 +17,12 @@ export interface Ord<Lhs, Rhs = Lhs>
     extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> {
     readonly cmp: (lhs: Lhs, rhs: Rhs) => Ordering;
 }
+
+export const stringOrd: Ord<string> = {
+    ...stringEq,
+    cmp: (l, r) => l < r ? -1 : l === r ? 0 : 1,
+    partialCmp: (l, r) => some(l < r ? -1 : l === r ? 0 : 1),
+};
 
 export const fromCmp =
     <Lhs, Rhs, X = void>(cmp: (x: X) => (lhs: Lhs, rhs: Rhs) => Ordering) =>
