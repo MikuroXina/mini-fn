@@ -127,7 +127,7 @@
 import { cat } from "./cat.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import * as Option from "./option.ts";
-import { andThen, type Ordering } from "./ordering.ts";
+import { equal, type Ordering } from "./ordering.ts";
 import {
     type Decoder,
     decU32Be,
@@ -192,21 +192,50 @@ export const equality = <T>(
 export const eq: <T>(equalityT: Eq<T>) => Eq<List<T>> = fromEquality(equality);
 export const partialCmp = <T>(
     order: PartialOrd<T>,
-): (l: List<T>, r: List<T>) => Option.Option<Ordering> => {
-    const self = (l: List<T>, r: List<T>): Option.Option<Ordering> =>
-        Option.andThen(() => self(l.rest(), r.rest()))(
-            Option.partialOrd(order).partialCmp(l.current(), r.current()),
+) =>
+(l: List<T>, r: List<T>): Option.Option<Ordering> => {
+    while (true) {
+        const lCurr = l.current();
+        const rCurr = r.current();
+        if (Option.isNone(lCurr) && Option.isNone(rCurr)) {
+            return Option.some(equal);
+        }
+        if (Option.isNone(lCurr) || Option.isNone(rCurr)) {
+            return Option.partialCmp(order)(lCurr, rCurr);
+        }
+        const res = order.partialCmp(
+            Option.unwrap(lCurr),
+            Option.unwrap(rCurr),
         );
-    return self;
+        if (Option.isNone(res) || Option.unwrap(res) !== equal) {
+            return res;
+        }
+        l = l.rest();
+        r = r.rest();
+    }
 };
 export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<List<T>> =
     fromPartialCmp(partialCmp);
-export const cmp = <T>(order: Ord<T>): (l: List<T>, r: List<T>) => Ordering => {
-    const self = (l: List<T>, r: List<T>): Ordering =>
-        andThen(() => self(l.rest(), r.rest()))(
-            Option.ord(order).cmp(l.current(), r.current()),
+export const cmp = <T>(order: Ord<T>) => (l: List<T>, r: List<T>): Ordering => {
+    while (true) {
+        const lCurr = l.current();
+        const rCurr = r.current();
+        if (Option.isNone(lCurr) && Option.isNone(rCurr)) {
+            return equal;
+        }
+        if (Option.isNone(lCurr) || Option.isNone(rCurr)) {
+            return Option.cmp(order)(lCurr, rCurr);
+        }
+        const res = order.cmp(
+            Option.unwrap(lCurr),
+            Option.unwrap(rCurr),
         );
-    return self;
+        if (res !== equal) {
+            return res;
+        }
+        l = l.rest();
+        r = r.rest();
+    }
 };
 export const ord: <T>(order: Ord<T>) => Ord<List<T>> = fromCmp(cmp);
 
