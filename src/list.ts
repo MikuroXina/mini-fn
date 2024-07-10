@@ -242,14 +242,23 @@ export const ord: <T>(order: Ord<T>) => Ord<List<T>> = fromCmp(cmp);
 export const partialEqUnary: PartialEqUnary<ListHkt> = {
     liftEq: <Lhs, Rhs>(
         equality: (l: Lhs, r: Rhs) => boolean,
-    ): (l: List<Lhs>, r: List<Rhs>) => boolean => {
-        const go = (l: List<Lhs>, r: List<Rhs>): boolean =>
-            either(() => isNull(r))((l: Lhs, ls: List<Lhs>): boolean =>
-                either(() => false)((r: Rhs, rs: List<Rhs>): boolean =>
-                    equality(l, r) && go(ls, rs)
-                )(r)
-            )(l);
-        return go;
+    ) =>
+    (l: List<Lhs>, r: List<Rhs>): boolean => {
+        while (true) {
+            const lCurr = l.current();
+            const rCurr = r.current();
+            if (Option.isNone(lCurr) && Option.isNone(rCurr)) {
+                return true;
+            }
+            if (Option.isNone(lCurr) || Option.isNone(rCurr)) {
+                return false;
+            }
+            if (!equality(Option.unwrap(lCurr), Option.unwrap(rCurr))) {
+                return false;
+            }
+            l = l.rest();
+            r = r.rest();
+        }
     },
 };
 
