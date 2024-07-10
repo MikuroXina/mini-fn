@@ -91,6 +91,26 @@ export const first = <A, B>([a]: Tuple<A, B>): A => a;
 export const second = <A, B>([, b]: Tuple<A, B>): B => b;
 
 /**
+ * Associates a tuple of three elements to the left.
+ *
+ * @param tuple - The nested tuple `[a, [b, c]]`.
+ * @returns The left-associated tuple `[[a, b], c]`.
+ */
+export const assocL = <A, B, C>(
+    [a, [b, c]]: Tuple<A, Tuple<B, C>>,
+): Tuple<Tuple<A, B>, C> => [[a, b], c];
+
+/**
+ * Associates a tuple of three elements to the right.
+ *
+ * @param tuple - The nested tuple `[[a, b], c]`.
+ * @returns The right-associated tuple `[a, [b, c]]`.
+ */
+export const assocR = <A, B, C>(
+    [[a, b], c]: Tuple<Tuple<A, B>, C>,
+): Tuple<A, Tuple<B, C>> => [a, [b, c]];
+
+/**
  * Curries the function `f` which takes a tuple.
  *
  * @param f - The function takes a tuple.

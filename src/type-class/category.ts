@@ -1,6 +1,15 @@
 import type { Get2 } from "../hkt.ts";
 import type { SemiGroupoid } from "./semi-groupoid.ts";
 
+/**
+ * A 2-arity kind which consists of objects and arrows between them.
+ *
+ * All instances of category `c` must satisfy the following laws:
+ *
+ * - Right identity: For all `f`; `c.compose(f)(c.identity())` equals to `f`,
+ * - Left identity: For all `f`; `c.compose(c.identity())(f)` equals to `f`,
+ * - Associativity: For all `f`, `g` and `h`; `c.compose(f)(c.compose(g)(h))` equals to `c.compose(c.compose(f)(g))(h)`.
+ */
 export interface Category<S> extends SemiGroupoid<S> {
     readonly identity: <A>() => Get2<S, A, A>;
 }
