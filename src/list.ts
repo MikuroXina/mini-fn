@@ -647,6 +647,8 @@ export const digits = (num: number, radix: number): List<number> => ({
     rest: () => digits(Math.floor(num / radix), radix),
 });
 
+const segmenter = new Intl.Segmenter();
+
 /**
  * Creates the list of characters of `string`.
  *
@@ -663,11 +665,10 @@ export const digits = (num: number, radix: number): List<number> => ({
  * assertEquals(toArray(fromString("")), []);
  * ```
  */
-export const fromString = (str: string): List<string> => ({
-    current: () =>
-        Option.fromPredicate((x: string) => x !== "")(str.slice(0, 1)),
-    rest: () => fromString(str.slice(1)),
-});
+export const fromString = (str: string): List<string> =>
+    map(({ segment }: Intl.SegmentData) => segment)(
+        fromIterable(segmenter.segment(str)),
+    );
 
 /**
  * Creates the list of elements from `Array`.
