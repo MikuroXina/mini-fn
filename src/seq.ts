@@ -34,6 +34,7 @@ export {
     fromArray,
     fromReduce,
     isEmpty,
+    reduceTree as reduce,
     size,
 } from "./seq/finger-tree.ts";
 
