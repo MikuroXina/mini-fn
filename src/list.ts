@@ -815,9 +815,12 @@ export const foldR =
  * @returns The folded value.
  */
 export const foldR1 = <T>(f: (a: T) => (b: T) => T) => (list: List<T>): T =>
-    either<T>(() => {
-        throw new Error("expected a list having one element at least");
-    })((x: T, xs) => foldR(f)(x)(xs))(list);
+    Option.unwrap(
+        foldR(
+            (a: T) => (opt: Option.Option<T>): Option.Option<T> =>
+                Option.some(Option.mapOr(a)((b: T) => f(a)(b))(opt)),
+        )(Option.none())(list),
+    );
 
 /**
  * Joins the list of string into a string.
