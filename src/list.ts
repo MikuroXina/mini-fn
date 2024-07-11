@@ -944,17 +944,21 @@ export const apply = <T, U>(fns: List<(t: T) => U>) => (t: List<T>): List<U> =>
  * assertEquals(toArray(partialSum), [0, 1, 3, 5, 9, 13, 16]);
  * ```
  */
-export const scanL = <T, U>(f: (u: U) => (t: T) => U) =>
-(init: U) =>
-(
+export const scanL = <T, U>(f: (u: U) => (t: T) => U): (init: U) => (
     src: List<T>,
-): List<U> => {
-    const res = [init];
-    for (const t of toIterator(src)) {
-        const next = f(res[res.length - 1])(t);
-        res.push(next);
-    }
-    return fromArray(res);
+) => List<U> => {
+    const go = <T, U>(f: (u: U) => (t: T) => U) =>
+    (init: U) =>
+    (
+        src: List<T>,
+    ): List<U> => ({
+        current: () => Option.some(init),
+        rest: () =>
+            Option.mapOr(empty<U>())(([x, xs]: [T, List<T>]): List<U> =>
+                go(f)(f(init)(x))(xs)
+            )(unCons(src)),
+    });
+    return go(f);
 };
 
 /**
