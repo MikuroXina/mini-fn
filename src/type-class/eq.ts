@@ -23,6 +23,11 @@ export interface Eq<Lhs, Rhs = Lhs> extends PartialEq<Lhs, Rhs> {
     readonly [eqSymbol]: true;
 }
 
+export const stringEq: Eq<string> = {
+    eq: (l, r) => l === r,
+    [eqSymbol]: true,
+};
+
 export const fromEquality =
     <Lhs, Rhs, X = void>(equality: (x: X) => (l: Lhs, r: Rhs) => boolean) =>
     (x: X): Eq<Lhs, Rhs> => ({

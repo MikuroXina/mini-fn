@@ -127,7 +127,7 @@
 import { cat } from "./cat.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
 import * as Option from "./option.ts";
-import { andThen, type Ordering } from "./ordering.ts";
+import { equal, type Ordering } from "./ordering.ts";
 import {
     type Decoder,
     decU32Be,
@@ -192,35 +192,73 @@ export const equality = <T>(
 export const eq: <T>(equalityT: Eq<T>) => Eq<List<T>> = fromEquality(equality);
 export const partialCmp = <T>(
     order: PartialOrd<T>,
-): (l: List<T>, r: List<T>) => Option.Option<Ordering> => {
-    const self = (l: List<T>, r: List<T>): Option.Option<Ordering> =>
-        Option.andThen(() => self(l.rest(), r.rest()))(
-            Option.partialOrd(order).partialCmp(l.current(), r.current()),
+) =>
+(l: List<T>, r: List<T>): Option.Option<Ordering> => {
+    while (true) {
+        const lCurr = l.current();
+        const rCurr = r.current();
+        if (Option.isNone(lCurr) && Option.isNone(rCurr)) {
+            return Option.some(equal);
+        }
+        if (Option.isNone(lCurr) || Option.isNone(rCurr)) {
+            return Option.partialCmp(order)(lCurr, rCurr);
+        }
+        const res = order.partialCmp(
+            Option.unwrap(lCurr),
+            Option.unwrap(rCurr),
         );
-    return self;
+        if (Option.isNone(res) || Option.unwrap(res) !== equal) {
+            return res;
+        }
+        l = l.rest();
+        r = r.rest();
+    }
 };
 export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<List<T>> =
     fromPartialCmp(partialCmp);
-export const cmp = <T>(order: Ord<T>): (l: List<T>, r: List<T>) => Ordering => {
-    const self = (l: List<T>, r: List<T>): Ordering =>
-        andThen(() => self(l.rest(), r.rest()))(
-            Option.ord(order).cmp(l.current(), r.current()),
+export const cmp = <T>(order: Ord<T>) => (l: List<T>, r: List<T>): Ordering => {
+    while (true) {
+        const lCurr = l.current();
+        const rCurr = r.current();
+        if (Option.isNone(lCurr) && Option.isNone(rCurr)) {
+            return equal;
+        }
+        if (Option.isNone(lCurr) || Option.isNone(rCurr)) {
+            return Option.cmp(order)(lCurr, rCurr);
+        }
+        const res = order.cmp(
+            Option.unwrap(lCurr),
+            Option.unwrap(rCurr),
         );
-    return self;
+        if (res !== equal) {
+            return res;
+        }
+        l = l.rest();
+        r = r.rest();
+    }
 };
 export const ord: <T>(order: Ord<T>) => Ord<List<T>> = fromCmp(cmp);
 
 export const partialEqUnary: PartialEqUnary<ListHkt> = {
     liftEq: <Lhs, Rhs>(
         equality: (l: Lhs, r: Rhs) => boolean,
-    ): (l: List<Lhs>, r: List<Rhs>) => boolean => {
-        const go = (l: List<Lhs>, r: List<Rhs>): boolean =>
-            either(() => isNull(r))((l: Lhs, ls: List<Lhs>): boolean =>
-                either(() => false)((r: Rhs, rs: List<Rhs>): boolean =>
-                    equality(l, r) && go(ls, rs)
-                )(r)
-            )(l);
-        return go;
+    ) =>
+    (l: List<Lhs>, r: List<Rhs>): boolean => {
+        while (true) {
+            const lCurr = l.current();
+            const rCurr = r.current();
+            if (Option.isNone(lCurr) && Option.isNone(rCurr)) {
+                return true;
+            }
+            if (Option.isNone(lCurr) || Option.isNone(rCurr)) {
+                return false;
+            }
+            if (!equality(Option.unwrap(lCurr), Option.unwrap(rCurr))) {
+                return false;
+            }
+            l = l.rest();
+            r = r.rest();
+        }
     },
 };
 
@@ -609,6 +647,8 @@ export const digits = (num: number, radix: number): List<number> => ({
     rest: () => digits(Math.floor(num / radix), radix),
 });
 
+const segmenter = new Intl.Segmenter();
+
 /**
  * Creates the list of characters of `string`.
  *
@@ -625,11 +665,10 @@ export const digits = (num: number, radix: number): List<number> => ({
  * assertEquals(toArray(fromString("")), []);
  * ```
  */
-export const fromString = (str: string): List<string> => ({
-    current: () =>
-        Option.fromPredicate((x: string) => x !== "")(str.slice(0, 1)),
-    rest: () => fromString(str.slice(1)),
-});
+export const fromString = (str: string): List<string> =>
+    map(({ segment }: Intl.SegmentData) => segment)(
+        fromIterable(segmenter.segment(str)),
+    );
 
 /**
  * Creates the list of elements from `Array`.
@@ -776,9 +815,12 @@ export const foldR =
  * @returns The folded value.
  */
 export const foldR1 = <T>(f: (a: T) => (b: T) => T) => (list: List<T>): T =>
-    either<T>(() => {
-        throw new Error("expected a list having one element at least");
-    })((x: T, xs) => foldR(f)(x)(xs))(list);
+    Option.unwrap(
+        foldR(
+            (a: T) => (opt: Option.Option<T>): Option.Option<T> =>
+                Option.some(Option.mapOr(a)((b: T) => f(a)(b))(opt)),
+        )(Option.none())(list),
+    );
 
 /**
  * Joins the list of string into a string.
@@ -902,17 +944,21 @@ export const apply = <T, U>(fns: List<(t: T) => U>) => (t: List<T>): List<U> =>
  * assertEquals(toArray(partialSum), [0, 1, 3, 5, 9, 13, 16]);
  * ```
  */
-export const scanL = <T, U>(f: (u: U) => (t: T) => U) =>
-(init: U) =>
-(
+export const scanL = <T, U>(f: (u: U) => (t: T) => U): (init: U) => (
     src: List<T>,
-): List<U> => {
-    const res = [init];
-    for (const t of toIterator(src)) {
-        const next = f(res[res.length - 1])(t);
-        res.push(next);
-    }
-    return fromArray(res);
+) => List<U> => {
+    const go = <T, U>(f: (u: U) => (t: T) => U) =>
+    (init: U) =>
+    (
+        src: List<T>,
+    ): List<U> => ({
+        current: () => Option.some(init),
+        rest: () =>
+            Option.mapOr(empty<U>())(([x, xs]: [T, List<T>]): List<U> =>
+                go(f)(f(init)(x))(xs)
+            )(unCons(src)),
+    });
+    return go(f);
 };
 
 /**
@@ -1546,7 +1592,10 @@ export const unfoldR =
  * ```
  */
 export const take = (count: number) => <T>(list: List<T>): List<T> => {
-    if (count <= 1) {
+    if (count <= 0) {
+        return empty();
+    }
+    if (count === 1) {
         return fromArray(Option.toArray(head(list)));
     }
     const curr = list.current();
@@ -2164,6 +2213,15 @@ export const monoid = <T>(): Monoid<List<T>> => ({
  * The instance of `Functor` for `List`.
  */
 export const functor: Functor<ListHkt> = { map };
+
+/**
+ * The instance of `Applicative` for `List`.
+ */
+export const applicative: Applicative<ListHkt> = {
+    pure: singleton,
+    map,
+    apply,
+};
 
 /**
  * The instance of `Monad` for `List`.

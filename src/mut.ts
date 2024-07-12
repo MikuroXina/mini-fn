@@ -83,6 +83,11 @@ export const runMut = <A>(mut: <S>() => Mut<S, A>): A =>
     unwrapVar(mut()(wrapThread(new Map())));
 
 /**
+ * `Cat` with applied environment for `doMut`.
+ */
+export type MutCat<S> = CatT<Apply2Only<MutHkt, S>, Record<string, never>>;
+
+/**
  * Executes a `Mut` with `CatT` of `Mut<S, _>>` by a state *thread*.
  *
  * To hide the internal state, the type parameter `S` is universal quantified.
@@ -91,9 +96,7 @@ export const runMut = <A>(mut: <S>() => Mut<S, A>): A =>
  * @returns The result of computation.
  */
 export const doMut = <A>(
-    mut: <S>(
-        cat: CatT<Apply2Only<MutHkt, S>, Record<string, never>>,
-    ) => Mut<S, A>,
+    mut: <S>(cat: MutCat<S>) => Mut<S, A>,
 ): A => unwrapVar(mut(doT(monad()))(wrapThread(new Map())));
 
 /**
