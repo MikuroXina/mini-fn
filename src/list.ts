@@ -1592,7 +1592,10 @@ export const unfoldR =
  * ```
  */
 export const take = (count: number) => <T>(list: List<T>): List<T> => {
-    if (count <= 1) {
+    if (count <= 0) {
+        return empty();
+    }
+    if (count === 1) {
         return fromArray(Option.toArray(head(list)));
     }
     const curr = list.current();
