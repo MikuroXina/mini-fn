@@ -2215,6 +2215,15 @@ export const monoid = <T>(): Monoid<List<T>> => ({
 export const functor: Functor<ListHkt> = { map };
 
 /**
+ * The instance of `Applicative` for `List`.
+ */
+export const applicative: Applicative<ListHkt> = {
+    pure: singleton,
+    map,
+    apply,
+};
+
+/**
  * The instance of `Monad` for `List`.
  */
 export const monad: Monad<ListHkt> = {
