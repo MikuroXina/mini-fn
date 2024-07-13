@@ -533,7 +533,7 @@ export const zipWith =
  * import { assertEquals } from "../deps.ts";
  *
  * const unwrapOrBike = unwrapOr("bike");
-
+ *
  * assertEquals(unwrapOrBike(some("car")), "car");
  * assertEquals(unwrapOrBike(none()), "bike");
  * ```
@@ -558,7 +558,7 @@ export const unwrapOr = <T>(init: T) => (opt: Option<T>): T => {
  * import { assertEquals } from "../deps.ts";
  *
  * const unwrapOrCalc = unwrapOrElse(() => 6 ** 4);
-
+ *
  * assertEquals(unwrapOrCalc(some(4)), 4);
  * assertEquals(unwrapOrCalc(none()), 1296);
  * ```
@@ -583,7 +583,7 @@ export const unwrapOrElse = <T>(fn: () => T) => (opt: Option<T>): T => {
  * import { assertEquals } from "../deps.ts";
  *
  * const strLen = map((str: string) => str.length);
-
+ *
  * assertEquals(strLen(some("Hello, World!")), some(13));
  * assertEquals(strLen(none()), none());
  * ```
@@ -610,7 +610,7 @@ export const map = <T, U>(f: (t: T) => U) => (opt: Option<T>): Option<U> => {
  * import { assertEquals } from "../deps.ts";
  *
  * const strLenOrAnswer = mapOr(42)((str: string) => str.length);
-
+ *
  * assertEquals(strLenOrAnswer(some("Hello, World!")), 13);
  * assertEquals(strLenOrAnswer(none()), 42);
  * ```
@@ -638,7 +638,7 @@ export const mapOr =
  * import { assertEquals } from "../deps.ts";
  *
  * const strLenOrCalc = mapOrElse(() => 6 ** 4)((str: string) => str.length);
-
+ *
  * assertEquals(strLenOrCalc(some("Hello, World!")), 13);
  * assertEquals(strLenOrCalc(none()), 1296);
  * ```
@@ -665,7 +665,7 @@ export const mapOrElse =
  * import { assertEquals } from "../deps.ts";
  *
  * const hasTwo = contains(2);
-
+ *
  * assertEquals(hasTwo(some(2)), true);
  * assertEquals(hasTwo(some(3)), false);
  * assertEquals(hasTwo(none()), false);
@@ -723,7 +723,7 @@ export const optResToResOpt = <E, T>(
  * import { assertEquals } from "../deps.ts";
  *
  * const orZero = okOr(0);
-
+ *
  * assertEquals(orZero(some("foo")), ok("foo"));
  * assertEquals(orZero(none()), err(0));
  * ```
@@ -746,7 +746,7 @@ export const okOr = <E>(e: E) => <T>(opt: Option<T>): Result<E, T> =>
  * import { assertEquals } from "../deps.ts";
  *
  * const orZero = okOrElse(() => 0);
-
+ *
  * assertEquals(orZero(some("foo")), ok("foo"));
  * assertEquals(orZero(none()), err(0));
  * ```
