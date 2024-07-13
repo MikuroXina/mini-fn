@@ -243,15 +243,16 @@ Deno.test("traversable functor", () => {
         x: readonly T[],
     ): Option.Option<T> => 0 in x ? Option.some(x[0]) : Option.none();
     const dup = (x: string): readonly string[] => [x + "0", x + "1"];
-    const data = Option.some("fever");
-    assertEquals(
-        first(Option.traversable.traverse(Array.applicative)(dup)(data)),
-        Option.traversable.traverse(Option.applicative)((item: string) =>
-            first(dup(item))
-        )(
-            data,
-        ),
-    );
+    for (const data of [Option.some("fever"), Option.none()]) {
+        assertEquals(
+            first(Option.traversable.traverse(Array.applicative)(dup)(data)),
+            Option.traversable.traverse(Option.applicative)((item: string) =>
+                first(dup(item))
+            )(
+                data,
+            ),
+        );
+    }
 
     // identity
     const num = Option.some(5);
@@ -266,15 +267,16 @@ Deno.test("traversable functor", () => {
     const app = Compose.applicative(Array.applicative)(Option.applicative);
     const firstCh = (x: string): Option.Option<string> =>
         x.length > 0 ? Option.some(x.charAt(0)) : Option.none();
-    const x = Option.some("nice");
-    assertEquals(
-        Option.traversable.traverse(app)((item: string) =>
-            Array.map(firstCh)(dup(item))
-        )(x),
-        Array.map(Option.traversable.traverse(Option.applicative)(firstCh))(
-            Option.traversable.traverse(Array.applicative)(dup)(x),
-        ),
-    );
+    for (const x of [Option.some("nice"), Option.none()]) {
+        assertEquals(
+            Option.traversable.traverse(app)((item: string) =>
+                Array.map(firstCh)(dup(item))
+            )(x),
+            Array.map(Option.traversable.traverse(Option.applicative)(firstCh))(
+                Option.traversable.traverse(Array.applicative)(dup)(x),
+            ),
+        );
+    }
 });
 
 Deno.test("monoid", () => {
