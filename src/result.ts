@@ -105,6 +105,7 @@ import type { Bifoldable } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
 import type { Bitraversable } from "./type-class/bitraversable.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
+import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { fromCmp, type Ord } from "./type-class/ord.ts";
@@ -466,9 +467,6 @@ export const orElse =
  * import { some, none } from "./option.ts";
  * import { assertEquals } from "../deps.ts";
  *
- * const sq = orElse((x: number) => ok<number>(x * x));
- * const residual = orElse((x: number) => err<number>(x));
- *
  * assertEquals(optionOk(ok(2)), some(2));
  * assertEquals(optionOk(err("nothing left")), none());
  * ```
@@ -736,6 +734,14 @@ export const monoid = <E, T>(error: E): Monoid<Result<E, T>> => ({
     [semiGroupSymbol]: true,
 });
 
+/**
+ * The instance of `Functor` for `Result<E, _>`.
+ */
+export const functor = <E>(): Functor<Apply2Only<ResultHkt, E>> => ({ map });
+
+/**
+ * The instance of `Applicative` for `Result<E, _>`.
+ */
 export const applicative = <E>(): Applicative<Apply2Only<ResultHkt, E>> => ({
     pure: ok,
     map,
