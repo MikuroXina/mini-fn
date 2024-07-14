@@ -2,6 +2,14 @@ import { id } from "../func.ts";
 import type { Get2 } from "../hkt.ts";
 import type { Category } from "./category.ts";
 
+/**
+ * A structure which lifts both type parameters on `P`.
+ *
+ * All instances of bifunctor `f` mist satisfy the following laws:
+ *
+ * - Identity: `f.biMap(id)(id)` equals to `id`,
+ * - Composition: For all `f`, `g`, `h` and `i`; `f.biMap(compose(f)(g))(compose(h)(i))` equals to `compose(f.biMap(f)(h))(f.biMap(g)(i))`.
+ */
 export interface Bifunctor<P> {
     readonly biMap: <A, B>(
         first: (a: A) => B,
