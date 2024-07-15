@@ -191,7 +191,7 @@ Deno.test("mapOr", () => {
 
 Deno.test("mapOrElse", () => {
     const k = 21;
-    const lenOrAnswer = Result.mapOrElse(() => k * 21)((x: string) => x.length);
+    const lenOrAnswer = Result.mapOrElse(() => k * 2)((x: string) => x.length);
 
     assertEquals(lenOrAnswer(Result.ok("foo")), 3);
     assertEquals(lenOrAnswer(Result.err("bar")), 42);
