@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.4.0](https://github.com/MikuroXina/mini-fn/compare/v6.3.1...v6.4.0) (2024-07-15)
+
+
+### Features
+
+* Add functor and Enforce tests for Result ([#239](https://github.com/MikuroXina/mini-fn/issues/239)) ([74b0f0e](https://github.com/MikuroXina/mini-fn/commit/74b0f0e2958f9032367dcdd35e1e5942c587a027))
+* Add split export for Func and Enforce tests ([#234](https://github.com/MikuroXina/mini-fn/issues/234)) ([6201474](https://github.com/MikuroXina/mini-fn/commit/6201474bc6da5f94833be51b441821a0ed2e4a0a))
+
+
+### Bug Fixes
+
+* Fix bugs and enforce tests for List ([#237](https://github.com/MikuroXina/mini-fn/issues/237)) ([a61df25](https://github.com/MikuroXina/mini-fn/commit/a61df25292eacb3186527ef3463c025f266882e5))
+
 ## [6.3.1](https://github.com/MikuroXina/mini-fn/compare/v6.3.0...v6.3.1) (2024-05-26)
 
 
