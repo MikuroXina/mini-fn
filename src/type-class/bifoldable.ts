@@ -6,7 +6,19 @@ import { monoid } from "./endo.ts";
 import type { Monad } from "./monad.ts";
 import type { Monoid } from "./monoid.ts";
 
+/**
+ * A data structure which can fold both parameters on `P`.
+ */
 export interface Bifoldable<P> {
+    /**
+     * Folds the data structure with function `aFolder` and `bFolder` by right associativity.
+     *
+     * @param aFolder - The function to reduce items for the first type parameter.
+     * @param bFolder - The function to reduce items for the second type parameter.
+     * @param init - The initial value of folding values.
+     * @param data - The target data to fold.
+     * @returns The value folded `data`.
+     */
     readonly bifoldR: <A, C>(
         aFolder: (a: A) => (c: C) => C,
     ) => <B>(
