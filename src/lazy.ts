@@ -66,6 +66,19 @@ export const defer = <L>(deferred: () => L): Lazy<L> =>
     }) as Lazy<L>;
 
 /**
+ * Converts the calculated value into a `lazy`.
+ *
+ * @param value - The value already known.
+ * @returns The new `Lazy`.
+ */
+export const known = <L>(value: L): Lazy<L> =>
+    ({
+        type: knownNominal,
+        deferred: () => value,
+        known: value,
+    }) as Lazy<L>;
+
+/**
  * Force to evaluate the value of `Lazy`, by calling the contained function, or returns the cached value.
  *
  * @param lazy - The instance of `Lazy`.
@@ -98,7 +111,7 @@ export const ord: <T>(equality: Ord<T>) => Ord<Lazy<T>> = ordFromProjection<
  * @param a - The value.
  * @returns The wrapped one.
  */
-export const pure = <A>(a: A): Lazy<A> => defer(() => a);
+export const pure = known;
 /**
  * Maps the function onto `Lazy`.
  *
