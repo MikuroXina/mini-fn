@@ -20,6 +20,7 @@ import {
     type PartialOrd,
 } from "./type-class/partial-ord.ts";
 import type { Traversable } from "./type-class/traversable.ts";
+import { sequenceA } from "./type-class/traversable.ts";
 
 declare const lazyNominal: unique symbol;
 const deferNominal = Symbol("LazyDefer");
@@ -159,6 +160,18 @@ export const unzip = <A, B>(
     defer(() => force(tuple)[0]),
     defer(() => force(tuple)[1]),
 ];
+
+/**
+ * Decomposes a lazy data which has `Applicative` instance.
+ *
+ * @param applicative - The `Applicative` instance for `F`.
+ * @param data - The lazy data in `F`.
+ * @returns The decomposed data of lazy evaluated values.
+ */
+export const sequence = <F>(
+    applicative: Applicative<F>,
+): <T>(data: Lazy<Get1<F, T>>) => Get1<F, Lazy<T>> =>
+    sequenceA(traversable, applicative);
 
 /**
  * Folds the internal value with `folder`.
