@@ -150,6 +150,19 @@ export const product = <A, B>(fa: Lazy<A>) => (fb: Lazy<B>): Lazy<[A, B]> =>
     defer(() => [force(fa), force(fb)]);
 
 /**
+ * Decomposes a lazy product.
+ *
+ * @param tuple - The lazy evaluated tuple.
+ * @returns The tuple of lazy evaluated values.
+ */
+export const unzip = <A, B>(
+    tuple: Lazy<readonly [A, B]>,
+): readonly [Lazy<A>, Lazy<B>] => [
+    defer(() => force(tuple)[0]),
+    defer(() => force(tuple)[1]),
+];
+
+/**
  * Folds the internal value with `folder`.
  *
  * @param folder - Folds the value with `A` and `B`.
