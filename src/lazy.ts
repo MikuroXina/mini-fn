@@ -45,9 +45,7 @@ export type KnownLazy<L> = {
 };
 
 /**
- * The lazy evaluated value of type `L`. It is useful to improve that evaluating the data structure eagerly produces infinite recursion.
- *
- * The key of the field having the function is private, so you need to evaluate the value by `force` function.
+ * The lazy evaluated value of type `L`. It is useful to improve evaluating the data structure eagerly produces infinite recursion. You can get the actual value by calling `force` function.
  *
  * Once evaluated the deferred function, the known value will be cached. You should not provide a function which has no referential transparency.
  */
