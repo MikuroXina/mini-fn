@@ -21,16 +21,37 @@ import {
 } from "./type-class/partial-ord.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
-const lazyNominal = Symbol("Lazy");
+declare const lazyNominal: unique symbol;
+const deferNominal = Symbol("LazyDefer");
+const knownNominal = Symbol("LazyKnown");
+
+/**
+ * An uninitialized variant of `Lazy<L>`.
+ */
+export type DeferredLazy<L> = {
+    type: typeof deferNominal;
+    deferred: () => L;
+    [lazyNominal]: never;
+};
+
+/**
+ * An initialized variant of `Lazy<L>`.
+ */
+export type KnownLazy<L> = {
+    type: typeof knownNominal;
+    known: L;
+    deferred: () => L;
+    [lazyNominal]: never;
+};
 
 /**
  * The lazy evaluated value of type `L`. It is useful to improve that evaluating the data structure eagerly produces infinite recursion.
  *
  * The key of the field having the function is private, so you need to evaluate the value by `force` function.
+ *
+ * Once evaluated the deferred function, the known value will be cached. You should not provide a function which has no referential transparency.
  */
-export interface Lazy<L> {
-    readonly [lazyNominal]: () => L;
-}
+export type Lazy<L> = DeferredLazy<L> | KnownLazy<L>;
 
 /**
  * Makes the function into `Lazy` to defer the evaluation.
@@ -38,17 +59,27 @@ export interface Lazy<L> {
  * @param deferred - The function to be contained.
  * @returns The new `Lazy`.
  */
-export const defer = <L>(deferred: () => L): Lazy<L> => ({
-    [lazyNominal]: deferred,
-});
+export const defer = <L>(deferred: () => L): Lazy<L> =>
+    ({
+        type: deferNominal,
+        deferred,
+    }) as Lazy<L>;
 
 /**
- * Force to evaluate the value of `Lazy`, by calling the contained function.
+ * Force to evaluate the value of `Lazy`, by calling the contained function, or returns the cached value.
  *
  * @param lazy - The instance of `Lazy`.
  * @returns The evaluated value.
  */
-export const force = <L>(lazy: Lazy<L>): L => lazy[lazyNominal]();
+export const force = <L>(lazy: Lazy<L>): L => {
+    if (lazy.type === knownNominal) {
+        return lazy.known;
+    }
+    const evaluated = lazy.deferred();
+    (lazy as unknown as KnownLazy<L>).type = knownNominal;
+    (lazy as unknown as KnownLazy<L>).known = evaluated;
+    return evaluated;
+};
 
 export const partialEq: <T>(equality: PartialEq<T>) => PartialEq<Lazy<T>> =
     partialEqFromProjection<LazyHkt>(force);
