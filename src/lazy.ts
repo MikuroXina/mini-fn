@@ -224,6 +224,11 @@ export const functor: Functor<LazyHkt> = {
 };
 
 /**
+ * The `Applicative` instance for `Lazy`.
+ */
+export const applicative: Applicative<LazyHkt> = { map, apply, pure };
+
+/**
  * The instance of `Monad` for `Lazy`.
  */
 export const monad: Monad<LazyHkt> = {
