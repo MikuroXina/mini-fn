@@ -587,12 +587,7 @@ export const applicative = <F>(): Applicative<Apply2Only<FreeHkt, F>> => ({
 /**
  * The instance of `Functor` for `Free<F, _>` from a functor `F`.
  */
-export const functor = <F>(): Monad<Apply2Only<FreeHkt, F>> => ({
-    map,
-    pure,
-    apply,
-    flatMap,
-});
+export const functor = <F>(): Functor<Apply2Only<FreeHkt, F>> => ({ map });
 
 /**
  * The instance of `Monad` for `Free<F, _>` from a functor `F`.
