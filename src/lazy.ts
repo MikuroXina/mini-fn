@@ -20,17 +20,40 @@ import {
     type PartialOrd,
 } from "./type-class/partial-ord.ts";
 import type { Traversable } from "./type-class/traversable.ts";
+import {
+    sequence as traversableSequence,
+    sequenceA as traversableSequenceA,
+} from "./type-class/traversable.ts";
 
-const lazyNominal = Symbol("Lazy");
+declare const lazyNominal: unique symbol;
+const deferNominal = Symbol("LazyDefer");
+const knownNominal = Symbol("LazyKnown");
 
 /**
- * The lazy evaluated value of type `L`. It is useful to improve that evaluating the data structure eagerly produces infinite recursion.
- *
- * The key of the field having the function is private, so you need to evaluate the value by `force` function.
+ * An uninitialized variant of `Lazy<L>`.
  */
-export interface Lazy<L> {
-    readonly [lazyNominal]: () => L;
-}
+export type DeferredLazy<L> = {
+    type: typeof deferNominal;
+    deferred: () => L;
+    [lazyNominal]: never;
+};
+
+/**
+ * An initialized variant of `Lazy<L>`.
+ */
+export type KnownLazy<L> = {
+    type: typeof knownNominal;
+    known: L;
+    deferred: () => L;
+    [lazyNominal]: never;
+};
+
+/**
+ * The lazy evaluated value of type `L`. It is useful to improve evaluating the data structure eagerly produces infinite recursion. You can get the actual value by calling `force` function.
+ *
+ * Once evaluated the deferred function, the known value will be cached. You should not provide a function which has no referential transparency.
+ */
+export type Lazy<L> = DeferredLazy<L> | KnownLazy<L>;
 
 /**
  * Makes the function into `Lazy` to defer the evaluation.
@@ -38,17 +61,40 @@ export interface Lazy<L> {
  * @param deferred - The function to be contained.
  * @returns The new `Lazy`.
  */
-export const defer = <L>(deferred: () => L): Lazy<L> => ({
-    [lazyNominal]: deferred,
-});
+export const defer = <L>(deferred: () => L): Lazy<L> =>
+    ({
+        type: deferNominal,
+        deferred,
+    }) as Lazy<L>;
 
 /**
- * Force to evaluate the value of `Lazy`, by calling the contained function.
+ * Converts the calculated value into a `lazy`.
+ *
+ * @param value - The value already known.
+ * @returns The new `Lazy`.
+ */
+export const known = <L>(value: L): Lazy<L> =>
+    ({
+        type: knownNominal,
+        deferred: () => value,
+        known: value,
+    }) as Lazy<L>;
+
+/**
+ * Force to evaluate the value of `Lazy`, by calling the contained function, or returns the cached value.
  *
  * @param lazy - The instance of `Lazy`.
  * @returns The evaluated value.
  */
-export const force = <L>(lazy: Lazy<L>): L => lazy[lazyNominal]();
+export const force = <L>(lazy: Lazy<L>): L => {
+    if (lazy.type === knownNominal) {
+        return lazy.known;
+    }
+    const evaluated = lazy.deferred();
+    (lazy as unknown as KnownLazy<L>).type = knownNominal;
+    (lazy as unknown as KnownLazy<L>).known = evaluated;
+    return evaluated;
+};
 
 export const partialEq: <T>(equality: PartialEq<T>) => PartialEq<Lazy<T>> =
     partialEqFromProjection<LazyHkt>(force);
@@ -67,7 +113,7 @@ export const ord: <T>(equality: Ord<T>) => Ord<Lazy<T>> = ordFromProjection<
  * @param a - The value.
  * @returns The wrapped one.
  */
-export const pure = <A>(a: A): Lazy<A> => defer(() => a);
+export const pure = known;
 /**
  * Maps the function onto `Lazy`.
  *
@@ -106,6 +152,43 @@ export const product = <A, B>(fa: Lazy<A>) => (fb: Lazy<B>): Lazy<[A, B]> =>
     defer(() => [force(fa), force(fb)]);
 
 /**
+ * Decomposes a lazy product.
+ *
+ * @param tuple - The lazy evaluated tuple.
+ * @returns The tuple of lazy evaluated values.
+ */
+export const unzip = <A, B>(
+    tuple: Lazy<readonly [A, B]>,
+): readonly [Lazy<A>, Lazy<B>] => [
+    defer(() => force(tuple)[0]),
+    defer(() => force(tuple)[1]),
+];
+
+/**
+ * Decomposes a lazy data which has `Applicative` instance.
+ *
+ * @param applicative - The `Applicative` instance for `F`.
+ * @param data - The lazy data in `F`.
+ * @returns The decomposed data of lazy evaluated values.
+ */
+export const sequenceA = <F>(
+    applicative: Applicative<F>,
+): <T>(data: Lazy<Get1<F, T>>) => Get1<F, Lazy<T>> =>
+    traversableSequenceA(traversable, applicative);
+
+/**
+ * Decomposes a lazy data which has `Monad` instance.
+ *
+ * @param applicative - The `Monad` instance for `F`.
+ * @param data - The lazy data in `F`.
+ * @returns The decomposed data of lazy evaluated values.
+ */
+export const sequence = <F>(
+    applicative: Monad<F>,
+): <T>(data: Lazy<Get1<F, T>>) => Get1<F, Lazy<T>> =>
+    traversableSequence(traversable, applicative);
+
+/**
  * Folds the internal value with `folder`.
  *
  * @param folder - Folds the value with `A` and `B`.
@@ -139,6 +222,11 @@ export interface LazyHkt extends Hkt1 {
 export const functor: Functor<LazyHkt> = {
     map,
 };
+
+/**
+ * The `Applicative` instance for `Lazy`.
+ */
+export const applicative: Applicative<LazyHkt> = { map, apply, pure };
 
 /**
  * The instance of `Monad` for `Lazy`.
