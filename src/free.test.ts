@@ -1,41 +1,45 @@
 import { assertEquals } from "../deps.ts";
-import { catT, doVoidT } from "./cat.ts";
+import { catT, doT, doVoidT } from "./cat.ts";
 import {
     eq,
+    foldFree,
     type Free,
     liftF,
+    monad,
     monad as freeMonad,
     pure,
     runFree,
     wrap,
 } from "./free.ts";
-import type { Hkt1 } from "./hkt.ts";
+import type { Apply2Only, Hkt1 } from "./hkt.ts";
+import { monadRec, runState, type State, type StateHkt } from "./state.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
 import type { Functor } from "./type-class/functor.ts";
-
-type Hello<T> = {
-    type: "Hello";
-    next: T;
-};
-type Hey<T> = {
-    type: "Hey";
-    next: T;
-};
-type YearsOld<T> = {
-    type: "YearsOld";
-    years: number;
-    next: T;
-};
-type Bye = {
-    type: "Bye";
-};
-type HelloLang<T> = Hello<T> | Hey<T> | YearsOld<T> | Bye;
-
-interface HelloLangHkt extends Hkt1 {
-    readonly type: HelloLang<this["arg1"]>;
-}
+import type { Nt } from "./type-class/nt.ts";
 
 Deno.test("hello language", async (t) => {
+    type Hello<T> = {
+        type: "Hello";
+        next: T;
+    };
+    type Hey<T> = {
+        type: "Hey";
+        next: T;
+    };
+    type YearsOld<T> = {
+        type: "YearsOld";
+        years: number;
+        next: T;
+    };
+    type Bye = {
+        type: "Bye";
+    };
+    type HelloLang<T> = Hello<T> | Hey<T> | YearsOld<T> | Bye;
+
+    interface HelloLangHkt extends Hkt1 {
+        readonly type: HelloLang<this["arg1"]>;
+    }
+
     const map =
         <T1, U1>(fn: (t: T1) => U1) => (code: HelloLang<T1>): HelloLang<U1> => {
             switch (code.type) {
@@ -132,4 +136,45 @@ Deno.test("hello language", async (t) => {
             "Hey.\nHello.\nI'm 25 years old.\nHey.\nBye.\n",
         );
     });
+});
+
+Deno.test("teletype language", () => {
+    type TeletypeF<T> = {
+        type: "PUT_STR_LN";
+        line: string;
+        next: T;
+    } | {
+        type: "GET_LINE";
+        callback: (line: string) => T;
+    };
+    interface TeletypeHkt extends Hkt1 {
+        readonly type: TeletypeF<this["arg1"]>;
+    }
+    type Teletype<T> = Free<TeletypeHkt, T>;
+
+    const putStrLn = (line: string): Teletype<never[]> =>
+        liftF({ type: "PUT_STR_LN", line, next: [] });
+    const getLine: Teletype<string> = liftF({
+        type: "GET_LINE",
+        callback: (line) => line,
+    });
+
+    const teletypeMock: Nt<TeletypeHkt, Apply2Only<StateHkt, string>> = {
+        nt: <T>(f: TeletypeF<T>): State<string, T> =>
+        (state: string): [T, string] =>
+            f.type === "PUT_STR_LN"
+                ? [f.next, state + "\n" + f.line]
+                : [f.callback("fake input"), state],
+    };
+
+    const run = foldFree(monadRec<string>())(teletypeMock);
+
+    const echo: Teletype<string> = doT(monad<TeletypeHkt>())
+        .addM("line", getLine)
+        .runWith(({ line }) => putStrLn(line))
+        .run(putStrLn("Finished"))
+        .finishM(({ line }) => pure<TeletypeHkt, string>(line + ", " + line));
+
+    const actual = runState(run.nt(echo))("");
+    assertEquals(actual, ["fake input, fake input", "\nfake input\nFinished"]);
 });
