@@ -8,6 +8,7 @@ import type { FlatMap } from "./type-class/flat-map.ts";
 import { doT } from "./cat.ts";
 import type { MonadRec } from "./type-class/monad-rec.ts";
 import { type ControlFlow, isContinue, newContinue } from "./control-flow.ts";
+import type { Applicative } from "./type-class/applicative.ts";
 
 /**
  * The state monad transformer, the computation allows you to carry and modify the state `S` of it and returns the result `A` on `M`.
@@ -323,6 +324,16 @@ export interface StateHkt extends Hkt2 {
  * The instance of `Functor` for `State<S, _>`.
  */
 export const functor = <S>(): Functor<Apply2Only<StateHkt, S>> => ({ map });
+
+/**
+ * The `Applicative` instance for `State<S, _>`.
+ */
+export const applicative = <S>(): Applicative<Apply2Only<StateHkt, S>> => ({
+    map,
+    apply,
+    pure,
+});
+
 /**
  * The instance of `Monad` for `State<S, _>`.
  */
