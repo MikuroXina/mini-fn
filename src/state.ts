@@ -6,6 +6,8 @@ import type { Monad } from "./type-class/monad.ts";
 import type { Pure } from "./type-class/pure.ts";
 import type { FlatMap } from "./type-class/flat-map.ts";
 import { doT } from "./cat.ts";
+import type { MonadRec } from "./type-class/monad-rec.ts";
+import { type ControlFlow, isContinue, newContinue } from "./control-flow.ts";
 
 /**
  * The state monad transformer, the computation allows you to carry and modify the state `S` of it and returns the result `A` on `M`.
@@ -297,6 +299,18 @@ export const flatMap =
 export const flatten = <S, A>(ss: State<S, State<S, A>>): State<S, A> =>
     flatMap((s: State<S, A>) => s)(ss);
 
+export const tailRecM = <S, X, A>(
+    stepper: (ctx: A) => State<S, ControlFlow<X, A>>,
+) =>
+(ctx: A): State<S, X> =>
+(state: S): [X, S] => {
+    let flow: ControlFlow<X, A> = newContinue(ctx);
+    while (isContinue(flow)) {
+        [flow, state] = stepper(flow[1])(state);
+    }
+    return [flow[1], state];
+};
+
 export interface StateTHkt extends Hkt3 {
     readonly type: StateT<this["arg3"], this["arg2"], this["arg1"]>;
 }
@@ -317,6 +331,14 @@ export const monad = <S>(): Monad<Apply2Only<StateHkt, S>> => ({
     apply,
     pure,
     flatMap,
+});
+
+export const monadRec = <S>(): MonadRec<Apply2Only<StateHkt, S>> => ({
+    map,
+    apply,
+    pure,
+    flatMap,
+    tailRecM,
 });
 
 /**
