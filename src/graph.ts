@@ -175,16 +175,18 @@ export const fromEdges =
  * @returns The new graph.
  */
 export const build = ([start, end]: Bounds) => (edges: List<Edge>): Graph => {
-    const graph = [] as List<Vertex>[];
+    if (!(start <= end)) {
+        throw new Error("`start` must be less than or equals to `end`");
+    }
+    const graph = [...new Array(end - start)].map(() => empty()) as List<
+        Vertex
+    >[];
     for (const [from, to] of toIterator(edges)) {
         if (!(start <= from && from <= end)) {
             throw new Error("`from` is out of bounds");
         }
         if (!(start <= to && to <= end)) {
             throw new Error("`to` is out of bounds");
-        }
-        if (!(from in graph)) {
-            graph[from] = empty();
         }
         graph[from] = appendToHead(to)(graph[from]);
     }
