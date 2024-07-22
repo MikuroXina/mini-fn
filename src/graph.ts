@@ -29,7 +29,7 @@ import {
 } from "./list.ts";
 import { none, type Option, some, unwrap } from "./option.ts";
 import { equal, greater, less } from "./ordering.ts";
-import { err, isErr, ok, type Result } from "./result.ts";
+import { err, ok, type Result } from "./result.ts";
 import { BinaryHeap } from "../mod.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { fromProjection, type Ord } from "./type-class/ord.ts";
@@ -281,31 +281,42 @@ export type CycleError = Readonly<{
  * @returns The topological order vertices of `Ok`, or a `CycleError` on `Err` only if there is a cycle.
  */
 export const topologicalSort = (graph: Graph): Result<CycleError, Vertex[]> => {
-    const nodes = [] as Vertex[];
-    const visited = new Set<Vertex>();
-    const visit = (visiting: Vertex): Result<CycleError, never[]> => {
-        visited.add(visiting);
-        for (const next of toIterator(adjsFrom(visiting)(graph))) {
-            if (visited.has(next)) {
-                return err({ at: [visiting, next] });
-            }
-            const res = visit(next);
-            if (isErr(res)) {
-                return res;
+    function dfs(
+        vertex: Vertex,
+        graph: Graph,
+        visited: boolean[],
+        res: Vertex[],
+    ): void {
+        visited[vertex] = true;
+        for (const next of toIterator(graph[vertex]!)) {
+            if (!visited[next]) {
+                dfs(next, graph, visited, res);
             }
         }
-        nodes.push(visiting);
-        return ok([]);
-    };
-    for (let start = 0 as Vertex; start < graph.length; ++start) {
-        if (!visited.has(start)) {
-            const res = visit(start);
-            if (isErr(res)) {
-                return res;
+        res.push(vertex);
+    }
+    const res = [] as Vertex[];
+    const visited = new Array<boolean>(graph.length).fill(false);
+    for (let vertex = 0 as Vertex; vertex < graph.length; ++vertex) {
+        if (vertex in graph && !visited[vertex]) {
+            dfs(vertex, graph, visited, res);
+        }
+    }
+    res.reverse();
+
+    const posByVertex = new Map(res.map((vertex, i) => [vertex, i]));
+    for (let from = 0 as Vertex; from < graph.length; ++from) {
+        if (from in graph) {
+            for (const to of toIterator(graph[from]!)) {
+                if (
+                    !((posByVertex.get(from) ?? 0) < (posByVertex.get(to) ?? 0))
+                ) {
+                    return err({ at: [from, to] });
+                }
             }
         }
     }
-    return ok(nodes.toReversed());
+    return ok(res);
 };
 
 /**
