@@ -777,6 +777,11 @@ export const foldL1 = <T>(f: (a: T) => (b: T) => T) => (list: List<T>): T =>
 /**
  * Folds the elements of list from right.
  *
+ * Applying `foldR` to infinite structures usually doesn't terminate. But it may still terminate under one of the following conditions:
+ *
+ *   - the folding function is short-circuiting,
+ *   - the folding function is lazy on its second argument.
+ *
  * @param f - The fold operation.
  * @param init - The initial value of the operation.
  * @param list - The target list.
@@ -799,12 +804,21 @@ export const foldL1 = <T>(f: (a: T) => (b: T) => T) => (list: List<T>): T =>
  * ```
  */
 export const foldR =
-    <T, U>(f: (a: T) => (b: U) => U) => (init: U): (list: List<T>) => U => {
-        const go = (list: List<T>): U =>
-            Option.mapOr(init)(([y, ys]: [T, List<T>]) => f(y)(go(ys)))(
-                unCons(list),
-            );
-        return go;
+    <T, U>(f: (a: T) => (b: U) => U) => (init: U) => (list: List<T>): U => {
+        const stack: T[] = [];
+        while (true) {
+            const curr = list.current();
+            if (Option.isNone(curr)) {
+                break;
+            }
+            stack.push(Option.unwrap(curr));
+            list = list.rest();
+        }
+        let res = init;
+        for (let i = stack.length - 1; 0 <= i; --i) {
+            res = f(stack[i])(res);
+        }
+        return res;
     };
 
 /**
