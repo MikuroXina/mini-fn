@@ -178,7 +178,7 @@ export const build = ([start, end]: Bounds) => (edges: List<Edge>): Graph => {
     if (!(start <= end)) {
         throw new Error("`start` must be less than or equals to `end`");
     }
-    const graph = [...new Array(end - start)].map(() => empty()) as List<
+    const graph = [...new Array(end + 1)].map(() => empty()) as List<
         Vertex
     >[];
     for (const [from, to] of toIterator(edges)) {
