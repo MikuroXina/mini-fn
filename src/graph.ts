@@ -29,7 +29,7 @@ import {
 } from "./list.ts";
 import { none, type Option, some, unwrap } from "./option.ts";
 import { equal, greater, less } from "./ordering.ts";
-import { err, ok, type Result } from "./result.ts";
+import { err, isErr, ok, type Result } from "./result.ts";
 import { BinaryHeap } from "../mod.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { fromProjection, type Ord } from "./type-class/ord.ts";
@@ -325,31 +325,8 @@ export const topologicalSort = (graph: Graph): Result<CycleError, Vertex[]> => {
  * @param graph - To be checked,
  * @returns Whether a cycle exists.
  */
-export const isCyclic = (graph: Graph): boolean => {
-    const visited = new Set<Vertex>();
-    const visit = (visiting: Vertex): boolean => {
-        visited.add(visiting);
-        for (const next of toIterator(adjsFrom(visiting)(graph))) {
-            if (visited.has(next)) {
-                return true;
-            }
-            const hasCycle = visit(next);
-            if (hasCycle) {
-                return hasCycle;
-            }
-        }
-        return false;
-    };
-    for (let start = 0 as Vertex; start < graph.length; ++start) {
-        if (!visited.has(start)) {
-            const hasCycle = visit(start);
-            if (hasCycle) {
-                return hasCycle;
-            }
-        }
-    }
-    return false;
-};
+export const isCyclic = (graph: Graph): boolean =>
+    isErr(topologicalSort(graph));
 
 /**
  * Makes the graph undirected. It duplicates edges into opposite ones.
