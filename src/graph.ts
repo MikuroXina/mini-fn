@@ -372,7 +372,9 @@ export const connectedComponents = (graph: Graph): Set<Vertex>[] => {
     const union = (a: number, b: number) => {
         a = repr(a);
         b = repr(b);
-        if (a === b) return;
+        if (a === b) {
+            return;
+        }
         if (unionFind[a] > unionFind[b]) {
             [a, b] = [b, a];
         }
@@ -414,35 +416,45 @@ export const connectedComponents = (graph: Graph): Set<Vertex>[] => {
  */
 export const stronglyConnectedComponents = (graph: Graph): Set<Vertex>[] => {
     const deadEnds = [] as Vertex[];
-    const visited = new Set<Vertex>();
-    const visit = (visiting: Vertex) => {
-        visited.add(visiting);
-        for (const next of toIterator(adjsFrom(visiting)(graph))) {
-            if (!visited.has(next)) {
-                visit(next);
+    {
+        const visited = new Set<Vertex>();
+        const visit = (visiting: Vertex) => {
+            visited.add(visiting);
+            for (const next of toIterator(adjsFrom(visiting)(graph))) {
+                if (!visited.has(next)) {
+                    visit(next);
+                }
+            }
+            deadEnds.push(visiting);
+        };
+        for (let start = 0 as Vertex; start < graph.length; ++start) {
+            if (!visited.has(start)) {
+                visit(start);
             }
         }
-        deadEnds.push(visiting);
-    };
-    for (let start = 0 as Vertex; start < graph.length; ++start) {
-        visit(start);
     }
+
     const reversed = toReversed(graph);
     const components = [] as Set<Vertex>[];
+    const visited = new Set<Vertex>();
     while (deadEnds.length > 0) {
         const componentStart = deadEnds.pop()!;
-        const visited = new Set<Vertex>();
+        if (visited.has(componentStart)) {
+            continue;
+        }
+        const component = new Set<Vertex>();
         const stack = [componentStart];
         while (stack.length > 0) {
             const visiting = stack.pop()!;
             visited.add(visiting);
+            component.add(visiting);
             for (const next of toIterator(adjsFrom(visiting)(reversed))) {
                 if (!visited.has(next)) {
                     stack.push(next);
                 }
             }
         }
-        components.push(visited);
+        components.push(component);
     }
     return components;
 };
