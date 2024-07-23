@@ -492,6 +492,10 @@ export const reachableVertices =
  */
 export const canReach =
     (start: Vertex) => (goal: Vertex) => (graph: Graph): boolean => {
+        if (start === goal) {
+            return true;
+        }
+
         const visited = new Set<Vertex>();
         const stack = [start];
         while (stack.length > 0) {
