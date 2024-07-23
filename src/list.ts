@@ -141,6 +141,7 @@ import { type Applicative, liftA2 } from "./type-class/applicative.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
 import type { Foldable } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
+import { defaultHasher, type Hash } from "./type-class/hash.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { fromCmp, type Ord } from "./type-class/ord.ts";
@@ -777,6 +778,11 @@ export const foldL1 = <T>(f: (a: T) => (b: T) => T) => (list: List<T>): T =>
 /**
  * Folds the elements of list from right.
  *
+ * Applying `foldR` to infinite structures usually doesn't terminate. But it may still terminate under one of the following conditions:
+ *
+ *   - the folding function is short-circuiting,
+ *   - the folding function is lazy on its second argument.
+ *
  * @param f - The fold operation.
  * @param init - The initial value of the operation.
  * @param list - The target list.
@@ -799,12 +805,21 @@ export const foldL1 = <T>(f: (a: T) => (b: T) => T) => (list: List<T>): T =>
  * ```
  */
 export const foldR =
-    <T, U>(f: (a: T) => (b: U) => U) => (init: U): (list: List<T>) => U => {
-        const go = (list: List<T>): U =>
-            Option.mapOr(init)(([y, ys]: [T, List<T>]) => f(y)(go(ys)))(
-                unCons(list),
-            );
-        return go;
+    <T, U>(f: (a: T) => (b: U) => U) => (init: U) => (list: List<T>): U => {
+        const stack: T[] = [];
+        while (true) {
+            const curr = list.current();
+            if (Option.isNone(curr)) {
+                break;
+            }
+            stack.push(Option.unwrap(curr));
+            list = list.rest();
+        }
+        let res = init;
+        for (let i = stack.length - 1; 0 <= i; --i) {
+            res = f(stack[i])(res);
+        }
+        return res;
     };
 
 /**
@@ -2087,15 +2102,48 @@ export const group = <T>(
     groupBy((l) => (r) => equalityT.eq(l, r));
 
 /**
- * Filters the list by `pred`. The elements which satisfy `pred` are only passed.
+ * Filters the list items from the head by `pred`. The elements which satisfy `pred` are only passed.
  *
  * @param pred - The condition to pick up an element.
  * @returns The filtered list.
  */
 export const filter = <T>(
     pred: (element: T) => boolean,
-): (list: List<T>) => List<T> =>
-    flatMap((element) => (pred(element) ? singleton(element) : empty()));
+) =>
+(list: List<T>): List<T> =>
+    Option.mapOr(list)(([x, xs]: [T, List<T>]): List<T> =>
+        pred(x) ? appendToHead(x)(filter(pred)(xs)) : filter(pred)(xs)
+    )(unCons(list));
+
+/**
+ * Removes duplicated elements by comparing the equality.
+ *
+ * @param equality - The condition to determine whether two items are same.
+ * @param list - The list to be filtered.
+ * @returns The filtered list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { fromIterable, toArray, unique } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ * import { nonNanHash } from "./type-class/hash.ts";
+ *
+ * const uniqueNums = unique(nonNanHash)(fromIterable([1, 4, 2, 3, 5, 2, 3]));
+ * assertEquals(toArray(uniqueNums), [1, 4, 2, 3, 5]);
+ * ```
+ */
+export const unique = <T>(hasher: Hash<T>): (list: List<T>) => List<T> => {
+    const known = new Map<bigint, T>();
+    return filter((item: T) => {
+        const hash = hasher.hash(item)(defaultHasher()).state();
+        if (!known.has(hash)) {
+            known.set(hash, item);
+            return true;
+        }
+        return !hasher.eq(item, known.get(hash)!);
+    });
+};
 
 /**
  * Extracts the diagonals from the two-dimensional list.

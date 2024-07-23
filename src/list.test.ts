@@ -65,6 +65,7 @@ import {
     traversable,
     tupleCartesian,
     unfoldR,
+    unique,
     unzip,
     zip3,
     zip4,
@@ -78,6 +79,7 @@ import { applicative as arrayApp } from "./array.ts";
 import { applicative as identityApp } from "./identity.ts";
 import { decU32Be, encU32Be, runCode, runDecoder } from "./serial.ts";
 import { unwrap } from "./result.ts";
+import { nonNanHash } from "./type-class/hash.ts";
 
 Deno.test("with CatT", () => {
     // Find patterns where `x + y + z == 5` for all natural number `x`, `y`, and `z`.
@@ -736,6 +738,11 @@ Deno.test("group", () => {
     const grouped = toArray(group(stringEq)(fromString("Mississippi")))
         .map((list) => toString(list));
     assertEquals(grouped, ["M", "i", "ss", "i", "ss", "i", "pp", "i"]);
+});
+
+Deno.test("unique", () => {
+    const uniqueNums = unique(nonNanHash)(fromIterable([1, 4, 2, 3, 5, 2, 3]));
+    assertEquals(toArray(uniqueNums), [1, 4, 2, 3, 5]);
 });
 
 Deno.test("tupleCartesian", () => {

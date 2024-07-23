@@ -26,17 +26,21 @@ import {
     plus,
     range,
     toIterator,
+    unique,
 } from "./list.ts";
 import { none, type Option, some, unwrap } from "./option.ts";
 import { equal, greater, less } from "./ordering.ts";
 import { err, isErr, ok, type Result } from "./result.ts";
 import { BinaryHeap } from "../mod.ts";
 import type { Monoid } from "./type-class/monoid.ts";
-import { fromProjection, type Ord } from "./type-class/ord.ts";
+import { fromProjection, nonNanOrd, type Ord } from "./type-class/ord.ts";
 import type { Apply2Only, Hkt1 } from "./hkt.ts";
 import type { HasInf } from "./type-class/has-inf.ts";
 import { doMut, type Mut, type MutHkt, type MutRef } from "./mut.ts";
 import { mapMIgnore } from "./type-class/foldable.ts";
+import { fromEncoder } from "./type-class/hash.ts";
+import { enc, eq } from "./tuple.ts";
+import { encU32Le } from "./serial.ts";
 
 declare const vertexNominal: unique symbol;
 /**
@@ -175,16 +179,18 @@ export const fromEdges =
  * @returns The new graph.
  */
 export const build = ([start, end]: Bounds) => (edges: List<Edge>): Graph => {
-    const graph = [] as List<Vertex>[];
+    if (!(start <= end)) {
+        throw new Error("`start` must be less than or equals to `end`");
+    }
+    const graph = [...new Array(end + 1)].map(() => empty()) as List<
+        Vertex
+    >[];
     for (const [from, to] of toIterator(edges)) {
         if (!(start <= from && from <= end)) {
             throw new Error("`from` is out of bounds");
         }
         if (!(start <= to && to <= end)) {
             throw new Error("`to` is out of bounds");
-        }
-        if (!(from in graph)) {
-            graph[from] = empty();
         }
         graph[from] = appendToHead(to)(graph[from]);
     }
@@ -279,31 +285,42 @@ export type CycleError = Readonly<{
  * @returns The topological order vertices of `Ok`, or a `CycleError` on `Err` only if there is a cycle.
  */
 export const topologicalSort = (graph: Graph): Result<CycleError, Vertex[]> => {
-    const nodes = [] as Vertex[];
-    const visited = new Set<Vertex>();
-    const visit = (visiting: Vertex): Result<CycleError, never[]> => {
-        visited.add(visiting);
-        for (const next of toIterator(adjsFrom(visiting)(graph))) {
-            if (visited.has(next)) {
-                return err({ at: [visiting, next] });
-            }
-            const res = visit(next);
-            if (isErr(res)) {
-                return res;
+    function dfs(
+        vertex: Vertex,
+        graph: Graph,
+        visited: boolean[],
+        res: Vertex[],
+    ): void {
+        visited[vertex] = true;
+        for (const next of toIterator(graph[vertex]!)) {
+            if (!visited[next]) {
+                dfs(next, graph, visited, res);
             }
         }
-        nodes.push(visiting);
-        return ok([]);
-    };
-    for (let start = 0 as Vertex; start < graph.length; ++start) {
-        if (!visited.has(start)) {
-            const res = visit(start);
-            if (isErr(res)) {
-                return res;
+        res.push(vertex);
+    }
+    const res = [] as Vertex[];
+    const visited = new Array<boolean>(graph.length).fill(false);
+    for (let vertex = 0 as Vertex; vertex < graph.length; ++vertex) {
+        if (vertex in graph && !visited[vertex]) {
+            dfs(vertex, graph, visited, res);
+        }
+    }
+    res.reverse();
+
+    const posByVertex = new Map(res.map((vertex, i) => [vertex, i]));
+    for (let from = 0 as Vertex; from < graph.length; ++from) {
+        if (from in graph) {
+            for (const to of toIterator(graph[from]!)) {
+                if (
+                    !((posByVertex.get(from) ?? 0) < (posByVertex.get(to) ?? 0))
+                ) {
+                    return err({ at: [from, to] });
+                }
             }
         }
     }
-    return ok(nodes.toReversed());
+    return ok(res);
 };
 
 /**
@@ -312,31 +329,8 @@ export const topologicalSort = (graph: Graph): Result<CycleError, Vertex[]> => {
  * @param graph - To be checked,
  * @returns Whether a cycle exists.
  */
-export const isCyclic = (graph: Graph): boolean => {
-    const visited = new Set<Vertex>();
-    const visit = (visiting: Vertex): boolean => {
-        visited.add(visiting);
-        for (const next of toIterator(adjsFrom(visiting)(graph))) {
-            if (visited.has(next)) {
-                return true;
-            }
-            const hasCycle = visit(next);
-            if (hasCycle) {
-                return hasCycle;
-            }
-        }
-        return false;
-    };
-    for (let start = 0 as Vertex; start < graph.length; ++start) {
-        if (!visited.has(start)) {
-            const hasCycle = visit(start);
-            if (hasCycle) {
-                return hasCycle;
-            }
-        }
-    }
-    return false;
-};
+export const isCyclic = (graph: Graph): boolean =>
+    isErr(topologicalSort(graph));
 
 /**
  * Makes the graph undirected. It duplicates edges into opposite ones.
@@ -345,7 +339,13 @@ export const isCyclic = (graph: Graph): boolean => {
  * @returns The naive undirected graph.
  */
 export const toUndirected = (graph: Graph): Graph =>
-    build(bounds(graph))(plus(edges(graph))(reversedEdges(graph)));
+    build(bounds(graph))(
+        unique<Edge>(
+            fromEncoder(eq({ equalityA: nonNanOrd, equalityB: nonNanOrd }))(
+                enc(encU32Le)(encU32Le),
+            ),
+        )(plus(edges(graph))(reversedEdges(graph))),
+    );
 
 /**
  * Decomposes the graph into connected components.
@@ -355,7 +355,34 @@ export const toUndirected = (graph: Graph): Graph =>
  */
 export const connectedComponents = (graph: Graph): Set<Vertex>[] => {
     const undirected = toUndirected(graph);
-    const components = [] as Set<Vertex>[];
+    /*
+     * `unionFind[idx]` means:
+     * - negative value of its tree size if negative,
+     * - parent index if positive.
+     */
+    const unionFind = new Array<number>(graph.length).fill(-1);
+    const repr = (idx: number): number => {
+        if (unionFind[idx] < 0) {
+            return idx;
+        }
+        const parent = repr(unionFind[idx]);
+        unionFind[idx] = parent;
+        return parent;
+    };
+    const union = (a: number, b: number) => {
+        a = repr(a);
+        b = repr(b);
+        if (a === b) {
+            return;
+        }
+        if (unionFind[a] > unionFind[b]) {
+            [a, b] = [b, a];
+        }
+        const greaterRoot = unionFind[b];
+        unionFind[a] += greaterRoot;
+        unionFind[b] = a;
+    };
+
     for (let start = 0 as Vertex; start < undirected.length; ++start) {
         const visited = new Set<Vertex>();
         const stack = [start];
@@ -364,13 +391,21 @@ export const connectedComponents = (graph: Graph): Set<Vertex>[] => {
             visited.add(visiting);
             for (const next of toIterator(adjsFrom(visiting)(undirected))) {
                 if (!visited.has(next)) {
+                    union(visiting, next);
                     stack.push(next);
                 }
             }
         }
-        components.push(visited);
     }
-    return components;
+    const components = [] as (Set<Vertex> | undefined)[];
+    for (let idx = 0; idx < unionFind.length; ++idx) {
+        const parentPos = repr(idx);
+        if (!components[parentPos]) {
+            components[parentPos] = new Set();
+        }
+        components[parentPos].add(idx as Vertex);
+    }
+    return components.filter((set) => !!set);
 };
 
 /**
@@ -381,35 +416,45 @@ export const connectedComponents = (graph: Graph): Set<Vertex>[] => {
  */
 export const stronglyConnectedComponents = (graph: Graph): Set<Vertex>[] => {
     const deadEnds = [] as Vertex[];
-    const visited = new Set<Vertex>();
-    const visit = (visiting: Vertex) => {
-        visited.add(visiting);
-        for (const next of toIterator(adjsFrom(visiting)(graph))) {
-            if (!visited.has(next)) {
-                visit(next);
+    {
+        const visited = new Set<Vertex>();
+        const visit = (visiting: Vertex) => {
+            visited.add(visiting);
+            for (const next of toIterator(adjsFrom(visiting)(graph))) {
+                if (!visited.has(next)) {
+                    visit(next);
+                }
+            }
+            deadEnds.push(visiting);
+        };
+        for (let start = 0 as Vertex; start < graph.length; ++start) {
+            if (!visited.has(start)) {
+                visit(start);
             }
         }
-        deadEnds.push(visiting);
-    };
-    for (let start = 0 as Vertex; start < graph.length; ++start) {
-        visit(start);
     }
+
     const reversed = toReversed(graph);
     const components = [] as Set<Vertex>[];
+    const visited = new Set<Vertex>();
     while (deadEnds.length > 0) {
         const componentStart = deadEnds.pop()!;
-        const visited = new Set<Vertex>();
+        if (visited.has(componentStart)) {
+            continue;
+        }
+        const component = new Set<Vertex>();
         const stack = [componentStart];
         while (stack.length > 0) {
             const visiting = stack.pop()!;
             visited.add(visiting);
+            component.add(visiting);
             for (const next of toIterator(adjsFrom(visiting)(reversed))) {
                 if (!visited.has(next)) {
                     stack.push(next);
                 }
             }
         }
-        components.push(visited);
+        components.push(component);
     }
     return components;
 };
@@ -447,6 +492,10 @@ export const reachableVertices =
  */
 export const canReach =
     (start: Vertex) => (goal: Vertex) => (graph: Graph): boolean => {
+        if (start === goal) {
+            return true;
+        }
+
         const visited = new Set<Vertex>();
         const stack = [start];
         while (stack.length > 0) {

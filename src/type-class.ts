@@ -19,6 +19,7 @@ export * as FlatMap from "./type-class/flat-map.ts";
 export * as Foldable from "./type-class/foldable.ts";
 export * as Functor from "./type-class/functor.ts";
 export * as Group from "./type-class/group.ts";
+export * as Hash from "./type-class/hash.ts";
 export * as HasInf from "./type-class/has-inf.ts";
 export * as HasNegInf from "./type-class/has-neg-inf.ts";
 export * as Indexable from "./type-class/indexable.ts";
