@@ -16,23 +16,22 @@ import type { Eq } from "./eq.ts";
 import { nonNanOrd } from "./ord.ts";
 
 export interface Hash<T> extends Eq<T> {
-    readonly hash: (self: T) => (hasher: Hasher) => Promise<Hasher>;
+    readonly hash: (self: T) => (hasher: Hasher) => Hasher;
 }
 
 export const nonNanHash: Hash<number> = {
     ...nonNanOrd,
-    hash: (self) => async (hasher) => {
+    hash: (self) => (hasher) => {
         if (Number.isNaN(self)) {
             throw new Error("NaN is not allowed for this hash impl");
         }
-        return hasher.write(await runCode(encU32Le(self)));
+        return hasher.write(runCode(encU32Le(self)));
     },
 };
 export const fromEncoder =
     <T>(equality: Eq<T>) => (encoder: Encoder<T>): Hash<T> => ({
         ...equality,
-        hash: (self) => async (hasher) =>
-            hasher.write(await runCode(encoder(self))),
+        hash: (self) => (hasher) => hasher.write(runCode(encoder(self))),
     });
 
 export type Hasher = Readonly<{

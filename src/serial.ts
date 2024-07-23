@@ -50,7 +50,7 @@ import { semiGroupSymbol } from "./type-class/semi-group.ts";
 /**
  * A step of building a serial of binaries. It produces a signal to write data on `range` of bytes.
  */
-export type BuildStep<T> = (range: BufferRange) => Promise<BuildSignal<T>>;
+export type BuildStep<T> = (range: BufferRange) => BuildSignal<T>;
 
 /**
  * A range of data bytes that required to build a serial of binaries.
@@ -119,21 +119,21 @@ export type BuildSignal<T> = Readonly<
  */
 export const fillWithBuildStep =
     <T>(step: BuildStep<T>) =>
-    <U>(onDone: (nextFreeIndex: number) => (computed: T) => Promise<U>) =>
+    <U>(onDone: (nextFreeIndex: number) => (computed: T) => U) =>
     (
         onBufferFull: (
             nextMinimalSize: number,
         ) => (
             currentFreeIndex: number,
-        ) => (nextToRun: BuildStep<T>) => Promise<U>,
+        ) => (nextToRun: BuildStep<T>) => U,
     ) =>
     (
         onInsertChunk: (
             currentFreeIndex: number,
-        ) => (toInsert: DataView) => (nextToRun: BuildStep<T>) => Promise<U>,
+        ) => (toInsert: DataView) => (nextToRun: BuildStep<T>) => U,
     ) =>
-    async (range: BufferRange): Promise<U> => {
-        const signal = await step(range);
+    (range: BufferRange): U => {
+        const signal = step(range);
         switch (signal.type) {
             case buildDoneNominal:
                 return onDone(signal.nextFreeIndex)(signal.computed);
@@ -153,12 +153,11 @@ export const fillWithBuildStep =
 /**
  * An identity build step that does nothing.
  */
-export const finalStep: BuildStep<never[]> = ([start]) =>
-    Promise.resolve({
-        type: buildDoneNominal,
-        nextFreeIndex: start,
-        computed: [],
-    });
+export const finalStep: BuildStep<never[]> = ([start]) => ({
+    type: buildDoneNominal,
+    nextFreeIndex: start,
+    computed: [],
+});
 
 /**
  * A function that transforms between build steps on any type `I`.
@@ -193,13 +192,12 @@ export const concat =
 /**
  * Flushes empty data to force to output before going on.
  */
-export const flush: Builder = (step) => ([start]) =>
-    Promise.resolve({
-        type: insertChunkNominal,
-        currentFreeIndex: start,
-        toInsert: new DataView(new ArrayBuffer(0)),
-        nextToRun: step,
-    });
+export const flush: Builder = (step) => ([start]) => ({
+    type: insertChunkNominal,
+    currentFreeIndex: start,
+    toInsert: new DataView(new ArrayBuffer(0)),
+    nextToRun: step,
+});
 
 /**
  * Writes binaries of bytes from a `DataView`.
@@ -209,21 +207,19 @@ export const flush: Builder = (step) => ([start]) =>
  */
 export const bytesBuilder =
     (bytes: DataView): Builder => (step) => ([start, length]) =>
-        Promise.resolve(
-            length < bytes.byteLength
-                ? {
-                    type: bufferFullNominal,
-                    neededMinimalSize: bytes.byteLength,
-                    currentFreeIndex: start,
-                    nextToRun: step,
-                }
-                : {
-                    type: insertChunkNominal,
-                    currentFreeIndex: start + bytes.byteLength,
-                    toInsert: bytes,
-                    nextToRun: step,
-                },
-        );
+        length < bytes.byteLength
+            ? {
+                type: bufferFullNominal,
+                neededMinimalSize: bytes.byteLength,
+                currentFreeIndex: start,
+                nextToRun: step,
+            }
+            : {
+                type: insertChunkNominal,
+                currentFreeIndex: start + bytes.byteLength,
+                toInsert: bytes,
+                nextToRun: step,
+            };
 
 /**
  * Writes a number as a signed 8-bit integer.
@@ -455,7 +451,7 @@ export type AllocationStrategy = {
      * @param old - When it is `Some`, old buffer and required minimal size on reallocation.
      * @returns The new `ArrayBuffer`.
      */
-    allocator: (old: Option<[ArrayBuffer, number]>) => Promise<ArrayBuffer>;
+    allocator: (old: Option<[ArrayBuffer, number]>) => ArrayBuffer;
     /**
      * Decides that the current `ArrayBuffer` should be trimmed.
      *
@@ -487,11 +483,9 @@ const resize = (targetLen: number) => (buf: ArrayBuffer): ArrayBuffer => {
 export const untrimmedStrategy = (firstLen: number): AllocationStrategy => ({
     allocator: (old) => {
         if (isNone(old)) {
-            return Promise.resolve(
-                new ArrayBuffer(firstLen),
-            );
+            return new ArrayBuffer(firstLen);
         }
-        return Promise.resolve(resize(old[1][1])(old[1][0]));
+        return resize(old[1][1])(old[1][0]);
     },
     shouldBeTrimmed: () => () => false,
 });
@@ -505,11 +499,9 @@ export const untrimmedStrategy = (firstLen: number): AllocationStrategy => ({
 export const safeStrategy = (firstLen: number): AllocationStrategy => ({
     allocator: (old) => {
         if (isNone(old)) {
-            return Promise.resolve(
-                new ArrayBuffer(firstLen),
-            );
+            return new ArrayBuffer(firstLen);
         }
-        return Promise.resolve(resize(old[1][1])(old[1][0]));
+        return resize(old[1][1])(old[1][0]);
     },
     shouldBeTrimmed: (used) => (len) => 2 * used < len,
 });
@@ -518,13 +510,12 @@ export const safeStrategy = (firstLen: number): AllocationStrategy => ({
  * Builds bytes into an `ArrayBuffer` with a `Builder` by custom strategy.
  */
 export const intoBytesWith =
-    (strategy: AllocationStrategy) =>
-    async (builder: Builder): Promise<ArrayBuffer> => {
-        let buf = await strategy.allocator(none());
+    (strategy: AllocationStrategy) => (builder: Builder): ArrayBuffer => {
+        let buf = strategy.allocator(none());
         let currentIndex = 0;
         let step = runBuilder(builder);
         while (true) {
-            const signal = await step([
+            const signal = step([
                 currentIndex,
                 buf.byteLength - currentIndex,
             ]);
@@ -538,7 +529,7 @@ export const intoBytesWith =
                     }
                     return buf;
                 case bufferFullNominal:
-                    buf = await strategy.allocator(
+                    buf = strategy.allocator(
                         some([buf, signal.neededMinimalSize]),
                     );
                     step = signal.nextToRun;
@@ -561,8 +552,9 @@ export const intoBytesWith =
 /**
  * Builds bytes into an `ArrayBuffer` with a `Builder`. The buffer is pre-allocated in 4 KiB and driven by `safeStrategy`.
  */
-export const intoBytes: (builder: Builder) => Promise<ArrayBuffer> =
-    intoBytesWith(safeStrategy(4 * 1024));
+export const intoBytes: (builder: Builder) => ArrayBuffer = intoBytesWith(
+    safeStrategy(4 * 1024),
+);
 
 /**
  * Encoded result. A tuple of computation result `T` and builder.
@@ -620,7 +612,7 @@ export const execCodeM = <T>([, b]: CodeM<T>): Builder => b;
  * @param code - An encode result.
  * @returns The serialized `ArrayBuffer`.
  */
-export const runCode = ([, b]: Code): Promise<ArrayBuffer> => intoBytes(b);
+export const runCode = ([, b]: Code): ArrayBuffer => intoBytes(b);
 
 /**
  * Transform a `CodeM` into result and `ArrayBuffer` of byte sequence.
@@ -628,11 +620,11 @@ export const runCode = ([, b]: Code): Promise<ArrayBuffer> => intoBytes(b);
  * @param code - An encode result.
  * @returns The result and serialized `ArrayBuffer`.
  */
-export const runCodeM = async <T>(
+export const runCodeM = <T>(
     put: CodeM<T>,
-): Promise<readonly [result: T, ArrayBuffer]> => [
+): readonly [result: T, ArrayBuffer] => [
     put[0],
-    await intoBytes(put[1]),
+    intoBytes(put[1]),
 ];
 
 /**
