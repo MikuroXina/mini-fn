@@ -2121,6 +2121,17 @@ export const filter = <T>(
  * @param equality - The condition to determine whether two items are same.
  * @param list - The list to be filtered.
  * @returns The filtered list.
+ *
+ * # Examples
+ *
+ * ```ts
+ * import { fromIterable, toArray, unique } from "./list.ts";
+ * import { assertEquals } from "../deps.ts";
+ * import { nonNanHash } from "./type-class/hash.ts";
+ *
+ * const uniqueNums = unique(nonNanHash)(fromIterable([1, 4, 2, 3, 5, 2, 3]));
+ * assertEquals(toArray(uniqueNums), [1, 4, 2, 3, 5]);
+ * ```
  */
 export const unique = <T>(hasher: Hash<T>): (list: List<T>) => List<T> => {
     const known = new Map<bigint, T>();
