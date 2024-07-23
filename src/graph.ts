@@ -355,7 +355,32 @@ export const toUndirected = (graph: Graph): Graph =>
  */
 export const connectedComponents = (graph: Graph): Set<Vertex>[] => {
     const undirected = toUndirected(graph);
-    const components = [] as Set<Vertex>[];
+    /*
+     * `unionFind[idx]` means:
+     * - negative value of its tree size if negative,
+     * - parent index if positive.
+     */
+    const unionFind = new Array<number>(graph.length).fill(-1);
+    const repr = (idx: number): number => {
+        if (unionFind[idx] < 0) {
+            return idx;
+        }
+        const parent = repr(unionFind[idx]);
+        unionFind[idx] = parent;
+        return parent;
+    };
+    const union = (a: number, b: number) => {
+        a = repr(a);
+        b = repr(b);
+        if (a === b) return;
+        if (unionFind[a] > unionFind[b]) {
+            [a, b] = [b, a];
+        }
+        const greaterRoot = unionFind[b];
+        unionFind[a] += greaterRoot;
+        unionFind[b] = a;
+    };
+
     for (let start = 0 as Vertex; start < undirected.length; ++start) {
         const visited = new Set<Vertex>();
         const stack = [start];
@@ -364,13 +389,21 @@ export const connectedComponents = (graph: Graph): Set<Vertex>[] => {
             visited.add(visiting);
             for (const next of toIterator(adjsFrom(visiting)(undirected))) {
                 if (!visited.has(next)) {
+                    union(visiting, next);
                     stack.push(next);
                 }
             }
         }
-        components.push(visited);
     }
-    return components;
+    const components = [] as (Set<Vertex> | undefined)[];
+    for (let idx = 0; idx < unionFind.length; ++idx) {
+        const parentPos = repr(idx);
+        if (!components[parentPos]) {
+            components[parentPos] = new Set();
+        }
+        components[parentPos].add(idx as Vertex);
+    }
+    return components.filter((set) => !!set);
 };
 
 /**
