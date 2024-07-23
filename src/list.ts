@@ -141,6 +141,7 @@ import { type Applicative, liftA2 } from "./type-class/applicative.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
 import type { Foldable } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
+import { defaultHasher, type Hash } from "./type-class/hash.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { fromCmp, type Ord } from "./type-class/ord.ts";
@@ -2110,6 +2111,25 @@ export const filter = <T>(
     pred: (element: T) => boolean,
 ): (list: List<T>) => List<T> =>
     flatMap((element) => (pred(element) ? singleton(element) : empty()));
+
+/**
+ * Removes duplicated elements by comparing the equality.
+ *
+ * @param equality - The condition to determine whether two items are same.
+ * @param list - The list to be filtered.
+ * @returns The filtered list.
+ */
+export const unique = <T>(hasher: Hash<T>): (list: List<T>) => List<T> => {
+    const known = new Map<bigint, T>();
+    return filter((item: T) => {
+        const hash = hasher.hash(item)(defaultHasher()).state();
+        if (!known.has(hash)) {
+            known.set(hash, item);
+            return true;
+        }
+        return !hasher.eq(item, known.get(hash)!);
+    });
+};
 
 /**
  * Extracts the diagonals from the two-dimensional list.
