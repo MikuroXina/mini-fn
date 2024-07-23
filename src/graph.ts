@@ -26,17 +26,21 @@ import {
     plus,
     range,
     toIterator,
+    unique,
 } from "./list.ts";
 import { none, type Option, some, unwrap } from "./option.ts";
 import { equal, greater, less } from "./ordering.ts";
 import { err, isErr, ok, type Result } from "./result.ts";
 import { BinaryHeap } from "../mod.ts";
 import type { Monoid } from "./type-class/monoid.ts";
-import { fromProjection, type Ord } from "./type-class/ord.ts";
+import { fromProjection, nonNanOrd, type Ord } from "./type-class/ord.ts";
 import type { Apply2Only, Hkt1 } from "./hkt.ts";
 import type { HasInf } from "./type-class/has-inf.ts";
 import { doMut, type Mut, type MutHkt, type MutRef } from "./mut.ts";
 import { mapMIgnore } from "./type-class/foldable.ts";
+import { fromEncoder } from "./type-class/hash.ts";
+import { enc, eq } from "./tuple.ts";
+import { encU32Le } from "./serial.ts";
 
 declare const vertexNominal: unique symbol;
 /**
@@ -335,7 +339,13 @@ export const isCyclic = (graph: Graph): boolean =>
  * @returns The naive undirected graph.
  */
 export const toUndirected = (graph: Graph): Graph =>
-    build(bounds(graph))(plus(edges(graph))(reversedEdges(graph)));
+    build(bounds(graph))(
+        unique<Edge>(
+            fromEncoder(eq({ equalityA: nonNanOrd, equalityB: nonNanOrd }))(
+                enc(encU32Le)(encU32Le),
+            ),
+        )(plus(edges(graph))(reversedEdges(graph))),
+    );
 
 /**
  * Decomposes the graph into connected components.
