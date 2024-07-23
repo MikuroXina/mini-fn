@@ -2102,15 +2102,18 @@ export const group = <T>(
     groupBy((l) => (r) => equalityT.eq(l, r));
 
 /**
- * Filters the list by `pred`. The elements which satisfy `pred` are only passed.
+ * Filters the list items from the head by `pred`. The elements which satisfy `pred` are only passed.
  *
  * @param pred - The condition to pick up an element.
  * @returns The filtered list.
  */
 export const filter = <T>(
     pred: (element: T) => boolean,
-): (list: List<T>) => List<T> =>
-    flatMap((element) => (pred(element) ? singleton(element) : empty()));
+) =>
+(list: List<T>): List<T> =>
+    Option.mapOr(list)(([x, xs]: [T, List<T>]): List<T> =>
+        pred(x) ? appendToHead(x)(filter(pred)(xs)) : filter(pred)(xs)
+    )(unCons(list));
 
 /**
  * Removes duplicated elements by comparing the equality.
