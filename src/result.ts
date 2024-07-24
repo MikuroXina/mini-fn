@@ -105,6 +105,7 @@ import type { Bifoldable } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
 import type { Bitraversable } from "./type-class/bitraversable.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
+import type { ErrorMonad } from "./type-class/error-monad.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Monoid } from "./type-class/monoid.ts";
@@ -800,6 +801,17 @@ export const bitraversable: Bitraversable<ResultHkt> = {
     ...bifoldable,
     bitraverse,
 };
+
+/**
+ * The `ErrorMonad` instance for `Result<E, _>`.
+ */
+export const errorMonad = <E>(): ErrorMonad<Apply2Only<ResultHkt, E>> => ({
+    ...monad<E>(),
+    context: (context) =>
+        mapErr((err) => new Error(`Error: ${context}`, { cause: err })),
+    withContext: (fn) =>
+        mapErr((err) => new Error(`Error: ${fn()}`, { cause: err })),
+});
 
 export const ifErr = <E, F, T>(): Optic<Result<E, T>, Result<F, T>, E, F> =>
     newPrism<F, Result<F, T>>(err)(
