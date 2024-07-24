@@ -84,14 +84,12 @@
  *   .feed(Ether.compose(otherService))
  *   .feed(Ether.compose(xorShiftRng))
  *   .value;
- * ```
  *
- * Only no dependencies required, you can get the object of type `T` by `Ether.runEther` function. When dependencies became empty applying `compose`, `D` will be equivalent to `Record<string, never>` and you can use `Ether.runEther`. Conversely, if the dependencies are not enough, it will occurs type errors and shows the variable name of lacking dependency.
- *
- * ```ts
  * // It will occur type errors if the dependencies not enough.
  * const resolved = Ether.runEther(multiInjected);
  * ```
+ *
+ * Only no dependencies required, you can get the object of type `T` by `Ether.runEther` function. When dependencies became empty applying `compose`, `D` will be equivalent to `Record<string, never>` and you can use `Ether.runEther`. Conversely, if the dependencies are not enough, it will occurs type errors and shows the variable name of lacking dependency.
  *
  * However, you can't represent the circular dependencies with `Ether` because it occurs an infinite recursion.
  *
