@@ -37,7 +37,7 @@ export const fromEquality =
 
 export const fromProjection =
     <F>(projection: <X>(structure: Get1<F, X>) => X) =>
-    <T>(equality: Eq<T>): Eq<Get1<F, T>> => ({
+    <L, R>(equality: Eq<L, R>): Eq<Get1<F, L>, Get1<F, R>> => ({
         eq: (l, r) => equality.eq(projection(l), projection(r)),
         [eqSymbol]: true,
     });

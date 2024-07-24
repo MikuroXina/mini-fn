@@ -21,6 +21,7 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     fromPartialEquality,
     type PartialEq,
+    type PartialEqUnary,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import {
@@ -142,6 +143,23 @@ export const ord: <F, A>({
     orderA: Ord<A>;
     orderFA: <T>(order: Ord<T>) => Ord<Get1<F, T>>;
 }) => Ord<Cofree<F, A>> = fromCmp(cmp);
+
+export const partialEqUnary = <F>(
+    eqUnary: PartialEqUnary<F>,
+): PartialEqUnary<CofreeHkt> => ({
+    liftEq: <Lhs, Rhs>(
+        equality: (l: Lhs, r: Rhs) => boolean,
+    ): (l: Cofree<F, Lhs>, r: Cofree<F, Rhs>) => boolean => {
+        const self = (l: Cofree<F, Lhs>, r: Cofree<F, Rhs>): boolean =>
+            lazyPartialEq({
+                eq: equality,
+            }).eq(l.current, r.current) &&
+            lazyPartialEq({
+                eq: eqUnary.liftEq(self),
+            }).eq(l.rest, r.rest);
+        return self;
+    },
+});
 
 /**
  * Creates a new `Cofree` from the inner function.

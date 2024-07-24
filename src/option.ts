@@ -38,6 +38,7 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     fromPartialEquality,
     type PartialEq,
+    type PartialEqUnary,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
@@ -171,19 +172,22 @@ export const toArray = <T>(opt: Option<T>): T[] => {
 };
 
 export const partialEquality =
-    <T>(equalityT: PartialEq<T>) =>
-    (optA: Option<T>, optB: Option<T>): boolean =>
+    <L, R = L>(equalityT: PartialEq<L, R>) =>
+    (optA: Option<L>, optB: Option<R>): boolean =>
         (isNone(optA) && isNone(optB)) ||
         (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1]));
-export const partialEq: <T>(equalityT: PartialEq<T>) => PartialEq<Option<T>> =
-    fromPartialEquality(partialEquality);
+export const partialEq: <L, R = L>(
+    equalityT: PartialEq<L, R>,
+) => PartialEq<Option<L>, Option<R>> = fromPartialEquality(partialEquality);
 export const equality =
-    <T>(equalityT: Eq<T>) => (optA: Option<T>, optB: Option<T>): boolean =>
+    <L, R = L>(equalityT: Eq<L, R>) =>
+    (optA: Option<L>, optB: Option<R>): boolean =>
         (isNone(optA) && isNone(optB)) ||
         (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1]));
-export const eq: <T>(equalityT: Eq<T>) => Eq<Option<T>> = fromEquality(
-    equality,
-);
+export const eq: <L, R = L>(equalityT: Eq<L, R>) => Eq<Option<L>, Option<R>> =
+    fromEquality(
+        equality,
+    );
 export const partialCmp =
     <T>(order: PartialOrd<T>) =>
     (l: Option<T>, r: Option<T>): Option<Ordering> => {
@@ -219,6 +223,10 @@ export const cmp =
 export const ord: <T>(order: Ord<T>) => Ord<Option<T>> = <T>(
     order: Ord<T, T>,
 ) => fromCmp(cmp)(order);
+
+export const partialEqUnary: PartialEqUnary<OptionHkt> = {
+    liftEq: (equality) => partialEquality({ eq: equality }),
+};
 
 /**
  * Flattens the nested optional.

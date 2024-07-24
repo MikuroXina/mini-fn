@@ -113,6 +113,7 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     fromPartialEquality,
     type PartialEq,
+    type PartialEqUnary,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
@@ -179,13 +180,13 @@ export const isOk = <E, T>(res: Result<E, T>): res is Ok<T> =>
 export const isErr = <E, T>(res: Result<E, T>): res is Err<E> =>
     res[0] === errSymbol;
 
-export const partialEquality = <E, T>(
+export const partialEquality = <E, L, R = L>(
     { equalityE, equalityT }: {
         equalityE: PartialEq<E>;
-        equalityT: PartialEq<T>;
+        equalityT: PartialEq<L, R>;
     },
 ) =>
-(l: Result<E, T>, r: Result<E, T>): boolean => {
+(l: Result<E, L>, r: Result<E, R>): boolean => {
     if (isErr(l) && isErr(r)) {
         return equalityE.eq(l[1], r[1]);
     }
@@ -194,18 +195,20 @@ export const partialEquality = <E, T>(
     }
     return false;
 };
-export const partialEq: <E, T>(
+export const partialEq: <E, L, R = L>(
     { equalityE, equalityT }: {
         equalityE: PartialEq<E>;
-        equalityT: PartialEq<T>;
+        equalityT: PartialEq<L, R>;
     },
-) => PartialEq<Result<E, T>> = fromPartialEquality(partialEquality);
-export const equality = <E, T>(
-    equalities: { equalityE: Eq<E>; equalityT: Eq<T> },
-): (l: Result<E, T>, r: Result<E, T>) => boolean => partialEquality(equalities);
-export const eq: <E, T>(
-    equalities: { equalityE: Eq<E>; equalityT: Eq<T> },
-) => Eq<Result<E, T>> = fromEquality(equality);
+) => PartialEq<Result<E, L>, Result<E, R>> = fromPartialEquality(
+    partialEquality,
+);
+export const equality = <E, L, R = L>(
+    equalities: { equalityE: Eq<E>; equalityT: Eq<L, R> },
+): (l: Result<E, L>, r: Result<E, R>) => boolean => partialEquality(equalities);
+export const eq: <E, L, R = L>(
+    equalities: { equalityE: Eq<E>; equalityT: Eq<L, R> },
+) => Eq<Result<E, L>, Result<E, R>> = fromEquality(equality);
 export const partialCmp = <E, T>(
     { orderE, orderT }: { orderE: PartialOrd<E>; orderT: PartialOrd<T> },
 ) =>
@@ -244,6 +247,16 @@ export const cmp =
 export const ord = <E, T>(
     x: { orderE: Ord<E, E>; orderT: Ord<T, T> },
 ): Ord<Result<E, T>> => fromCmp(cmp)(x);
+
+/**
+ * The `PartialEqUnary` instance for `Result<E, _>`.
+ */
+export const partialEqUnary = <E>(
+    equalityE: PartialEq<E>,
+): PartialEqUnary<Apply2Only<ResultHkt, E>> => ({
+    liftEq: (equality) =>
+        partialEquality({ equalityE: equalityE, equalityT: { eq: equality } }),
+});
 
 /**
  * Maps the value in variant by two mappers.

@@ -23,6 +23,7 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     fromPartialEquality,
     type PartialEq,
+    type PartialEqUnary,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
@@ -47,8 +48,8 @@ import { foldR as foldRArray } from "./array.ts";
 import { doT } from "./cat.ts";
 
 export const eq =
-    <K extends string, V>(equality: PartialEq<V>) =>
-    (l: Record<K, V>, r: Record<K, V>): boolean => {
+    <K extends string, L, R = L>(equality: PartialEq<L, R>) =>
+    (l: Record<K, L>, r: Record<K, R>): boolean => {
         for (const leftKey of (Object.keys(l) as (keyof typeof l)[])) {
             const leftValue = l[leftKey];
             const rightValue = r[leftKey];
@@ -84,18 +85,27 @@ export const cmp = <K extends string, V>(
     )(sortedL, sortedR);
 };
 
-export const partialEquality: <K extends string, V>(
-    equality: PartialEq<V>,
-) => PartialEq<Record<K, V>> = fromPartialEquality(eq);
-export const equality: <K extends string, V>(
-    equality: Eq<V>,
-) => Eq<Record<K, V>> = fromEquality(eq);
+export const partialEquality: <K extends string, L, R = L>(
+    equality: PartialEq<L, R>,
+) => PartialEq<Record<K, L>, Record<K, R>> = fromPartialEquality(eq);
+export const equality: <K extends string, L, R = L>(
+    equality: Eq<L, R>,
+) => Eq<Record<K, L>, Record<K, R>> = fromEquality(eq);
 export const partialOrd: <K extends string, V>(
     ordV: Ord<V>,
 ) => PartialOrd<Record<K, V>> = fromPartialCmp(partialCmp);
 export const ord: <K extends string, V>(
     ordV: Ord<V>,
 ) => Ord<Record<K, V>> = fromCmp(cmp);
+
+/**
+ * The `PartialEqUnary` instance for `Record<K, _>`.
+ */
+export const partialEqUnary = <K>(): PartialEqUnary<
+    Apply2Only<RecordHkt, K>
+> => ({
+    liftEq: (equality) => eq({ eq: equality }),
+});
 
 export const isEmpty = <K extends string, V>(m: Record<K, V>): boolean =>
     Object.keys(m).length === 0;

@@ -10,6 +10,7 @@ import { type Applicative, liftA2 } from "./type-class/applicative.ts";
 import { collect, type Distributive } from "./type-class/distributive.ts";
 import type { Foldable } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
+import type { PartialEqUnary } from "./type-class/partial-eq.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
 /**
@@ -20,6 +21,13 @@ export type Compose<F, G, T> = Get1<F, Get1<G, T>>;
 export interface ComposeHkt extends Hkt3 {
     readonly type: Compose<this["arg3"], this["arg2"], this["arg1"]>;
 }
+
+export const partialEqUnary = <F, G>(
+    eqUnaryF: PartialEqUnary<F>,
+    eqUnaryG: PartialEqUnary<G>,
+): PartialEqUnary<Apply2Only<Apply3Only<ComposeHkt, F>, G>> => ({
+    liftEq: (equality) => eqUnaryF.liftEq(eqUnaryG.liftEq(equality)),
+});
 
 export const newCompose = <F, G, T>(
     fgt: Get1<F, Get1<G, T>>,

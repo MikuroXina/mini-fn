@@ -27,13 +27,15 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     fromPartialEquality,
     type PartialEq,
+    type PartialEqUnary,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
 export const eq =
-    <K, V>(equality: PartialEq<V>) => (l: Map<K, V>, r: Map<K, V>): boolean => {
+    <K, L, R = L>(equality: PartialEq<L, R>) =>
+    (l: Map<K, L>, r: Map<K, R>): boolean => {
         if (l.size !== r.size) {
             return false;
         }
@@ -73,12 +75,12 @@ export const cmp = <K, V>(ord: {
     )(sortedL, sortedR);
 };
 
-export const partialEquality: <K, V>(
-    equality: PartialEq<V>,
-) => PartialEq<Map<K, V>> = fromPartialEquality(eq);
-export const equality: <K, V>(
-    equality: Eq<V>,
-) => Eq<Map<K, V>> = fromEquality(eq);
+export const partialEquality: <K, L, R = L>(
+    equality: PartialEq<L, R>,
+) => PartialEq<Map<K, L>, Map<K, R>> = fromPartialEquality(eq);
+export const equality: <K, L, R = L>(
+    equality: Eq<L, R>,
+) => Eq<Map<K, L>, Map<K, R>> = fromEquality(eq);
 export const partialOrd: <K, V>(ord: {
     ordK: Ord<K>;
     ordV: Ord<V>;
@@ -87,6 +89,16 @@ export const ord: <K, V>(ord: {
     ordK: Ord<K>;
     ordV: Ord<V>;
 }) => Ord<Map<K, V>> = fromCmp(cmp);
+
+/**
+ * The `PartialEqUnary` instance for `Map<K, _>`.
+ */
+export const partialEqUnary = <K>(): PartialEqUnary<Apply2Only<MapHkt, K>> => ({
+    liftEq:
+        <L, R = L>(equality: (l: L, r: R) => boolean) =>
+        (l: Map<K, L>, r: Map<K, R>): boolean =>
+            eq<K, L, R>({ eq: equality })(l, r),
+});
 
 export const isEmpty = <K, V>(m: Map<K, V>): boolean => m.size === 0;
 export const size = <K, V>(m: Map<K, V>): number => m.size;

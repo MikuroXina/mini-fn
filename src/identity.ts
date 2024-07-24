@@ -5,6 +5,7 @@ import type { Comonad } from "./type-class/comonad.ts";
 import type { Distributive } from "./type-class/distributive.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
+import type { PartialEqUnary } from "./type-class/partial-eq.ts";
 import type { Settable } from "./type-class/settable.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
@@ -85,3 +86,8 @@ export const settable: Settable<IdentityHkt> = {
     ...distributive,
     untainted: id,
 };
+
+/**
+ * The `PartialEqUnary` instance for `Identity`.
+ */
+export const partialEqUnary: PartialEqUnary<IdentityHkt> = { liftEq: id };

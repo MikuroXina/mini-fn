@@ -20,6 +20,7 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     fromPartialEquality,
     type PartialEq,
+    type PartialEqUnary,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import type { SemiGroup } from "./type-class/semi-group.ts";
@@ -30,27 +31,28 @@ import type { SemiGroupal } from "./type-class/semi-groupal.ts";
  */
 export type Tuple<A, B> = readonly [A, B];
 
-export const partialEquality = <A, B>(
+export const partialEquality = <A, L, R = L>(
     { equalityA, equalityB }: {
         equalityA: PartialEq<A>;
-        equalityB: PartialEq<B>;
+        equalityB: PartialEq<L, R>;
     },
 ) =>
-(l: Tuple<A, B>, r: Tuple<A, B>): boolean =>
+(l: Tuple<A, L>, r: Tuple<A, R>): boolean =>
     equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
-export const partialEq: <A, B>(
+export const partialEq: <A, L, R = L>(
     { equalityA, equalityB }: {
         equalityA: PartialEq<A>;
-        equalityB: PartialEq<B>;
+        equalityB: PartialEq<L, R>;
     },
-) => PartialEq<Tuple<A, B>> = fromPartialEquality(partialEquality);
-export const equality =
-    <A, B>({ equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<B> }) =>
-    (l: Tuple<A, B>, r: Tuple<A, B>): boolean =>
-        equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
-export const eq: <A, B>(
-    { equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<B> },
-) => Eq<Tuple<A, B>> = fromEquality(equality);
+) => PartialEq<Tuple<A, L>, Tuple<A, R>> = fromPartialEquality(partialEquality);
+export const equality = <A, L, R = L>(
+    { equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<L, R> },
+) =>
+(l: Tuple<A, L>, r: Tuple<A, R>): boolean =>
+    equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
+export const eq: <A, L, R = L>(
+    { equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<L, R> },
+) => Eq<Tuple<A, L>, Tuple<A, R>> = fromEquality(equality);
 export const partialCmp =
     <A, B>({ ordA, ordB }: { ordA: PartialOrd<A>; ordB: PartialOrd<B> }) =>
     ([a1, b1]: Tuple<A, B>, [a2, b2]: Tuple<A, B>): Option<Ordering> =>
@@ -65,6 +67,13 @@ export const cmp =
 export const ord: <A, B>(
     { ordA, ordB }: { ordA: Ord<A>; ordB: Ord<B> },
 ) => Ord<Tuple<A, B>> = fromCmp(cmp);
+
+export const partialEqUnary = <A>(
+    equalityA: PartialEq<A>,
+): PartialEqUnary<Apply2Only<TupleHkt, A>> => ({
+    liftEq: (equality) =>
+        partialEquality({ equalityA, equalityB: { eq: equality } }),
+});
 
 /**
  * Creates a new tuple from two provided values.

@@ -6,7 +6,7 @@ import type { Foldable } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import type { Ord } from "./type-class/ord.ts";
-import type { PartialEq } from "./type-class/partial-eq.ts";
+import type { PartialEq, PartialEqUnary } from "./type-class/partial-eq.ts";
 import type { PartialOrd } from "./type-class/partial-ord.ts";
 import type { SemiGroupoid } from "./type-class/semi-groupoid.ts";
 
@@ -38,6 +38,13 @@ export const ord = <A, B>(order: Ord<A>): Ord<Const<A, B>> => ({
     ...partialOrd(order),
     cmp: (l, r) => order.cmp(l.getConst, r.getConst),
     [eqSymbol]: true,
+});
+
+export const partialEqUnary = <A>(
+    equality: PartialEq<A>,
+): PartialEqUnary<Apply2Only<ConstHkt, A>> => ({
+    liftEq: <L, R>() => (l: Const<A, L>, r: Const<A, R>): boolean =>
+        equality.eq(l.getConst, r.getConst),
 });
 
 export const compose =
