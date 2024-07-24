@@ -73,7 +73,7 @@
  * Using `Ether.compose` function, you can inject an `Ether` into another `Ether`. If it is a required dependency actually, `D` of injected will be reduced only the entry corresponding to the symbol of injecting.
  *
  * ```ts
- * import { Ether } from "@mikuroxina/mini-fn";
+ * import { Cat, Ether } from "@mikuroxina/mini-fn";
  *
  * // Ether.compose( injecting )( to be injected ) -> injected Ether
  * const injected = Ether.compose(mockRepository)(service);
@@ -126,7 +126,7 @@
  * Only `composeT` injecting an dependency, it is modified to require the monad instance as a parameter. When injecting dependencies over `Promise`, you will pass the monad instance of `Promise`. And mixing the normal `Ether` and `EtherT`, you need to convert `Ether`s into `EtherT`s of same monad environment `M` with `liftEther`.
  *
  * ```ts
- * import { Ether, Promise } from "@mikuroxina/mini-fn";
+ * import { Cat, Ether, Promise } from "@mikuroxina/mini-fn";
  *
  * const composer = Ether.composeT(Promise.monad);
  * const liftOverPromise = Ether.liftEther(Promise.monad);
