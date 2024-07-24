@@ -1,5 +1,21 @@
 # Changelog
 
+## [6.5.0](https://github.com/MikuroXina/mini-fn/compare/v6.4.0...v6.5.0) (2024-07-24)
+
+
+### Features
+
+* Add distributive for Compose ([#244](https://github.com/MikuroXina/mini-fn/issues/244)) ([1d14fe8](https://github.com/MikuroXina/mini-fn/commit/1d14fe8611d1506caa1ccea34a2dbc00abfe5d6e))
+* Add ErrorMonad and its implementations ([#245](https://github.com/MikuroXina/mini-fn/issues/245)) ([5e2bba3](https://github.com/MikuroXina/mini-fn/commit/5e2bba3e56d9dd94398a96dd24f3031b08693196))
+* Add PartialEqUnary implementations ([#247](https://github.com/MikuroXina/mini-fn/issues/247)) ([c6f2252](https://github.com/MikuroXina/mini-fn/commit/c6f2252d2d9ccef9ccd9d4684853c83282265eb7))
+* Add type class implementations for State ([#242](https://github.com/MikuroXina/mini-fn/issues/242)) ([6ab43a0](https://github.com/MikuroXina/mini-fn/commit/6ab43a018c99a8d2206d9a27fa66908ff585c0ba))
+* Cache result of Lazy and Enforce tests for it ([#240](https://github.com/MikuroXina/mini-fn/issues/240)) ([625c7a3](https://github.com/MikuroXina/mini-fn/commit/625c7a3c530fba8e977e896247107946758d1a70))
+
+
+### Bug Fixes
+
+* Remove Promise from Encoder and Enforce tests for Graph ([#243](https://github.com/MikuroXina/mini-fn/issues/243)) ([a989187](https://github.com/MikuroXina/mini-fn/commit/a989187229fb0bfe431ec565000315e18a89367a))
+
 ## [6.4.0](https://github.com/MikuroXina/mini-fn/compare/v6.3.1...v6.4.0) (2024-07-15)
 
 
