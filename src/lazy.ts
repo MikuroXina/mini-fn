@@ -14,6 +14,7 @@ import {
 import {
     fromProjection as partialEqFromProjection,
     type PartialEq,
+    type PartialEqUnary,
 } from "./type-class/partial-eq.ts";
 import {
     fromProjection as partialOrdFromProjection,
@@ -96,16 +97,22 @@ export const force = <L>(lazy: Lazy<L>): L => {
     return evaluated;
 };
 
-export const partialEq: <T>(equality: PartialEq<T>) => PartialEq<Lazy<T>> =
-    partialEqFromProjection<LazyHkt>(force);
-export const eq: <T>(equality: Eq<T>) => Eq<Lazy<T>> = eqFromProjection<
-    LazyHkt
->(force);
+export const partialEq: <L, R>(
+    equality: PartialEq<L, R>,
+) => PartialEq<Lazy<L>, Lazy<R>> = partialEqFromProjection<LazyHkt>(force);
+export const eq: <L, R>(equality: Eq<L, R>) => Eq<Lazy<L>, Lazy<R>> =
+    eqFromProjection<LazyHkt>(force);
 export const partialOrd: <T>(equality: PartialOrd<T>) => PartialOrd<Lazy<T>> =
     partialOrdFromProjection<LazyHkt>(force);
 export const ord: <T>(equality: Ord<T>) => Ord<Lazy<T>> = ordFromProjection<
     LazyHkt
 >(force);
+
+export const partialEqUnary: PartialEqUnary<LazyHkt> = {
+    liftEq:
+        <L, R>(equality: (l: L, r: R) => boolean) =>
+        (l: Lazy<L>, r: Lazy<R>): boolean => equality(force(l), force(r)),
+};
 
 /**
  * Wraps the evaluated value as a `Lazy`.
