@@ -45,6 +45,25 @@
  * ```ts
  * import { Ether } from "@mikuroxina/mini-fn";
  *
+ * export type Article = {
+ *   createdAt: string;
+ *   updatedAt: string;
+ *   body: string;
+ * };
+ *
+ * export interface ArticleRepository {
+ *   has: (id: string) => Promise<boolean>;
+ *   insert: (id: string, article: Partial<Article>) => Promise<void>;
+ * }
+ * export const repoSymbol = Ether.newEtherSymbol<ArticleRepository>();
+ *
+ * export type Req = {
+ *   id: string;
+ *   timestamp: string;
+ *   body: string;
+ * };
+ * export const serviceSymbol = Ether.newEtherSymbol<(req: Req) => Promise<void>>();
+ *
  * export const mockRepository = Ether.newEther(
  *   repoSymbol,
  *   () => ({
@@ -75,8 +94,50 @@
  * ```ts
  * import { Cat, Ether } from "@mikuroxina/mini-fn";
  *
+ * export type Article = {
+ *   createdAt: string;
+ *   updatedAt: string;
+ *   body: string;
+ * };
+ *
+ * export interface ArticleRepository {
+ *   has: (id: string) => Promise<boolean>;
+ *   insert: (id: string, article: Partial<Article>) => Promise<void>;
+ * }
+ * export const repoSymbol = Ether.newEtherSymbol<ArticleRepository>();
+ *
+ * export type Req = {
+ *   id: string;
+ *   timestamp: string;
+ *   body: string;
+ * };
+ * export const serviceSymbol = Ether.newEtherSymbol<(req: Req) => Promise<void>>();
+ *
+ * export const mockRepository = Ether.newEther(
+ *   repoSymbol,
+ *   () => ({
+ *     has: (id) => Promise.resolve(true),
+ *     insert: (id, article) => Promise.resolve(),
+ *   }),
+ * );
+ *
+ * export const service = Ether.newEther(
+ *   serviceSymbol,
+ *   ({ repo }) => async ({ id, timestamp, body }: Req) => {
+ *     if (!await repo.has(id)) {
+ *       return;
+ *     }
+ *     await repo.insert(id, { updatedAt: timestamp, body });
+ *     return;
+ *   },
+ *   { repo: repoSymbol },
+ * );
+ *
  * // Ether.compose( injecting )( to be injected ) -> injected Ether
  * const injected = Ether.compose(mockRepository)(service);
+ *
+ * const otherService = Ether.newEther(Ether.newEtherSymbol<unknown>(), () => ({}));
+ * const xorShiftRng = Ether.newEther(Ether.newEtherSymbol<unknown>(), () => ({}));
  *
  * // `Cat` is useful to inject multiple dependencies.
  * const multiInjected = Cat.cat(service)
@@ -113,11 +174,22 @@
  * ```ts
  * import { Ether, Promise } from "@mikuroxina/mini-fn";
  *
+ * export type AuthenticationTokenService = {
+ *   authorize: (token: string) => Promise<boolean>;
+ * };
+ *
+ * const newAuthenticationTokenService = async (): Promise<AuthenticationTokenService> => {
+ *   const _secret = await Promise.pure("some way");
+ *   return {
+ *     authorize: (_token: string) => Promise.pure(true),
+ *   };
+ * };
+ *
  * export const authenticateTokenSymbol =
  *   Ether.newEtherSymbol<AuthenticationTokenService>();
  * export const authenticateToken = Ether.newEtherT<Promise.PromiseHkt>()(
  *   authenticateTokenSymbol,
- *   AuthenticationTokenService.new,
+ *   newAuthenticationTokenService,
  * );
  * ```
  *
@@ -126,15 +198,53 @@
  * ```ts
  * import { Cat, Ether, Promise } from "@mikuroxina/mini-fn";
  *
+ * type AccountRepository = {
+ *   // ...
+ * };
+ * const accountRepoSymbol = Ether.newEtherSymbol<AccountRepository>();
+ * const accountRepository = Ether.newEther(accountRepoSymbol, () => ({
+ *   // ...
+ * }));
+ *
+ * type AuthenticationTokenService = {
+ *   // ...
+ * };
+ * const authenticateTokenSymbol =
+ *   Ether.newEtherSymbol<AuthenticationTokenService>();
+ * const authenticateToken = Ether.newEtherT<Promise.PromiseHkt>()(
+ *   authenticateTokenSymbol,
+ *   async () => ({}),
+ * );
+ *
+ * type PasswordEncoder = {
+ *   // ...
+ * };
+ * const passwordEncoderSymbol = Ether.newEtherSymbol<PasswordEncoder>();
+ * const argon2idPasswordEncoder = Ether.newEther(passwordEncoderSymbol, () => ({}));
+ *
+ * type AuthenticationService = {
+ *   // ...
+ * };
+ * const authenticationSymbol = Ether.newEtherSymbol<AuthenticationService>();
+ * const authenticate = Ether.newEther(
+ *   authenticationSymbol,
+ *   (_deps) => ({}),
+ *   {
+ *     repo: accountRepoSymbol,
+ *     authenticateToken: authenticateTokenSymbol,
+ *     encoder: passwordEncoderSymbol,
+ *   },
+ * );
+ *
  * const composer = Ether.composeT(Promise.monad);
  * const liftOverPromise = Ether.liftEther(Promise.monad);
  *
- * const authenticateService = await Ether.runEtherT(
- *   Cat.cat(liftOverPromise(authenticate))
+ * const authenticateService = await Cat.cat(liftOverPromise(authenticate))
  *     .feed(composer(liftOverPromise(accountRepository)))
  *     .feed(composer(authenticateToken))
- *     .feed(composer(liftOverPromise(argon2idPasswordEncoder))).value,
- * );
+ *     .feed(composer(liftOverPromise(argon2idPasswordEncoder)))
+ *     .feed(Ether.runEtherT)
+ *     .value;
  * ```
  *
  * @packageDocumentation
