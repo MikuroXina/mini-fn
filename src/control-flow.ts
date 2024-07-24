@@ -23,6 +23,8 @@ import {
     mapDecoder,
 } from "./serial.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
+import type { PartialEq, PartialEqUnary } from "./type-class/partial-eq.ts";
+import { type Eq, eqSymbol } from "./type-class/eq.ts";
 
 const continueSymbol = Symbol("ControlFlowContinue");
 /**
@@ -42,6 +44,37 @@ export const newBreak = <B>(b: B): Break<B> => [breakSymbol, b];
  * An utility type `ControlFlow<B, C>`, which tells an operation whether it should exit early or go on. It's more clear than `boolean` or `Result` to show your code flow control explicity.
  */
 export type ControlFlow<B, C = never[]> = Continue<C> | Break<B>;
+
+export const partialEq = <B, C>(
+    equalityB: PartialEq<B>,
+    equalityC: PartialEq<C>,
+): PartialEq<ControlFlow<B, C>> => ({
+    eq: (l, r) =>
+        isBreak(l) && isBreak(r)
+            ? equalityB.eq(l[1], r[1])
+            : isContinue(l) && isContinue(r) && equalityC.eq(l[1], r[1]),
+});
+export const eq = <B, C>(
+    equalityB: Eq<B>,
+    equalityC: Eq<C>,
+): Eq<ControlFlow<B, C>> => ({
+    eq: (l, r) =>
+        isBreak(l) && isBreak(r)
+            ? equalityB.eq(l[1], r[1])
+            : isContinue(l) && isContinue(r) && equalityC.eq(l[1], r[1]),
+    [eqSymbol]: true,
+});
+
+export const partialEqUnary = <B>(
+    equalityB: PartialEq<B>,
+): PartialEqUnary<Apply2Only<ControlFlowHkt, B>> => ({
+    liftEq:
+        <L, R>(equality: (l: L, r: R) => boolean) =>
+        (l: ControlFlow<B, L>, r: ControlFlow<B, R>): boolean =>
+            isBreak(l) && isBreak(r)
+                ? equalityB.eq(l[1], r[1])
+                : isContinue(l) && isContinue(r) && equality(l[1], r[1]),
+});
 
 export const isContinue = <B, C>(cf: ControlFlow<B, C>): cf is Continue<C> =>
     cf[0] === continueSymbol;
