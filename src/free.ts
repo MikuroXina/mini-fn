@@ -33,6 +33,7 @@ import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
     fromPartialEquality,
     type PartialEq,
+    type PartialEqUnary,
 } from "./type-class/partial-eq.ts";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 import type { Pure } from "./type-class/pure.ts";
@@ -73,6 +74,21 @@ export const isBind = <F, T>(fr: Free<F, T>): fr is Bind<F, T> =>
  * `F` can be any kind and not required a `Functor` instance, but it may be needed when to interpret by functions such as `runFree`.
  */
 export type Free<F, T> = Return<T> | Bind<F, T>;
+
+export const partialEqUnary = <F>(
+    eqUnary: PartialEqUnary<F>,
+): PartialEqUnary<Apply2Only<FreeHkt, F>> => ({
+    liftEq: <L, R = L>(
+        equality: (l: L, r: R) => boolean,
+    ): (l: Free<F, L>, r: Free<F, R>) => boolean => {
+        const self = (l: Free<F, L>, r: Free<F, R>): boolean =>
+            isReturn(l) && isReturn(r)
+                ? equality(l[1], r[1])
+                : isBind(l) && isBind(r) &&
+                    Coyoneda.partialEqUnary(eqUnary).liftEq(self)(l[1], r[1]);
+        return self;
+    },
+});
 
 /**
  * Wraps a `Free` item on `F` into a new `Free`.
