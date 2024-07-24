@@ -30,6 +30,7 @@ import {
 } from "./serial.ts";
 import type { Applicative } from "./type-class/applicative.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
+import type { ErrorMonad } from "./type-class/error-monad.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
 import type { Monoid } from "./type-class/monoid.ts";
@@ -841,6 +842,19 @@ export const traversableMonad: TraversableMonad<OptionHkt> = {
     apply,
     foldR,
     traverse,
+};
+
+/**
+ * The `ErrorMonad` instance for `Option<_>`.
+ */
+export const errorMonad: ErrorMonad<OptionHkt> = {
+    ...monad,
+    context: (context) =>
+        okOr(new Error(`Error: ${context}\n\nCaused by:\n    unwrapped None`)),
+    withContext: (fn) =>
+        okOrElse(() =>
+            new Error(`Error: ${fn()}\n\nCaused by:\n    unwrapped None`)
+        ),
 };
 
 export const ifSome = <T, U>(): Optic<Option<T>, Option<U>, T, U> =>
