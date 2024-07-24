@@ -33,7 +33,7 @@ export const fromPartialEquality = <Lhs, Rhs, X = void>(
 
 export const fromProjection =
     <F>(projection: <X>(structure: Get1<F, X>) => X) =>
-    <T>(equality: PartialEq<T>): PartialEq<Get1<F, T>> => ({
+    <L, R>(equality: PartialEq<L, R>): PartialEq<Get1<F, L>, Get1<F, R>> => ({
         eq: (l, r) => equality.eq(projection(l), projection(r)),
     });
 
