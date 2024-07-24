@@ -20,7 +20,7 @@ import { type Eq, eqSymbol } from "./type-class/eq.ts";
 import type { Foldable } from "./type-class/foldable.ts";
 import type { Functor } from "./type-class/functor.ts";
 import type { Monad } from "./type-class/monad.ts";
-import type { PartialEq } from "./type-class/partial-eq.ts";
+import type { PartialEq, PartialEqUnary } from "./type-class/partial-eq.ts";
 import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.ts";
 
 const thisSymbol = Symbol("TheseThis");
@@ -102,10 +102,10 @@ export interface TheseHkt extends Hkt2 {
     readonly type: These<this["arg2"], this["arg1"]>;
 }
 
-export const partialEq = <A, B>(
+export const partialEq = <A, L, R = L>(
     equalityA: PartialEq<A>,
-    equalityB: PartialEq<B>,
-): PartialEq<These<A, B>> => ({
+    equalityB: PartialEq<L, R>,
+): PartialEq<These<A, L>, These<A, R>> => ({
     eq: (l, r) => {
         if (isThis(l) && isThis(r)) {
             return equalityA.eq(l[1], r[1]);
@@ -119,12 +119,21 @@ export const partialEq = <A, B>(
         return false;
     },
 });
-export const eq = <A, B>(
+export const eq = <A, L, R = L>(
     equalityA: Eq<A>,
-    equalityB: Eq<B>,
-): Eq<These<A, B>> => ({
+    equalityB: Eq<L, R>,
+): Eq<These<A, L>, These<A, R>> => ({
     ...partialEq(equalityA, equalityB),
     [eqSymbol]: true,
+});
+
+/**
+ * The `PartialEqUnary` instance for `These<A, _>`.
+ */
+export const partialEqUnary = <A>(
+    equalityA: PartialEq<A>,
+): PartialEqUnary<Apply2Only<TheseHkt, A>> => ({
+    liftEq: (equality) => partialEq(equalityA, { eq: equality }).eq,
 });
 
 /**
