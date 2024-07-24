@@ -1,6 +1,252 @@
 /**
  * This package provides a dependency container combinator `EtherT`/`Ether` and associated functions.
  *
+ * # Guide
+ *
+ * This aims resolving dependencies and notifying lacks by type errors, by representing dependencies required by an object or a function to work as typing.
+ *
+ * ## Symbol association and type information
+ *
+ * On `Ether`'s system, at first creates a tag used by `Ether` (a `Symbol` with some type info actually) with invoking `Ether.newEtherSymbol` with a type parameter of your type definition (mostly your `interface`s). In this way, let's make symbols for each abstract such as database persistence, randomized value generator, communication, and decision meditator. Even type parameters are same, they are treated as different if unequal symbols.
+ *
+ * For instance, representing two "Repository which persists articles `ArticleRepository`" and "Request handler which decides and registers `(req: Req) => Promise<void>`" will be the following code:
+ *
+ * ```ts
+ * import { Ether } from "@mikuroxina/mini-fn";
+ *
+ * export type Article = {
+ *   createdAt: string;
+ *   updatedAt: string;
+ *   body: string;
+ * };
+ *
+ * export interface ArticleRepository {
+ *   has: (id: string) => Promise<boolean>;
+ *   insert: (id: string, article: Partial<Article>) => Promise<void>;
+ * }
+ * export const repoSymbol = Ether.newEtherSymbol<ArticleRepository>();
+ *
+ * export type Req = {
+ *   id: string;
+ *   timestamp: string;
+ *   body: string;
+ * };
+ * export const serviceSymbol = Ether.newEtherSymbol<(req: Req) => Promise<void>>();
+ * ```
+ *
+ * ## Dependencies definition and receiving other dependencies over
+ *
+ * For the symbols defined above, let's make the actual instances satisfying requirements usable on `Ether`'s system. You can do this by calling `newEther` function. For a symbol, you can define any objects `Ether<D, T>` satisfying the underlying type `T`.
+ *
+ * At the first parameter, you pass the symbol to associate. And at the second parameter, you pass the function to make an object satisfying the requirement `T`. This function will provide objects depended by others.
+ *
+ * At the optional third parameter, you specify the dependencies with name as key and value as the symbol corresponding to its type. In the function that you passed at the second parameter, the resolved dependencies which specified at the third parameter will be passed.
+ *
+ * ```ts
+ * import { Ether } from "@mikuroxina/mini-fn";
+ *
+ * export type Article = {
+ *   createdAt: string;
+ *   updatedAt: string;
+ *   body: string;
+ * };
+ *
+ * export interface ArticleRepository {
+ *   has: (id: string) => Promise<boolean>;
+ *   insert: (id: string, article: Partial<Article>) => Promise<void>;
+ * }
+ * export const repoSymbol = Ether.newEtherSymbol<ArticleRepository>();
+ *
+ * export type Req = {
+ *   id: string;
+ *   timestamp: string;
+ *   body: string;
+ * };
+ * export const serviceSymbol = Ether.newEtherSymbol<(req: Req) => Promise<void>>();
+ *
+ * export const mockRepository = Ether.newEther(
+ *   repoSymbol,
+ *   () => ({
+ *     has: (id) => Promise.resolve(true),
+ *     insert: (id, article) => Promise.resolve(),
+ *   }),
+ * );
+ *
+ * export const service = Ether.newEther(
+ *   serviceSymbol,
+ *   ({ repo }) => async ({ id, timestamp, body }: Req) => {
+ *     if (!await repo.has(id)) {
+ *       return;
+ *     }
+ *     await repo.insert(id, { updatedAt: timestamp, body });
+ *     return;
+ *   },
+ *   { repo: repoSymbol },
+ * );
+ * ```
+ *
+ * ## Dependency injection process and condition to work
+ *
+ * `Ether` expresses the needed dependencies as type information. The `Ether<D, T>` type means that it can construct an object of type `T` by using dependencies `D` (key-value type of each variable name and symbol).
+ *
+ * Using `Ether.compose` function, you can inject an `Ether` into another `Ether`. If it is a required dependency actually, `D` of injected will be reduced only the entry corresponding to the symbol of injecting.
+ *
+ * ```ts
+ * import { Cat, Ether } from "@mikuroxina/mini-fn";
+ *
+ * export type Article = {
+ *   createdAt: string;
+ *   updatedAt: string;
+ *   body: string;
+ * };
+ *
+ * export interface ArticleRepository {
+ *   has: (id: string) => Promise<boolean>;
+ *   insert: (id: string, article: Partial<Article>) => Promise<void>;
+ * }
+ * export const repoSymbol = Ether.newEtherSymbol<ArticleRepository>();
+ *
+ * export type Req = {
+ *   id: string;
+ *   timestamp: string;
+ *   body: string;
+ * };
+ * export const serviceSymbol = Ether.newEtherSymbol<(req: Req) => Promise<void>>();
+ *
+ * export const mockRepository = Ether.newEther(
+ *   repoSymbol,
+ *   () => ({
+ *     has: (id) => Promise.resolve(true),
+ *     insert: (id, article) => Promise.resolve(),
+ *   }),
+ * );
+ *
+ * export const service = Ether.newEther(
+ *   serviceSymbol,
+ *   ({ repo }) => async ({ id, timestamp, body }: Req) => {
+ *     if (!await repo.has(id)) {
+ *       return;
+ *     }
+ *     await repo.insert(id, { updatedAt: timestamp, body });
+ *     return;
+ *   },
+ *   { repo: repoSymbol },
+ * );
+ *
+ * // Ether.compose( injecting )( to be injected ) -> injected Ether
+ * const injected = Ether.compose(mockRepository)(service);
+ *
+ * const otherService = Ether.newEther(Ether.newEtherSymbol<unknown>(), () => ({}));
+ * const xorShiftRng = Ether.newEther(Ether.newEtherSymbol<unknown>(), () => ({}));
+ *
+ * // `Cat` is useful to inject multiple dependencies.
+ * const multiInjected = Cat.cat(service)
+ *   .feed(Ether.compose(mockRepository))
+ *   .feed(Ether.compose(otherService))
+ *   .feed(Ether.compose(xorShiftRng))
+ *   .value;
+ *
+ * // It will occur type errors if the dependencies not enough.
+ * const resolved = Ether.runEther(multiInjected);
+ * ```
+ *
+ * Only no dependencies required, you can get the object of type `T` by `Ether.runEther` function. When dependencies became empty applying `compose`, `D` will be equivalent to `Record<string, never>` and you can use `Ether.runEther`. Conversely, if the dependencies are not enough, it will occurs type errors and shows the variable name of lacking dependency.
+ *
+ * However, you can't represent the circular dependencies with `Ether` because it occurs an infinite recursion.
+ *
+ * # Conclusion
+ *
+ * You can use `Ether`'s system as the following steps.
+ *
+ * 1. For each your type, create a corresponding symbol with `newEtherSymbol`.
+ * 2. Construct `Ether` objects corresponding the symbol types with `newEther`.
+ * 3. Inject other `Ether`s into an `Ether` with `compose`. `Cat` is useful to do it.
+ * 4. Get the injected value by `runEther`, or fix type errors about dependencies.
+ *
+ * # `EtherT` for dependencies over a monad such as `Promise`
+ *
+ * If `Ether` is all, the dependency which can be built only in `Promise` such as cryptography module doesn't work well. If the built object is wrapped in a `Promise`, extracting it is so annoying.
+ *
+ * In the situation, `EtherT<D, M, T>` which is the monad transformer version of `Ether<D, T>` helps you. This allows you to handle dependencies wrapped in a monad without notice of wrapped in, by the monad power.
+ *
+ * For example, describing the case building over `Promise`. Usage of `newEtherT` and `runEtherT` function is same as the functions for `Ether`.
+ *
+ * ```ts
+ * import { Ether, Promise } from "@mikuroxina/mini-fn";
+ *
+ * export type AuthenticationTokenService = {
+ *   authorize: (token: string) => Promise<boolean>;
+ * };
+ *
+ * const newAuthenticationTokenService = async (): Promise<AuthenticationTokenService> => {
+ *   const _secret = await Promise.pure("some way");
+ *   return {
+ *     authorize: (_token: string) => Promise.pure(true),
+ *   };
+ * };
+ *
+ * export const authenticateTokenSymbol =
+ *   Ether.newEtherSymbol<AuthenticationTokenService>();
+ * export const authenticateToken = Ether.newEtherT<Promise.PromiseHkt>()(
+ *   authenticateTokenSymbol,
+ *   newAuthenticationTokenService,
+ * );
+ * ```
+ *
+ * Only `composeT` injecting an dependency, it is modified to require the monad instance as a parameter. When injecting dependencies over `Promise`, you will pass the monad instance of `Promise`. And mixing the normal `Ether` and `EtherT`, you need to convert `Ether`s into `EtherT`s of same monad environment `M` with `liftEther`.
+ *
+ * ```ts
+ * import { Cat, Ether, Promise } from "@mikuroxina/mini-fn";
+ *
+ * type AccountRepository = {
+ *   // ...
+ * };
+ * const accountRepoSymbol = Ether.newEtherSymbol<AccountRepository>();
+ * const accountRepository = Ether.newEther(accountRepoSymbol, () => ({
+ *   // ...
+ * }));
+ *
+ * type AuthenticationTokenService = {
+ *   // ...
+ * };
+ * const authenticateTokenSymbol =
+ *   Ether.newEtherSymbol<AuthenticationTokenService>();
+ * const authenticateToken = Ether.newEtherT<Promise.PromiseHkt>()(
+ *   authenticateTokenSymbol,
+ *   async () => ({}),
+ * );
+ *
+ * type PasswordEncoder = {
+ *   // ...
+ * };
+ * const passwordEncoderSymbol = Ether.newEtherSymbol<PasswordEncoder>();
+ * const argon2idPasswordEncoder = Ether.newEther(passwordEncoderSymbol, () => ({}));
+ *
+ * type AuthenticationService = {
+ *   // ...
+ * };
+ * const authenticationSymbol = Ether.newEtherSymbol<AuthenticationService>();
+ * const authenticate = Ether.newEther(
+ *   authenticationSymbol,
+ *   (_deps) => ({}),
+ *   {
+ *     repo: accountRepoSymbol,
+ *     authenticateToken: authenticateTokenSymbol,
+ *     encoder: passwordEncoderSymbol,
+ *   },
+ * );
+ *
+ * const composer = Ether.composeT(Promise.monad);
+ * const liftOverPromise = Ether.liftEther(Promise.monad);
+ *
+ * const authenticateService = await Cat.cat(liftOverPromise(authenticate))
+ *     .feed(composer(liftOverPromise(accountRepository)))
+ *     .feed(composer(authenticateToken))
+ *     .feed(composer(liftOverPromise(argon2idPasswordEncoder)))
+ *     .feed(Ether.runEtherT)
+ *     .value;
+ * ```
+ *
  * @packageDocumentation
  * @module
  */

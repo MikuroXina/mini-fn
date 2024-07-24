@@ -73,7 +73,7 @@ import { Cat, List } from "@mikuroxina/mini-fn";
 const patterns = Cat.doT(List.monad)
     .addM("x", List.range(0, 6))
     .addMWith("y", ({ x }) => List.range(0, 6 - x))
-    .addMWith("z", ({ x, y }) => 5 - (x + y))
+    .addWith("z", ({ x, y }) => 5 - (x + y))
     .finish(({ x, y, z }) => [x, y, z] as const);
 
 console.dir(List.toArray(patterns));
