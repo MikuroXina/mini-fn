@@ -24,7 +24,7 @@ export const contravariant: Contravariant<PartialEqHkt> = {
         }),
 };
 
-export const fromPartialEquality = <Lhs, Rhs, X = void>(
+export const fromPartialEquality = <Lhs, Rhs = Lhs, X = void>(
     partialEquality: (x: X) => (l: Lhs, r: Rhs) => boolean,
 ) =>
 (x: X): PartialEq<Lhs, Rhs> => ({
@@ -33,17 +33,19 @@ export const fromPartialEquality = <Lhs, Rhs, X = void>(
 
 export const fromProjection =
     <F>(projection: <X>(structure: Get1<F, X>) => X) =>
-    <L, R>(equality: PartialEq<L, R>): PartialEq<Get1<F, L>, Get1<F, R>> => ({
+    <L, R = L>(
+        equality: PartialEq<L, R>,
+    ): PartialEq<Get1<F, L>, Get1<F, R>> => ({
         eq: (l, r) => equality.eq(projection(l), projection(r)),
     });
 
 export const strict = <T>(): PartialEq<T> =>
     fromPartialEquality<T, T>(() => (l, r) => l === r)();
 
-export const identity: <Lhs, Rhs>() => PartialEq<Lhs, Rhs> =
+export const identity: <Lhs, Rhs = Lhs>() => PartialEq<Lhs, Rhs> =
     fromPartialEquality(() => () => true);
 
-export const monoid = <Lhs, Rhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
+export const monoid = <Lhs, Rhs = Lhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
     combine: (x, y) => ({ eq: (l, r) => x.eq(l, r) && y.eq(l, r) }),
     identity: identity(),
     [semiGroupSymbol]: true,
@@ -62,7 +64,7 @@ export interface PartialEqUnary<F> {
  * @returns The new `PartialEqUnary` for `F`.
  */
 export const fromLifter = <F>(
-    lifter: <Lhs, Rhs>(
+    lifter: <Lhs, Rhs = Lhs>(
         eq: PartialEq<Lhs, Rhs>,
     ) => PartialEq<Get1<F, Lhs>, Get1<F, Rhs>>,
 ): PartialEqUnary<F> => ({

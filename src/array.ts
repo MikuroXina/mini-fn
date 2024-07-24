@@ -25,15 +25,16 @@ import type { Reduce } from "./type-class/reduce.ts";
 import type { Traversable } from "./type-class/traversable.ts";
 
 export const partialEquality =
-    <T>(equality: PartialEq<T>) =>
-    (l: readonly T[], r: readonly T[]): boolean =>
+    <L, R = L>(equality: PartialEq<L, R>) =>
+    (l: readonly L[], r: readonly R[]): boolean =>
         l.length === r.length &&
         l.every((left, i) => equality.eq(left, r[i]));
-export const partialEq: <T>(equality: PartialEq<T>) => PartialEq<T[]> =
-    fromPartialEquality(partialEquality);
+export const partialEq: <L, R>(
+    equality: PartialEq<L, R>,
+) => PartialEq<L[], R[]> = fromPartialEquality(partialEquality);
 export const partialCmp =
-    <T>(order: PartialOrd<T>) =>
-    (l: readonly T[], r: readonly T[]): Option<Ordering> =>
+    <L, R = L>(order: PartialOrd<L, R>) =>
+    (l: readonly L[], r: readonly R[]): Option<Ordering> =>
         foldR((
             next: Option<Ordering>,
         ): (acc: Option<Ordering>) => Option<Ordering> =>
@@ -44,10 +45,13 @@ export const partialCmp =
 export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<T[]> =
     fromPartialCmp(partialCmp);
 export const equality =
-    <T>(equality: Eq<T>) => (l: readonly T[], r: readonly T[]): boolean =>
+    <L, R = L>(equality: Eq<L, R>) =>
+    (l: readonly L[], r: readonly R[]): boolean =>
         l.length === r.length &&
         l.every((left, i) => equality.eq(left, r[i]));
-export const eq: <T>(equality: Eq<T>) => Eq<T[]> = fromEquality(equality);
+export const eq: <L, R = L>(equality: Eq<L, R>) => Eq<L[], R[]> = fromEquality(
+    equality,
+);
 export const cmp =
     <T>(order: Ord<T>) => (l: readonly T[], r: readonly T[]): Ordering =>
         foldR(and)(Math.sign(l.length - r.length) as Ordering)(
