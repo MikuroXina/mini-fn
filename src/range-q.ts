@@ -34,7 +34,7 @@ export const fromIterable =
         acc: [...iterable].reduce<[T[], T]>(
             (prev, curr) => {
                 const next = group.combine(prev[1], curr);
-                return [[...prev[0], next], next];
+                return [[...prev[0], next], next] as [T[], T];
             },
             [[], group.identity],
         )[0],
