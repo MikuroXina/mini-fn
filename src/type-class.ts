@@ -13,6 +13,7 @@ export * as Comonad from "./type-class/comonad.ts";
 export * as Conjoined from "./type-class/conjoined.ts";
 export * as Distributive from "./type-class/distributive.ts";
 export * as Endo from "./type-class/endo.ts";
+export * as ErrorMonad from "./type-class/error-monad.ts";
 export * as Eq from "./type-class/eq.ts";
 export * as Field from "./type-class/field.ts";
 export * as FlatMap from "./type-class/flat-map.ts";
