@@ -45,12 +45,11 @@ export const partialEq: <A, L, R = L>(
         equalityB: PartialEq<L, R>;
     },
 ) => PartialEq<Tuple<A, L>, Tuple<A, R>> = fromPartialEquality(partialEquality);
-export const equality =
-    <A, L, R = L>(
-        { equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<L, R> },
-    ) =>
-    (l: Tuple<A, L>, r: Tuple<A, R>): boolean =>
-        equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
+export const equality = <A, L, R = L>(
+    { equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<L, R> },
+) =>
+(l: Tuple<A, L>, r: Tuple<A, R>): boolean =>
+    equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
 export const eq: <A, L, R = L>(
     { equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<L, R> },
 ) => Eq<Tuple<A, L>, Tuple<A, R>> = fromEquality(equality);
