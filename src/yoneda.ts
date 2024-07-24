@@ -1,6 +1,7 @@
 import { compose, id } from "./func.ts";
 import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
 import type { Functor } from "./type-class/functor.ts";
+import type { PartialEqUnary } from "./type-class/partial-eq.ts";
 
 /**
  * The yoneda functor, a partial application of `map` to its second argument.
@@ -8,6 +9,18 @@ import type { Functor } from "./type-class/functor.ts";
 export interface Yoneda<F, A> {
     readonly yoneda: <X>(fn: (a: A) => X) => Get1<F, X>;
 }
+
+/**
+ * The `PartialEqUnary` instance for `Yoneda<F, _>`.
+ */
+export const partialEqUnary = <F>(
+    eqUnary: PartialEqUnary<F>,
+): PartialEqUnary<YonedaHkt> => ({
+    liftEq:
+        <L, R = L>(equality: (l: L, r: R) => boolean) =>
+        (l: Yoneda<F, L>, r: Yoneda<F, R>): boolean =>
+            eqUnary.liftEq(equality)(l.yoneda(id), r.yoneda(id)),
+});
 
 /**
  * Lifts the value `a` into a partial application of `functor.map`. It is the natural isomorphism to `Yoneda<F, _>`.
