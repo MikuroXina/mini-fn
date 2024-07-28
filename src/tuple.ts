@@ -287,6 +287,21 @@ export const bitraverse: <F>(
 ) => (data: Tuple<A, B>) => Get1<F, Tuple<C, D>> =
     (app) => (f) => (g) => ([a, b]) => liftA2(app)(make)(f(a))(g(b));
 
+/**
+ * Folds the tuple data into a `Monoid` value with mapping functions `aMap` and `bMap`.
+ *
+ * @param m - The `Monoid` instance for `M`.
+ * @param aMap - The mapping function from `A`.
+ * @param bMap - The mapping function from `B`.
+ * @param data - The data to be mapped.
+ * @returns Folded value of type `M`.
+ */
+export const bifoldMap =
+    <M>(m: Monoid<M>) =>
+    <A>(aMap: (a: A) => M) =>
+    <B>(bMap: (b: B) => M) =>
+    ([a, b]: Tuple<A, B>): M => m.combine(aMap(a), bMap(b));
+
 export interface TupleHkt extends Hkt2 {
     readonly type: Tuple<this["arg2"], this["arg1"]>;
 }
@@ -314,7 +329,7 @@ export const bifunctor: Bifunctor<TupleHkt> = { biMap };
  * The instance of `Bitraversal` for `Tuple<_, _>`.
  */
 export const bifoldable: Bifoldable<TupleHkt> = fromBifoldMap<TupleHkt>(
-    (m) => (aMap) => (bMap) => ([a, b]) => m.combine(aMap(a), bMap(b)),
+    bifoldMap,
 );
 
 /**
