@@ -316,6 +316,18 @@ export interface TupleDHkt extends Hkt1 {
 }
 
 /**
+ * @param monoid - The `Monoid` instance for the first element `A`.
+ * @returns The `Applicative` instance for `Tuple<A, _>`.
+ */
+export const applicative = <A>(
+    monoid: Monoid<A>,
+): Applicative<Apply2Only<TupleHkt, A>> => ({
+    map,
+    pure: pure(monoid),
+    apply: apply(monoid),
+});
+
+/**
  * The instance of `Functor` for `Tuple<_, _>`.
  */
 export const functorD: Functor<TupleDHkt> = { map: mapD };
