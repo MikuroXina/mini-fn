@@ -14,7 +14,7 @@ import type { Bifunctor } from "./type-class/bifunctor.ts";
 import type { Bitraversable } from "./type-class/bitraversable.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
 import type { Functor } from "./type-class/functor.ts";
-import { liftM2 } from "./type-class/monad.ts";
+import { liftM2, type Monad } from "./type-class/monad.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
@@ -194,6 +194,19 @@ export const bind =
         return [sg.combine(a1, a2), c];
     };
 
+/**
+ * Maps and flattens the tuple by a function `f` which maps from `B` to `Tuple<A, C>`. The first element is combined by the `SemiGroup` instance for `A`.
+ *
+ * @param sg - The `SemiGroup` instance for `A`.
+ * @param tuple - The tuple to be mapped.
+ * @param f - The function which takes the second element and returns the new tuple.
+ * @returns The composed tuple.
+ */
+export const flatMap =
+    <A>(sg: SemiGroup<A>) =>
+    <B, C>(f: (b: B) => Tuple<A, C>) =>
+    (tuple: Tuple<A, B>): Tuple<A, C> => bind(sg)(tuple)(f);
+
 export const extend =
     <A>(f: <B>(tuple: Tuple<A, B>) => B) =>
     <B>(tuple: Tuple<A, B>): Tuple<A, B> => [tuple[0], f(tuple)];
@@ -325,6 +338,19 @@ export const applicative = <A>(
     map,
     pure: pure(monoid),
     apply: apply(monoid),
+});
+
+/**
+ * @param monoid - The `Monoid` instance for the first element `A`.
+ * @returns The `Monad` instance for `Tuple<A, _>`.
+ */
+export const monad = <A>(
+    monoid: Monoid<A>,
+): Monad<Apply2Only<TupleHkt, A>> => ({
+    map,
+    pure: pure(monoid),
+    apply: apply(monoid),
+    flatMap: flatMap(monoid),
 });
 
 /**
