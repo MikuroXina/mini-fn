@@ -12,6 +12,7 @@ import { type Applicative, liftA2 } from "./type-class/applicative.ts";
 import { type Bifoldable, fromBifoldMap } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
 import type { Bitraversable } from "./type-class/bitraversable.ts";
+import type { Comonad } from "./type-class/comonad.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
 import type { Functor } from "./type-class/functor.ts";
 import { liftM2, type Monad } from "./type-class/monad.ts";
@@ -216,6 +217,16 @@ export const extend =
 export const extract = second;
 
 /**
+ * Duplicates the first element of tuple.
+ *
+ * @param t - The tuple to be duplicated.
+ * @returns The nested tuple.
+ */
+export const duplicate = <A, B>(
+    t: Tuple<A, B>,
+): Tuple<A, Tuple<A, B>> => [t[0], t];
+
+/**
  * Distributes `Tuple` in `Lazy`.
  *
  * @param lazy - The deferred tuple.
@@ -378,6 +389,15 @@ export const bitraversable: Bitraversable<TupleHkt> = {
     ...bifoldable,
     bitraverse,
 };
+
+/**
+ * The `Comonad` instance for `Tuple<A, _>`.
+ */
+export const comonad = <A>(): Comonad<Apply2Only<TupleHkt, A>> => ({
+    map,
+    extract,
+    duplicate,
+});
 
 export const enc =
     <A>(encA: Encoder<A>) =>
