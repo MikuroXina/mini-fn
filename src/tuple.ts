@@ -12,9 +12,10 @@ import { type Applicative, liftA2 } from "./type-class/applicative.ts";
 import { type Bifoldable, fromBifoldMap } from "./type-class/bifoldable.ts";
 import type { Bifunctor } from "./type-class/bifunctor.ts";
 import type { Bitraversable } from "./type-class/bitraversable.ts";
+import type { Comonad } from "./type-class/comonad.ts";
 import { type Eq, fromEquality } from "./type-class/eq.ts";
 import type { Functor } from "./type-class/functor.ts";
-import { liftM2 } from "./type-class/monad.ts";
+import { liftM2, type Monad } from "./type-class/monad.ts";
 import type { Monoid } from "./type-class/monoid.ts";
 import { fromCmp, type Ord } from "./type-class/ord.ts";
 import {
@@ -194,6 +195,19 @@ export const bind =
         return [sg.combine(a1, a2), c];
     };
 
+/**
+ * Maps and flattens the tuple by a function `f` which maps from `B` to `Tuple<A, C>`. The first element is combined by the `SemiGroup` instance for `A`.
+ *
+ * @param sg - The `SemiGroup` instance for `A`.
+ * @param tuple - The tuple to be mapped.
+ * @param f - The function which takes the second element and returns the new tuple.
+ * @returns The composed tuple.
+ */
+export const flatMap =
+    <A>(sg: SemiGroup<A>) =>
+    <B, C>(f: (b: B) => Tuple<A, C>) =>
+    (tuple: Tuple<A, B>): Tuple<A, C> => bind(sg)(tuple)(f);
+
 export const extend =
     <A>(f: <B>(tuple: Tuple<A, B>) => B) =>
     <B>(tuple: Tuple<A, B>): Tuple<A, B> => [tuple[0], f(tuple)];
@@ -201,6 +215,16 @@ export const extend =
  * Extracts the value which has a type of the second type parameter `B`. It is equivalent to `second`.
  */
 export const extract = second;
+
+/**
+ * Duplicates the first element of tuple.
+ *
+ * @param t - The tuple to be duplicated.
+ * @returns The nested tuple.
+ */
+export const duplicate = <A, B>(
+    t: Tuple<A, B>,
+): Tuple<A, Tuple<A, B>> => [t[0], t];
 
 /**
  * Distributes `Tuple` in `Lazy`.
@@ -287,6 +311,21 @@ export const bitraverse: <F>(
 ) => (data: Tuple<A, B>) => Get1<F, Tuple<C, D>> =
     (app) => (f) => (g) => ([a, b]) => liftA2(app)(make)(f(a))(g(b));
 
+/**
+ * Folds the tuple data into a `Monoid` value with mapping functions `aMap` and `bMap`.
+ *
+ * @param m - The `Monoid` instance for `M`.
+ * @param aMap - The mapping function from `A`.
+ * @param bMap - The mapping function from `B`.
+ * @param data - The data to be mapped.
+ * @returns Folded value of type `M`.
+ */
+export const bifoldMap =
+    <M>(m: Monoid<M>) =>
+    <A>(aMap: (a: A) => M) =>
+    <B>(bMap: (b: B) => M) =>
+    ([a, b]: Tuple<A, B>): M => m.combine(aMap(a), bMap(b));
+
 export interface TupleHkt extends Hkt2 {
     readonly type: Tuple<this["arg2"], this["arg1"]>;
 }
@@ -299,6 +338,31 @@ export const functor = <A>(): Functor<Apply2Only<TupleHkt, A>> => ({ map });
 export interface TupleDHkt extends Hkt1 {
     readonly type: Tuple<this["arg1"], this["arg1"]>;
 }
+
+/**
+ * @param monoid - The `Monoid` instance for the first element `A`.
+ * @returns The `Applicative` instance for `Tuple<A, _>`.
+ */
+export const applicative = <A>(
+    monoid: Monoid<A>,
+): Applicative<Apply2Only<TupleHkt, A>> => ({
+    map,
+    pure: pure(monoid),
+    apply: apply(monoid),
+});
+
+/**
+ * @param monoid - The `Monoid` instance for the first element `A`.
+ * @returns The `Monad` instance for `Tuple<A, _>`.
+ */
+export const monad = <A>(
+    monoid: Monoid<A>,
+): Monad<Apply2Only<TupleHkt, A>> => ({
+    map,
+    pure: pure(monoid),
+    apply: apply(monoid),
+    flatMap: flatMap(monoid),
+});
 
 /**
  * The instance of `Functor` for `Tuple<_, _>`.
@@ -314,7 +378,7 @@ export const bifunctor: Bifunctor<TupleHkt> = { biMap };
  * The instance of `Bitraversal` for `Tuple<_, _>`.
  */
 export const bifoldable: Bifoldable<TupleHkt> = fromBifoldMap<TupleHkt>(
-    (m) => (aMap) => (bMap) => ([a, b]) => m.combine(aMap(a), bMap(b)),
+    bifoldMap,
 );
 
 /**
@@ -325,6 +389,15 @@ export const bitraversable: Bitraversable<TupleHkt> = {
     ...bifoldable,
     bitraverse,
 };
+
+/**
+ * The `Comonad` instance for `Tuple<A, _>`.
+ */
+export const comonad = <A>(): Comonad<Apply2Only<TupleHkt, A>> => ({
+    map,
+    extract,
+    duplicate,
+});
 
 export const enc =
     <A>(encA: Encoder<A>) =>
