@@ -446,10 +446,10 @@ export const apply =
     <T, U>(fn: These<A, (t: T) => U>) =>
     (t: These<A, T>): These<A, U> => {
         if (isThis(fn)) {
-            return newThis(fn[1]);
+            return fn;
         }
         if (isThis(t)) {
-            return newThis(t[1]);
+            return t;
         }
         if (isThat(fn)) {
             if (isThat(t)) {
