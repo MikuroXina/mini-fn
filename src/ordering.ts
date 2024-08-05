@@ -12,17 +12,17 @@ import { semiGroupSymbol } from "./type-class/semi-group.ts";
 /**
  * Means that the left term is less than the right term.
  */
-export const less = -1;
+export const less = -1 as const;
 export type Less = typeof less;
 /**
  * Means that the left term equals to the right term.
  */
-export const equal = 0;
+export const equal = 0 as const;
 export type Equal = typeof equal;
 /**
  * Means that the left term is greater than the right term.
  */
-export const greater = 1;
+export const greater = 1 as const;
 export type Greater = typeof greater;
 /**
  * The ordering about two terms.
