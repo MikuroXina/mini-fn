@@ -1,4 +1,5 @@
 import { equal, greater, less, type Ordering } from "./ordering.ts";
+import type { Monoid } from "./type-class/monoid.ts";
 import { fromCmp, type Ord } from "./type-class/ord.ts";
 import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.ts";
 
@@ -19,4 +20,12 @@ export const ord: Ord<string> = fromCmp(() => cmp)();
 export const semiGroup: SemiGroup<string> = {
     combine: (l, r) => l + r,
     [semiGroupSymbol]: true,
+};
+
+/**
+ * A `Monoid` instance of concatenating `string`s.
+ */
+export const monoid: Monoid<string> = {
+    ...semiGroup,
+    identity: "",
 };
