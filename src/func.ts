@@ -150,14 +150,11 @@ export const flip =
  * ```
  */
 export const until =
-    <T>(pred: (t: T) => boolean) => (succ: (t: T) => T): (init: T) => T => {
-        const go = (x: T): T => {
-            if (pred(x)) {
-                return x;
-            }
-            return go(succ(x));
-        };
-        return go;
+    <T>(pred: (t: T) => boolean) => (succ: (t: T) => T) => (init: T): T => {
+        while (!pred(init)) {
+            init = succ(init);
+        }
+        return init;
     };
 
 /**

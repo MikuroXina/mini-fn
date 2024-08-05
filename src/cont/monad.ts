@@ -21,7 +21,13 @@ export const label =
         );
 
 export const labelWithoutArg = <M, A>(mc: MonadCont<M>): Get1<M, Get1<M, A>> =>
-    mc.callCC((k: (a: Get1<M, A>) => Get1<M, A>): Get1<M, Get1<M, A>> => {
-        const go = (): Get1<M, A> => k(go());
-        return mc.pure(go());
-    });
+    mc.map((f: () => Get1<M, A>) => f())(
+        mc.callCC(
+            (
+                k: (a: () => Get1<M, A>) => Get1<M, A>,
+            ): Get1<M, () => Get1<M, A>> => {
+                const go = (): Get1<M, A> => k(go);
+                return mc.pure(go);
+            },
+        ),
+    );
