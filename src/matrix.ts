@@ -197,7 +197,7 @@ export const columnLength = (mat: Matrix): number =>
  * @param mat - The matrix.
  * @returns Whether the numbers are arranged by row-major order.
  */
-export const isMajorAxisRow = (mat: Matrix): boolean => mat.strides[0] === 1;
+export const isMajorAxisRow = (mat: Matrix): boolean => mat.strides[1] === 1;
 
 /**
  * Finds the trace value, sum of the diagonal elements of the matrix.
