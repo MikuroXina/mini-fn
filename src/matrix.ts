@@ -82,9 +82,12 @@ export const fromRows = (rowNums: readonly number[][]): Matrix => {
     const columns = Math.max(...rowNums.map((row) => row.length));
     return ({
         nums: new Float64Array(
-            rowNums.flatMap((row) =>
-                new Array<number>(columns).fill(0).splice(0, row.length, ...row)
-            ),
+            rowNums.flatMap((row) => {
+                const newRow = new Array<number>(columns);
+                newRow.fill(0);
+                newRow.splice(0, row.length, ...row);
+                return newRow;
+            }),
         ),
         strides: [columns, 1],
     });
@@ -101,9 +104,12 @@ export const fromColumns = (columnNums: readonly number[][]): Matrix => {
 
     return ({
         nums: new Float64Array(
-            columnNums.flatMap((col) =>
-                new Array<number>(rows).fill(0).splice(0, col.length, ...col)
-            ),
+            columnNums.flatMap((col) => {
+                const newCol = new Array<number>(rows);
+                newCol.fill(0);
+                newCol.splice(0, col.length, ...col);
+                return newCol;
+            }),
         ),
         strides: [1, rows],
     });
