@@ -130,16 +130,23 @@ export const at =
         if (columnIndex < 0 || columnIndex >= rowLength(mat)) {
             throw new RangeError("`columnIndex` is out of range");
         }
-        const entry = mat.nums.at(
-            rowIndex * mat.strides[0] + columnIndex * mat.strides[1],
-        );
-        if (entry === undefined) {
-            throw new RangeError(
-                `No elements at (${rowIndex}, ${columnIndex})`,
-            );
-        }
-        return entry;
+        return atUnchecked(rowIndex)(columnIndex)(mat);
     };
+
+/**
+ * Gets the element at (`columnIndex`, `rowIndex`) in the matrix with no check. The indexes start from zero.
+ *
+ * If the indexes is out of range, your code may occur unsound behaviors.
+ *
+ * @param rowIndex - The 0-based index of row to pick.
+ * @param columnIndex - The 0-based index of column to pick.
+ * @returns The fetched element of the matrix.
+ */
+export const atUnchecked =
+    (rowIndex: number) => (columnIndex: number) => (mat: Matrix): number =>
+        mat.nums.at(
+            rowIndex * mat.strides[0] + columnIndex * mat.strides[1],
+        )!;
 
 /**
  * Extracts the internal numbers from the matrix. The layout of numbers may not intuitive order because of its strides.
