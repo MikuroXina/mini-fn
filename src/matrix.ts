@@ -118,18 +118,18 @@ export const fromColumns = (columnNums: readonly number[][]): Matrix => {
 /**
  * Gets the element at (`columnIndex`, `rowIndex`) in the matrix.
  *
- * @param columnIndex - The index of columns.
- * @param rowIndex - The index of rows.
+ * @param rowIndex - The index of row to pick.
+ * @param columnIndex - The index of column to pick.
  * @returns The fetched element of the matrix.
  */
 export const at =
-    (columnIndex: number) => (rowIndex: number) => (mat: Matrix): number => {
+    (rowIndex: number) => (columnIndex: number) => (mat: Matrix): number => {
         const entry = mat.nums.at(
-            columnIndex * mat.strides[0] + rowIndex * mat.strides[1],
+            rowIndex * mat.strides[0] + columnIndex * mat.strides[1],
         );
         if (entry === undefined) {
             throw new RangeError(
-                `No elements at (${columnIndex}, ${rowIndex})`,
+                `No elements at (${rowIndex}, ${columnIndex})`,
             );
         }
         return entry;
