@@ -19,7 +19,9 @@ import {
     monadForCodeM,
     monadForDecoder,
 } from "./serial.ts";
+import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.ts";
 import type { Monoid } from "./type-class/monoid.ts";
+import type { Ring } from "./type-class/ring.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
 /**
@@ -314,6 +316,22 @@ export const addMonoid =
     });
 
 /**
+ * Creates the abelian group instance about matrix addition.
+ *
+ * @param rows - The count of rows.
+ * @param columns - The count of columns.
+ * @returns The `AbelianGroup` instance of addition.
+ */
+export const addGroup =
+    (rows: number) => (columns: number): AbelianGroup<Matrix> => ({
+        identity: zeroes(rows)(columns),
+        combine: (l, r) => add(l)(r),
+        invert: scalarProduct(-1),
+        [semiGroupSymbol]: true,
+        [abelSymbol]: true,
+    });
+
+/**
  * Creates the monoid instance about matrix multiplication.
  *
  * @param rows - The count of rows.
@@ -326,6 +344,18 @@ export const mulMonoid =
         combine: (l, r) => mul(l)(r),
         [semiGroupSymbol]: true,
     });
+
+/**
+ * Creates the ring instance about matrix arithmetics.
+ *
+ * @param rows - The count of rows.
+ * @param columns - The count of columns.
+ * @returns The `Ring` instance of addition and multiplication.
+ */
+export const ring = (rows: number) => (columns: number): Ring<Matrix> => ({
+    additive: addGroup(rows)(columns),
+    multiplication: mulMonoid(rows)(columns),
+});
 
 /**
  * The `Encoder` implementation for `Matrix`.
