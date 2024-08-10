@@ -124,11 +124,11 @@ export const fromColumns = (columnNums: readonly number[][]): Matrix => {
  */
 export const at =
     (rowIndex: number) => (columnIndex: number) => (mat: Matrix): number => {
-        if (rowIndex < 0) {
-            throw new RangeError("`rowIndex` must not be negative");
+        if (rowIndex < 0 || rowIndex >= columnLength(mat)) {
+            throw new RangeError("`rowIndex` is out of range");
         }
-        if (columnIndex < 0) {
-            throw new RangeError("`columnIndex` must not be negative");
+        if (columnIndex < 0 || columnIndex >= rowLength(mat)) {
+            throw new RangeError("`columnIndex` is out of range");
         }
         const entry = mat.nums.at(
             rowIndex * mat.strides[0] + columnIndex * mat.strides[1],
