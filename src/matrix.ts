@@ -116,10 +116,10 @@ export const fromColumns = (columnNums: readonly number[][]): Matrix => {
 };
 
 /**
- * Gets the element at (`columnIndex`, `rowIndex`) in the matrix.
+ * Gets the element at (`columnIndex`, `rowIndex`) in the matrix. The indexes start from zero.
  *
- * @param rowIndex - The index of row to pick.
- * @param columnIndex - The index of column to pick.
+ * @param rowIndex - The 0-based index of row to pick.
+ * @param columnIndex - The 0-based index of column to pick.
  * @returns The fetched element of the matrix.
  */
 export const at =
