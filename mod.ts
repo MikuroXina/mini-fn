@@ -27,6 +27,7 @@ export * as Kleisli from "./src/kleisli.ts";
 export * as Lazy from "./src/lazy.ts";
 export * as List from "./src/list.ts";
 export * as Map from "./src/map.ts";
+export * as Matrix from "./src/matrix.ts";
 export * as MultiSet from "./src/multi-set.ts";
 export * as Number from "./src/number.ts";
 export * as Optical from "./src/optical.ts";
