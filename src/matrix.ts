@@ -25,6 +25,11 @@ import type { Ring } from "./type-class/ring.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
 /**
+ * Strides of dimensions. The first element is steps needed to seek columns, and the second element is steps needed to seek rows.
+ */
+export type Strides = [columnStep: number, rowStep: number];
+
+/**
  * A numbers matrix that represents coefficients.
  */
 export type Matrix = Readonly<{
@@ -33,9 +38,9 @@ export type Matrix = Readonly<{
      */
     nums: Float64Array;
     /**
-     * Strides of dimensions. It means that each step needed to seek the first item of numbers chunk. Either of them must equals to one.
+     * Strides of dimensions. Either of them must equals to one.
      */
-    strides: [rowStep: number, columnStep: number];
+    strides: Strides;
 }>;
 
 /**
@@ -116,7 +121,7 @@ export const fromColumns = (columnNums: readonly number[][]): Matrix => {
 };
 
 /**
- * Gets the element at (`columnIndex`, `rowIndex`) in the matrix. The indexes start from zero.
+ * Gets the element at (`rowIndex`, `columnIndex`) in the matrix. The indexes start from zero.
  *
  * @param rowIndex - The 0-based index of row to pick.
  * @param columnIndex - The 0-based index of column to pick.
@@ -161,7 +166,7 @@ export const rawNums = (mat: Matrix): Float64Array => mat.nums;
  * @param mat - The matrix.
  * @returns The internal strides.
  */
-export const strides = (mat: Matrix): [rowStep: number, columnStep: number] =>
+export const strides = (mat: Matrix): [columnStep: number, rowStep: number] =>
     mat.strides;
 
 /**
