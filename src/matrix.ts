@@ -165,7 +165,7 @@ export const strides = (mat: Matrix): [rowStep: number, columnStep: number] =>
     mat.strides;
 
 /**
- * Gets the length of row-axis.
+ * Gets the length of row-axis, or count of the columns.
  *
  * @param mat - The matrix.
  * @returns The length of rows.
@@ -176,7 +176,7 @@ export const rowLength = (mat: Matrix): number =>
         : Math.ceil(mat.nums.length / mat.strides[1]);
 
 /**
- * Gets the length of column-axis.
+ * Gets the length of column-axis, or count of the rows.
  *
  * @param mat - The matrix.
  * @returns The length of columns.
