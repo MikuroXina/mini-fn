@@ -21,6 +21,10 @@ import {
 } from "./serial.ts";
 import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.ts";
 import type { Monoid } from "./type-class/monoid.ts";
+import {
+    fromPartialEquality,
+    type PartialEq,
+} from "./type-class/partial-eq.ts";
 import type { Ring } from "./type-class/ring.ts";
 import { semiGroupSymbol } from "./type-class/semi-group.ts";
 
@@ -42,6 +46,35 @@ export type Matrix = Readonly<{
      */
     strides: Strides;
 }>;
+
+/**
+ * Determines whether two matrices are equal.
+ * @param lhs - The left hand item.
+ * @param rhs - The right hand item.
+ * @returns Whether two items are equal.
+ */
+export const partialEquality = (lhs: Matrix, rhs: Matrix): boolean => {
+    const rowLen = rowLength(lhs);
+    const colLen = columnLength(lhs);
+    if (rowLen !== rowLength(rhs) || colLen !== columnLength(rhs)) {
+        return false;
+    }
+    for (let rowIdx = 0; rowIdx < rowLen; ++rowIdx) {
+        for (let colIdx = 0; colIdx < colLen; ++colIdx) {
+            const applied = at(rowIdx)(colIdx);
+            if (applied(lhs) !== applied(rhs)) {
+                return false;
+            }
+        }
+    }
+    return true;
+};
+/**
+ * A `PartialEq` instance for `Matrix`.
+ */
+export const partialEq: PartialEq<Matrix> = fromPartialEquality(() =>
+    partialEquality
+)();
 
 /**
  * Creates an identity matrix with its size.
@@ -237,7 +270,7 @@ export const scalarProduct = (alpha: number) => (mat: Matrix): Matrix => ({
 });
 
 /**
- * Adds two matrixes by element wise. Throws if the shapes of them are unequal.
+ * Adds two matrices by element wise. Throws if the shapes of them are unequal.
  *
  * @param left - The left hand term.
  * @param right - The right hand term.
@@ -265,7 +298,7 @@ export const add = (left: Matrix) => (right: Matrix): Matrix => {
 };
 
 /**
- * Multiplies two matrixes in the linear algebra way. Throws if column length of the left term does not equal to row length of the right term.
+ * Multiplies two matrices in the linear algebra way. Throws if column length of the left term does not equal to row length of the right term.
  *
  * @param left - The left hand term.
  * @param right - The right hand term.
@@ -298,7 +331,7 @@ export const mul = (left: Matrix) => (right: Matrix): Matrix => {
 };
 
 /**
- * Multiplies two matrixes by element wise. Throws if the shapes of them are unequal.
+ * Multiplies two matrices by element wise. Throws if the shapes of them are unequal.
  *
  * @param left - The left hand term.
  * @param right - The right hand term.
