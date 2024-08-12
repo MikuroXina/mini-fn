@@ -59,10 +59,11 @@ export const partialEquality = (lhs: Matrix, rhs: Matrix): boolean => {
     if (rowLen !== rowLength(rhs) || colLen !== columnLength(rhs)) {
         return false;
     }
-    for (let rowIdx = 0; rowIdx < rowLen; ++rowIdx) {
-        for (let colIdx = 0; colIdx < colLen; ++colIdx) {
-            const applied = at(rowIdx)(colIdx);
-            if (applied(lhs) !== applied(rhs)) {
+    for (let rowIdx = 0; rowIdx < colLen; ++rowIdx) {
+        const atRow = at(rowIdx);
+        for (let colIdx = 0; colIdx < rowLen; ++colIdx) {
+            const atRowCol = atRow(colIdx);
+            if (atRowCol(lhs) !== atRowCol(rhs)) {
                 return false;
             }
         }
@@ -334,7 +335,6 @@ export const add = (left: Matrix) => (right: Matrix): Matrix => {
     if (!isMajorAxisRow(right)) {
         right = interchangeMajorAxis(right);
     }
-    console.log({ left, right });
     return {
         strides: left.strides,
         nums: left.nums.map((l, i) => l + right.nums.at(i)!),
