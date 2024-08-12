@@ -751,6 +751,23 @@ export const encU64Be: Encoder<bigint> = compose(tell)(u64BeBuilder);
 export const encU64Le: Encoder<bigint> = compose(tell)(u64LeBuilder);
 
 /**
+ * Encodes a number as a floating point 32-bit number in big endian.
+ */
+export const encF32Be: Encoder<number> = compose(tell)(f32BeBuilder);
+/**
+ * Encodes a number as a floating point 32-bit number in little endian.
+ */
+export const encF32Le: Encoder<number> = compose(tell)(f32LeBuilder);
+/**
+ * Encodes a number as a floating point 64-bit number in big endian.
+ */
+export const encF64Be: Encoder<number> = compose(tell)(f64BeBuilder);
+/**
+ * Encodes a number as a floating point 64-bit number in little endian.
+ */
+export const encF64Le: Encoder<number> = compose(tell)(f64LeBuilder);
+
+/**
  * Encodes a string as UTF-8 sequence with its length.
  */
 export const encUtf8: Encoder<string> = compose(tell)(utf8Builder);
@@ -1539,6 +1556,35 @@ export const decU64Le = (): Decoder<bigint> =>
     doT(monadForDecoder)
         .addM("view", decBytes(8))
         .finish(({ view }) => view.getBigUint64(0, true));
+
+/**
+ * Decodes four bytes from the input as a floating pointer 32-bit number in big endian.
+ */
+export const decF32Be = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(4))
+        .finish(({ view }) => view.getFloat32(0));
+/**
+ * Decodes four bytes from the input as a floating pointer 32-bit number in little endian.
+ */
+export const decF32Le = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(4))
+        .finish(({ view }) => view.getFloat32(0, true));
+/**
+ * Decodes eight bytes from the input as a floating pointer 64-bit number in big endian.
+ */
+export const decF64Be = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(8))
+        .finish(({ view }) => view.getFloat64(0));
+/**
+ * Decodes eight bytes from the input as a floating pointer 64-bit number in little endian.
+ */
+export const decF64Le = (): Decoder<number> =>
+    doT(monadForDecoder)
+        .addM("view", decBytes(8))
+        .finish(({ view }) => view.getFloat64(0, true));
 
 /**
  * Decodes bytes from the input as an UTF-8 sequence with its length.
