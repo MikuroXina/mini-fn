@@ -270,6 +270,50 @@ export const scalarProduct = (alpha: number) => (mat: Matrix): Matrix => ({
 });
 
 /**
+ * Swaps the major axises of stored numbers. It is useful to transform matrices for efficient arithmetic implementation. You can check which the major axis is by function `isMajorAxisRow`.
+ *
+ * @param mat - The matrix to interchange axises.
+ * @returns The transformed matrix.
+ */
+export const interchangeMajorAxis = (mat: Matrix): Matrix => {
+    if (isMajorAxisRow(mat)) {
+        // interchange major axis from row-axis into column-axis
+        const columns = columnLength(mat);
+        const rows = rowLength(mat);
+        const transformed = new Float64Array(mat.nums.length);
+        for (let colIdx = 0; colIdx < columns; ++colIdx) {
+            for (let rowIdx = 0; rowIdx < rows; ++rowIdx) {
+                transformed.set(
+                    [mat.nums.at(rowIdx + colIdx * rows)!],
+                    colIdx + rowIdx * columns,
+                );
+            }
+        }
+        return {
+            nums: transformed,
+            strides: [1, mat.nums.length / rows],
+        };
+    }
+
+    // interchange major axis from column-axis into row-axis
+    const columns = columnLength(mat);
+    const rows = rowLength(mat);
+    const transformed = new Float64Array(mat.nums.length);
+    for (let rowIdx = 0; rowIdx < rows; ++rowIdx) {
+        for (let colIdx = 0; colIdx < columns; ++colIdx) {
+            transformed.set(
+                [mat.nums.at(colIdx + rowIdx * columns)!],
+                rowIdx + colIdx * rows,
+            );
+        }
+    }
+    return {
+        nums: transformed,
+        strides: [mat.nums.length / columns, 1],
+    };
+};
+
+/**
  * Adds two matrices by element wise. Throws if the shapes of them are unequal.
  *
  * @param left - The left hand term.
@@ -284,16 +328,16 @@ export const add = (left: Matrix) => (right: Matrix): Matrix => {
         throw new TypeError("unmatched matrix size");
     }
 
-    if (
-        !isMajorAxisRow(left) && isMajorAxisRow(right)
-    ) {
-        left = transpose(left);
-    } else if (isMajorAxisRow(left) && !isMajorAxisRow(right)) {
-        right = transpose(right);
+    if (!isMajorAxisRow(left)) {
+        left = interchangeMajorAxis(left);
     }
+    if (!isMajorAxisRow(right)) {
+        right = interchangeMajorAxis(right);
+    }
+    console.log({ left, right });
     return {
         strides: left.strides,
-        nums: left.nums.map((l, i) => l + (right.nums.at(i) ?? 0.0)),
+        nums: left.nums.map((l, i) => l + right.nums.at(i)!),
     };
 };
 
