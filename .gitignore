@@ -117,3 +117,6 @@ docs/
 
 # npm build
 npm/
+
+# Test Analytics
+junit.xml
