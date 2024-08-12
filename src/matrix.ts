@@ -389,16 +389,15 @@ export const mulElementWise = (left: Matrix) => (right: Matrix): Matrix => {
         throw new TypeError("unmatched matrix size");
     }
 
-    if (
-        !isMajorAxisRow(left) && isMajorAxisRow(right)
-    ) {
-        left = transpose(left);
-    } else if (isMajorAxisRow(left) && !isMajorAxisRow(right)) {
-        right = transpose(right);
+    if (!isMajorAxisRow(left)) {
+        left = interchangeMajorAxis(left);
+    }
+    if (!isMajorAxisRow(right)) {
+        right = interchangeMajorAxis(right);
     }
     return {
         strides: left.strides,
-        nums: left.nums.map((l, i) => l * (right.nums.at(i) ?? 1.0)),
+        nums: left.nums.map((l, i) => l * right.nums.at(i)!),
     };
 };
 
