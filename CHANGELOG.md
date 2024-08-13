@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.6.0](https://github.com/MikuroXina/mini-fn/compare/v6.5.0...v6.6.0) (2024-08-12)
+
+
+### Features
+
+* Add concatenating SemiGroup for String and Enforce tests for These ([#252](https://github.com/MikuroXina/mini-fn/issues/252)) ([9d7e227](https://github.com/MikuroXina/mini-fn/commit/9d7e22717b2c2a6fb63d997a5e3ca62fd855b5c0))
+* Add lack stuffs and Enforce tests for Tuple ([#250](https://github.com/MikuroXina/mini-fn/issues/250)) ([c31e8ef](https://github.com/MikuroXina/mini-fn/commit/c31e8ef036a12134ecc523f90b9d660867924cd8))
+* Add Matrix ([#256](https://github.com/MikuroXina/mini-fn/issues/256)) ([f56da8c](https://github.com/MikuroXina/mini-fn/commit/f56da8cf422947707eadc348b547ea58d808e3c3))
+
+
+### Bug Fixes
+
+* Fix infinite recursion ([#253](https://github.com/MikuroXina/mini-fn/issues/253)) ([d90ee43](https://github.com/MikuroXina/mini-fn/commit/d90ee43ae12e0b13900c793bf0edbca221a92b4a))
+
 ## [6.5.0](https://github.com/MikuroXina/mini-fn/compare/v6.4.0...v6.5.0) (2024-07-24)
 
 
