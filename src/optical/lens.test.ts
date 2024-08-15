@@ -1,6 +1,6 @@
 import { assertEquals } from "../../deps.ts";
 import { opticCat } from "../optical.ts";
-import { key, nth } from "./lens.ts";
+import { key, keys, nth } from "./lens.ts";
 
 Deno.test("deep structure", () => {
     const hoge = {
@@ -39,4 +39,34 @@ Deno.test("modify only x", () => {
             y: 3,
         },
     );
+});
+
+Deno.test("keys", () => {
+    const record = {
+        foo: 4,
+        bar: "xyz",
+        baz: 7,
+    };
+    const updated = opticCat(record)
+        .feed(keys(["foo", "bar"]))
+        .over((entries): [["foo", number], ["bar", string]] =>
+            entries.map((
+                entry: ["foo", number] | ["bar", string],
+            ): ["foo", number] | ["bar", string] =>
+                entry[0] === "foo"
+                    ? [
+                        entry[0],
+                        entry[1] + 1,
+                    ]
+                    : [
+                        entry[0],
+                        "vw " + entry[1],
+                    ]
+            ) as [["foo", number], ["bar", string]]
+        );
+    assertEquals(updated, {
+        foo: 5,
+        bar: "vw xyz",
+        baz: 7,
+    });
 });
