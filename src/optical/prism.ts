@@ -47,7 +47,7 @@ export const newPrismSimple =
         newPrism(upcast)((s) => okOr(s)(downcast(s)));
 
 /**
- * @returns The optic which matches nothing. Getting a value through this will throw an error.
+ * @returns The optic which matches nothing. Setting a value through this will throw an error (but will be probably a type error).
  */
 export const unreachable = <S, A>(): Optic<S, S, A, never> =>
     newPrism<never, S>(absurd)<S, A>(err);
