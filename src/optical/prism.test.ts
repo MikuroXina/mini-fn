@@ -47,4 +47,12 @@ Deno.test("filter", () => {
         opticCat(7).feed(filter((x: number) => x % 2 === 0)).get(),
         none(),
     );
+    assertEquals(
+        opticCat(6).feed(filter((x: number) => x % 2 === 0)).set(8),
+        8,
+    );
+    assertEquals(
+        opticCat(7).feed(filter((x: number) => x % 2 === 0)).set(8),
+        7,
+    );
 });
