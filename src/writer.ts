@@ -1,3 +1,29 @@
+/**
+ * This package provides methods for a computation which allows writing into external records.
+ *
+ * A {@link Writer.Writer | `Writer<W, A>`} object represents a computation, returning `A` and writing `W` out:
+ *
+ * ```ts
+ * type Writer<W, A> = () => [returned: A, written: W];
+ * // Note that the actual code is defined as a special case of `WriterT`.
+ * ```
+ *
+ * And you can work with it by the following methods:
+ *
+ * - {@link Writer.censor | `censor`} - Censors and transforms data to be written.
+ * - {@link Writer.listen | `listen`} - Listens the written record.
+ * - {@link Writer.pass | `pass`} - Applies the function returned from a {@link Writer.Writer | `Writer`} to a record.
+ * - {@link Writer.tell | `tell`} - Writes data as a record.
+ * - {@link Writer.evaluateWriter | `evaluateWriter`} - Runs a {@link Writer.Writer | `Writer`} and gets only the result.
+ * - {@link Writer.executeWriter | `executeWriter`} - Runs a {@link Writer.Writer | `Writer`} and gets only the written record.
+ * - {@link Writer.mapWriter | `mapWriter`} - Transforms output and record of a {@link Writer.Writer | `Writer`}.
+ *
+ * Moreover a {@link Writer.WriterT | `WriterT<R, M, A>`} monad transformer is the generalized version of {@link Writer.Writer | `Writer<R, A>`}. It returns not `A`, but object on monad `M`.
+ *
+ * @packageDocumentation
+ * @module
+ */
+
 import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
 import type { IdentityHkt } from "./identity.ts";
 import type { Tuple } from "./tuple.ts";
