@@ -1,3 +1,33 @@
+/**
+ * This package provides methods for a computation which allows reading external records.
+ *
+ * A {@link Reader.Reader | `Reader<R, A>`} object represents a computation, reading `R` and returning `A`:
+ *
+ * ```ts
+ * type Reader<R, A> = (record: R) => A;
+ * // Note that the actual code is defined as a special case of `ReaderT`.
+ * ```
+ *
+ * And you can work with it by the following methods:
+ *
+ * - {@link Reader.withReader | `withReader`} - Constructs a new {@link Reader.Reader | `Reader`}  from your computation.
+ * - {@link Reader.ask | `ask`} - Makes a pure computation reading the record.
+ * - {@link Reader.compose | `compose`} - Composes two {@link Reader.Reader | `Reader`}s.
+ * - {@link Reader.local | `local`} - Localizes record to be read.
+ * - {@link Reader.run | `run`} - Runs a computation with specified records.
+ * - {@link Reader.weaken | `weaken`} - Makes the record type weaker for application.
+ * - Monad operations:
+ *   - {@link Reader.pure | `pure`} - Wraps a value into a {@link Reader.Reader | `Reader`}.
+ *   - {@link Reader.map | `map`} - Transforms the resulting value of {@link Reader.Reader | `Reader`}.
+ *   - {@link Reader.apply | `apply`} - Applies a {@link Reader.Reader | `Reader`} which results a function into another one.
+ *   - {@link Reader.flatMap | `flatMap`} - Applies a function which returns {@link Reader.Reader | `Reader`} for the resulting value of {@link Reader.Reader | `Reader`}.
+ *
+ * Moreover a {@link Reader.ReaderT | `ReaderT<R, M, A>`} monad transformer is the generalized version of {@link Reader.Reader | `Reader<R, A>`}. It accepts not `A`, but object on monad `M`.
+ *
+ * @packageDocumentation
+ * @module
+ */
+
 import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
 import { type IdentityHkt, monad as identityMonad } from "./identity.ts";
 import type { Tuple } from "./tuple.ts";
