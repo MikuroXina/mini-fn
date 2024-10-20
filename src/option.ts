@@ -406,6 +406,30 @@ export const xor = <T>(optB: Option<T>) => (optA: Option<T>): Option<T> => {
 };
 
 /**
+ * Checks an {@link Option.Option | `Option`} is a `Some` and satisfies the predicate `pred`.
+ *
+ * It is equivalent to `!isNoneOr((item) => !pred(item))`.
+ *
+ * @param pred - The predicate to check.
+ * @returns Whether the condition is satisfied.
+ */
+export const isSomeAnd =
+    <T>(pred: (item: T) => boolean) => (opt: Option<T>): boolean =>
+        isSome(opt) && pred(opt[1]);
+
+/**
+ * Checks an {@link Option.Option | `Option`} is a `None` or satisfies the predicated `pred`.
+ *
+ * It is equivalent to `!isSomeAnd((item) => !pred(item))`.
+ *
+ * @param pred - The predicate to check.
+ * @returns Whether the condition is satisfied.
+ */
+export const isNoneOr =
+    <T>(pred: (item: T) => boolean) => (opt: Option<T>): boolean =>
+        isNone(opt) || pred(opt[1]);
+
+/**
  * Returns `Some` only if `opt` is a `Some` and its value satisfies `predicate`, otherwise returns `None`.
  *
  * @param predicate - The predicate to filter a value of `opt`.
