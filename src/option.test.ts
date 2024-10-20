@@ -147,6 +147,24 @@ Deno.test("xor", () => {
     assertEquals(Option.xor(Option.some(100))(Option.some(2)), Option.none());
 });
 
+Deno.test("isSomeAnd", () => {
+    assertEquals(Option.isSomeAnd((x: number) => x >= 2)(Option.some(2)), true);
+    assertEquals(
+        Option.isSomeAnd((x: number) => x >= 2)(Option.some(1.9)),
+        false,
+    );
+    assertEquals(Option.isSomeAnd((x: number) => x >= 2)(Option.none()), false);
+});
+
+Deno.test("isNoneOr", () => {
+    assertEquals(Option.isNoneOr((x: number) => x >= 2)(Option.some(2)), true);
+    assertEquals(
+        Option.isNoneOr((x: number) => x >= 2)(Option.some(1.9)),
+        false,
+    );
+    assertEquals(Option.isNoneOr((x: number) => x >= 2)(Option.none()), true);
+});
+
 Deno.test("filter", () => {
     const isEven = Option.filter((x: number) => x % 2 === 0);
     assertEquals(isEven(Option.none()), Option.none());
