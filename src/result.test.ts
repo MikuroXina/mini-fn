@@ -73,6 +73,42 @@ Deno.test("total order", () => {
     );
 });
 
+Deno.test("wrapThrowable", () => {
+    const safeSqrt = Result.wrapThrowable((err) => err as Error)(
+        (x: number) => {
+            if (!(x >= 0)) {
+                throw new RangeError("x must be positive or a zero");
+            }
+            return Math.sqrt(x);
+        },
+    );
+    assertEquals(safeSqrt(4), Result.ok(2));
+    assertEquals(safeSqrt(0), Result.ok(0));
+    assertEquals(
+        safeSqrt(-1),
+        Result.err(new RangeError("x must be positive or a zero")),
+    );
+});
+
+Deno.test("wrapAsyncThrowable", async () => {
+    const safeSqrt = Result.wrapAsyncThrowable((err) => err as Error)(
+        (x: number) => {
+            if (!(x >= 0)) {
+                return Promise.reject(
+                    new RangeError("x must be positive or a zero"),
+                );
+            }
+            return Promise.resolve(Math.sqrt(x));
+        },
+    );
+    assertEquals(await safeSqrt(4), Result.ok(2));
+    assertEquals(await safeSqrt(0), Result.ok(0));
+    assertEquals(
+        await safeSqrt(-1),
+        Result.err(new RangeError("x must be positive or a zero")),
+    );
+});
+
 Deno.test("flatten", () => {
     assertEquals(
         Result.flatten(Result.ok(Result.ok("hello"))),
@@ -132,6 +168,27 @@ Deno.test("andThen", () => {
     );
     assertEquals(
         sqrtThenToString(Result.err("not a number")),
+        Result.err("not a number"),
+    );
+});
+
+Deno.test("asyncAndThen", async () => {
+    const sqrtThenToString = Result.asyncAndThen(
+        (num: number): Promise<Result.Result<string, string>> =>
+            Promise.resolve(
+                num < 0
+                    ? Result.err("num must not be negative")
+                    : Result.ok(Math.sqrt(num).toString()),
+            ),
+    );
+
+    assertEquals(await sqrtThenToString(Result.ok(4)), Result.ok("2"));
+    assertEquals(
+        await sqrtThenToString(Result.ok(-1)),
+        Result.err("num must not be negative"),
+    );
+    assertEquals(
+        await sqrtThenToString(Result.err("not a number")),
         Result.err("not a number"),
     );
 });
@@ -204,6 +261,15 @@ Deno.test("mapErr", () => {
     assertEquals(prefix(Result.err("failure")), Result.err("LOG: failure"));
 });
 
+Deno.test("asyncMap", async () => {
+    const len = Result.asyncMap((text: string) => Promise.resolve(text.length));
+
+    assertEquals(await len(Result.ok("")), Result.ok(0));
+    assertEquals(await len(Result.ok("foo")), Result.ok(3));
+    assertEquals(await len(Result.err("fail")), Result.err("fail"));
+    assertEquals(await len(Result.err(-1)), Result.err(-1));
+});
+
 Deno.test("product", () => {
     assertEquals(
         Result.product(Result.ok("foo"))(Result.ok("bar")),
@@ -259,6 +325,47 @@ Deno.test("transpose", () => {
         Result.resOptToOptRes(Result.err(5)),
         Option.some(Result.err(5)),
     );
+});
+
+Deno.test("collect", () => {
+    assertEquals(Result.collect([]), Result.ok([]));
+
+    assertEquals(
+        Result.collect([
+            Result.ok(3),
+            Result.ok("1"),
+        ]),
+        Result.ok([3, "1"] as [number, string]),
+    );
+
+    assertEquals(
+        Result.collect([
+            Result.ok(3),
+            Result.err("1"),
+            Result.ok(4n),
+            Result.err(new Error("wow")),
+        ]),
+        Result.err("1"),
+    );
+    assertEquals(
+        Result.collect([
+            Result.ok(3),
+            Result.err(new Error("wow")),
+            Result.ok(4n),
+            Result.err("1"),
+        ]),
+        Result.err(new Error("wow")),
+    );
+});
+
+Deno.test("inspect", () => {
+    Result.inspect((value: string) => {
+        assertEquals(value, "foo");
+    })(Result.ok("foo"));
+
+    Result.inspect(() => {
+        throw new Error("unreachable");
+    })(Result.err(42));
 });
 
 Deno.test("functor laws", () => {

@@ -259,6 +259,42 @@ export const partialEqUnary = <E>(
 });
 
 /**
+ * Wraps the return value of `body` into a {@link Result.Result | `Result`}.
+ *
+ * @param catcher - The function to cast an error from `body`.
+ * @param body - The function to be wrapped.
+ * @returns The wrapped function.
+ */
+export const wrapThrowable =
+    <E>(catcher: (err: unknown) => E) =>
+    <A extends unknown[], R>(body: (...args: A) => R) =>
+    (...args: A): Result<E, R> => {
+        try {
+            return ok(body(...args));
+        } catch (error: unknown) {
+            return err(catcher(error));
+        }
+    };
+
+/**
+ * Wraps the return value of `body` into a {@link Result.Result | `Result`} over `Promise`.
+ *
+ * @param catcher - The function to cast an error from `body`.
+ * @param body - The asynchronous function to be wrapped.
+ * @returns The wrapped function.
+ */
+export const wrapAsyncThrowable =
+    <E>(catcher: (err: unknown) => E) =>
+    <A extends unknown[], R>(body: (...args: A) => Promise<R>) =>
+    async (...args: A): Promise<Result<E, R>> => {
+        try {
+            return ok(await body(...args));
+        } catch (error: unknown) {
+            return err(catcher(error));
+        }
+    };
+
+/**
  * Maps the value in variant by two mappers.
  *
  * @param g - The mapper from error.
@@ -385,7 +421,7 @@ export const and =
         isOk(resA) ? resB : resA;
 
 /**
- * Returns `fn()` if `resA` is an `Ok`, otherwise returns the error `resA`. This is an implementation of `FlatMap`. The order of arguments is reversed because of that it is useful for partial applying.
+ * Returns `fn(v)` if `resA` is an `Ok(v)`, otherwise returns the error `resA`. This is an implementation of `FlatMap`. The order of arguments is reversed because of that it is useful for partial applying.
  *
  * @param fn - The function provides a second result.
  * @param resA - The first result.
@@ -412,6 +448,17 @@ export const and =
 export const andThen =
     <T, U, E>(fn: (t: T) => Result<E, U>) =>
     (resA: Result<E, T>): Result<E, U> => isOk(resA) ? fn(resA[1]) : resA;
+
+/**
+ * Returns `fn(v)` if `res` is an `Ok(v)`, otherwise the error `res`. The order of arguments is reversed because of that it is useful for partial applying.
+ *
+ * @param fn - The function which provides a second result.
+ * @returns
+ */
+export const asyncAndThen =
+    <T, U, F>(fn: (value: T) => Promise<Result<F, U>>) =>
+    <E extends F>(res: Result<E, T>): Promise<Result<E | F, U>> =>
+        isOk(res) ? fn(res[1]) : Promise.resolve(res);
 
 /**
  * Returns `resB` if `resA` is an `Err`, otherwise returns the success `resA`. The order of arguments is reversed because of that it is useful for partial applying.
@@ -591,6 +638,17 @@ export const mapErr =
         isErr(res) ? err(fn(res[1])) : res;
 
 /**
+ * Maps a {@link Result.Result | `Result`} with `mapper` over `Promise`.
+ *
+ * @param mapper - The asynchronous function from `T` to `U`.
+ * @returns The mapped one on `Promise`.
+ */
+export const asyncMap =
+    <T, U>(mapper: (value: T) => Promise<U>) =>
+    async <E>(res: Result<E, T>): Promise<Result<E, U>> =>
+        isOk(res) ? ok(await mapper(res[1])) : res;
+
+/**
  * Makes a result of product from the two results.
  *
  * @param aRes - The left-side result.
@@ -667,6 +725,67 @@ export const resOptToOptRes = <E, T>(
     }
     return none();
 };
+
+/**
+ * A success return type of {@link Result.collect : `Result.collect`}.
+ */
+export type CollectSuccessValue<R extends readonly Result<unknown, unknown>[]> =
+    R extends readonly [] ? never[]
+        : {
+            -readonly [K in keyof R]: R[K] extends Result<unknown, infer T> ? T
+                : never;
+        };
+
+/**
+ * An error return type of {@link Result.collect : `Result.collect`}.
+ */
+export type CollectErrorValue<R extends readonly Result<unknown, unknown>[]> =
+    R[number] extends Err<infer E> ? E
+        : R[number] extends Ok<unknown> ? never
+        : R[number] extends Result<infer E, unknown> ? E
+        : never;
+
+/**
+ * A return type of {@link Result.collect : `Result.collect`}.
+ */
+export type CollectReturn<R extends readonly Result<unknown, unknown>[]> =
+    Result<CollectErrorValue<R>, CollectSuccessValue<R>>;
+
+/**
+ * Transforms the list of {@link Result.Result | `Results`}s into success values or the first error.
+ *
+ * @param results - The list of {@link Result.Result | `Results`}s.
+ * @returns Success values or the first error.
+ */
+export const collect = <const R extends readonly Result<unknown, unknown>[]>(
+    results: R,
+): CollectReturn<R> => {
+    const successes: unknown[] = [];
+    for (const res of results) {
+        if (isErr(res)) {
+            return res as CollectReturn<R>;
+        }
+        successes.push(res[1]);
+    }
+    return ok(
+        successes,
+    ) as CollectReturn<R>;
+};
+
+/**
+ * Inspects the success value of a {@link Result.Result | `Result`} and returns as is.
+ *
+ * @param inspector - The function to get a success value.
+ * @returns The original one.
+ */
+export const inspect =
+    <T>(inspector: (value: T) => void) =>
+    <E>(res: Result<E, T>): Result<E, T> => {
+        if (isOk(res)) {
+            inspector(res[1]);
+        }
+        return res;
+    };
 
 /**
  * Applies the function to another value on `Result`.
