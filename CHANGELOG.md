@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.7.0](https://github.com/MikuroXina/mini-fn/compare/v6.6.0...v6.7.0) (2024-10-30)
+
+
+### Features
+
+* Add isSomeAnd and isNoneOr ([#265](https://github.com/MikuroXina/mini-fn/issues/265)) ([b4df94d](https://github.com/MikuroXina/mini-fn/commit/b4df94df549645a48ca067abd87a1f4d4d601c85))
+* Add more methods for Result ([#267](https://github.com/MikuroXina/mini-fn/issues/267)) ([ce21d5b](https://github.com/MikuroXina/mini-fn/commit/ce21d5b1e6dc4bbd1369952b745c7f89af1dd790))
+
 ## [6.6.0](https://github.com/MikuroXina/mini-fn/compare/v6.5.0...v6.6.0) (2024-08-12)
 
 
