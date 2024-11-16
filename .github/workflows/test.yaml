@@ -22,7 +22,7 @@ jobs:
         run: |
           deno task coverage
           deno coverage --lcov --output=coverage/cov.lcov coverage/cov_profile/
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         with:
           files: ./coverage/cov.lcov
           name: mini-fn
