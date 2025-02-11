@@ -1,6 +1,32 @@
 /**
  * This module provides the mutable reference in the state transformer monad. It allows you to program destructive operations safely.
  *
+ * `Mut<S, A>` lets you use in-place operations including variable scope. Type argument `S` means a thread scope where is belonged, and `A` means the type of computation result. It manages computation as a lazily evaluated function, so you can combine operations using mutability freely.
+ *
+ * A key to access the value in the thread is called `MutRef`. You need them to interact functions of this module such as:
+ *
+ * - `newMutRef` - Allocates a new object and takes it's reference.
+ * - `readMutRef` - Reads a current value of the reference.
+ * - `mapMutRef` - Reads from the reference and processes by the specified function.
+ * - `writeMutRef` - Write a new value to the reference.
+ * - `modifyMutRef` - Reads a current value and writes a new value processed by the specified function.
+ * - `dropMutRef` - Destroys the reference and deallocates its object.
+ *
+ * They are returns the result over `Mut` monad, which wraps destructive operations like `State` monad. You may use `doMut` utility function to build and run `Mut` operations immediately. For example,
+ *
+ * ```ts
+ * import { type MutCat, doMut, newMutRef, readMutRef, writeMutRef } from "./mut.ts"
+ * const res = doMut(<S>(cat: MutCat<S>) =>
+ *     cat
+ *         .addM("ref", newMutRef("hello"))
+ *         .addMWith("text", ({ ref }) => readMutRef(ref))
+ *         .runWith(({ ref, text }) => writeMutRef(ref)(`${text} world`))
+ *         .finishM(({ ref }) => readMutRef(ref))
+ * );
+ * ```
+ *
+ * `MutRef` is internally implemented as a function taking variables dictionary and returning a computation result. But userland should not to read the value by force because it can occur some unsoundness.
+ *
  * @packageDocumentation
  * @module
  */
@@ -97,7 +123,7 @@ export type MutCat<S> = CatT<Apply2Only<MutHkt, S>, Record<string, never>>;
  */
 export const doMut = <A>(
     mut: <S>(cat: MutCat<S>) => Mut<S, A>,
-): A => unwrapVar(mut(doT(monad()))(wrapThread(new Map())));
+): A => runMut(<S>() => mut<S>(doT(monad())));
 
 /**
  * Wraps the value of type `A` into `Mut<_, A>`.
@@ -157,7 +183,7 @@ export const functor = <S>(): Functor<Apply2Only<MutHkt, S>> => ({
  * @returns The `Applicative` instance for `Mut<S, _>`.
  */
 export const applicative = <S>(): Applicative<Apply2Only<MutHkt, S>> => ({
-    map: mapMut,
+    ...functor(),
     pure: pureMut,
     apply: applyMut,
 });
@@ -197,6 +223,17 @@ export const newMutRef = <S, A>(value: A): Mut<S, MutRef<S, A>> => (thread) =>
  */
 export const readMutRef = <S, A>(ref: MutRef<S, A>): Mut<S, A> =>
     readThreadVar(ref);
+
+/**
+ * Reads a value from the reference and converts by `fn`. It throws on the referent value was not initialized or dropped.
+ *
+ * @param fn - A mapping function.
+ * @param ref - A target to read.
+ * @returns The reading and mapping operation which results `B`.
+ */
+export const mapMutRef =
+    <A, B>(fn: (a: A) => B) => <S>(ref: MutRef<S, A>): Mut<S, B> =>
+        mapMut(fn)(readMutRef(ref));
 
 /**
  * Writes a value into the reference in a scope of `Mut` environment.
