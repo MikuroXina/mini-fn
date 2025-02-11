@@ -144,6 +144,14 @@ export const functor = <B>(): Functor<Apply2Only<ControlFlowHkt, B>> => ({
     map: mapContinue,
 });
 
+export const applicative = <B>(): Applicative<
+    Apply2Only<ControlFlowHkt, B>
+> => ({
+    pure: newContinue,
+    map: mapContinue,
+    apply,
+});
+
 export const monad = <B>(): Monad<Apply2Only<ControlFlowHkt, B>> => ({
     pure: newContinue,
     map: mapContinue,
