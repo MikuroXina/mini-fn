@@ -1,8 +1,10 @@
 import { assertEquals, assertThrows } from "../deps.ts";
-import { iota, range, takeWhile, traversable } from "./list.ts";
+import { iota, range, takeWhile, traversable, zip } from "./list.ts";
 import {
+    applicative,
     doMut,
     dropMutRef,
+    functor,
     mapMutRef,
     modifyMutRef,
     monad,
@@ -14,7 +16,7 @@ import {
     writeMutRef,
 } from "./mut.ts";
 import { doT } from "./cat.ts";
-import { forMVoid } from "./type-class/traversable.ts";
+import { forM, forMVoid } from "./type-class/traversable.ts";
 
 Deno.test("hello world", () => {
     const text = doMut(<S>(cat: MutCat<S>) =>
@@ -90,5 +92,238 @@ Deno.test("reading dropped ref", () => {
                 .runWith(({ ref }) => dropMutRef(ref))
                 .finishM(({ ref }) => readMutRef(ref))
         );
+    });
+});
+
+Deno.test("functor laws", () => {
+    // identity
+    doMut(<S>(cat: MutCat<S>) => {
+        const f = functor<S>();
+        return cat.addM(
+            "samples",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (i) => f.map((x: number) => x)(cat.monad.pure(i)),
+            ),
+        ).finishM(({ samples }) =>
+            forMVoid(traversable, cat.monad)(zip(samples)(range(-100, 100)))(
+                ([sample, source]) => {
+                    assertEquals(sample, source);
+                    return cat.monad.pure([]);
+                },
+            )
+        );
+    });
+
+    // composition
+    const plus3 = (x: number) => x + 3;
+    const double = (x: number) => x * 2;
+    doMut(<S>(cat: MutCat<S>) => {
+        const f = functor<S>();
+        return cat.addM(
+            "left",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (i) =>
+                    f.map((x: number) => plus3(double(x)))(cat.monad.pure(i)),
+            ),
+        )
+            .addM(
+                "right",
+                forM(traversable, cat.monad)(range(-100, 100))(
+                    (i) => f.map(plus3)(f.map(double)(cat.monad.pure(i))),
+                ),
+            )
+            .finishM(({ left, right }) =>
+                forMVoid(traversable, cat.monad)(zip(left)(right))(
+                    ([l, r]) => {
+                        assertEquals(l, r);
+                        return cat.monad.pure([]);
+                    },
+                )
+            );
+    });
+});
+
+Deno.test("applicative functor laws", () => {
+    // identity
+    doMut(<S>(cat: MutCat<S>) => {
+        const a = applicative<S>();
+        return cat.addM(
+            "samples",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (x) => a.apply(a.pure((i: number) => i))(a.pure(x)),
+            ),
+        ).finishM(({ samples }) =>
+            forMVoid(traversable, cat.monad)(zip(samples)(range(-100, 100)))(
+                ([sample, x]) => {
+                    assertEquals(sample, x);
+                    return cat.monad.pure([]);
+                },
+            )
+        );
+    });
+
+    // composition
+    doMut(<S>(cat: MutCat<S>) => {
+        const a = applicative<S>();
+        const add3 = a.pure((x: number) => x + 3);
+        const sq = a.pure((x: number) => x ** 2);
+        return cat.addM(
+            "left",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (x) =>
+                    a.apply(
+                        a.apply(
+                            a.apply(a.pure(
+                                (f: (x: number) => number) =>
+                                (g: (x: number) => number) =>
+                                (i: number) => f(g(i)),
+                            ))(add3),
+                        )(sq),
+                    )(cat.monad.pure(x)),
+            ),
+        ).addM(
+            "right",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (x: number) => a.apply(add3)(a.apply(sq)(cat.monad.pure(x))),
+            ),
+        )
+            .finishM(({ left, right }) =>
+                forMVoid(traversable, cat.monad)(zip(left)(right))(
+                    ([l, r]) => {
+                        assertEquals(l, r);
+                        return cat.monad.pure([]);
+                    },
+                )
+            );
+    });
+
+    // homomorphism
+    const double = (x: number) => x * 2;
+    doMut(<S>(cat: MutCat<S>) => {
+        const a = applicative<S>();
+        return cat.addM(
+            "left",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (x) => a.apply(a.pure(double))(cat.monad.pure(x)),
+            ),
+        ).addM(
+            "right",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (x: number) => cat.monad.pure(double(x)),
+            ),
+        )
+            .finishM(({ left, right }) =>
+                forMVoid(traversable, cat.monad)(zip(left)(right))(
+                    ([l, r]) => {
+                        assertEquals(l, r);
+                        return cat.monad.pure([]);
+                    },
+                )
+            );
+    });
+
+    // interchange
+    doMut(<S>(cat: MutCat<S>) => {
+        const a = applicative<S>();
+        const sq = a.pure((x: number) => x ** 2);
+        return cat.addM(
+            "left",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (x) => a.apply(sq)(cat.monad.pure(x)),
+            ),
+        ).addM(
+            "right",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (x: number) =>
+                    a.apply(a.pure((f: (x: number) => number) => f(x)))(sq),
+            ),
+        )
+            .finishM(({ left, right }) =>
+                forMVoid(traversable, cat.monad)(zip(left)(right))(
+                    ([l, r]) => {
+                        assertEquals(l, r);
+                        return cat.monad.pure([]);
+                    },
+                )
+            );
+    });
+});
+
+Deno.test("monad laws", () => {
+    // left identity
+    doMut(<S>(cat: MutCat<S>) => {
+        const toStr = (x: number) => cat.monad.pure(`${x}`);
+        return cat.addM(
+            "left",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (i) => cat.monad.flatMap(toStr)(cat.monad.pure(i)),
+            ),
+        )
+            .addM(
+                "right",
+                forM(traversable, cat.monad)(range(-100, 100))(toStr),
+            )
+            .finishM(({ left, right }) =>
+                forMVoid(traversable, cat.monad)(zip(left)(right))(
+                    ([l, r]) => {
+                        assertEquals(l, r);
+                        return cat.monad.pure([]);
+                    },
+                )
+            );
+    });
+
+    // right identity
+    doMut(<S>(cat: MutCat<S>) =>
+        cat.addM(
+            "left",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (i) => cat.monad.flatMap(cat.monad.pure)(cat.monad.pure(i)),
+            ),
+        )
+            .addM(
+                "right",
+                forM(traversable, cat.monad)(range(-100, 100))(cat.monad.pure),
+            )
+            .finishM(({ left, right }) =>
+                forMVoid(traversable, cat.monad)(zip(left)(right))(
+                    ([l, r]) => {
+                        assertEquals(l, r);
+                        return cat.monad.pure([]);
+                    },
+                )
+            )
+    );
+
+    // associativity
+    doMut(<S>(cat: MutCat<S>) => {
+        const toStr = (x: number) => cat.monad.pure(`${x}`);
+        const dup = (x: string) => cat.monad.pure(x + x);
+        return cat.addM(
+            "left",
+            forM(traversable, cat.monad)(range(-100, 100))(
+                (i) =>
+                    cat.monad.flatMap(dup)(
+                        cat.monad.flatMap(toStr)(cat.monad.pure(i)),
+                    ),
+            ),
+        )
+            .addM(
+                "right",
+                forM(traversable, cat.monad)(range(-100, 100))(
+                    (i) =>
+                        cat.monad.flatMap((x: number) =>
+                            cat.monad.flatMap(dup)(toStr(x))
+                        )(cat.monad.pure(i)),
+                ),
+            )
+            .finishM(({ left, right }) =>
+                forMVoid(traversable, cat.monad)(zip(left)(right))(
+                    ([l, r]) => {
+                        assertEquals(l, r);
+                        return cat.monad.pure([]);
+                    },
+                )
+            );
     });
 });
