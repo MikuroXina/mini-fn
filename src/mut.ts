@@ -122,7 +122,7 @@ export type MutCat<S> = CatT<Apply2Only<MutHkt, S>, Record<string, never>>;
  */
 export const doMut = <A>(
     mut: <S>(cat: MutCat<S>) => Mut<S, A>,
-): A => unwrapVar(mut(doT(monad()))(wrapThread(new Map())));
+): A => runMut(<S>() => mut<S>(doT(monad())));
 
 /**
  * Wraps the value of type `A` into `Mut<_, A>`.
