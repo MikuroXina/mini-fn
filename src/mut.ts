@@ -3,6 +3,29 @@
  *
  * `Mut<S, A>` lets you use in-place operations including variable scope. Type argument `S` means a thread scope where is belonged, and `A` means the type of computation result. It manages computation as a lazily evaluated function, so you can combine operations using mutability freely.
  *
+ * A key to access the value in the thread is called `MutRef`. You need them to interact functions of this module such as:
+ *
+ * - `newMutRef` - Allocates a new object and takes it's reference.
+ * - `readMutRef` - Reads a current value of the reference.
+ * - `mapMutRef` - Reads from the reference and processes by the specified function.
+ * - `writeMutRef` - Write a new value to the reference.
+ * - `modifyMutRef` - Reads a current value and writes a new value processed by the specified function.
+ * - `dropMutRef` - Destroys the reference and deallocates its object.
+ *
+ * They are returns the result over `Mut` monad, which wraps destructive operations like `State` monad. You may use `doMut` utility function to build and run `Mut` operations immediately. For example,
+ *
+ * ```ts
+ * const res = doMut(<S>(cat: MutCat<S>) =>
+ *     cat
+ *         .addM("ref", newMutRef("hello"))
+ *         .addMWith("text", ({ ref }) => readMutRef(ref))
+ *         .runWith(({ ref, text }) => writeMutRef(ref)(`${text} world`))
+ *         .finishM(({ ref }) => readMutRef(ref))
+ * );
+ * ```
+ *
+ * `MutRef` is internally implemented as a function taking variables dictionary and returning a computation result. But userland should not to read the value by force because it can occur some unsoundness.
+ *
  * @packageDocumentation
  * @module
  */
