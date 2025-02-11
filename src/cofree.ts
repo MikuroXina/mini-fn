@@ -346,7 +346,7 @@ export const unfoldM = <F, M>(
         kleisli(monad)(unfolder)((tuple) => {
             const [x, t] = force(tuple);
             return liftM(monad)(make(x))(
-                mapMTraversable<F, M, B, Cofree<F, A>>(traversable, monad)(
+                mapMTraversable<F, M>(traversable, monad)(
                     partial(unfolder),
                 )(t),
             );
