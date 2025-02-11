@@ -3,6 +3,7 @@ import { iota, range, takeWhile, traversable } from "./list.ts";
 import {
     doMut,
     dropMutRef,
+    mapMutRef,
     modifyMutRef,
     monad,
     type Mut,
@@ -32,9 +33,11 @@ Deno.test("counter", () => {
             .foreach(
                 range(0, 1000),
                 (_, { count }) => modifyMutRef(count)((c: number) => c + 1),
-            ).finishM(({ count }) => readMutRef(count))
+            ).finishM(({ count }) =>
+                mapMutRef((count: number) => `${count}`)(count)
+            )
     );
-    assertEquals(count, 1000);
+    assertEquals(count, "1000");
 });
 
 Deno.test("doubling", () => {
