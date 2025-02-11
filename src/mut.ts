@@ -15,6 +15,7 @@
  * They are returns the result over `Mut` monad, which wraps destructive operations like `State` monad. You may use `doMut` utility function to build and run `Mut` operations immediately. For example,
  *
  * ```ts
+ * import { type MutCat, doMut, newMutRef, readMutRef, writeMutRef } from "./mut.ts"
  * const res = doMut(<S>(cat: MutCat<S>) =>
  *     cat
  *         .addM("ref", newMutRef("hello"))
