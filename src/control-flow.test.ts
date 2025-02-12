@@ -22,6 +22,7 @@ import {
     newContinue,
     partialEqUnary,
     traversable,
+    traversableMonad,
 } from "./control-flow.ts";
 import { applicative as applicativeIdentity } from "./identity.ts";
 import {
@@ -270,6 +271,66 @@ Deno.test("traversable laws", () => {
 
     // identity
     for (const c of cases) {
+        assertEquals(t.traverse(applicativeIdentity)((x: string) => x)(c), c);
+    }
+
+    // composition
+    const firstCh = (x: string): Option<string> =>
+        x.length > 0 ? some(x.charAt(0)) : none();
+    assertEquals(
+        t.traverse(Compose.applicative(Array.applicative)(applicativeOption))(
+            (x: string) => Array.map(firstCh)(dup(x)),
+        )(data),
+        Array.map(t.traverse(applicativeOption)(firstCh))(
+            t.traverse(Array.applicative)(dup)(data),
+        ),
+    );
+});
+
+Deno.test("traversable monad laws", () => {
+    const t = traversableMonad<number>();
+
+    const continuing = (x: string): ControlFlow<number, string> =>
+        newContinue(x);
+    const breaking = (x: string): ControlFlow<number, string> =>
+        newBreak(x.length);
+
+    // left identity
+    for (const c of [continuing, breaking]) {
+        assertEquals(t.flatMap(c)(t.pure("baz")), c("baz"));
+    }
+
+    // right identity
+    assertEquals(t.flatMap(t.pure)(newContinue("a")), newContinue("a"));
+    assertEquals(t.flatMap(t.pure)(newBreak(2)), newBreak(2));
+
+    // associativity
+    for (const data of [newContinue("a"), newBreak(2)]) {
+        assertEquals(
+            t.flatMap(breaking)(t.flatMap(continuing)(data)),
+            t.flatMap((x: string) => t.flatMap(breaking)(continuing(x)))(data),
+        );
+        assertEquals(
+            t.flatMap(continuing)(t.flatMap(breaking)(data)),
+            t.flatMap((x: string) => t.flatMap(continuing)(breaking(x)))(data),
+        );
+    }
+
+    // naturality
+    const first = <T>(
+        x: readonly T[],
+    ): Option<T> => 0 in x ? some(x[0]) : none();
+    const dup = (x: string): readonly string[] => [x + "0", x + "1"];
+    const data = newContinue("fever");
+    assertEquals(
+        first(t.traverse(Array.applicative)(dup)(data)),
+        t.traverse(applicativeOption)((item: string) => first(dup(item)))(
+            data,
+        ),
+    );
+
+    // identity
+    for (const c of [newContinue("foo"), newBreak(6)]) {
         assertEquals(t.traverse(applicativeIdentity)((x: string) => x)(c), c);
     }
 
