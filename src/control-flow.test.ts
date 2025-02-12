@@ -139,6 +139,17 @@ Deno.test("map", () => {
     ]);
 });
 
+Deno.test("apply", () => {
+    const mapper = newContinue((x: string) => x + "!") as ControlFlow<
+        never[],
+        (x: string) => string
+    >;
+    assertEquals(apply(mapper)(newContinue("foo")), newContinue("foo!"));
+    assertEquals(apply(mapper)(newBreak([])), newBreak([]));
+    assertEquals(apply(newBreak([]))(newContinue("foo")), newBreak([]));
+    assertEquals(apply(newBreak([]))(newBreak([])), newBreak([]));
+});
+
 Deno.test("biMap", () => {
     const actual = cases.map(
         biMap((x: string) => x + "!")((x: string) => x + "?"),
