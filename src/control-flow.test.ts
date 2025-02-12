@@ -170,28 +170,30 @@ Deno.test("functor laws", () => {
 });
 
 Deno.test("applicative laws", () => {
-    const a = applicative<never[]>();
-    const data = newContinue("2");
-    // identity
-    assertEquals(apply(a.pure((x: string) => x))(data), data);
-
-    // composition
+    const a = applicative<string>();
     const strLen = a.pure((x: string) => x.length);
     const question = a.pure((x: string) => x + "?");
-    assertEquals(
-        apply(
+
+    for (const data of cases) {
+        // identity
+        assertEquals(apply(a.pure((x: string) => x))(data), data);
+
+        // composition
+        assertEquals(
             apply(
                 apply(
-                    a.pure(
-                        (f: (x: string) => number) =>
-                        (g: (x: string) => string) =>
-                        (i: string) => f(g(i)),
-                    ),
-                )(strLen),
-            )(question),
-        )(data),
-        apply(strLen)(apply(question)(data)),
-    );
+                    apply(
+                        a.pure(
+                            (f: (x: string) => number) =>
+                            (g: (x: string) => string) =>
+                            (i: string) => f(g(i)),
+                        ),
+                    )(strLen),
+                )(question),
+            )(data),
+            apply(strLen)(apply(question)(data)),
+        );
+    }
 
     // homomorphism
     assertEquals(
