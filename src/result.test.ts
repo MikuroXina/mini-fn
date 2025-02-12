@@ -549,11 +549,11 @@ Deno.test("bitraversable functor laws", () => {
     );
 });
 
-Deno.test("encode then decode", async () => {
+Deno.test("encode then decode", () => {
     const encoder = Result.enc(encUtf8)(encU32Be);
     const decoder = Result.dec(decUtf8())(decU32Be());
     for (const v of [Result.ok(32), Result.err("failure")]) {
-        const code = await runCode(encoder(v));
+        const code = runCode(encoder(v));
         const decoded = Result.unwrap(runDecoder(decoder)(code));
         assertEquals(decoded, v);
     }

@@ -867,9 +867,9 @@ Deno.test("reduce functor", () => {
     }
 });
 
-Deno.test("encode then decode", async () => {
+Deno.test("encode then decode", () => {
     const data = fromIterable([1, 4, 2, 3, 5, 2, 3]);
-    const code = await runCode(enc(encU32Be)(data));
+    const code = runCode(enc(encU32Be)(data));
     const decoded = unwrap(runDecoder(dec(decU32Be()))(code));
     assertEquals(toArray(decoded), toArray(data));
 });
