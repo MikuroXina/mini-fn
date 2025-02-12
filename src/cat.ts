@@ -136,6 +136,8 @@ export interface CatT<M, CTX> {
     ) => CatT<M, CTX>;
 
     /**
+     * @deprecated You should use {@link TypeClass.Traversable.forM | `forM`} or {@link TypeClass.Traversable.forMVoid | `forMVoid`} instead.
+     *
      * Runs a looping computation with items from the list.
      *
      * @param iter - A list to be iterated.
