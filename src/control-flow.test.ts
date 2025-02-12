@@ -1,6 +1,7 @@
 import { assertEquals } from "../deps.ts";
 import { Array, Compose } from "../mod.ts";
 import {
+    applicative,
     apply,
     biMap,
     breakValue,
@@ -8,6 +9,7 @@ import {
     type ControlFlow,
     dec,
     enc,
+    eq,
     flatten,
     foldR,
     functor,
@@ -18,6 +20,7 @@ import {
     monad,
     newBreak,
     newContinue,
+    partialEqUnary,
     traversable,
 } from "./control-flow.ts";
 import { applicative as applicativeIdentity } from "./identity.ts";
@@ -36,6 +39,7 @@ import {
     runCode,
     runDecoder,
 } from "./serial.ts";
+import { eqSymbol, stringEq } from "./type-class/eq.ts";
 
 const cases = [newContinue("foo"), newBreak("bar")] as const;
 
@@ -52,6 +56,73 @@ Deno.test("extract", () => {
         [some("foo"), none()],
         [none(), some("bar")],
     ]);
+});
+
+Deno.test("equality", () => {
+    const equality = eq({
+        eq: (l: bigint, r: bigint) => l === r,
+        [eqSymbol]: true,
+    }, stringEq);
+    // symmetric
+    for (let x = -100n; x <= 100n; ++x) {
+        for (const y of ["foo", "bar", "", "hoge"]) {
+            assertEquals(equality.eq(newBreak(x), newBreak(x)), true);
+            assertEquals(equality.eq(newContinue(y), newContinue(y)), true);
+            assertEquals(equality.eq(newBreak(x), newContinue(y)), false);
+            assertEquals(equality.eq(newContinue(y), newBreak(x)), false);
+        }
+    }
+
+    // transitive
+    for (let x = -100n; x <= 100n; ++x) {
+        for (const y of ["foo", "bar", "", "hoge"]) {
+            for (let z = -200n; z <= 200n; ++z) {
+                assertEquals(
+                    equality.eq(newBreak(x), newContinue(y)) &&
+                        equality.eq(newContinue(y), newBreak(z)),
+                    false,
+                );
+                assertEquals(
+                    equality.eq(newContinue(y), newBreak(x)) &&
+                        equality.eq(newBreak(x), newBreak(z)),
+                    false,
+                );
+            }
+        }
+    }
+});
+
+Deno.test("partial equality unary", () => {
+    const equalityUnary = partialEqUnary(stringEq);
+    const equality = equalityUnary.liftEq((l: bigint, r: bigint) => l === r);
+
+    // symmetric
+    for (const x of ["foo", "bar", "", "hoge"]) {
+        for (let y = -100n; y <= 100n; ++y) {
+            assertEquals(equality(newBreak(x), newBreak(x)), true);
+            assertEquals(equality(newContinue(y), newContinue(y)), true);
+            assertEquals(equality(newBreak(x), newContinue(y)), false);
+            assertEquals(equality(newContinue(y), newBreak(x)), false);
+        }
+    }
+
+    // transitive
+    for (const x of ["foo", "bar", "", "hoge"]) {
+        for (let y = -100n; y <= 100n; ++y) {
+            for (let z = -200n; z <= 200n; ++z) {
+                assertEquals(
+                    equality(newBreak(x), newContinue(y)) &&
+                        equality(newContinue(y), newContinue(z)),
+                    false,
+                );
+                assertEquals(
+                    equality(newContinue(y), newBreak(x)) &&
+                        equality(newBreak(x), newContinue(z)),
+                    false,
+                );
+            }
+        }
+    }
 });
 
 Deno.test("map", () => {
@@ -99,7 +170,7 @@ Deno.test("functor laws", () => {
 });
 
 Deno.test("applicative laws", () => {
-    const a = monad<never[]>();
+    const a = applicative<never[]>();
     const data = newContinue("2");
     // identity
     assertEquals(apply(a.pure((x: string) => x))(data), data);
