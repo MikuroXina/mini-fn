@@ -85,10 +85,7 @@ export const eq = <B, C>(
     equalityB: Eq<B>,
     equalityC: Eq<C>,
 ): Eq<ControlFlow<B, C>> => ({
-    eq: (l, r) =>
-        isBreak(l) && isBreak(r)
-            ? equalityB.eq(l[1], r[1])
-            : isContinue(l) && isContinue(r) && equalityC.eq(l[1], r[1]),
+    ...partialEq(equalityB, equalityC),
     [eqSymbol]: true,
 });
 
