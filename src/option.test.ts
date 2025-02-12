@@ -319,9 +319,9 @@ Deno.test("monoid", () => {
     }
 });
 
-Deno.test("encode then decode", async () => {
+Deno.test("encode then decode", () => {
     for (const data of [Option.some(4), Option.none()]) {
-        const code = await runCode(Option.enc(encU32Be)(data));
+        const code = runCode(Option.enc(encU32Be)(data));
         const decoded = Result.unwrap(runDecoder(Option.dec(decU32Be()))(code));
         assertEquals(decoded, data);
     }

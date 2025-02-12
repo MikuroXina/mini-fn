@@ -45,9 +45,9 @@ Deno.test("equality", () => {
     }
 });
 
-Deno.test("encode then decode", async () => {
+Deno.test("encode then decode", () => {
     for (const x of patterns) {
-        const code = await runCode(enc()(x));
+        const code = runCode(enc()(x));
         const decoded = unwrap(runDecoder(dec())(code));
         assertEquals(decoded, x);
     }

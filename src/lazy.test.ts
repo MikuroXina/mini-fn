@@ -182,9 +182,9 @@ Deno.test("traversable functor laws", () => {
     }
 });
 
-Deno.test("encode then decode", async () => {
+Deno.test("encode then decode", () => {
     for (const x of [defer(() => 21 * 2), known(42)]) {
-        const code = await runCode(enc(encU32Be)(x));
+        const code = runCode(enc(encU32Be)(x));
         const decoded = unwrap(runDecoder(dec(decU32Be()))(code));
         assertEquals(force(decoded), force(x));
     }

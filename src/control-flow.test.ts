@@ -358,13 +358,13 @@ Deno.test("traversable monad laws", () => {
     );
 });
 
-Deno.test("encode then decode", async () => {
+Deno.test("encode then decode", () => {
     const data: readonly ControlFlow<string, number>[] = [
         newContinue(42),
         newBreak("foo"),
     ];
     for (const datum of data) {
-        const code = await runCode(enc(encUtf8)(encU32Be)(datum));
+        const code = runCode(enc(encUtf8)(encU32Be)(datum));
         const decoded = unwrap(runDecoder(dec(decUtf8())(decU32Be()))(code));
         assertEquals(datum, decoded);
     }
