@@ -91,7 +91,7 @@
  *     .addM("age", decU32Be())
  *     .when(
  *       ({ age }) => age < 0,
- *       ({ age }) => failDecoder(`expected non-negative age, but got ${age}`)),
+ *       ({ age }) => failDecoder(`expected non-negative age, but got ${age}`),
  *     )
  *     .finish(({ name, age }) => ({ name, age }));
  * const decode = (binary: ArrayBuffer) => {
