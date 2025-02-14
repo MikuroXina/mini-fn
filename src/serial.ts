@@ -16,11 +16,91 @@
  *
  * # Encoder
  *
- * An `Encoder` denotes that
+ * An `Encoder<T>` denotes that a function transforming data `T` to a `Code`, which writes bytes to an `ArrayBuffer` through `DataView`.
+ *
+ * There are utility functions to encode primitive data:
+ *
+ * - Basics
+ *   - `encUnit` - Does nothing
+ *   - `encSum` - Useful to encode a sum type
+ * - Numerics
+ *   - `encI8`/`encU8`
+ *   - `encI16Be` / `encI16Le` / `encU16Be` / `encU16Le`
+ *   - `encI32Be` / `encI32Le` / `encU32Be` / `encU32Le`
+ *   - `encI64Be` / `encI64Le` / `encU64Be` / `encU64Le`
+ *   - `encF32Be` / `encF32Le`
+ *   - `encF64Be` / `encF64Le`
+ * - String
+ *   - `encUtf8`
+ * - And internal others exported
+ *
+ * Also you can compose and customize encoders by `CodeM`'s monad to create your own encoder like this:
+ *
+ * ```ts
+ * import { type Encoder, encU32Be, encUtf8, monadForCodeM, runCode } from "./serial.ts";
+ * import { doT } from "./cat.ts";
+ *
+ * type MyType = {
+ *   name: string;
+ *   age: number;
+ * };
+ * const myEncoder: Encoder<MyType> = (data: MyType) =>
+ *    doT(monadForCodeM)
+ *      .run(encUtf8(data.name))
+ *      .finishM(() => encU32Be(data.age));
+ * const serial = runCode(myEncoder({ name: "Shigure Ui", age: 17 }));
+ * ```
+ *
+ * Note that an `Encoder` serializes lazily. You need pass a `Code` to `runCode` to evaluate it.
  *
  * # Decoder
  *
- * A `Decoder` denotes that
+ * A `Decoder<T>` denotes that a function parsing `Code` to data `T`.
+ *
+ * There are utility functions to decode primitive data:
+ *
+ * - Basics
+ *   - `decSum` - Useful to decode a sum type
+ *   - `failDecoder` - Useful to report decoding error
+ * - Numerics
+ *   - `decI8`/`encU8`
+ *   - `decI16Be` / `decI16Le` / `decU16Be` / `decU16Le`
+ *   - `decI32Be` / `decI32Le` / `decU32Be` / `decU32Le`
+ *   - `decI64Be` / `decI64Le` / `decU64Be` / `decU64Le`
+ *   - `decF32Be` / `decF32Le`
+ *   - `decF64Be` / `decF64Le`
+ * - String
+ *   - `decUtf8`
+ * - And internal others exported
+ *
+ * Unlike encoders, they are needed to invoke to get a `Decoder` by an internal implementation reason.
+ *
+ * Also you can compose and customize decoders by `Decoder`'s monad to create your own decoder like this:
+ *
+ * ```ts
+ * import { type Decoder, decU32Be, decUtf8, failDecoder, monadForDecoder, runDecoder } from "./serial.ts";
+ * import { doT } from "./cat.ts";
+ *
+ * type MyType = {
+ *   name: string;
+ *   age: number;
+ * };
+ * const myDecoder: Decoder<MyType> =
+ *   doT(monadForDecoder)
+ *     .addM("name", decUtf8())
+ *     .addM("age", decU32Be())
+ *     .when(
+ *       ({ age }) => age < 0,
+ *       ({ age }) => failDecoder(`expected non-negative age, but got ${age}`),
+ *     )
+ *     .finish(({ name, age }) => ({ name, age }));
+ * const decode = (binary: ArrayBuffer) => {
+ *   const result = runDecoder(myDecoder)(binary);
+ *   // ...
+ * };
+ * ```
+ *
+ * Note that you need to match the process orders of your encoder and decoder, because it reads/writes a binary sequence by written order. If you consider the version of your data, you may use {@link Envelope.Envelope | `Envelope`} to append a version.
  *
  * @packageDocumentation
  * @module
