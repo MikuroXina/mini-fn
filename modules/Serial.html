@@ -8,8 +8,61 @@
 </ul>
 <p>And also serializing <code>string</code> as UTF-8 sequence is supported by <code>encUtf8</code>/<code>decUtf8</code>, as a composite builder.</p>
 <p>Their features are provided as each monad, <code>monadForCodeM</code> and <code>monadForDecoder</code> respectively. So you can combine them with using these monads and <code>CatT</code> system.</p>
-<a id="md:encoder" class="tsd-anchor"></a><h1><a href="#md:encoder">Encoder</a></h1><p>An <code>Encoder</code> denotes that</p>
-<a id="md:decoder" class="tsd-anchor"></a><h1><a href="#md:decoder">Decoder</a></h1><p>A <code>Decoder</code> denotes that</p>
+<a id="md:encoder" class="tsd-anchor"></a><h1><a href="#md:encoder">Encoder</a></h1><p>An <code>Encoder&lt;T&gt;</code> denotes that a function transforming data <code>T</code> to a <code>Code</code>, which writes bytes to an <code>ArrayBuffer</code> through <code>DataView</code>.</p>
+<p>There are utility functions to encode primitive data:</p>
+<ul>
+<li>Basics<ul>
+<li><code>encUnit</code> - Does nothing</li>
+<li><code>encSum</code> - Useful to encode a sum type</li>
+</ul>
+</li>
+<li>Numerics<ul>
+<li><code>encI8</code>/<code>encU8</code></li>
+<li><code>encI16Be</code> / <code>encI16Le</code> / <code>encU16Be</code> / <code>encU16Le</code></li>
+<li><code>encI32Be</code> / <code>encI32Le</code> / <code>encU32Be</code> / <code>encU32Le</code></li>
+<li><code>encI64Be</code> / <code>encI64Le</code> / <code>encU64Be</code> / <code>encU64Le</code></li>
+<li><code>encF32Be</code> / <code>encF32Le</code></li>
+<li><code>encF64Be</code> / <code>encF64Le</code></li>
+</ul>
+</li>
+<li>String<ul>
+<li><code>encUtf8</code></li>
+</ul>
+</li>
+<li>And internal others exported</li>
+</ul>
+<p>Also you can compose and customize encoders by <code>CodeM</code>&#39;s monad to create your own encoder like this:</p>
+<pre><code class="language-ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-0">type</span><span class="hl-1"> </span><span class="hl-2">Encoder</span><span class="hl-1">, </span><span class="hl-2">encU32Be</span><span class="hl-1">, </span><span class="hl-2">encUtf8</span><span class="hl-1">, </span><span class="hl-2">monadForCodeM</span><span class="hl-1">, </span><span class="hl-2">runCode</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;./serial.ts&quot;</span><span class="hl-1">;</span><br/><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">doT</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;./cat.ts&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">type</span><span class="hl-1"> </span><span class="hl-9">MyType</span><span class="hl-1"> = {</span><br/><span class="hl-1">  </span><span class="hl-2">name</span><span class="hl-1">: </span><span class="hl-9">string</span><span class="hl-1">;</span><br/><span class="hl-1">  </span><span class="hl-2">age</span><span class="hl-1">: </span><span class="hl-9">number</span><span class="hl-1">;</span><br/><span class="hl-1">};</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-6">myEncoder</span><span class="hl-1">: </span><span class="hl-9">Encoder</span><span class="hl-1">&lt;</span><span class="hl-9">MyType</span><span class="hl-1">&gt; = (</span><span class="hl-2">data</span><span class="hl-1">: </span><span class="hl-9">MyType</span><span class="hl-1">) </span><span class="hl-4">=&gt;</span><br/><span class="hl-1">   </span><span class="hl-6">doT</span><span class="hl-1">(</span><span class="hl-2">monadForCodeM</span><span class="hl-1">)</span><br/><span class="hl-1">     .</span><span class="hl-6">run</span><span class="hl-1">(</span><span class="hl-6">encUtf8</span><span class="hl-1">(</span><span class="hl-2">data</span><span class="hl-1">.</span><span class="hl-2">name</span><span class="hl-1">))</span><br/><span class="hl-1">     .</span><span class="hl-6">finishM</span><span class="hl-1">(() </span><span class="hl-4">=&gt;</span><span class="hl-1"> </span><span class="hl-6">encU32Be</span><span class="hl-1">(</span><span class="hl-2">data</span><span class="hl-1">.</span><span class="hl-2">age</span><span class="hl-1">));</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">serial</span><span class="hl-1"> = </span><span class="hl-6">runCode</span><span class="hl-1">(</span><span class="hl-6">myEncoder</span><span class="hl-1">({ </span><span class="hl-2">name:</span><span class="hl-1"> </span><span class="hl-3">&quot;Shigure Ui&quot;</span><span class="hl-1">, </span><span class="hl-2">age:</span><span class="hl-1"> </span><span class="hl-7">17</span><span class="hl-1"> }));</span>
+</code><button>Copy</button></pre>
+<p>Note that an <code>Encoder</code> serializes lazily. You need pass a <code>Code</code> to <code>runCode</code> to evaluate it.</p>
+<a id="md:decoder" class="tsd-anchor"></a><h1><a href="#md:decoder">Decoder</a></h1><p>A <code>Decoder&lt;T&gt;</code> denotes that a function parsing <code>Code</code> to data <code>T</code>.</p>
+<p>There are utility functions to decode primitive data:</p>
+<ul>
+<li>Basics<ul>
+<li><code>decSum</code> - Useful to decode a sum type</li>
+<li><code>failDecoder</code> - Useful to report decoding error</li>
+</ul>
+</li>
+<li>Numerics<ul>
+<li><code>decI8</code>/<code>encU8</code></li>
+<li><code>decI16Be</code> / <code>decI16Le</code> / <code>decU16Be</code> / <code>decU16Le</code></li>
+<li><code>decI32Be</code> / <code>decI32Le</code> / <code>decU32Be</code> / <code>decU32Le</code></li>
+<li><code>decI64Be</code> / <code>decI64Le</code> / <code>decU64Be</code> / <code>decU64Le</code></li>
+<li><code>decF32Be</code> / <code>decF32Le</code></li>
+<li><code>decF64Be</code> / <code>decF64Le</code></li>
+</ul>
+</li>
+<li>String<ul>
+<li><code>decUtf8</code></li>
+</ul>
+</li>
+<li>And internal others exported</li>
+</ul>
+<p>Unlike encoders, they are needed to invoke to get a <code>Decoder</code> by an internal implementation reason.</p>
+<p>Also you can compose and customize decoders by <code>Decoder</code>&#39;s monad to create your own decoder like this:</p>
+<pre><code class="language-ts"><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-0">type</span><span class="hl-1"> </span><span class="hl-2">Decoder</span><span class="hl-1">, </span><span class="hl-2">decU32Be</span><span class="hl-1">, </span><span class="hl-2">decUtf8</span><span class="hl-1">, </span><span class="hl-2">failDecoder</span><span class="hl-1">, </span><span class="hl-2">monadForDecoder</span><span class="hl-1">, </span><span class="hl-2">runDecoder</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;./serial.ts&quot;</span><span class="hl-1">;</span><br/><span class="hl-0">import</span><span class="hl-1"> { </span><span class="hl-2">doT</span><span class="hl-1"> } </span><span class="hl-0">from</span><span class="hl-1"> </span><span class="hl-3">&quot;./cat.ts&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">type</span><span class="hl-1"> </span><span class="hl-9">MyType</span><span class="hl-1"> = {</span><br/><span class="hl-1">  </span><span class="hl-2">name</span><span class="hl-1">: </span><span class="hl-9">string</span><span class="hl-1">;</span><br/><span class="hl-1">  </span><span class="hl-2">age</span><span class="hl-1">: </span><span class="hl-9">number</span><span class="hl-1">;</span><br/><span class="hl-1">};</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">myDecoder</span><span class="hl-1">: </span><span class="hl-9">Decoder</span><span class="hl-1">&lt;</span><span class="hl-9">MyType</span><span class="hl-1">&gt; =</span><br/><span class="hl-1">  </span><span class="hl-6">doT</span><span class="hl-1">(</span><span class="hl-2">monadForDecoder</span><span class="hl-1">)</span><br/><span class="hl-1">    .</span><span class="hl-6">addM</span><span class="hl-1">(</span><span class="hl-3">&quot;name&quot;</span><span class="hl-1">, </span><span class="hl-6">decUtf8</span><span class="hl-1">())</span><br/><span class="hl-1">    .</span><span class="hl-6">addM</span><span class="hl-1">(</span><span class="hl-3">&quot;age&quot;</span><span class="hl-1">, </span><span class="hl-6">decU32Be</span><span class="hl-1">())</span><br/><span class="hl-1">    .</span><span class="hl-6">when</span><span class="hl-1">(</span><br/><span class="hl-1">      ({ </span><span class="hl-2">age</span><span class="hl-1"> }) </span><span class="hl-4">=&gt;</span><span class="hl-1"> </span><span class="hl-2">age</span><span class="hl-1"> &lt; </span><span class="hl-7">0</span><span class="hl-1">,</span><br/><span class="hl-1">      ({ </span><span class="hl-2">age</span><span class="hl-1"> }) </span><span class="hl-4">=&gt;</span><span class="hl-1"> </span><span class="hl-6">failDecoder</span><span class="hl-1">(</span><span class="hl-3">`expected non-negative age, but got </span><span class="hl-4">${</span><span class="hl-2">age</span><span class="hl-4">}</span><span class="hl-3">`</span><span class="hl-1">),</span><br/><span class="hl-1">    )</span><br/><span class="hl-1">    .</span><span class="hl-6">finish</span><span class="hl-1">(({ </span><span class="hl-2">name</span><span class="hl-1">, </span><span class="hl-2">age</span><span class="hl-1"> }) </span><span class="hl-4">=&gt;</span><span class="hl-1"> ({ </span><span class="hl-2">name</span><span class="hl-1">, </span><span class="hl-2">age</span><span class="hl-1"> }));</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-6">decode</span><span class="hl-1"> = (</span><span class="hl-2">binary</span><span class="hl-1">: </span><span class="hl-9">ArrayBuffer</span><span class="hl-1">) </span><span class="hl-4">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">  </span><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">result</span><span class="hl-1"> = </span><span class="hl-6">runDecoder</span><span class="hl-1">(</span><span class="hl-2">myDecoder</span><span class="hl-1">)(</span><span class="hl-2">binary</span><span class="hl-1">);</span><br/><span class="hl-1">  </span><span class="hl-8">// ...</span><br/><span class="hl-1">};</span>
+</code><button>Copy</button></pre>
+<p>Note that you need to match the process orders of your encoder and decoder, because it reads/writes a binary sequence by written order. If you consider the version of your data, you may use <a href="../types/Envelope.Envelope.html" class="tsd-kind-type-alias"><code>Envelope</code></a> to append a version.</p>
 </div><div class="tsd-comment tsd-typography"></div></section><aside class="tsd-sources"><ul><li>Defined in src/serial.ts:1</li></ul></aside><section class="tsd-panel-group tsd-index-group"><section class="tsd-panel tsd-index-panel"><h3 class="tsd-index-heading uppercase">Index</h3><section class="tsd-index-section"><h3 class="tsd-index-heading">Interfaces</h3><div class="tsd-index-list"><a href="../interfaces/Serial.CodeMHkt.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>CodeMHkt</span></a>
 <a href="../interfaces/Serial.DecoderHkt.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Decoder<wbr/>Hkt</span></a>
 <a href="../interfaces/Serial.EncoderHkt.html" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Encoder<wbr/>Hkt</span></a>
