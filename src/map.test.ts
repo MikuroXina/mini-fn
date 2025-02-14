@@ -956,6 +956,8 @@ Deno.test("isSubsetOfBy", () => {
 
     assertEquals(isSubsetOfByEq(Map.fromArray([[1, "two"]]))(piMap), false);
     assertEquals(isSubsetOfByLt(Map.fromArray([[1, "one"]]))(piMap), false);
+
+    assertEquals(isSubsetOfByEq(piMap)(Map.fromArray([[1, "one"]])), false);
 });
 
 Deno.test("isProperSubsetOfBy", () => {
@@ -1003,6 +1005,11 @@ Deno.test("isProperSubsetOfBy", () => {
     );
     assertEquals(
         isProperSubsetOfByLt(Map.fromArray([[1, "one"]]))(piMap),
+        false,
+    );
+
+    assertEquals(
+        isProperSubsetOfByEq(piMap)(Map.fromArray([[1, "one"]])),
         false,
     );
 });
