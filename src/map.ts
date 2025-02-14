@@ -1284,7 +1284,7 @@ export const isProperSubsetOfBy =
 export const isProperSubsetOf = <V, W = V>(
     equality: PartialEq<V, W>,
 ): <K>(subset: Map<K, V>) => (superset: Map<K, W>) => boolean =>
-    isSubsetOfBy((sub: V) => (sup: W) => equality.eq(sub, sup));
+    isProperSubsetOfBy((sub: V) => (sup: W) => equality.eq(sub, sup));
 
 export interface MapHkt extends Hkt2 {
     readonly type: Map<this["arg2"], this["arg1"]>;
