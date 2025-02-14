@@ -44,6 +44,7 @@ const cases = [
     Map.fromArray([["zero", "0"], ["one", "1"], ["two", "2"]]),
     Map.fromArray([["one", "1"], ["zero", "0"], ["two", "2"]]),
     Map.fromArray([["zero", "0"], ["two", "2"], ["one", "1"]]),
+    Map.fromArray([["zero", "0"], ["two", "2"], ["one", "11"]]),
 ] as Map<string, string>[];
 
 Deno.test("equality", () => {
@@ -55,6 +56,10 @@ Deno.test("equality", () => {
     assertEquals(equality.eq(cases[2], cases[0]), false);
     assertEquals(equality.eq(cases[1], cases[2]), false);
     assertEquals(equality.eq(cases[2], cases[1]), false);
+
+    assertEquals(equality.eq(cases[5], cases[0]), false);
+    assertEquals(equality.eq(cases[5], cases[1]), false);
+    assertEquals(equality.eq(cases[5], cases[2]), false);
 
     // symmetric
     for (const x of cases) {
