@@ -993,7 +993,7 @@ export const foldLWithKey =
     };
 
 /**
- * Transforms entries of the `Map` into data of `M` and folds into one by {@link TypeClass.Monoid.Combine | `Monoid.combine`} from the first entry.
+ * Transforms entries of the `Map` into data of `M` and folds into one by {@link TypeClass.Monoid | `Monoid.combine`} from the first entry.
  *
  * @param mon - The `Monoid` instance for `M`.
  * @param folder - Function to map an entry into data of `M`.
