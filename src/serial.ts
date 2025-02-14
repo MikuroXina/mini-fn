@@ -78,7 +78,7 @@
  * Also you can compose and customize decoders by `Decoder`'s monad to create your own decoder like this:
  *
  * ```ts
- * import { type Decoder, decU32Be, decUtf8, failDecoder, monadForDecoder } from "./serial.ts";
+ * import { type Decoder, decU32Be, decUtf8, failDecoder, monadForDecoder, runDecoder } from "./serial.ts";
  * import { doT } from "./cat.ts";
  *
  * type MyType = {
