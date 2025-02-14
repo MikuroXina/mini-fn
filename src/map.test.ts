@@ -1,21 +1,27 @@
 import { assertEquals } from "../deps.ts";
 import {
+    isNone,
     monad as optionMonad,
     none,
     type Option,
     type OptionHkt,
     partialEq as optionPartialEq,
     some,
+    unwrap,
 } from "./option.ts";
-import { ord } from "./string.ts";
+import { monoid as stringMonoid, ord } from "./string.ts";
 import * as Map from "./map.ts";
 import {
     fromIterable,
     type ListHkt,
     monad,
     partialEq as listPartialEq,
+    toArray,
 } from "./list.ts";
 import { equal, greater, less } from "./ordering.ts";
+import { cat } from "./cat.ts";
+import { ControlFlow, Result } from "../mod.ts";
+import { decUtf8, encUtf8, runCode, runDecoder } from "./serial.ts";
 
 const assertEqMap = (
     actual: Map<number, string>,
@@ -172,9 +178,131 @@ Deno.test("get", () => {
     assertEquals(Map.get(0)(piMap), none());
 });
 
+Deno.test("fromList", () => {
+    {
+        const m = Map.fromList(fromIterable([]));
+        assertEquals(m.size, 0);
+    }
+
+    {
+        const m = Map.fromList(fromIterable([[4, "four"], [8, "eight"]]));
+        assertEquals(m.size, 2);
+        assertEquals(m.get(4), "four");
+        assertEquals(m.get(8), "eight");
+    }
+});
+
+Deno.test("fromListWith", () => {
+    const m = Map.fromListWith((newValue: number) => (oldValue) =>
+        newValue + oldValue * 2
+    )(fromIterable([
+        ["bits1", 2],
+        ["bits1", 7],
+        ["bits2", 3],
+        ["bits2", 0],
+        ["bits3", 1],
+    ]));
+
+    assertEquals(m.get("bits1"), 11);
+    assertEquals(m.get("bits2"), 6);
+    assertEquals(m.get("bits3"), 1);
+});
+
+Deno.test("fromListWithKey", () => {
+    const m = Map.fromListWithKey(
+        (key: string) => (newValue: number) => (oldValue) =>
+            key.startsWith("bits") ? (newValue | oldValue) : newValue,
+    )(fromIterable([
+        ["bits1", 2],
+        ["bits1", 7],
+        ["bit", 3],
+        ["bit", 1],
+    ]));
+
+    assertEquals(m.get("bits1"), 7);
+    assertEquals(m.get("bit"), 1);
+});
+
+Deno.test("fromArrayWith", () => {
+    const m = Map.fromArrayWith((newValue: string) => (oldValue) =>
+        newValue + oldValue
+    )([
+        [0, ""],
+        [1, " "],
+        [1, "one"],
+    ]);
+
+    assertEquals(m.get(0), "");
+    assertEquals(m.get(1), "one ");
+});
+
+Deno.test("fromArrayWithKey", () => {
+    const m = Map.fromArrayWithKey(
+        (key: number) => (newValue: number) => (oldValue) =>
+            key < 0 ? Math.max(newValue, oldValue) : newValue,
+    )([
+        [4, 1],
+        [4, -1],
+        [4, 2],
+        [3, 0],
+        [3, 8],
+        [3, 1],
+        [-4, 1],
+        [-4, -1],
+        [-4, 2],
+        [-3, 0],
+        [-3, 8],
+        [-3, 1],
+    ]);
+
+    assertEquals(m.get(4), 2);
+    assertEquals(m.get(3), 1);
+    assertEquals(m.get(-4), 2);
+    assertEquals(m.get(-3), 8);
+});
+
 Deno.test("insert", () => {
     assertEqMap(Map.insert(1)("one")(piMap), piMap);
     assertEqMap(Map.insert(1)("one")(Map.empty()), Map.singleton(1)("one"));
+});
+
+Deno.test("insertWith", () => {
+    const inserter = Map.insertWith((newValue: number) => (oldValue) =>
+        newValue + oldValue
+    );
+    const m = cat(Map.empty<string, number>())
+        .feed(inserter("a")(1))
+        .feed(inserter("b")(1))
+        .feed(inserter("a")(1))
+        .feed(inserter("a")(1))
+        .feed(inserter("b")(2))
+        .feed(inserter("b")(2))
+        .feed(inserter("c")(1))
+        .value;
+
+    assertEquals(m.get("a"), 3);
+    assertEquals(m.get("b"), 5);
+    assertEquals(m.get("c"), 1);
+});
+
+Deno.test("insertWithKey", () => {
+    const inserter = Map.insertWithKey(
+        (key: string) => (newValue: number) => (oldValue) =>
+            key.startsWith("_") ? newValue : newValue + oldValue,
+    );
+    const m = cat(Map.empty<string, number>())
+        .feed(inserter("a")(1))
+        .feed(inserter("b")(1))
+        .feed(inserter("_c")(-1))
+        .feed(inserter("a")(1))
+        .feed(inserter("a")(1))
+        .feed(inserter("b")(2))
+        .feed(inserter("b")(2))
+        .feed(inserter("_c")(1)).value;
+
+    assertEquals(m.get("a"), 3);
+    assertEquals(m.get("b"), 5);
+    assertEquals(m.get("_c"), 1);
 });
 
 Deno.test("remove", () => {
@@ -248,6 +376,48 @@ Deno.test("alter", () => {
     );
 });
 
+Deno.test("alterF", () => {
+    const modifier = Map.alterF(ControlFlow.functor<never[]>())(
+        (oldEntry: Option<string>) => {
+            if (isNone(oldEntry)) {
+                return ControlFlow.newContinue(some(
+                    "Untitled",
+                ));
+            }
+            const item = unwrap(oldEntry);
+            if (item === "STOP") {
+                return ControlFlow.newBreak([]);
+            }
+            return ControlFlow.newContinue(some(`${item} (1)`));
+        },
+    );
+
+    assertEquals(
+        modifier("foo")(Map.fromArray([
+            ["foo", "Data"],
+            ["bar", "Value"],
+        ])),
+        ControlFlow.newContinue(
+            Map.fromArray([["foo", "Data (1)"], ["bar", "Value"]]),
+        ),
+    );
+    assertEquals(
+        modifier("foo")(Map.fromArray([
+            ["bar", "Value"],
+        ])),
+        ControlFlow.newContinue(
+            Map.fromArray([["foo", "Untitled"], ["bar", "Value"]]),
+        ),
+    );
+    assertEquals(
+        modifier("foo")(Map.fromArray([
+            ["foo", "STOP"],
+            ["bar", "Value"],
+        ])),
+        ControlFlow.newBreak([]),
+    );
+});
+
 Deno.test("union", () => {
     const actual = Map.union(Map.fromArray([
         [2, "two"],
@@ -287,6 +457,29 @@ Deno.test("unionWithKey", () => {
         actual,
         Map.fromArray([[2, "2:two|TWO"], [5, "five"], [3, "THREE"]]),
     );
+});
+
+Deno.test("unionMonoid", () => {
+    const m = Map.unionMonoid<string, string>();
+    const a = Map.fromArray([
+        ["one", "1"],
+    ]);
+    const b = Map.fromArray([
+        ["four", "4"],
+        ["three", "3"],
+    ]);
+    const c = Map.fromArray([
+        ["one", "uno"],
+        ["two", "duo"],
+    ]);
+    // associative
+    assertEquals(m.combine(a, m.combine(b, c)), m.combine(m.combine(a, b), c));
+
+    // identity
+    for (const map of [a, b, c]) {
+        assertEquals(m.combine(map, m.identity), map);
+        assertEquals(m.combine(m.identity, map), map);
+    }
 });
 
 Deno.test("difference", () => {
@@ -568,10 +761,69 @@ Deno.test("mapKeysWith", () => {
 });
 
 Deno.test("foldR", () => {
-    const folder = Map.foldR((item: string) => (acc: number) =>
-        item.length + acc
-    )(0);
-    assertEquals(folder(piMap), 12);
+    const folder = Map.foldR((item: string) => (acc: string) => item + acc)("");
+    assertEquals(folder(cases[2]), "012");
+});
+
+Deno.test("foldRWithKey", () => {
+    const folder = Map.foldRWithKey(
+        (key: string) => (item: string) => (acc: string) =>
+            key.length < 4 ? item + acc : acc,
+    )("");
+    assertEquals(folder(cases[2]), "12");
+});
+
+Deno.test("foldL", () => {
+    const folder = Map.foldL((acc: string) => (item: string) => item + acc)("");
+    assertEquals(folder(cases[2]), "210");
+});
+
+Deno.test("foldLWithKey", () => {
+    const folder = Map.foldLWithKey(
+        (key: string) => (acc: string) => (item: string) =>
+            key.length < 4 ? item + acc : acc,
+    )("");
+    assertEquals(folder(cases[2]), "21");
+});
+
+Deno.test("foldMapWithKey", () => {
+    const folder = Map.foldMapWithKey(stringMonoid)(
+        (key: number) => (value: string) => `${key}:${value}`,
+    );
+
+    assertEquals(folder(Map.fromArray([])), "");
+    assertEquals(folder(piMap), "3:three1:one4:four");
+});
+
+Deno.test("keys", () => {
+    assertEquals(toArray(Map.keys(piMap)), [3, 1, 4]);
+});
+Deno.test("values", () => {
+    assertEquals(toArray(Map.values(piMap)), ["three", "one", "four"]);
+});
+Deno.test("entries", () => {
+    assertEquals(toArray(Map.entries(piMap)), [
+        [3, "three"],
+        [1, "one"],
+        [4, "four"],
+    ]);
+});
+
+Deno.test("sortedEntries", () => {
+    assertEquals(
+        toArray(Map.sortedEntries({ ordK: ord, ordV: ord })(cases[0])),
+        [],
+    );
+    assertEquals(
+        toArray(Map.sortedEntries({ ordK: ord, ordV: ord })(cases[1])),
+        [
+            ["1", "one"],
+            ["2", "two"],
+            ["3", "three"],
+            ["4", "four"],
+            ["5", "five"],
+        ],
+    );
 });
 
 Deno.test("filter", () => {
@@ -643,10 +895,35 @@ Deno.test("mapOptionWithKey", () => {
     assertEqMap(actual, Map.singleton(3)("3:new three"));
 });
 
-Deno.test("isSubsetOfBy", () => {
-    const isSubsetOfByEq = Map.isSubsetOfBy((sub: string) => (sup: string) =>
-        sub === sup
+Deno.test("mapResult", () => {
+    const mapper = Map.mapResult((value: string) =>
+        value.length < 4 ? Result.ok(value) : Result.err(value)
     );
+
+    assertEquals(mapper(cases[0]), [Map.fromArray([]), Map.fromArray([])]);
+    assertEquals(mapper(cases[1]), [
+        Map.fromArray([["4", "four"], ["3", "three"], ["5", "five"]]),
+        Map.fromArray([["1", "one"], ["2", "two"]]),
+    ]);
+});
+
+Deno.test("mapResultWithKey", () => {
+    const mapper = Map.mapResultWithKey((key: string) => (value: string) =>
+        key === "1" ? Result.ok(value) : Result.err(value)
+    );
+
+    assertEquals(mapper(cases[0]), [Map.fromArray([]), Map.fromArray([])]);
+    assertEquals(mapper(cases[1]), [
+        Map.fromArray([["4", "four"], ["2", "two"], ["3", "three"], [
+            "5",
+            "five",
+        ]]),
+        Map.fromArray([["1", "one"]]),
+    ]);
+});
+
+Deno.test("isSubsetOfBy", () => {
+    const isSubsetOfByEq = Map.isSubsetOf(ord);
     const isSubsetOfByLe = Map.isSubsetOfBy((sub: string) => (sup: string) =>
         sub <= sup
     );
@@ -677,9 +954,7 @@ Deno.test("isSubsetOfBy", () => {
 });
 
 Deno.test("isProperSubsetOfBy", () => {
-    const isProperSubsetOfByEq = Map.isProperSubsetOfBy(
-        (sub: string) => (sup: string) => sub === sup,
-    );
+    const isProperSubsetOfByEq = Map.isProperSubsetOf(ord);
     const isProperSubsetOfByLe = Map.isProperSubsetOfBy(
         (sub: string) => (sup: string) => sub <= sup,
     );
@@ -736,4 +1011,62 @@ Deno.test("countItems", () => {
     assertEquals(res.get(4), 1);
     assertEquals(res.get(5), 1);
     assertEquals(res.get(6), undefined);
+});
+
+Deno.test("functor laws", () => {
+    const f = Map.functor<string>();
+    // identity
+    for (const item of cases) {
+        assertEquals(f.map((x: string) => x)(item), item);
+    }
+
+    // composition
+    const bang = (x: string) => x + "!";
+    const question = (x: string) => x + "?";
+    for (const item of cases) {
+        assertEquals(
+            f.map((x: string) => question(bang(x)))(item),
+            f.map(question)(f.map(bang)(item)),
+        );
+    }
+});
+
+Deno.test("foldable functor laws", () => {
+    const f = Map.foldable<string>();
+
+    const folder = f.foldR((item: string) => (acc: string) => item + acc)("");
+    assertEquals(folder(cases[2]), "012");
+});
+
+Deno.test("traversable functor laws", () => {
+    const t = Map.traversable<number>();
+
+    const actual = t.traverse<ListHkt>(monad)((
+        value: string,
+    ) => fromIterable(value))(Map.fromArray([
+        [2, "34"],
+        [5, "67"],
+    ]));
+    const expected = fromIterable([
+        Map.fromArray([[2, "3"], [5, "6"]]),
+        Map.fromArray([[2, "4"], [5, "6"]]),
+        Map.fromArray([[2, "3"], [5, "7"]]),
+        Map.fromArray([[2, "4"], [5, "7"]]),
+    ]);
+    assertEquals(
+        listPartialEq(Map.equality<number, string>(ord)).eq(
+            actual,
+            expected,
+        ),
+        true,
+    );
+});
+
+Deno.test("encode then decode", () => {
+    const data = cases[1];
+    const code = runCode(Map.enc(encUtf8)(encUtf8)(data));
+    const decoded = Result.unwrap(
+        runDecoder(Map.dec(decUtf8())(decUtf8()))(code),
+    );
+    assertEquals(data, decoded);
 });
