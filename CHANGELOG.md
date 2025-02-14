@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.8.0](https://github.com/MikuroXina/mini-fn/compare/v6.7.0...v6.8.0) (2025-02-14)
+
+
+### Features
+
+* Add applicative for ControlFlow and Enforce tests ([#273](https://github.com/MikuroXina/mini-fn/issues/273)) ([d75688d](https://github.com/MikuroXina/mini-fn/commit/d75688d7089c654698a8f816a3d69d8686fad31a))
+* Add mapMutRef and Enforce tests ([#271](https://github.com/MikuroXina/mini-fn/issues/271)) ([07861a6](https://github.com/MikuroXina/mini-fn/commit/07861a6a7747ed854f4debb5fc2221a8bc31fd50))
+* Improve mapM and Add forM & void variants ([#269](https://github.com/MikuroXina/mini-fn/issues/269)) ([4eb5666](https://github.com/MikuroXina/mini-fn/commit/4eb56669cd50aa20eebf7ee63612990c3be4b1c5))
+
+
+### Bug Fixes
+
+* Fix bugs and Enforce tests for Map ([#276](https://github.com/MikuroXina/mini-fn/issues/276)) ([1455c5d](https://github.com/MikuroXina/mini-fn/commit/1455c5df0c77fc3e409a497172798567af62ec8b))
+
 ## [6.7.0](https://github.com/MikuroXina/mini-fn/compare/v6.6.0...v6.7.0) (2024-10-30)
 
 
