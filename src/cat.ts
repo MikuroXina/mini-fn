@@ -8,8 +8,6 @@
  */
 import { type ControlFlow, isBreak } from "./control-flow.ts";
 import type { Get1, Hkt1 } from "./hkt.ts";
-import { foldL } from "./list.ts";
-import type { List } from "./list.ts";
 import {
     type Eq,
     fromProjection as eqFromProjection,
@@ -136,20 +134,6 @@ export interface CatT<M, CTX> {
     ) => CatT<M, CTX>;
 
     /**
-     * @deprecated You should use {@link TypeClass.Traversable.forM | `forM`} or {@link TypeClass.Traversable.forMVoid | `forMVoid`} instead.
-     *
-     * Runs a looping computation with items from the list.
-     *
-     * @param iter - A list to be iterated.
-     * @param body - A computation to run.
-     * @returns A new `CatT` with modified environment.
-     */
-    readonly foreach: <T>(
-        iter: List<T>,
-        body: (item: T, ctx: CTX) => Get1<M, never[]>,
-    ) => CatT<M, CTX>;
-
-    /**
      * Reduces the context into a value by `fn`.
      *
      * @param fn - The finishing computation.
@@ -251,17 +235,6 @@ export const catT =
                 )(ctx);
             return catT(monad)(go(ctx));
         },
-        foreach: <T>(
-            iter: List<T>,
-            body: (item: T, ctx: CTX) => Get1<M, never[]>,
-        ): CatT<M, CTX> =>
-            catT(monad)(
-                foldL((acc: Get1<M, CTX>) => (item: T) =>
-                    monad.flatMap((c: CTX) =>
-                        monad.map(() => c)(body(item, c))
-                    )(acc)
-                )(ctx)(iter),
-            ),
         finish: <R>(fn: (ctx: CTX) => R) => monad.map(fn)(ctx),
         finishM: (fn) => monad.flatMap(fn)(ctx),
     });
