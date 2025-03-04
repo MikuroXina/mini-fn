@@ -49,5 +49,5 @@
     },
     "name": "@mikuroxina/mini-fn",
     "exports": "./mod.ts",
-    "version": "6.8.0"
+    "version": "7.0.0"
 }

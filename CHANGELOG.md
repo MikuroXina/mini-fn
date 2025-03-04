@@ -1,5 +1,17 @@
 # Changelog
 
+## [7.0.0](https://github.com/MikuroXina/mini-fn/compare/v6.8.0...v7.0.0) (2025-03-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove CatT.foreach ([#281](https://github.com/MikuroXina/mini-fn/issues/281))
+
+### Bug Fixes
+
+* Fix type parameter position of sequence/sequenceA ([#279](https://github.com/MikuroXina/mini-fn/issues/279)) ([6bc3e4c](https://github.com/MikuroXina/mini-fn/commit/6bc3e4caee0dd60af6afe80dd3c4991343ee9166))
+* Remove CatT.foreach ([#281](https://github.com/MikuroXina/mini-fn/issues/281)) ([d500161](https://github.com/MikuroXina/mini-fn/commit/d50016187f56f4f81dd9a0e4f40009c4b0b1abda))
+
 ## [6.8.0](https://github.com/MikuroXina/mini-fn/compare/v6.7.0...v6.8.0) (2025-02-14)
 
 
