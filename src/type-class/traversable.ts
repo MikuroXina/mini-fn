@@ -38,10 +38,10 @@ export interface Traversable<T> extends Functor<T>, Foldable<T> {
  * @param data - The data to be traversed.
  * @returns The collected result of actions.
  */
-export const sequenceA = <T, F, A>(
+export const sequenceA = <T, F>(
     traversable: Traversable<T>,
     app: Applicative<F>,
-): (data: Get1<T, Get1<F, A>>) => Get1<F, Get1<T, A>> =>
+): <A>(data: Get1<T, Get1<F, A>>) => Get1<F, Get1<T, A>> =>
     traversable.traverse<F>(app)((x) => x);
 
 /**
@@ -125,8 +125,8 @@ export const forMVoid =
  * @param data - The data to be traversed.
  * @returns The collected result of actions.
  */
-export const sequence = <T, M, A>(
+export const sequence = <T, M>(
     traversable: Traversable<T>,
     monad: Monad<M>,
-): (data: Get1<T, Get1<M, A>>) => Get1<M, Get1<T, A>> =>
+): <A>(data: Get1<T, Get1<M, A>>) => Get1<M, Get1<T, A>> =>
     sequenceA(traversable, monad);
