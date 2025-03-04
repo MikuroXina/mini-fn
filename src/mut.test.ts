@@ -17,6 +17,7 @@ import {
 } from "./mut.ts";
 import { doT } from "./cat.ts";
 import { forM, forMVoid } from "./type-class/traversable.ts";
+import { List } from "../mod.ts";
 
 Deno.test("hello world", () => {
     const text = doMut(<S>(cat: MutCat<S>) =>
@@ -32,10 +33,12 @@ Deno.test("hello world", () => {
 Deno.test("counter", () => {
     const count = doMut(<S>(cat: MutCat<S>) =>
         cat.addM("count", newMutRef(0))
-            .foreach(
-                range(0, 1000),
-                (_, { count }) => modifyMutRef(count)((c: number) => c + 1),
-            ).finishM(({ count }) =>
+            .runWith(({ count }) =>
+                forMVoid(List.traversable, cat.monad)(range(0, 1000))(() =>
+                    modifyMutRef(count)((c: number) => c + 1)
+                )
+            )
+            .finishM(({ count }) =>
                 mapMutRef((count: number) => `${count}`)(count)
             )
     );
