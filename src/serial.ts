@@ -983,9 +983,7 @@ export const appendBuffer = (appending: Buffer) => (base: Buffer): Buffer =>
  * @returns The internal sequence of bytes, or `empty` if none.
  */
 export const bufferBytes = (buf: Buffer): DataView =>
-    unwrapOrElse((): DataView<ArrayBufferLike> =>
-        new DataView(new ArrayBuffer(0))
-    )(buf);
+    unwrapOrElse((): DataView => new DataView(new ArrayBuffer(0)))(buf);
 
 /**
  * A context while decoding the byte sequence.
