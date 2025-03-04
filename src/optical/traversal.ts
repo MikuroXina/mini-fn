@@ -40,7 +40,7 @@ export const newTraversal = <T, F, A, B>(
 ): Traversal<T, F, A, B> =>
 <R>(next: (sending: A) => Cont<R, Get1<F, B>>) =>
 (received) =>
-    map(sequenceA(tra, app))(
+    map(sequenceA(tra, app)<B>)(
         tra.traverse<Apply2Only<ContHkt, R>>(monad())(next)(received),
     );
 
