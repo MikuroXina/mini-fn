@@ -3,7 +3,7 @@ import type { Get2 } from "../hkt.ts";
 /**
  * A 2-arity kind which can compose two relationships. There is no required laws.
  */
-export interface SemiGroupoid<S> {
+export type SemiGroupoid<S> = {
     /**
      * Composes two relationships into a new one.
      *
@@ -14,4 +14,4 @@ export interface SemiGroupoid<S> {
     readonly compose: <B, C>(
         funcA: Get2<S, B, C>,
     ) => <A>(funcB: Get2<S, A, B>) => Get2<S, A, C>;
-}
+};

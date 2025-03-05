@@ -6,7 +6,7 @@ import type { Monad } from "./monad.ts";
 /**
  * A monad which allows making the computation value into a `Result` with an error context message.
  */
-export interface ErrorMonad<M> extends Monad<M> {
+export type ErrorMonad<M> = Monad<M> & {
     /**
      * Converts a computation value into a `Result` with a message `context`.
      *
@@ -27,7 +27,7 @@ export interface ErrorMonad<M> extends Monad<M> {
     readonly withContext: (
         fn: () => string,
     ) => <T>(computation: Get1<M, T>) => Result<Error, T>;
-}
+};
 
 /**
  * A `CatT` which helps you to handle a fail-able computation with an error message. Your provided context message will be used in message value of an `Error` object.

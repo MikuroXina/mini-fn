@@ -1,9 +1,9 @@
 import type { Get1 } from "../hkt.ts";
 import type { Monad } from "../type-class/monad.ts";
 
-export interface MonadState<S, M> extends Monad<M> {
+export type MonadState<S, M> = Monad<M> & {
     readonly state: <A>(modifier: (state: S) => [A, S]) => Get1<M, A>;
-}
+};
 
 export const get = <S, M>(s: MonadState<S, M>): Get1<M, S> =>
     s.state((state) => [state, state]);

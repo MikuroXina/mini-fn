@@ -158,7 +158,7 @@ import type { Traversable } from "./type-class/traversable.ts";
 /**
  * The list data type with current element and rest list of elements.
  */
-export interface List<T> {
+export type List<T> = {
     /**
      * @returns A current heading item of the list.
      */
@@ -167,7 +167,7 @@ export interface List<T> {
      * @returns Rest items of the list.
      */
     readonly rest: () => List<T>;
-}
+};
 
 export const partialEquality = <T>(
     equalityT: PartialEq<T>,

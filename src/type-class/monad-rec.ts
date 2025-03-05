@@ -13,7 +13,7 @@ import type { Monoid } from "./monoid.ts";
 /**
  * An extended `Monad` also supports the `tailRecM` operation.
  */
-export interface MonadRec<M> extends Monad<M> {
+export type MonadRec<M> = Monad<M> & {
     /**
      * Executes a `stepper` while it returns a `Continue<A>`. This exits only if `stepper` returned a `Break<A>` and forwards it.
      *
@@ -25,7 +25,7 @@ export interface MonadRec<M> extends Monad<M> {
     readonly tailRecM: <X, A>(
         stepper: (state: A) => Get1<M, ControlFlow<X, A>>,
     ) => (state: A) => Get1<M, X>;
-}
+};
 
 export const tailRecM2 = <M>(m: MonadRec<M>) =>
 <A, B, X>(

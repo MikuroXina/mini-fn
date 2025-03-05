@@ -36,7 +36,7 @@ export interface CofreeHkt extends Hkt2 {
 /**
  * Co-free functor, the dual of `Free`. It is isomorphic to the linked list of `A`.
  */
-export interface Cofree<F, A> {
+export type Cofree<F, A> = {
     /**
      * A current heading item of the list.
      */
@@ -45,7 +45,7 @@ export interface Cofree<F, A> {
      * Rest items of the list.
      */
     readonly rest: Lazy<Get1<F, Cofree<F, A>>>;
-}
+};
 
 export const partialEquality = <F, A>({
     equalityA,

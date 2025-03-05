@@ -2,10 +2,10 @@ import type { Get1 } from "../hkt.ts";
 import type { Comonad } from "../type-class/comonad.ts";
 import type { Functor } from "../type-class/functor.ts";
 
-export interface ComonadStore<S, W> extends Comonad<W> {
+export type ComonadStore<S, W> = Comonad<W> & {
     readonly pos: <A>(store: Get1<W, A>) => S;
     readonly peek: (position: S) => <A>(store: Get1<W, A>) => A;
-}
+};
 
 export const peeks =
     <S, W>(cs: ComonadStore<S, W>) =>

@@ -7,9 +7,9 @@ const emptyNominal = Symbol("FingerTreeEmpty");
 /**
  * A tree has no elements.
  */
-export interface Empty {
+export type Empty = {
     readonly type: typeof emptyNominal;
-}
+};
 /**
  * Checks whether the tree is an `Empty`.
  *
@@ -27,10 +27,10 @@ const singleNominal = Symbol("FingerTreeSingle");
 /**
  * A tree has an one element.
  */
-export interface Single<A> {
+export type Single<A> = {
     readonly type: typeof singleNominal;
     data: A;
-}
+};
 /**
  * Checks whether the tree is a `Single`.
  *
@@ -91,12 +91,12 @@ const deepNominal = Symbol("FingerTreeDeep");
 /**
  * A tree has children subtrees and a next tree.
  */
-export interface Deep<A> {
+export type Deep<A> = {
     readonly type: typeof deepNominal;
     left: Digit<A>;
     nextTree: FingerTree<Node<A>>;
     right: Digit<A>;
-}
+};
 /**
  * Checks whether the tree is a `Deep`.
  *

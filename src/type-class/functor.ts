@@ -10,7 +10,7 @@ import type { Invariant } from "./variance.ts";
  * - Identity: `f.map((x) => x)` equals to `(x) => x`,
  * - Composition: For all `a` and `b`; `f.map((x) => b(a(x)))` equals to `(x) => f.map(b)(f.map(a)(x))`.
  */
-export interface Functor<F> {
+export type Functor<F> = {
     /**
      * Maps the function `fn` onto `F` structure.
      *
@@ -18,7 +18,7 @@ export interface Functor<F> {
      * @returns The mapped function.
      */
     readonly map: <T, U>(fn: (t: T) => U) => (t: Get1<F, T>) => Get1<F, U>;
-}
+};
 
 /**
  * Maps a function into the nested one with two functor instances.

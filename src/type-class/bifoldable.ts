@@ -9,7 +9,7 @@ import type { Monoid } from "./monoid.ts";
 /**
  * A data structure which can fold both parameters on `P`.
  */
-export interface Bifoldable<P> {
+export type Bifoldable<P> = {
     /**
      * Folds the data structure with function `aFolder` and `bFolder` by right associativity.
      *
@@ -24,7 +24,7 @@ export interface Bifoldable<P> {
     ) => <B>(
         bFolder: (b: B) => (c: C) => C,
     ) => (init: C) => (data: Get2<P, A, B>) => C;
-}
+};
 
 export const fromBifoldMap = <P>(
     f: <M>(

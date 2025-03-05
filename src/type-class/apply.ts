@@ -6,7 +6,7 @@ import { type SemiGroup, semiGroupSymbol } from "./semi-group.ts";
 /**
  * A structure which able to evaluate a function over `S`.
  */
-export interface Apply<S> extends Functor<S> {
+export type Apply<S> = Functor<S> & {
     /**
      * Applies the function to the value over `S`.
      *
@@ -17,7 +17,7 @@ export interface Apply<S> extends Functor<S> {
     readonly apply: <T, U>(
         fn: Get1<S, (t: T) => U>,
     ) => (t: Get1<S, T>) => Get1<S, U>;
-}
+};
 
 /**
  * Sequences two computations over two functors.

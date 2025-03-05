@@ -10,7 +10,7 @@ import type { PartialEq } from "./partial-eq.ts";
 /**
  * A structure which can be reduced to an accumulated value, such as list and tree.
  */
-export interface Foldable<T> {
+export type Foldable<T> = {
     /**
      * Folds the data structure with `folder` function by right associativity.
      *
@@ -22,7 +22,7 @@ export interface Foldable<T> {
     readonly foldR: <A, B>(
         folder: (next: A) => (acc: B) => B,
     ) => (init: B) => (data: Get1<T, A>) => B;
-}
+};
 
 /**
  * Maps data in the structure `T` into the monoid `M` and folds them with `monoid.combine`.

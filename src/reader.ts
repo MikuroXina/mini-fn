@@ -38,9 +38,7 @@ import type { Profunctor } from "./type-class/profunctor.ts";
 /**
  * The reader monad transformer which expresses the environment for asking a record `R` and returning the computation `A` in `M`.
  */
-export interface ReaderT<R, M, A> {
-    (record: R): Get1<M, A>;
-}
+export type ReaderT<R, M, A> = (record: R) => Get1<M, A>;
 
 /**
  * Transforms the computation of `ReaderT` by `fn`.

@@ -4,10 +4,9 @@ import type { Distributive } from "./distributive.ts";
 import { type Profunctor, rightMap } from "./profunctor.ts";
 import type { Traversable } from "./traversable.ts";
 
-export interface Settable<F>
-    extends Applicative<F>, Distributive<F>, Traversable<F> {
+export type Settable<F> = Applicative<F> & Distributive<F> & Traversable<F> & {
     readonly untainted: <A>(fa: Get1<F, A>) => A;
-}
+};
 
 export const untaintedDot =
     <F>(settable: Settable<F>) =>

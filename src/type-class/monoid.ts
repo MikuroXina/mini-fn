@@ -7,9 +7,9 @@ import { type SemiGroup, semiGroupSymbol } from "./semi-group.ts";
  * - Associative: for all `x`, `y` and `z`; `combine(combine(x, y), z)` equals to `combine(x, combine(y, z))`.
  * - Identity: for all `x`; `combine(x, identity)` equals to `combine(identity, x)` and `x`.
  */
-export interface Monoid<T> extends SemiGroup<T> {
+export type Monoid<T> = SemiGroup<T> & {
     readonly identity: T;
-}
+};
 
 export const append = <T>(monoid: Monoid<T>) => (l: T) => (r: T): T =>
     monoid.combine(l, r);

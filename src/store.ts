@@ -12,10 +12,10 @@ import type { Pure } from "./type-class/pure.ts";
 /**
  * The store comonad transformer, the object holding the index `S` and accessor `(s: S) => A` on `W`.
  */
-export interface StoreT<S, W, A> {
+export type StoreT<S, W, A> = {
     readonly index: S;
     readonly accessor: Get1<W, (s: S) => A>;
-}
+};
 
 /**
  * Creates a new `StoreT` from `accessor` and `index`.

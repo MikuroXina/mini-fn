@@ -13,9 +13,7 @@ import type { Applicative } from "./type-class/applicative.ts";
 /**
  * The state monad transformer, the computation allows you to carry and modify the state `S` of it and returns the result `A` on `M`.
  */
-export interface StateT<S, M, A> {
-    (state: S): Get1<M, [A, S]>;
-}
+export type StateT<S, M, A> = (state: S) => Get1<M, [A, S]>;
 
 /**
  * Runs the computation `s` with the initial state. It is equivalent to the identity function.

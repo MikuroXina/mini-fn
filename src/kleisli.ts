@@ -5,9 +5,9 @@ import type { Monad } from "./type-class/monad.ts";
 /**
  * The kleisli arrow from `A` to `B` in `M`.
  */
-export interface Kleisli<M, A, B> {
+export type Kleisli<M, A, B> = {
     readonly runKleisli: (a: A) => Get1<M, B>;
-}
+};
 
 export interface KleisliHkt extends Hkt3 {
     readonly type: Kleisli<this["arg3"], this["arg2"], this["arg1"]>;

@@ -11,9 +11,9 @@ import type { Contravariant } from "./variance.ts";
  * - Transitivity: If `f` is `PartialOrd`, for all `a`, `b` and `c`; `f(a, b) == f(b, c) == f(a, c)`.
  * - Duality: If `f` is `PartialOrd`, for all `a` and `b`; `f(a, b) == -f(b, a)`.
  */
-export interface PartialOrd<Lhs, Rhs = Lhs> extends PartialEq<Lhs, Rhs> {
+export type PartialOrd<Lhs, Rhs = Lhs> = PartialEq<Lhs, Rhs> & {
     readonly partialCmp: (lhs: Lhs, rhs: Rhs) => Option<Ordering>;
-}
+};
 
 export const fromPartialCmp = <Lhs, Rhs, X = void>(
     partialCmp: (x: X) => (lhs: Lhs, rhs: Rhs) => Option<Ordering>,

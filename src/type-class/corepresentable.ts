@@ -14,7 +14,7 @@ export type ApplyCorep<P, H> = P extends Hkt0 ? P & { readonly corep: H }
 export type Corep<P> = P extends HktCorep ? P["corep"] : never;
 export type GetCorep<P, T> = Get1<Corep<P>, T>;
 
-export interface Corepresentable<P> extends Profunctor<P> {
+export type Corepresentable<P> = Profunctor<P> & {
     readonly functor: Functor<Corep<P>>;
     readonly coindex: <A, B>(
         pab: Get2<P, A, B>,
@@ -22,4 +22,4 @@ export interface Corepresentable<P> extends Profunctor<P> {
     readonly cotabulate: <A, B>(
         f: (corep: GetCorep<P, A>) => B,
     ) => Get2<P, A, B>;
-}
+};

@@ -32,7 +32,7 @@ import {
  * @typeParam M - Monad implementation which wraps `ctx`.
  * @typeParam CTX - Passing context type.
  */
-export interface CatT<M, CTX> {
+export type CatT<M, CTX> = {
     /**
      * Contained context. Altering an interior value must be abstained, or may occurs unsound behaviors.
      */
@@ -148,7 +148,7 @@ export interface CatT<M, CTX> {
      * @returns A reduced value on `M`.
      */
     readonly finishM: <R>(fn: (ctx: CTX) => Get1<M, R>) => Get1<M, R>;
-}
+};
 
 /**
  * Creates a new `CatT` with the wrapped context.
@@ -309,7 +309,7 @@ export interface CatHkt extends Hkt1 {
  *
  * @typeParam T - Type of value, contained by `Cat`.
  */
-export interface Cat<T> {
+export type Cat<T> = {
     /**
      * Contained value. Altering an interior value must be abstained, or may occurs unsound behaviors.
      */
@@ -321,7 +321,7 @@ export interface Cat<T> {
      * @returns A new `Cat` transformed from `value` by `fn`.
      */
     readonly feed: <U>(fn: (t: T) => U) => Cat<U>;
-}
+};
 /**
  * Creates a new `Cat` contained `value`.
  *

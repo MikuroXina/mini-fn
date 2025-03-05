@@ -9,9 +9,9 @@ import { semiGroupSymbol } from "./semi-group.ts";
  * - Identity: for all `x`; `combine(x, identity)` equals to `combine(identity, x)` and `x`.
  * - Inverse: for all `x`; `combine(x, invert(x))` equals to `combine(invert(x), x)` and `identity`.
  */
-export interface GroupExceptZero<G> extends Monoid<G> {
+export type GroupExceptZero<G> = Monoid<G> & {
     readonly invert: (g: G) => Option<G>;
-}
+};
 
 export const subtractEZ =
     <G>(group: GroupExceptZero<G>) => (l: G) => (r: G): Option<G> =>
@@ -60,9 +60,9 @@ export const powiEZ =
  * - Identity: for all `x`; `combine(x, identity)` equals to `combine(identity, x)` and `x`.
  * - Inverse: for all `x`; `combine(x, invert(x))` equals to `combine(invert(x), x)` and `identity`.
  */
-export interface Group<G> extends Monoid<G> {
+export type Group<G> = Monoid<G> & {
     readonly invert: (g: G) => G;
-}
+};
 
 export const toGroupExceptZero = <G>(group: Group<G>): GroupExceptZero<G> => ({
     ...group,

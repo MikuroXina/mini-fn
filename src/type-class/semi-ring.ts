@@ -10,7 +10,7 @@ import type { Monoid } from "./monoid.ts";
  *   - `multiplication.combine(zero, x)` = `zero`,
  *   - `multiplication.combine(x, zero)` = `zero`.
  */
-export interface SemiRing<T> {
+export type SemiRing<T> = {
     additive: AbelianMonoid<T>;
     multiplication: Monoid<T>;
-}
+};

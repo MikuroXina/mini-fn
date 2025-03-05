@@ -19,9 +19,9 @@ export const eqSymbol = Symbol("ImplEq");
  * };
  * ```
  */
-export interface Eq<Lhs, Rhs = Lhs> extends PartialEq<Lhs, Rhs> {
+export type Eq<Lhs, Rhs = Lhs> = PartialEq<Lhs, Rhs> & {
     readonly [eqSymbol]: true;
-}
+};
 
 export const stringEq: Eq<string> = {
     eq: (l, r) => l === r,

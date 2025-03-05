@@ -13,9 +13,7 @@ import { semiGroupSymbol } from "./type-class/semi-group.ts";
 /**
  * The type of function from `A` to `B`.
  */
-export interface Fn<A, B> {
-    (a: A): B;
-}
+export type Fn<A, B> = (a: A) => B;
 
 /**
  * The identity function which returns the passed value as is.

@@ -12,7 +12,7 @@ import type { FlatMap } from "./flat-map.ts";
  * - Right identity: For all `a`; `m.flatMap(m.pure)(a)` equals to `a`,
  * - Associativity: For all `f`, `g` and `a`; `m.flatMap(f)(m.flatMap(g)(a))` equals to `m.flatMap((x) => m.flatMap(f)(g(x)))(a)`.
  */
-export interface Monad<S> extends Applicative<S>, FlatMap<S> {}
+export type Monad<S> = Applicative<S> & FlatMap<S>;
 
 export const flat = <S>(
     m: Monad<S>,

@@ -1,9 +1,8 @@
 import type { Hkt2 } from "./hkt.ts";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface Tagged<S, B> {
+export type Tagged<_S, B> = {
     readonly value: B;
-}
+};
 
 export const tagged = <S, B>(value: B): Tagged<S, B> => ({ value });
 

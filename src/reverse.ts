@@ -12,9 +12,9 @@ const revSymbol = Symbol("ReverseItem");
 /**
  * An utility container to reverse the order of value.
  */
-export interface Reverse<T> {
+export type Reverse<T> = {
     [revSymbol]: T;
-}
+};
 
 export const partialOrd = <T>(
     order: PartialOrd<T>,
