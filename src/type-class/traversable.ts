@@ -14,7 +14,7 @@ import type { Monad } from "./monad.ts";
  * - Identity: For all x; `tra.traverse(Identity.applicative)((a) => a)(x)` equals to `x`,
  * - Composition: For all `f`, `g`, `x` and composed applicative functor `app` for `Compose<F, G, _>`; `tra.traverse(app)((item) => app.map(g)(f(item)))(x)` equals to `app.map(tra.traverse(app)(g))(tra.traverse(app)(f)(x))`.
  */
-export interface Traversable<T> extends Functor<T>, Foldable<T> {
+export type Traversable<T> = Functor<T> & Foldable<T> & {
     /**
      * Maps each item of the structure `data` to an action, and evaluates them from left to right, then collects the result.
      *
@@ -28,7 +28,7 @@ export interface Traversable<T> extends Functor<T>, Foldable<T> {
     ) => <A, B>(
         visitor: (a: A) => Get1<F, B>,
     ) => (data: Get1<T, A>) => Get1<F, Get1<T, B>>;
-}
+};
 
 /**
  * Evaluates actions of the structure `data` from left to right, then collects the result.

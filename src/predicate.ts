@@ -6,9 +6,7 @@ import type { Contravariant } from "./type-class/variance.ts";
 /**
  * The function from `A` to `boolean`. For any set `A`, the set of `Predicate<A>` will be isomorphic to the set of power set of `A`.
  */
-export interface Predicate<A> {
-    (a: A): boolean;
-}
+export type Predicate<A> = (a: A) => boolean;
 
 export interface PredicateHkt extends Hkt1 {
     readonly type: Predicate<this["arg1"]>;

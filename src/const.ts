@@ -10,10 +10,9 @@ import type { PartialEq, PartialEqUnary } from "./type-class/partial-eq.ts";
 import type { PartialOrd } from "./type-class/partial-ord.ts";
 import type { SemiGroupoid } from "./type-class/semi-groupoid.ts";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface Const<A, B> {
+export type Const<A, _B> = {
     readonly getConst: A;
-}
+};
 
 export const newConst = <A, B>(value: A): Const<A, B> => ({ getConst: value });
 

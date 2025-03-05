@@ -13,10 +13,9 @@ import type { Contravariant } from "./variance.ts";
  * - Duality: If `f` is `Ord`, for all `a` and `b`; `f(a, b) == -f(b, a)`.
  * - Strict: Ordering for all values is well-defined (so the return value is not an `Option`).
  */
-export interface Ord<Lhs, Rhs = Lhs>
-    extends PartialOrd<Lhs, Rhs>, Eq<Lhs, Rhs> {
+export type Ord<Lhs, Rhs = Lhs> = PartialOrd<Lhs, Rhs> & Eq<Lhs, Rhs> & {
     readonly cmp: (lhs: Lhs, rhs: Rhs) => Ordering;
-}
+};
 
 export const stringOrd: Ord<string> = {
     ...stringEq,

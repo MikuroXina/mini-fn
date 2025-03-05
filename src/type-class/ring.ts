@@ -14,10 +14,10 @@ import { type Monoid, trivialMonoid } from "./monoid.ts";
  * - Identity on multiplication: for all `x`; `multiplication.combine(multiplication.identity, x)` equals to `multiplication.combine(x, multiplication.identity)` and `x`.
  * - Distributive: for all `x`, `y` and `z`; `multiplication.combine(x, additive.combine(y, z))` equals to `additive.combine(multiplication.combine(x, y), multiplication.combine(x, z))`
  */
-export interface Ring<R> {
+export type Ring<R> = {
     readonly additive: AbelianGroup<R>;
     readonly multiplication: Monoid<R>;
-}
+};
 
 export const trivialRing: Ring<never[]> = {
     additive: trivialAbelianGroup,

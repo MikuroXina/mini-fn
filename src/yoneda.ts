@@ -6,9 +6,9 @@ import type { PartialEqUnary } from "./type-class/partial-eq.ts";
 /**
  * The yoneda functor, a partial application of `map` to its second argument.
  */
-export interface Yoneda<F, A> {
+export type Yoneda<F, A> = {
     readonly yoneda: <X>(fn: (a: A) => X) => Get1<F, X>;
-}
+};
 
 /**
  * The `PartialEqUnary` instance for `Yoneda<F, _>`.

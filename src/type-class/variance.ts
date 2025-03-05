@@ -2,17 +2,17 @@ import { constant } from "../func.ts";
 import type { Get1 } from "../hkt.ts";
 import { type Functor, replace as replaceFunctor } from "./functor.ts";
 
-export interface Invariant<S> {
+export type Invariant<S> = {
     readonly inMap: <T1, U1>(
         f: (t1: T1) => U1,
     ) => (g: (u1: U1) => T1) => (st: Get1<S, T1>) => Get1<S, U1>;
-}
+};
 
-export interface Contravariant<S> {
+export type Contravariant<S> = {
     readonly contraMap: <T1, U1>(
         f: (arg: T1) => U1,
     ) => (u: Get1<S, U1>) => Get1<S, T1>;
-}
+};
 
 export const replace =
     <F>(contra: Contravariant<F>) =>

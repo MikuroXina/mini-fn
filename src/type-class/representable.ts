@@ -21,11 +21,11 @@ export type GetRep<P, T> = Get1<Rep<P>, T>;
  * - `compose(index)(tabulate) == id`,
  * - `compose(tabulate)(index) == id`.
  */
-export interface Representable<P> extends Strong<P> {
+export type Representable<P> = Strong<P> & {
     readonly functor: Functor<Rep<P>>;
     readonly index: <T, U>(f: Get2<P, T, U>) => (rep: T) => GetRep<P, U>;
     readonly tabulate: <T, U>(f: (rep: T) => GetRep<P, U>) => Get2<P, T, U>;
-}
+};
 
 export const first =
     <P>(p: Representable<P>) =>

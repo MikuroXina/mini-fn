@@ -15,7 +15,7 @@ import { semiGroupSymbol } from "./semi-group.ts";
  * - Homomorphism: For all `f` and `x`; `a.apply(a.pure(f))(a.pure(x))` equals to `a.pure(f(x))`,
  * - Interchange: For all `f` and `x`; `a.apply(f)(a.pure(x))` equals to `a.apply(a.pure((i) => i(x)))(f)`.
  */
-export interface Applicative<S> extends Apply<S>, Pure<S> {}
+export type Applicative<S> = Apply<S> & Pure<S>;
 
 export const makeMonoid = <S>(
     app: Applicative<S>,

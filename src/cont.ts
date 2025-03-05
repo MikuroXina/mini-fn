@@ -7,9 +7,7 @@ import type { Monad } from "./type-class/monad.ts";
 /**
  * Monad transformer `ContT`, the generic form of `Cont`.
  */
-export interface ContT<R, M, A> {
-    (callback: (a: A) => Get1<M, R>): Get1<M, R>;
-}
+export type ContT<R, M, A> = (callback: (a: A) => Get1<M, R>) => Get1<M, R>;
 
 /**
  * Runs the computation with a given final computation.
@@ -73,12 +71,12 @@ export const withContT = <M, A, B, R>(
  * const validateName =
  *     (name: string) =>
  *     (exit: (a: string) => Cont<string, never[]>): Cont<string, never[]> =>
- *         when(name.length === 0)(exit("expected at least 1 character"));
+ *         when(name.length === 0)<string>(exit("expected at least 1 character"));
  * const whatYourName = (name: string): string => {
  *     const cont = callCC<string, IdentityHkt, string, never[]>(
  *         (exit) =>
  *             cat(validateName(name)(exit)).feed(
- *                 flatMap(() => pure(`Welcome, ${name}!`)),
+ *                 flatMap<string, IdentityHkt, never[], string>(() => pure<string, string>(`Welcome, ${name}!`)),
  *             ).value,
  *     );
  *     return runCont(cont)(id);
@@ -151,8 +149,8 @@ export type Cont<R, A> = ContT<R, Identity.IdentityHkt, A>;
  * @param cont - The computation.
  * @returns The running result.
  */
-export const runCont: <R, A>(cont: Cont<R, A>) => (fn: (a: A) => R) => R =
-    runContT;
+export const runCont = <R, A>(cont: Cont<R, A>): (fn: (a: A) => R) => R =>
+    runContT<R, Identity.IdentityHkt, A>(cont);
 /**
  * Runs the computation with the identity from `R` to `R`.
  *
@@ -184,9 +182,10 @@ export const evalCont: <R>(cont: Cont<R, R>) => R = evalContT(Identity.monad);
  * assertEquals(actual, 43);
  * ```
  */
-export const mapCont: <R>(
+export const mapCont = <R>(
     mapper: (r: R) => R,
-) => <A>(cont: Cont<R, A>) => Cont<R, A> = mapContT;
+): <A>(cont: Cont<R, A>) => Cont<R, A> =>
+    mapContT<Identity.IdentityHkt, R>(mapper);
 
 /**
  * Applies the function to transform the continuation passed to the computation.
@@ -206,9 +205,10 @@ export const mapCont: <R>(
  * assertEquals(actual, true);
  * ```
  */
-export const withCont: <A, B, R>(
+export const withCont = <A, B, R>(
     callback: (fn: (b: B) => R) => (a: A) => R,
-) => (cont: Cont<R, A>) => Cont<R, B> = withContT;
+): (cont: Cont<R, A>) => Cont<R, B> =>
+    withContT<Identity.IdentityHkt, A, B, R>(callback);
 
 /**
  * Delimits the continuation of any `shift` inside `M`.
@@ -237,7 +237,16 @@ export const shift: <R, A>(
  * @param a - The value to be wrapped.
  * @returns The new computation.
  */
-export const pure = <R, M, A>(a: A): ContT<R, M, A> => (fn) => fn(a);
+export const pureT = <R, M, A>(a: A): ContT<R, M, A> => (fn) => fn(a);
+
+/**
+ * Wraps the value with `Cont`.
+ *
+ * @param a - The value to be wrapped.
+ * @returns The new computation.
+ */
+export const pure = <R, A>(a: A): Cont<R, A> =>
+    pureT<R, Identity.IdentityHkt, A>(a);
 /**
  * Maps the continuation with `mapper`.
  *
@@ -309,10 +318,10 @@ export const liftPromise =
  * @param cont - The computation evaluated if `cond` is `true`.
  * @returns The composed computation.
  */
-export const when =
-    (cond: boolean) =>
-    <R, M>(cont: ContT<R, M, never[]>): ContT<R, M, never[]> =>
-        cond ? cont : pure([]);
+export const when = (cond: boolean) =>
+<R, M = Identity.IdentityHkt>(
+    cont: ContT<R, M, never[]>,
+): ContT<R, M, never[]> => cond ? cont : pure([]);
 /**
  * Provides a branch statement for `Cont`. `cont` will be evaluated if `cond` is `false`, otherwise it will be an empty computation.
  *
@@ -345,7 +354,7 @@ export interface ContTHkt extends Hkt3 {
 /**
  * The instance of `Monad` for `ContT<R, M, _>`.
  */
-export const monad = <R, M>(): Monad<
+export const monad = <R, M = Identity.IdentityHkt>(): Monad<
     Apply3Only<ContTHkt, R> & Apply2Only<ContTHkt, M>
 > => ({
     pure,

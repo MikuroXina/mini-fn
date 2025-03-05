@@ -9,9 +9,9 @@ import type { Contravariant } from "./variance.ts";
  * - Transitive: `PartialEq<A, B>` and `PartialEq<B, C>` always implies `PartialEq<A, C>`.
  */
 
-export interface PartialEq<Lhs, Rhs = Lhs> {
+export type PartialEq<Lhs, Rhs = Lhs> = {
     readonly eq: (l: Lhs, r: Rhs) => boolean;
-}
+};
 
 export interface PartialEqHkt extends Hkt1 {
     readonly type: PartialEq<this["arg1"]>;
@@ -51,11 +51,11 @@ export const monoid = <Lhs, Rhs = Lhs>(): Monoid<PartialEq<Lhs, Rhs>> => ({
     [semiGroupSymbol]: true,
 });
 
-export interface PartialEqUnary<F> {
+export type PartialEqUnary<F> = {
     readonly liftEq: <Lhs, Rhs = Lhs>(
         equality: (l: Lhs, r: Rhs) => boolean,
     ) => (l: Get1<F, Lhs>, r: Get1<F, Rhs>) => boolean;
-}
+};
 
 /**
  * Creates the new lifter of equality from a transformer of `PartialEq`.

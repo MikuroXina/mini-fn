@@ -4,7 +4,7 @@ import type { Applicative } from "./applicative.ts";
 import type { Bifoldable } from "./bifoldable.ts";
 import type { Bifunctor } from "./bifunctor.ts";
 
-export interface Bitraversable<T> extends Bifunctor<T>, Bifoldable<T> {
+export type Bitraversable<T> = Bifunctor<T> & Bifoldable<T> & {
     bitraverse: <F>(
         app: Applicative<F>,
     ) => <A, C>(
@@ -12,7 +12,7 @@ export interface Bitraversable<T> extends Bifunctor<T>, Bifoldable<T> {
     ) => <B, D>(
         g: (b: B) => Get1<F, D>,
     ) => (data: Get2<T, A, B>) => Get1<F, Get2<T, C, D>>;
-}
+};
 
 export const bisequenceA =
     <T, F>(bi: Bitraversable<T>, app: Applicative<F>) =>

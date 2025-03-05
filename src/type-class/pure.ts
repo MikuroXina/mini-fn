@@ -1,8 +1,8 @@
 import type { Get1 } from "../hkt.ts";
 
-export interface Pure<S> {
+export type Pure<S> = {
     readonly pure: <T>(t: T) => Get1<S, T>;
-}
+};
 
 export const when =
     <S>(app: Pure<S>) =>

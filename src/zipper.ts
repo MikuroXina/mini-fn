@@ -37,7 +37,7 @@ import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
 /**
  * The zipper represents the cursor of non-empty list.
  */
-export interface Zipper<T> {
+export type Zipper<T> = {
     /**
      * The left side of zipper, its order is reversed from the source list.
      */
@@ -50,7 +50,7 @@ export interface Zipper<T> {
      * The right side of zipper, its order is same as the source list.
      */
     readonly right: List<T>;
-}
+};
 
 export const partialEquality =
     <T>(equalityT: PartialEq<T>) =>

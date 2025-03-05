@@ -1,11 +1,11 @@
 import { type FnHkt, id } from "../func.ts";
 import type { Get2 } from "../hkt.ts";
 
-export interface Profunctor<S> {
+export type Profunctor<S> = {
     readonly diMap: <A, B>(
         f: (a: A) => B,
     ) => <C, D>(g: (c: C) => D) => (m: Get2<S, B, C>) => Get2<S, A, D>;
-}
+};
 
 export const leftMap =
     <S>(pro: Profunctor<S>) =>

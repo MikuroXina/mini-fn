@@ -10,7 +10,7 @@ import type { Iso } from "./iso.ts";
  * - `forward(rightUnit())(i.compose(a)) == a`,
  * - `backward(rightUnit())(a) == i.compose(a)`.
  */
-export interface Tensor<Cat, T, I> extends Associative<Cat, T> {
+export type Tensor<Cat, T, I> = Associative<Cat, T> & {
     readonly leftUnit: <A>() => Iso<Cat, Get2<T, I, A>, A>;
     readonly rightUnit: <A>() => Iso<Cat, Get2<T, A, I>, A>;
-}
+};

@@ -7,9 +7,9 @@ export const semiGroupSymbol = Symbol("ImplSemiGroup");
  *
  * - Associative: If `S` is a `SemiGroup`, for all `x`, `y` and `z`, `S.combine(S.combine(x, y), z)` equals to `S.combine(x, S.combine(y, z))`.
  */
-export interface SemiGroup<T> extends Magma<T> {
+export type SemiGroup<T> = Magma<T> & {
     [semiGroupSymbol]: true;
-}
+};
 
 export const combineAll =
     <T>(s: SemiGroup<T>) => (init: T) => (arr: readonly T[]): T =>

@@ -39,9 +39,10 @@ export const newTraversal = <T, F, A, B>(
     app: Applicative<F>,
 ): Traversal<T, F, A, B> =>
 <R>(next: (sending: A) => Cont<R, Get1<F, B>>) =>
-(received) =>
-    map(sequenceA(tra, app)<B>)(
-        tra.traverse<Apply2Only<ContHkt, R>>(monad())(next)(received),
+(received: Get1<T, A>): Cont<R, Get1<F, Get1<T, B>>> =>
+    map(sequenceA(tra, app)<B>)<R, IdentityHkt>(
+        tra
+            .traverse<Apply2Only<ContHkt, R>>(monad<R>())(next)(received),
     );
 
 export const newBitraversal = <T, F, A, B>(
@@ -50,8 +51,8 @@ export const newBitraversal = <T, F, A, B>(
 ): Bitraversal<T, F, A, B> =>
 <R>(next: (sending: A) => Cont<R, Get1<F, B>>) =>
 (received: Get2<T, A, A>): Cont<R, Get1<F, Get2<T, B, B>>> =>
-    map(bisequenceA(tra, app)<B, B>)(
-        tra.bitraverse<Apply2Only<ContHkt, R>>(monad())(next)(next)(
+    map(bisequenceA(tra, app)<B, B>)<R, IdentityHkt>(
+        tra.bitraverse<Apply2Only<ContHkt, R>>(monad<R>())(next)(next)(
             received,
         ),
     );

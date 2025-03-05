@@ -6,9 +6,9 @@ import { type SemiGroup, semiGroupSymbol } from "./semi-group.ts";
 
 export type NaturalTransformation<F, G> = <T>(f: Get1<F, T>) => Get1<G, T>;
 
-export interface Nt<F, G> {
+export type Nt<F, G> = {
     readonly nt: NaturalTransformation<F, G>;
-}
+};
 
 export interface NtHkt extends Hkt2 {
     readonly type: Nt<this["arg2"], this["arg1"]>;
@@ -36,9 +36,9 @@ export const monoid = <F>(): Monoid<Nt<F, F>> => ({
     [semiGroupSymbol]: true,
 });
 
-export interface Transformation<F, G, T> {
+export type Transformation<F, G, T> = {
     readonly transform: (t: T) => <A>(fa: Get1<F, A>) => Get1<G, A>;
-}
+};
 
 export const transformation = <F, G>(): Transformation<F, G, Nt<F, G>> => ({
     transform: ({ nt }) => nt,

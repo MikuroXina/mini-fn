@@ -11,9 +11,7 @@ import type { Contravariant } from "./type-class/variance.ts";
 /**
  * Inverse of arrow from `A` to `B`.
  */
-export interface Dual<A, B> {
-    (b: B): A;
-}
+export type Dual<A, B> = (b: B) => A;
 
 export interface DualHkt extends Hkt2 {
     readonly type: Dual<this["arg2"], this["arg1"]>;

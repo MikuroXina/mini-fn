@@ -15,6 +15,6 @@ import type { Ring } from "./ring.ts";
  * - Inverse on multiplication: for all `x` except zero; exists `y`; `multiplication.combine(x, y)` equals to `multiplication.combine(y, x)` and `multiplication.identity`.
  * - Distributive: for all `x`, `y` and `z`; `multiplication.combine(x, additive.combine(y, z))` equals to `additive.combine(multiplication.combine(x, y), multiplication.combine(x, z))`
  */
-export interface Field<K> extends Ring<K> {
+export type Field<K> = Ring<K> & {
     multiplication: AbelianGroupExceptZero<K>;
-}
+};

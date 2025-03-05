@@ -10,7 +10,7 @@ import type { Monad } from "./monad.ts";
  * - Identity: For all functor `f` and data `x`; `distribute(f)(x)` equals to `distribute(f)(map(id)(x))`,
  * - Reversibility: For all distributive functor `f` and data `x`; `g.distribute(f)(f.distribute(g)(x))` equals to `x`.
  */
-export interface Distributive<G> extends Functor<G> {
+export type Distributive<G> = Functor<G> & {
     /**
      * The dual of `sequenceA` of traversable functor.
      *
@@ -21,7 +21,7 @@ export interface Distributive<G> extends Functor<G> {
     readonly distribute: <F>(
         functor: Functor<F>,
     ) => <A>(fga: Get1<F, Get1<G, A>>) => Get1<G, Get1<F, A>>;
-}
+};
 
 export const collect =
     <G>(dist: Distributive<G>) =>

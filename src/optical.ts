@@ -33,7 +33,7 @@ export type Optical<M, in S, out T, out A, in B> = <R>(
     next: (sending: A) => ContT<R, M, B>,
 ) => (received: S) => ContT<R, M, T>;
 
-export interface OpticalCat<M, S, T, A, B> {
+export type OpticalCat<M, S, T, A, B> = {
     /**
      * Feeds the `Optic` and produces a new environment.
      *
@@ -76,7 +76,7 @@ export interface OpticalCat<M, S, T, A, B> {
      * @returns Extracted value.
      */
     readonly unwrap: () => Get1<M, A>;
-}
+};
 
 /**
  * Modifies the value of the focused entry.
@@ -228,7 +228,7 @@ export const unwrap = <S, T, A, B>(lens: Optic<S, T, A, B>) => (data: S): A =>
         throw new Error("no entry");
     });
 
-export interface OpticCat<S, T, A, B> {
+export type OpticCat<S, T, A, B> = {
     /**
      * Feeds the `Optic` and produces a new environment.
      *
@@ -269,7 +269,7 @@ export interface OpticCat<S, T, A, B> {
      * @returns Extracted value.
      */
     readonly unwrap: () => A;
-}
+};
 
 /**
  * Creates a focused environment to compute about the part of the data structure.
@@ -302,10 +302,10 @@ export const focused =
 export const opticCat = <S>(data: S): OpticCat<S, S, S, S> =>
     focused(data)(identity());
 
-export interface OverCat<A, B> {
+export type OverCat<A, B> = {
     readonly on: <S, T>(o: Optic<S, T, A, B>) => OverCat<S, T>;
     readonly from: (source: A) => B;
-}
+};
 
 export const overCat = <A, B>(modifier: (a: A) => B): OverCat<A, B> => ({
     on: <S, T>(o: Optic<S, T, A, B>) =>

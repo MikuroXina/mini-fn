@@ -12,6 +12,7 @@ import {
     monad,
     product,
     pure,
+    pureT,
     reset,
     runContT,
     shift,
@@ -60,7 +61,7 @@ Deno.test("mapContT", () => {
     const res = mapContT<ArrayHkt, number>((data: readonly number[]) =>
         data.flatMap((x) => [x + 1, x + 2])
     )(
-        pure<number, ArrayHkt, never[]>([]),
+        pureT<number, ArrayHkt, never[]>([]),
     )(() => [1, 3]);
     assertEquals(res, [2, 3, 4, 5]);
 });
@@ -107,11 +108,11 @@ Deno.test("callCC", () => {
 
 Deno.test("shift and reset", () => {
     const actual = evalCont(reset<number, number>(
-        doT(monad())
+        doT(monad<number>())
             .addM(
                 "ret",
                 shift<number, number>((exit) =>
-                    doT(monad())
+                    doT(monad<number>())
                         .addWith("x", () => exit(2))
                         .addWith("y", () => exit(3))
                         .finish(({ x, y }) => x * y)
@@ -131,7 +132,9 @@ Deno.test("liftLocal", async () => {
 });
 
 Deno.test("product", () => {
-    const actual = evalCont<[number, number]>(product(pure(2))(pure(3)));
+    const actual = evalCont(
+        product<[number, number], IdentityHkt, number>(pure(2))(pure(3)),
+    );
     assertEquals(actual, [2, 3]);
 });
 

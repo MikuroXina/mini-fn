@@ -5,9 +5,9 @@ import type { MonadTrans, MonadTransHkt } from "../trans.ts";
 import type { Functor } from "../type-class/functor.ts";
 import { flat, type Monad } from "../type-class/monad.ts";
 
-export interface MonadFree<F, M> extends Monad<M> {
+export type MonadFree<F, M> = Monad<M> & {
     readonly wrap: <A>(fma: Get1<F, Get1<M, A>>) => Get1<M, A>;
-}
+};
 
 export const liftF =
     <F, M>(functor: Functor<F>, monadFree: MonadFree<F, M>) =>

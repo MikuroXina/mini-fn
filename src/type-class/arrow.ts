@@ -15,7 +15,7 @@ import { type Category, pipe } from "./category.ts";
  * - Independence: For all `f` and `g`; `a.compose(a.arr(Func.split(Func.id)(g)))(a.split(f)(a.identity()))` equals to `a.compose(a.split(f)(a.identity()))(a.arr(Func.split(Func.id)(g)))`,
  * - Idempotence: `a.compose(a.arr(Tuple.assocR))(a.split(a.split(f)(a.identity()))(a.identity()))` equals to `a.compose(a.split(f)(a.identity()))(a.arr(Tuple.assocR))`.
  */
-export interface Arrow<A> extends Category<A> {
+export type Arrow<A> = Category<A> & {
     /**
      * Lifts a function to an arrow.
      *
@@ -35,7 +35,7 @@ export interface Arrow<A> extends Category<A> {
     ) => <B2, C2>(
         arrow2: Get2<A, B2, C2>,
     ) => Get2<A, Tuple<B1, B2>, Tuple<C1, C2>>;
-}
+};
 
 /**
  * Embeds the arrow as a first path into a new one.

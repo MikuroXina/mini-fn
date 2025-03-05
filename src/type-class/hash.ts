@@ -15,9 +15,9 @@ import {
 import type { Eq } from "./eq.ts";
 import { nonNanOrd } from "./ord.ts";
 
-export interface Hash<T> extends Eq<T> {
+export type Hash<T> = Eq<T> & {
     readonly hash: (self: T) => (hasher: Hasher) => Hasher;
-}
+};
 
 export const nonNanHash: Hash<number> = {
     ...nonNanOrd,
@@ -25,6 +25,7 @@ export const nonNanHash: Hash<number> = {
         if (Number.isNaN(self)) {
             throw new Error("NaN is not allowed for this hash impl");
         }
+        // FIXME: Replace encU32Le with encF64Le
         return hasher.write(runCode(encU32Le(self)));
     },
 };

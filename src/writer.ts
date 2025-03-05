@@ -35,9 +35,7 @@ import type { SemiGroup } from "./type-class/semi-group.ts";
 /**
  * The write monad transformer, the computation which returns the result `A` and output `W` on `M`.
  */
-export interface WriterT<W, M, A> {
-    (): Get1<M, [A, W]>;
-}
+export type WriterT<W, M, A> = () => Get1<M, [A, W]>;
 
 /**
  * Extracts the output from the computation.

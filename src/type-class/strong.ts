@@ -2,10 +2,10 @@ import type { Get2 } from "../hkt.ts";
 import type { Category } from "./category.ts";
 import { type Profunctor, rightMap } from "./profunctor.ts";
 
-export interface Strong<S> extends Profunctor<S> {
+export type Strong<S> = Profunctor<S> & {
     readonly first: <A, B, C>(m: Get2<S, A, B>) => Get2<S, [A, C], [B, C]>;
     readonly second: <A, B, C>(m: Get2<S, A, B>) => Get2<S, [C, A], [C, B]>;
-}
+};
 
 export const split =
     <S>(str: Strong<S>, cat: Category<S>) =>
@@ -28,7 +28,7 @@ export const fanOut = <S>(str: Strong<S>, cat: Category<S>) =>
         );
 };
 
-export interface Costrong<S> {
+export type Costrong<S> = {
     readonly unFirst: <A, B, C>(m: Get2<S, [A, C], [B, C]>) => Get2<S, A, B>;
     readonly unSecond: <A, B, C>(m: Get2<S, [C, A], [C, B]>) => Get2<S, A, B>;
-}
+};
