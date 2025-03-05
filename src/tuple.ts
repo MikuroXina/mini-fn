@@ -297,7 +297,7 @@ export const traverse =
     <F>(semi: SemiGroupal<F>) =>
     <A, B>(visitor: (a: A) => Get1<F, B>) =>
     ([a1, a2]: [A, A]): Get1<F, Tuple<B, B>> =>
-        semi.product<B, B>(visitor(a1))(visitor(a2));
+        semi.product<B>(visitor(a1))(visitor(a2));
 
 /**
  * Maps both elements of the tuple.

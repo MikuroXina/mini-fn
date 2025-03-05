@@ -13,9 +13,9 @@ export type SemiGroupal<F> = {
      * @param fb - The right-hand side value on `F`.
      * @returns A new pair-value of `fa` and `fb`.
      */
-    readonly product: <A, B>(
+    readonly product: <A>(
         fa: Get1<F, A>,
-    ) => (fb: Get1<F, B>) => Get1<F, Tuple<A, B>>;
+    ) => <B>(fb: Get1<F, B>) => Get1<F, Tuple<A, B>>;
 };
 
 /**
