@@ -71,12 +71,12 @@ export const withContT = <M, A, B, R>(
  * const validateName =
  *     (name: string) =>
  *     (exit: (a: string) => Cont<string, never[]>): Cont<string, never[]> =>
- *         when(name.length === 0)(exit("expected at least 1 character"));
+ *         when(name.length === 0)<string>(exit("expected at least 1 character"));
  * const whatYourName = (name: string): string => {
  *     const cont = callCC<string, IdentityHkt, string, never[]>(
  *         (exit) =>
  *             cat(validateName(name)(exit)).feed(
- *                 flatMap(() => pure(`Welcome, ${name}!`)),
+ *                 flatMap<string, IdentityHkt, never[], string>(() => pure<string, string>(`Welcome, ${name}!`)),
  *             ).value,
  *     );
  *     return runCont(cont)(id);
@@ -318,10 +318,10 @@ export const liftPromise =
  * @param cont - The computation evaluated if `cond` is `true`.
  * @returns The composed computation.
  */
-export const when =
-    (cond: boolean) =>
-    <R, M>(cont: ContT<R, M, never[]>): ContT<R, M, never[]> =>
-        cond ? cont : pure([]);
+export const when = (cond: boolean) =>
+<R, M = Identity.IdentityHkt>(
+    cont: ContT<R, M, never[]>,
+): ContT<R, M, never[]> => cond ? cont : pure([]);
 /**
  * Provides a branch statement for `Cont`. `cont` will be evaluated if `cond` is `false`, otherwise it will be an empty computation.
  *
