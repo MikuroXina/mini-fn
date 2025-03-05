@@ -1,14 +1,7 @@
 import { assertEquals } from "../deps.ts";
 import { cat } from "./cat.ts";
 import type { Apply2Only } from "./hkt.ts";
-import {
-    get,
-    monad,
-    put,
-    type State,
-    type StateHkt,
-    type StateTHkt,
-} from "./state.ts";
+import { get, monad, put, type State, type StateHkt } from "./state.ts";
 import { begin, bindT } from "./type-class/monad.ts";
 
 Deno.test("roll three dices", () => {
@@ -22,7 +15,7 @@ Deno.test("roll three dices", () => {
         };
 
     const bound = bindT<Apply2Only<StateHkt, number>>(monad())(xorShiftRng);
-    const results = cat(begin<StateTHkt>(monad()))
+    const results = cat(begin(monad<number>()))
         .feed(bound("result1"))
         .feed(bound("result2"))
         .feed(bound("result3"))
