@@ -95,14 +95,14 @@ export interface PromiseTHkt extends Hkt2 {
  * @param identity - The identity of `T` that used as a default value.
  * @returns The instance of `Monoid` for `PromiseT<M, T>`.
  */
-export const monoidT =
-    <M>(m: TraversableMonad<M>) => <T>(
-        identity: T,
-    ): Monoid<PromiseT<M, T>> => ({
-        identity: Promise.resolve(m.pure(identity)),
-        combine: (l, r) => flatMapT(m)((mr: T) => mapT(m)(() => mr)(l))(r),
-        [semiGroupSymbol]: true,
-    });
+export const monoidT = <M>(m: TraversableMonad<M>) =>
+<T>(
+    identity: T,
+): Monoid<PromiseT<M, T>> => ({
+    identity: Promise.resolve(m.pure(identity)),
+    combine: (l, r) => flatMapT(m)((mr: T) => mapT(m)(() => mr)(l))(r),
+    [semiGroupSymbol]: true,
+});
 
 /**
  * @param m - The instance of `Functor` for `M`.
@@ -217,6 +217,13 @@ export const tailRecM =
         }
         return flow[1];
     };
+
+/**
+ * Re-exports `Promise.all` from the standard API.
+ */
+export const all = <T>(
+    iterable: Iterable<T | PromiseLike<T>>,
+): Promise<Awaited<T>[]> => Promise.all(iterable);
 
 export interface PromiseHkt extends Hkt1 {
     readonly type: Promise<this["arg1"]>;
