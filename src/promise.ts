@@ -96,8 +96,9 @@ export interface PromiseTHkt extends Hkt2 {
  * @returns The instance of `Monoid` for `PromiseT<M, T>`.
  */
 export const monoidT =
-    <M>(m: Traversable<M> & Monad<M>) =>
-    <T>(identity: T): Monoid<PromiseT<M, T>> => ({
+    <M>(m: TraversableMonad<M>) => <T>(
+        identity: T,
+    ): Monoid<PromiseT<M, T>> => ({
         identity: Promise.resolve(m.pure(identity)),
         combine: (l, r) => flatMapT(m)((mr: T) => mapT(m)(() => mr)(l))(r),
         [semiGroupSymbol]: true,
