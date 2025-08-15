@@ -53,7 +53,11 @@ export const single = <A>(data: A): Single<A> => ({
 /**
  * A root of subtree.
  */
-export type Digit<A> = [A] | [A, A] | [A, A, A] | [A, A, A, A];
+export type Digit<A> =
+    | readonly [A]
+    | readonly [A, A]
+    | readonly [A, A, A]
+    | readonly [A, A, A, A];
 
 export interface DigitHkt extends Hkt1 {
     readonly type: Digit<this["arg1"]>;
@@ -67,7 +71,7 @@ export const reduceDigit: Reduce<DigitHkt> = reduceArray;
 /**
  * A leaf of subtree.
  */
-export type Node<A> = [A, A] | [A, A, A];
+export type Node<A> = readonly [A, A] | readonly [A, A, A];
 
 export interface NodeHkt extends Hkt1 {
     readonly type: Node<this["arg1"]>;
@@ -338,14 +342,14 @@ const nodes = <A>(middle: readonly A[]): Node<A>[] => {
         case 3:
             return [middle as Node<A>];
         case 4: {
-            const [a, b, c, d] = middle;
+            const [a, b, c, d] = middle as readonly [A, A, A, A];
             return [
                 [a, b],
                 [c, d],
             ];
         }
         default: {
-            const [a, b, c, ...rest] = middle;
+            const [a, b, c, ...rest] = middle as readonly [A, A, A, ...A[]];
             return [[a, b, c], ...nodes(rest)];
         }
     }

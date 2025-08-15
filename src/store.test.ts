@@ -14,10 +14,10 @@ import {
 import { experiment, extend, extract, type Store } from "./store.ts";
 
 Deno.test("store with life game", () => {
-    type Coord = [number, number];
+    type Coord = readonly [number, number];
     type CellPlane<T> = Store<Coord, T>;
     type Conway = "Dead" | "Alive";
-    type Area = { width: number; height: number };
+    type Area = Readonly<{ width: number; height: number }>;
 
     const neighborsOf = ([x, y]: Coord): List<Coord> =>
         fromArray(

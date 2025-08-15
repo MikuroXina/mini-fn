@@ -3,7 +3,7 @@ import { none, type Option, some } from "../option.ts";
 import { type GroupExceptZero, powiEZ, subtractEZ } from "./group.ts";
 import { semiGroupSymbol } from "./semi-group.ts";
 
-type Matrix = [a: number, b: number, c: number, d: number];
+type Matrix = readonly [a: number, b: number, c: number, d: number];
 
 const matrixGroup: GroupExceptZero<Matrix> = {
     identity: [1, 0, 0, 1],

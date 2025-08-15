@@ -46,7 +46,7 @@ Deno.test("counter", () => {
 });
 
 Deno.test("doubling", () => {
-    type Mat = [a11: number, a12: number, a21: number, a22: number];
+    type Mat = readonly [a11: number, a12: number, a21: number, a22: number];
     const ident: Mat = [1, 0, 0, 1];
     const mul =
         ([a11, a12, a21, a22]: Mat) => ([b11, b12, b21, b22]: Mat): Mat => [
