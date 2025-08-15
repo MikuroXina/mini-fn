@@ -31,7 +31,7 @@ import { semiGroupSymbol } from "./type-class/semi-group.ts";
 /**
  * Strides of dimensions. The first element is steps needed to seek columns, and the second element is steps needed to seek rows.
  */
-export type Strides = [columnStep: number, rowStep: number];
+export type Strides = readonly [columnStep: number, rowStep: number];
 
 /**
  * A numbers matrix that represents coefficients.
@@ -200,8 +200,9 @@ export const rawNums = (mat: Matrix): Float64Array => mat.nums;
  * @param mat - The matrix.
  * @returns The internal strides.
  */
-export const strides = (mat: Matrix): [columnStep: number, rowStep: number] =>
-    mat.strides;
+export const strides = (
+    mat: Matrix,
+): readonly [columnStep: number, rowStep: number] => mat.strides;
 
 /**
  * Gets the length of row-axis, or count of the columns.

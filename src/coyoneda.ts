@@ -18,7 +18,10 @@ import {
 /**
  * Calculation on a space `X` and mapping function from `X` to an inclusion space `A`.
  */
-export type CoyonedaT<F, A, X> = [map: (shape: X) => A, image: Get1<F, X>];
+export type CoyonedaT<F, A, X> = readonly [
+    map: (shape: X) => A,
+    image: Get1<F, X>,
+];
 
 export interface CoyonedaTHkt extends Hkt3 {
     readonly type: CoyonedaT<this["arg3"], this["arg2"], this["arg1"]>;

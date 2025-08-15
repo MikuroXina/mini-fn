@@ -135,7 +135,7 @@ export type BuildStep<T> = (range: BufferRange) => BuildSignal<T>;
 /**
  * A range of data bytes that required to build a serial of binaries.
  */
-export type BufferRange = [startIndex: number, length: number];
+export type BufferRange = readonly [startIndex: number, length: number];
 
 export const buildDoneNominal = Symbol("BuildSignalBuildDone");
 export const bufferFullNominal = Symbol("BuildSignalBufferFull");

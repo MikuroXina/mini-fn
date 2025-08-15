@@ -529,9 +529,9 @@ export const dijkstra =
     (graph: Graph): W[] => {
         const dist = [...new Array(graph.length)].map(() => order.infinity);
         const visited = new Set<Vertex>();
-        type WeightedVertex = [Vertex, W];
+        type WeightedVertex = readonly [Vertex, W];
         interface WeightedVertexHkt extends Hkt1 {
-            readonly type: [Vertex, this["arg1"]];
+            readonly type: readonly [Vertex, this["arg1"]];
         }
         doMut(<S>(cat: CatT<Apply2Only<MutHkt, S>, Record<string, never>>) =>
             cat.addM(
