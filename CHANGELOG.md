@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.0.1](https://github.com/MikuroXina/mini-fn/compare/v7.0.0...v7.0.1) (2025-09-20)
+
+
+### Bug Fixes
+
+* Append readonly to tuple types ([#283](https://github.com/MikuroXina/mini-fn/issues/283)) ([d0750d6](https://github.com/MikuroXina/mini-fn/commit/d0750d62964e746a4471ed9cfd622b480c3275a7))
+
 ## [7.0.0](https://github.com/MikuroXina/mini-fn/compare/v6.8.0...v7.0.0) (2025-03-04)
 
 
