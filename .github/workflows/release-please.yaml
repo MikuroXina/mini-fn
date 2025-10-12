@@ -1,83 +1,83 @@
 on:
-  workflow_dispatch:
-    inputs:
-      force:
-        description: Whether forcing to publish a release
-        required: true
-        type: boolean
-      release_version:
-        description: Version to publish (vX.Y.Z)
-        required: true
-        type: string
-  push:
-    branches:
-      - main
+    workflow_dispatch:
+        inputs:
+            force:
+                description: Whether forcing to publish a release
+                required: true
+                type: boolean
+            release_version:
+                description: Version to publish (vX.Y.Z)
+                required: true
+                type: string
+    push:
+        branches:
+            - main
 
 permissions:
-  contents: write
-  id-token: write
-  pull-requests: write
+    contents: write
+    id-token: write
+    pull-requests: write
 
 name: release-please
 jobs:
-  release-please:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: googleapis/release-please-action@v4
-        id: release_please
-        with:
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
-    outputs:
-      release_created: ${{ steps.release_please.outputs.release_created }}
-      tag_name: ${{ steps.release_please.outputs.tag_name }}
+    release-please:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: googleapis/release-please-action@v4
+              id: release_please
+              with:
+                  config-file: release-please-config.json
+                  manifest-file: .release-please-manifest.json
+        outputs:
+            release_created: ${{ steps.release_please.outputs.release_created }}
+            tag_name: ${{ steps.release_please.outputs.tag_name }}
 
-  publish:
-    runs-on: ubuntu-latest
-    needs: release-please
-    if: ${{ needs.release-please.outputs.release_created || github.event.inputs.force }}
-    env:
-      VERSION: ${{ needs.release-please.outputs.tag_name || inputs.release_version }}
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: denoland/setup-deno@v1
-        with:
-          deno-version: v1.x
-
-      - name: Generate docs
-        run: deno task doc
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-
-      - name: Setup Node.js package
-        run: |
-            deno run -A ./scripts/build_npm.ts ${VERSION#v}
-
-      - uses: JS-DevTools/npm-publish@v4
-        with:
-            token: ${{ secrets.NPM_TOKEN }}
-            package: npm/
-            provenance: true
-
-      - name: Publish package
-        run: npx jsr publish
-
-      - name: Upload files
+    publish:
+        runs-on: ubuntu-latest
+        needs: release-please
+        if: ${{ needs.release-please.outputs.release_created || github.event.inputs.force }}
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -e
-          echo "Creating tarball"
-          tar cvzf raw.tar.gz --directory=npm/ .
-          echo "Creating zip"
-          pushd npm
-          zip -r "$GITHUB_WORKSPACE/raw.zip" ./*
-          popd
-          echo "Uploading release assets"
-          gh release upload ${{ env.VERSION }} raw.zip raw.tar.gz --clobber
+            VERSION: ${{ needs.release-please.outputs.tag_name || inputs.release_version }}
+        steps:
+            - uses: actions/checkout@v5
+              with:
+                  fetch-depth: 0
+            - uses: denoland/setup-deno@v1
+              with:
+                  deno-version: 2.x
+
+            - name: Generate docs
+              run: deno task doc
+
+            - name: Deploy to GitHub Pages
+              uses: peaceiris/actions-gh-pages@v4
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./docs
+
+            - name: Setup Node.js package
+              run: |
+                  deno run -A ./scripts/build_npm.ts ${VERSION#v}
+
+            - uses: JS-DevTools/npm-publish@v4
+              with:
+                  token: ${{ secrets.NPM_TOKEN }}
+                  package: npm/
+                  provenance: true
+
+            - name: Publish package
+              run: npx jsr publish
+
+            - name: Upload files
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  set -e
+                  echo "Creating tarball"
+                  tar cvzf raw.tar.gz --directory=npm/ .
+                  echo "Creating zip"
+                  pushd npm
+                  zip -r "$GITHUB_WORKSPACE/raw.zip" ./*
+                  popd
+                  echo "Uploading release assets"
+                  gh release upload ${{ env.VERSION }} raw.zip raw.tar.gz --clobber
