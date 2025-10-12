@@ -43,7 +43,7 @@ export type Tag<T> = Readonly<{
     /**
      * Identifier for virtual DOM. When updating the actual DOM, the identifier of elements will be used for efficient updates if defined.
      */
-    virtualId?: string;
+    virtualId: string | undefined;
     /**
      * Configuration of the tag.
      */

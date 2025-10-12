@@ -122,7 +122,7 @@ export const inDegree = (graph: Graph): number[] => {
     const degrees = [...new Array(graph.length)].map(() => 0) as number[];
     for (let from = 0 as Vertex; from < graph.length; ++from) {
         for (const to of toIterator(adjsFrom(from)(graph))) {
-            ++degrees[to];
+            ++degrees[to]!;
         }
     }
     return degrees;
@@ -149,7 +149,7 @@ export const fromEdges =
             let end = edges.length - 1;
             while (start <= end) {
                 const mid = start + Math.floor((end - start) / 2);
-                switch (order.cmp(key, keyMap[mid])) {
+                switch (order.cmp(key, keyMap[mid]!)) {
                     case equal:
                         return some(mid as Vertex);
                     case less:
@@ -166,7 +166,7 @@ export const fromEdges =
         );
         return {
             graph,
-            getVertex: (vertex) => sortedEdges[vertex],
+            getVertex: (vertex) => sortedEdges[vertex]!,
             indexVertex,
         };
     };
@@ -192,7 +192,7 @@ export const build = ([start, end]: Bounds) => (edges: List<Edge>): Graph => {
         if (!(start <= to && to <= end)) {
             throw new Error("`to` is out of bounds");
         }
-        graph[from] = appendToHead(to)(graph[from]);
+        graph[from] = appendToHead(to)(graph[from]!);
     }
     return graph;
 };
@@ -362,10 +362,10 @@ export const connectedComponents = (graph: Graph): Set<Vertex>[] => {
      */
     const unionFind = new Array<number>(graph.length).fill(-1);
     const repr = (idx: number): number => {
-        if (unionFind[idx] < 0) {
+        if (unionFind[idx]! < 0) {
             return idx;
         }
-        const parent = repr(unionFind[idx]);
+        const parent = repr(unionFind[idx]!);
         unionFind[idx] = parent;
         return parent;
     };
@@ -375,11 +375,11 @@ export const connectedComponents = (graph: Graph): Set<Vertex>[] => {
         if (a === b) {
             return;
         }
-        if (unionFind[a] > unionFind[b]) {
+        if (unionFind[a]! > unionFind[b]!) {
             [a, b] = [b, a];
         }
-        const greaterRoot = unionFind[b];
-        unionFind[a] += greaterRoot;
+        const greaterRoot = unionFind[b]!;
+        unionFind[a]! += greaterRoot;
         unionFind[b] = a;
     };
 

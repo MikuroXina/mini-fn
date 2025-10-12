@@ -16,8 +16,8 @@ export const partialCmp = <T extends unknown[]>(
     const len = Math.min(lhs.length, rhs.length);
     let result: Ordering = equal;
     for (let i = 0; i < len; i += 1) {
-        const order = orderDict[i].partialCmp(lhs[i], rhs[i]);
-        if (isNone(order)) {
+        const order = orderDict[i]?.partialCmp(lhs[i], rhs[i]);
+        if (order === undefined || isNone(order)) {
             return none();
         }
         result = and(order[1])(result);
@@ -38,7 +38,10 @@ export const cmp = <T extends unknown[]>(
     const len = Math.min(lhs.length, rhs.length);
     let result: Ordering = equal;
     for (let i = 0; i < len; i += 1) {
-        result = and(orderDict[i].cmp(lhs[i], rhs[i]))(result);
+        const order = orderDict[i]?.cmp(lhs[i], rhs[i]);
+        if (order !== undefined) {
+            result = and(order)(result);
+        }
     }
     return result;
 };

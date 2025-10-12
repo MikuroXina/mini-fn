@@ -359,6 +359,6 @@ Deno.test("dijkstra", () => {
     ];
     const distancesFromStart = dijkstra(addMonoid, nonNanOrd)((
         [from, to],
-    ) => distanceMat[from][to])(unwrap(indexVertex(0)))(graph);
+    ) => distanceMat[from]![to]!)(unwrap(indexVertex(0)))(graph);
     assertEquals(distancesFromStart, [0, 5, 1, 3, 4]);
 });

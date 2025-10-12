@@ -50,16 +50,16 @@ const cases = [
 Deno.test("equality", () => {
     const equality = Map.equality<string, string>(ord);
 
-    assertEquals(equality.eq(cases[0], cases[1]), false);
-    assertEquals(equality.eq(cases[1], cases[0]), false);
-    assertEquals(equality.eq(cases[0], cases[2]), false);
-    assertEquals(equality.eq(cases[2], cases[0]), false);
-    assertEquals(equality.eq(cases[1], cases[2]), false);
-    assertEquals(equality.eq(cases[2], cases[1]), false);
+    assertEquals(equality.eq(cases[0]!, cases[1]!), false);
+    assertEquals(equality.eq(cases[1]!, cases[0]!), false);
+    assertEquals(equality.eq(cases[0]!, cases[2]!), false);
+    assertEquals(equality.eq(cases[2]!, cases[0]!), false);
+    assertEquals(equality.eq(cases[1]!, cases[2]!), false);
+    assertEquals(equality.eq(cases[2]!, cases[1]!), false);
 
-    assertEquals(equality.eq(cases[5], cases[0]), false);
-    assertEquals(equality.eq(cases[5], cases[1]), false);
-    assertEquals(equality.eq(cases[5], cases[2]), false);
+    assertEquals(equality.eq(cases[5]!, cases[0]!), false);
+    assertEquals(equality.eq(cases[5]!, cases[1]!), false);
+    assertEquals(equality.eq(cases[5]!, cases[2]!), false);
 
     // symmetric
     for (const x of cases) {
@@ -67,77 +67,77 @@ Deno.test("equality", () => {
     }
 
     // transitive
-    assertEquals(equality.eq(cases[2], cases[3]), true);
-    assertEquals(equality.eq(cases[2], cases[4]), true);
-    assertEquals(equality.eq(cases[3], cases[4]), true);
+    assertEquals(equality.eq(cases[2]!, cases[3]!), true);
+    assertEquals(equality.eq(cases[2]!, cases[4]!), true);
+    assertEquals(equality.eq(cases[3]!, cases[4]!), true);
 });
 
 Deno.test("partial order", () => {
     const order = Map.partialCmp({ ordK: ord, ordV: ord });
 
-    assertEquals(order(cases[0], cases[0]), some(equal));
-    assertEquals(order(cases[0], cases[1]), some(less));
-    assertEquals(order(cases[0], cases[2]), some(less));
-    assertEquals(order(cases[0], cases[3]), some(less));
-    assertEquals(order(cases[0], cases[4]), some(less));
+    assertEquals(order(cases[0]!, cases[0]!), some(equal));
+    assertEquals(order(cases[0]!, cases[1]!), some(less));
+    assertEquals(order(cases[0]!, cases[2]!), some(less));
+    assertEquals(order(cases[0]!, cases[3]!), some(less));
+    assertEquals(order(cases[0]!, cases[4]!), some(less));
 
-    assertEquals(order(cases[1], cases[0]), some(greater));
-    assertEquals(order(cases[1], cases[1]), some(equal));
-    assertEquals(order(cases[1], cases[2]), some(less));
-    assertEquals(order(cases[1], cases[3]), some(less));
-    assertEquals(order(cases[1], cases[4]), some(less));
+    assertEquals(order(cases[1]!, cases[0]!), some(greater));
+    assertEquals(order(cases[1]!, cases[1]!), some(equal));
+    assertEquals(order(cases[1]!, cases[2]!), some(less));
+    assertEquals(order(cases[1]!, cases[3]!), some(less));
+    assertEquals(order(cases[1]!, cases[4]!), some(less));
 
-    assertEquals(order(cases[2], cases[0]), some(greater));
-    assertEquals(order(cases[2], cases[1]), some(greater));
-    assertEquals(order(cases[2], cases[2]), some(equal));
-    assertEquals(order(cases[2], cases[3]), some(equal));
-    assertEquals(order(cases[2], cases[4]), some(equal));
+    assertEquals(order(cases[2]!, cases[0]!), some(greater));
+    assertEquals(order(cases[2]!, cases[1]!), some(greater));
+    assertEquals(order(cases[2]!, cases[2]!), some(equal));
+    assertEquals(order(cases[2]!, cases[3]!), some(equal));
+    assertEquals(order(cases[2]!, cases[4]!), some(equal));
 
-    assertEquals(order(cases[3], cases[0]), some(greater));
-    assertEquals(order(cases[3], cases[1]), some(greater));
-    assertEquals(order(cases[3], cases[2]), some(equal));
-    assertEquals(order(cases[3], cases[3]), some(equal));
-    assertEquals(order(cases[3], cases[4]), some(equal));
+    assertEquals(order(cases[3]!, cases[0]!), some(greater));
+    assertEquals(order(cases[3]!, cases[1]!), some(greater));
+    assertEquals(order(cases[3]!, cases[2]!), some(equal));
+    assertEquals(order(cases[3]!, cases[3]!), some(equal));
+    assertEquals(order(cases[3]!, cases[4]!), some(equal));
 
-    assertEquals(order(cases[4], cases[0]), some(greater));
-    assertEquals(order(cases[4], cases[1]), some(greater));
-    assertEquals(order(cases[4], cases[2]), some(equal));
-    assertEquals(order(cases[4], cases[3]), some(equal));
-    assertEquals(order(cases[4], cases[4]), some(equal));
+    assertEquals(order(cases[4]!, cases[0]!), some(greater));
+    assertEquals(order(cases[4]!, cases[1]!), some(greater));
+    assertEquals(order(cases[4]!, cases[2]!), some(equal));
+    assertEquals(order(cases[4]!, cases[3]!), some(equal));
+    assertEquals(order(cases[4]!, cases[4]!), some(equal));
 });
 
 Deno.test("total order", () => {
     const order = Map.cmp({ ordK: ord, ordV: ord });
 
-    assertEquals(order(cases[0], cases[0]), equal);
-    assertEquals(order(cases[0], cases[1]), less);
-    assertEquals(order(cases[0], cases[2]), less);
-    assertEquals(order(cases[0], cases[3]), less);
-    assertEquals(order(cases[0], cases[4]), less);
+    assertEquals(order(cases[0]!, cases[0]!), equal);
+    assertEquals(order(cases[0]!, cases[1]!), less);
+    assertEquals(order(cases[0]!, cases[2]!), less);
+    assertEquals(order(cases[0]!, cases[3]!), less);
+    assertEquals(order(cases[0]!, cases[4]!), less);
 
-    assertEquals(order(cases[1], cases[0]), greater);
-    assertEquals(order(cases[1], cases[1]), equal);
-    assertEquals(order(cases[1], cases[2]), less);
-    assertEquals(order(cases[1], cases[3]), less);
-    assertEquals(order(cases[1], cases[4]), less);
+    assertEquals(order(cases[1]!, cases[0]!), greater);
+    assertEquals(order(cases[1]!, cases[1]!), equal);
+    assertEquals(order(cases[1]!, cases[2]!), less);
+    assertEquals(order(cases[1]!, cases[3]!), less);
+    assertEquals(order(cases[1]!, cases[4]!), less);
 
-    assertEquals(order(cases[2], cases[0]), greater);
-    assertEquals(order(cases[2], cases[1]), greater);
-    assertEquals(order(cases[2], cases[2]), equal);
-    assertEquals(order(cases[2], cases[3]), equal);
-    assertEquals(order(cases[2], cases[4]), equal);
+    assertEquals(order(cases[2]!, cases[0]!), greater);
+    assertEquals(order(cases[2]!, cases[1]!), greater);
+    assertEquals(order(cases[2]!, cases[2]!), equal);
+    assertEquals(order(cases[2]!, cases[3]!), equal);
+    assertEquals(order(cases[2]!, cases[4]!), equal);
 
-    assertEquals(order(cases[3], cases[0]), greater);
-    assertEquals(order(cases[3], cases[1]), greater);
-    assertEquals(order(cases[3], cases[2]), equal);
-    assertEquals(order(cases[3], cases[3]), equal);
-    assertEquals(order(cases[3], cases[4]), equal);
+    assertEquals(order(cases[3]!, cases[0]!), greater);
+    assertEquals(order(cases[3]!, cases[1]!), greater);
+    assertEquals(order(cases[3]!, cases[2]!), equal);
+    assertEquals(order(cases[3]!, cases[3]!), equal);
+    assertEquals(order(cases[3]!, cases[4]!), equal);
 
-    assertEquals(order(cases[4], cases[0]), greater);
-    assertEquals(order(cases[4], cases[1]), greater);
-    assertEquals(order(cases[4], cases[2]), equal);
-    assertEquals(order(cases[4], cases[3]), equal);
-    assertEquals(order(cases[4], cases[4]), equal);
+    assertEquals(order(cases[4]!, cases[0]!), greater);
+    assertEquals(order(cases[4]!, cases[1]!), greater);
+    assertEquals(order(cases[4]!, cases[2]!), equal);
+    assertEquals(order(cases[4]!, cases[3]!), equal);
+    assertEquals(order(cases[4]!, cases[4]!), equal);
 });
 
 Deno.test("partial equality unary", () => {
@@ -150,12 +150,12 @@ Deno.test("partial equality unary", () => {
         assertEquals(equality(x, x), true);
     }
 
-    assertEquals(equality(cases[0], cases[1]), false);
-    assertEquals(equality(cases[1], cases[0]), false);
-    assertEquals(equality(cases[0], cases[2]), false);
-    assertEquals(equality(cases[2], cases[0]), false);
-    assertEquals(equality(cases[1], cases[2]), false);
-    assertEquals(equality(cases[2], cases[1]), false);
+    assertEquals(equality(cases[0]!, cases[1]!), false);
+    assertEquals(equality(cases[1]!, cases[0]!), false);
+    assertEquals(equality(cases[0]!, cases[2]!), false);
+    assertEquals(equality(cases[2]!, cases[0]!), false);
+    assertEquals(equality(cases[1]!, cases[2]!), false);
+    assertEquals(equality(cases[2]!, cases[1]!), false);
 });
 
 Deno.test("isEmpty", () => {
@@ -767,7 +767,7 @@ Deno.test("mapKeysWith", () => {
 
 Deno.test("foldR", () => {
     const folder = Map.foldR((item: string) => (acc: string) => item + acc)("");
-    assertEquals(folder(cases[2]), "012");
+    assertEquals(folder(cases[2]!), "012");
 });
 
 Deno.test("foldRWithKey", () => {
@@ -775,12 +775,12 @@ Deno.test("foldRWithKey", () => {
         (key: string) => (item: string) => (acc: string) =>
             key.length < 4 ? item + acc : acc,
     )("");
-    assertEquals(folder(cases[2]), "12");
+    assertEquals(folder(cases[2]!), "12");
 });
 
 Deno.test("foldL", () => {
     const folder = Map.foldL((acc: string) => (item: string) => item + acc)("");
-    assertEquals(folder(cases[2]), "210");
+    assertEquals(folder(cases[2]!), "210");
 });
 
 Deno.test("foldLWithKey", () => {
@@ -788,7 +788,7 @@ Deno.test("foldLWithKey", () => {
         (key: string) => (acc: string) => (item: string) =>
             key.length < 4 ? item + acc : acc,
     )("");
-    assertEquals(folder(cases[2]), "21");
+    assertEquals(folder(cases[2]!), "21");
 });
 
 Deno.test("foldMapWithKey", () => {
@@ -816,11 +816,11 @@ Deno.test("entries", () => {
 
 Deno.test("sortedEntries", () => {
     assertEquals(
-        toArray(Map.sortedEntries({ ordK: ord, ordV: ord })(cases[0])),
+        toArray(Map.sortedEntries({ ordK: ord, ordV: ord })(cases[0]!)),
         [],
     );
     assertEquals(
-        toArray(Map.sortedEntries({ ordK: ord, ordV: ord })(cases[1])),
+        toArray(Map.sortedEntries({ ordK: ord, ordV: ord })(cases[1]!)),
         [
             ["1", "one"],
             ["2", "two"],
@@ -905,8 +905,8 @@ Deno.test("mapResult", () => {
         value.length < 4 ? Result.ok(value) : Result.err(value)
     );
 
-    assertEquals(mapper(cases[0]), [Map.fromArray([]), Map.fromArray([])]);
-    assertEquals(mapper(cases[1]), [
+    assertEquals(mapper(cases[0]!), [Map.fromArray([]), Map.fromArray([])]);
+    assertEquals(mapper(cases[1]!), [
         Map.fromArray([["4", "four"], ["3", "three"], ["5", "five"]]),
         Map.fromArray([["1", "one"], ["2", "two"]]),
     ]);
@@ -917,8 +917,8 @@ Deno.test("mapResultWithKey", () => {
         key === "1" ? Result.ok(value) : Result.err(value)
     );
 
-    assertEquals(mapper(cases[0]), [Map.fromArray([]), Map.fromArray([])]);
-    assertEquals(mapper(cases[1]), [
+    assertEquals(mapper(cases[0]!), [Map.fromArray([]), Map.fromArray([])]);
+    assertEquals(mapper(cases[1]!), [
         Map.fromArray([["4", "four"], ["2", "two"], ["3", "three"], [
             "5",
             "five",
@@ -1047,7 +1047,7 @@ Deno.test("foldable functor laws", () => {
     const f = Map.foldable<string>();
 
     const folder = f.foldR((item: string) => (acc: string) => item + acc)("");
-    assertEquals(folder(cases[2]), "012");
+    assertEquals(folder(cases[2]!), "012");
 });
 
 Deno.test("traversable functor laws", () => {
@@ -1075,7 +1075,7 @@ Deno.test("traversable functor laws", () => {
 });
 
 Deno.test("encode then decode", () => {
-    const data = cases[1];
+    const data = cases[1]!;
     const code = runCode(Map.enc(encUtf8)(encUtf8)(data));
     const decoded = Result.unwrap(
         runDecoder(Map.dec(decUtf8())(decUtf8()))(code),

@@ -106,7 +106,7 @@ export const withItems =
             go(left);
             const right = secondChildOf(visiting);
             go(right);
-            caches[visiting] = monoid.combine(caches[left], caches[right]);
+            caches[visiting] = monoid.combine(caches[left]!, caches[right]!);
         };
         go(0);
         return {
@@ -138,7 +138,7 @@ export const query =
             }
             if (start <= lookingStart && lookingEnd <= end) {
                 // looking completely contains querying range
-                return tree.items[visiting];
+                return tree.items[visiting]!;
             }
             const mid = lookingStart +
                 Math.floor((lookingEnd - lookingStart) / 2);
@@ -209,8 +209,8 @@ export const insert =
             while (0 < index) {
                 index = parentOf(index);
                 tree.items[index] = tree.monoid.combine(
-                    tree.items[firstChildOf(index)],
-                    tree.items[secondChildOf(index)],
+                    tree.items[firstChildOf(index)]!,
+                    tree.items[secondChildOf(index)]!,
                 );
             }
             return tree;

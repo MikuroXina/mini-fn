@@ -11,8 +11,8 @@ Deno.test("logical and monoid", () => {
     // associative
     for (const [x, y, z] of patterns3) {
         assertEquals(
-            andMonoid.combine(andMonoid.combine(x, y), z),
-            andMonoid.combine(x, andMonoid.combine(y, z)),
+            andMonoid.combine(andMonoid.combine(x!, y!), z!),
+            andMonoid.combine(x!, andMonoid.combine(y!, z!)),
         );
     }
 
@@ -27,8 +27,8 @@ Deno.test("logical or monoid", () => {
     // associative
     for (const [x, y, z] of patterns3) {
         assertEquals(
-            orMonoid.combine(orMonoid.combine(x, y), z),
-            orMonoid.combine(x, orMonoid.combine(y, z)),
+            orMonoid.combine(orMonoid.combine(x!, y!), z!),
+            orMonoid.combine(x!, orMonoid.combine(y!, z!)),
         );
     }
 
@@ -41,7 +41,7 @@ Deno.test("logical or monoid", () => {
 
 Deno.test("equality", () => {
     for (const [x, y] of patterns2) {
-        assertEquals(equality(x, y), x === y);
+        assertEquals(equality(x!, y!), x === y);
     }
 });
 

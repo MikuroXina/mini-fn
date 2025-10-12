@@ -141,12 +141,12 @@ const upHeap = (target: number) => <T>(order: Ord<T>) => (items: T[]): void => {
         const parent = parentOf(target);
         if (
             parent < 0 ||
-            isLe(order.cmp(items[parent], items[target]))
+            isLe(order.cmp(items[parent]!, items[target]!))
         ) {
             return;
         }
-        const temp = items[parent];
-        items[parent] = items[target];
+        const temp = items[parent]!;
+        items[parent] = items[target]!;
         items[target] = temp;
         target = parent;
     }
@@ -158,16 +158,17 @@ const downHeap =
             const rightChild = rightChildOf(target);
             if (
                 leftChild >= items.length || rightChild >= items.length ||
-                (isLe(order.cmp(items[target], items[leftChild])) &&
-                    isLe(order.cmp(items[target], items[rightChild])))
+                (isLe(order.cmp(items[target]!, items[leftChild]!)) &&
+                    isLe(order.cmp(items[target]!, items[rightChild]!)))
             ) {
                 return;
             }
-            const swapTo = isLe(order.cmp(items[leftChild], items[rightChild]))
-                ? leftChild
-                : rightChild;
-            const temp = items[swapTo];
-            items[swapTo] = items[target];
+            const swapTo =
+                isLe(order.cmp(items[leftChild]!, items[rightChild]!))
+                    ? leftChild
+                    : rightChild;
+            const temp = items[swapTo]!;
+            items[swapTo] = items[target]!;
             items[target] = temp;
             target = swapTo;
         }
@@ -204,8 +205,8 @@ export const popMin = <S, T>(
             if (wasEmpty) {
                 return none();
             }
-            const popped = heap.items[0];
-            heap.items[0] = heap.items[heap.items.length - 1];
+            const popped = heap.items[0]!;
+            heap.items[0] = heap.items[heap.items.length - 1]!;
             heap.items.pop();
             downHeap(0)(heap.order)(heap.items);
             return some(popped);
@@ -229,7 +230,7 @@ export const popMinAndInsert =
                         .run(insert(item)(heap))
                         .finish(() => none() as Option<T>);
                 }
-                const oldValue = inner.items[0];
+                const oldValue = inner.items[0]!;
                 inner.items[0] = item;
                 if (isLe(inner.order.cmp(oldValue, item))) {
                     downHeap(0)(inner.order)(inner.items);

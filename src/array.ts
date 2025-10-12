@@ -28,7 +28,7 @@ export const partialEquality =
     <L, R = L>(equality: PartialEq<L, R>) =>
     (l: readonly L[], r: readonly R[]): boolean =>
         l.length === r.length &&
-        l.every((left, i) => equality.eq(left, r[i]));
+        l.every((left, i) => equality.eq(left, r[i]!));
 export const partialEq: <L, R>(
     equality: PartialEq<L, R>,
 ) => PartialEq<L[], R[]> = fromPartialEquality(partialEquality);
@@ -40,7 +40,7 @@ export const partialCmp =
         ): (acc: Option<Ordering>) => Option<Ordering> =>
             andThen((a: Ordering) => mapOption(and(a))(next))
         )(some(Math.sign(l.length - r.length) as Ordering))(
-            l.map((left, i) => order.partialCmp(left, r[i])),
+            l.map((left, i) => order.partialCmp(left, r[i]!)),
         );
 export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<T[]> =
     fromPartialCmp(partialCmp);
@@ -48,14 +48,14 @@ export const equality =
     <L, R = L>(equality: Eq<L, R>) =>
     (l: readonly L[], r: readonly R[]): boolean =>
         l.length === r.length &&
-        l.every((left, i) => equality.eq(left, r[i]));
+        l.every((left, i) => equality.eq(left, r[i]!));
 export const eq: <L, R = L>(equality: Eq<L, R>) => Eq<L[], R[]> = fromEquality(
     equality,
 );
 export const cmp =
     <T>(order: Ord<T>) => (l: readonly T[], r: readonly T[]): Ordering =>
         foldR(and)(Math.sign(l.length - r.length) as Ordering)(
-            l.map((left, i) => order.cmp(left, r[i])),
+            l.map((left, i) => order.cmp(left, r[i]!)),
         );
 export const ord: <T>(order: Ord<T>) => Ord<T[]> = fromCmp(cmp);
 
@@ -64,7 +64,7 @@ export const partialEqUnary: PartialEqUnary<ArrayHkt> = {
         <Lhs, Rhs = Lhs>(equality: (l: Lhs, r: Rhs) => boolean) =>
         (l: readonly Lhs[], r: readonly Rhs[]) =>
             l.length === r.length &&
-            l.every((lItem, i) => equality(lItem, r[i])),
+            l.every((lItem, i) => equality(lItem, r[i]!)),
 };
 
 export interface ArrayHkt extends Hkt1 {
