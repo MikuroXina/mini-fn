@@ -101,7 +101,7 @@ Deno.test("inspect", () => {
         .feed(inspect(mock)).value;
 
     assertEquals(res, "foo");
-    assertEquals(mock.calls[0].args, ["foo"]);
+    assertEquals(mock.calls[0]!.args, ["foo"]);
 });
 
 Deno.test("flatten", () => {

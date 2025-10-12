@@ -78,8 +78,8 @@ export const sumFromStartTo = (end: number) => <T>(range: RangeQ<T>): T =>
     (end <= 0 || range.acc.length === 0)
         ? range.group.identity
         : end >= range.acc.length
-        ? range.acc[range.acc.length - 1]
-        : range.acc[end - 1];
+        ? range.acc[range.acc.length - 1]!
+        : range.acc[end - 1]!;
 
 /**
  * Sums up the elements for a range between `start` (inclusive) and `end` (exclusive). It takes only constant time (`O(1)`).

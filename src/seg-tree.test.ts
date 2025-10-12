@@ -18,7 +18,7 @@ Deno.test("query", () => {
         for (let to = 0; to <= 8; ++to) {
             let expected = 0;
             for (let i = from; i < to; ++i) {
-                expected += i in src ? src[i] : 0;
+                expected += i in src ? src[i]! : 0;
             }
             assertEquals(query(from)(to)(seq), expected);
         }

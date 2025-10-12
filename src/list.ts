@@ -817,7 +817,7 @@ export const foldR =
         }
         let res = init;
         for (let i = stack.length - 1; 0 <= i; --i) {
-            res = f(stack[i])(res);
+            res = f(stack[i]!)(res);
         }
         return res;
     };

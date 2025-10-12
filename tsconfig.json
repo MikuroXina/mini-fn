@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "es2022",
-        "lib": ["deno.ns"],
+        "lib": ["dom", "deno.ns"],
         "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
