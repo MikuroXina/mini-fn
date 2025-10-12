@@ -59,13 +59,10 @@ jobs:
               run: |
                   deno run -A ./scripts/build_npm.ts ${VERSION#v}
 
-            - uses: JS-DevTools/npm-publish@v4
-              with:
-                  token: ${{ secrets.NPM_TOKEN }}
-                  package: npm/
-                  provenance: true
+            - name: Publish package to npm
+              run: npm publish
 
-            - name: Publish package
+            - name: Publish package to jsr
               run: npx jsr publish
 
             - name: Upload files
