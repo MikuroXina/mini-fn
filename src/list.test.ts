@@ -748,7 +748,7 @@ test("traversable functor", () => {
     // naturality
     const first = <T>(x: readonly T[]): Option<T> =>
         0 in x ? some(x[0]) : none();
-    const dup = (x: string): readonly string[] => [x + "0", x + "1"];
+    const dup = (x: string): readonly string[] => [`${x}0`, `${x}1`];
     const data = fromString("fever");
     expect(
         optionMap(toArray)(first(traversable.traverse(arrayApp)(dup)(data))),

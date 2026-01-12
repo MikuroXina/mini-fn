@@ -139,7 +139,7 @@ test("traversable functor laws", () => {
     // naturality
     const first = <T>(x: readonly T[]): Option.Option<T> =>
         0 in x ? Option.some(x[0]) : Option.none();
-    const dup = (x: string): readonly string[] => [x + "0", x + "1"];
+    const dup = (x: string): readonly string[] => [`    ${x}}0`, `${x}1`];
     for (const x of [defer(() => "foo"), known("bar")]) {
         expect(
             Option.map(force)(

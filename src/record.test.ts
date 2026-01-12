@@ -486,7 +486,7 @@ test("traverseSomeWithKey", () => {
 test("scan", () => {
     const actual = Record.scan((acc: string) => (item: number) => [
         `${acc} ${item}`,
-        item + "X",
+        `${item}X`,
     ])("Everything:")(piRecord);
     expect(actual).toStrictEqual([
         "Everything: 3 1 4",
@@ -502,7 +502,7 @@ test("scanWithKey", () => {
     const actual = Record.scanWithKey(
         (acc: string) => (key: string) => (item: number) => [
             `${acc} ${key}-${item}`,
-            item + "X",
+            `${item}X`,
         ],
     )("Everything:")(piRecord);
     expect(actual).toStrictEqual([
@@ -517,7 +517,7 @@ test("scanWithKey", () => {
 
 test("mapKeys", () => {
     assertEqRecord(
-        Record.mapKeys((key: string) => key + "1")(piRecord),
+        Record.mapKeys((key: string) => `${key}1`)(piRecord),
         Record.fromArray([
             ["three1", 3],
             ["one1", 1],

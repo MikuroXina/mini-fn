@@ -815,7 +815,7 @@ test("traverseSomeWIthKey", () => {
 test("scan", () => {
     const actual = Map.scan((acc: string) => (item: string) => [
         `${acc} ${item}`,
-        item + "X",
+        `${item}X`,
     ])("Everything:")(piMap);
     expect(actual).toStrictEqual([
         "Everything: three one four",
@@ -831,7 +831,7 @@ test("scanWithKey", () => {
     const actual = Map.scanWithKey(
         (acc: string) => (key: number) => (item: string) => [
             `${acc} ${key}-${item}`,
-            item + "X",
+            `${item}X`,
         ],
     )("Everything:")(piMap);
     expect(actual).toStrictEqual([
@@ -1165,8 +1165,8 @@ test("functor laws", () => {
     }
 
     // composition
-    const bang = (x: string) => x + "!";
-    const question = (x: string) => x + "?";
+    const bang = (x: string) => `${x}!`;
+    const question = (x: string) => `${x}?`;
     for (const item of cases) {
         expect(f.map((x: string) => question(bang(x)))(item)).toStrictEqual(
             f.map(question)(f.map(bang)(item)),

@@ -8,4 +8,5 @@ export type FlatMap<S> = {
 
 export const flatten = <S>(
     f: FlatMap<S>,
+    // biome-ignore lint/complexity/noFlatMapIdentity: wrong lint
 ): (<T>(t: Get1<S, Get1<S, T>>) => Get1<S, T>) => f.flatMap((t) => t);

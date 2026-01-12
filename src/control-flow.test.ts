@@ -149,7 +149,7 @@ test("map", () => {
 });
 
 test("apply", () => {
-    const mapper = newContinue((x: string) => x + "!") as ControlFlow<
+    const mapper = newContinue((x: string) => `${x}!`) as ControlFlow<
         never[],
         (x: string) => string
     >;
@@ -163,7 +163,7 @@ test("apply", () => {
 
 test("biMap", () => {
     const actual = cases.map(
-        biMap((x: string) => x + "!")((x: string) => x + "?"),
+        biMap((x: string) => `${x}!`)((x: string) => `${x}?`),
     );
     expect(actual).toStrictEqual([newContinue("foo?"), newBreak("bar!")]);
 });
@@ -195,7 +195,7 @@ test("functor laws", () => {
 test("applicative laws", () => {
     const a = applicative<string>();
     const strLen = a.pure((x: string) => x.length);
-    const question = a.pure((x: string) => x + "?");
+    const question = a.pure((x: string) => `${x}?`);
 
     for (const data of cases) {
         // identity
@@ -219,7 +219,7 @@ test("applicative laws", () => {
     }
 
     // homomorphism
-    expect(apply(a.pure((x: string) => x + "!"))(a.pure("foo"))).toStrictEqual(
+    expect(apply(a.pure((x: string) => `${x}!`))(a.pure("foo"))).toStrictEqual(
         a.pure("foo!"),
     );
 
@@ -277,7 +277,7 @@ test("traversable laws", () => {
     // naturality
     const first = <T>(x: readonly T[]): Option<T> =>
         0 in x ? some(x[0]) : none();
-    const dup = (x: string): readonly string[] => [x + "0", x + "1"];
+    const dup = (x: string): readonly string[] => [`${x}0`, `${x}1`];
     const data = newContinue("fever");
     expect(first(t.traverse(Array.applicative)(dup)(data))).toStrictEqual(
         t.traverse(applicativeOption)((item: string) => first(dup(item)))(data),
@@ -334,7 +334,7 @@ test("traversable monad laws", () => {
     // naturality
     const first = <T>(x: readonly T[]): Option<T> =>
         0 in x ? some(x[0]) : none();
-    const dup = (x: string): readonly string[] => [x + "0", x + "1"];
+    const dup = (x: string): readonly string[] => [`${x}0`, `${x}1`];
     const data = newContinue("fever");
     expect(first(t.traverse(Array.applicative)(dup)(data))).toStrictEqual(
         t.traverse(applicativeOption)((item: string) => first(dup(item)))(data),

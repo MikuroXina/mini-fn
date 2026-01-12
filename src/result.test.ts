@@ -239,7 +239,7 @@ test("mapOrElse", () => {
 });
 
 test("mapErr", () => {
-    const prefix = Result.mapErr((msg: string) => "LOG: " + msg);
+    const prefix = Result.mapErr((msg: string) => `LOG: ${msg}`);
 
     expect(prefix(Result.ok(2))).toStrictEqual(Result.ok(2));
     expect(prefix(Result.err("failure"))).toStrictEqual(
@@ -286,7 +286,7 @@ test("unwrapOrElse", () => {
 });
 
 test("biMap", () => {
-    const applied = Result.biMap((mes: string) => "ERROR: " + mes)(
+    const applied = Result.biMap((mes: string) => `ERROR: ${mes}`)(
         (num: number) => num * 2,
     );
 
@@ -449,7 +449,7 @@ test("traversable functor laws", () => {
     // naturality
     const first = <T>(x: readonly T[]): Option.Option<T> =>
         0 in x ? Option.some(x[0]) : Option.none();
-    const dup = (x: string): readonly string[] => [x + "0", x + "1"];
+    const dup = (x: string): readonly string[] => [`${x}0`, `${x}1`];
     for (const data of [Result.ok("foo"), Result.err("err")]) {
         expect(first(tra.traverse(Array.applicative)(dup)(data))).toStrictEqual(
             tra.traverse(Option.applicative)((item: string) =>
@@ -494,15 +494,15 @@ test("bitraversable functor laws", () => {
 
     expect(
         Result.bitraversable.bifoldR(
-            (msg: string) => (acc: string) => msg + ", " + acc,
-        )((num: number) => (acc: string) => num.toString() + ", " + acc)("end")(
+            (msg: string) => (acc: string) => `${msg}, ${acc}`,
+        )((num: number) => (acc: string) => `${num}, ${acc}`)("end")(
             Result.ok(2),
         ),
     ).toStrictEqual("2, end");
     expect(
         Result.bitraversable.bifoldR(
-            (msg: string) => (acc: string) => msg + ", " + acc,
-        )((num: number) => (acc: string) => num.toString() + ", " + acc)("end")(
+            (msg: string) => (acc: string) => `${msg}, ${acc}`,
+        )((num: number) => (acc: string) => `${num}, ${acc}`)("end")(
             Result.err("foo"),
         ),
     ).toStrictEqual("foo, end");

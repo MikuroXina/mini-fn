@@ -1163,7 +1163,7 @@ export const failDecoder =
     (ctx) =>
     (onF) =>
     () =>
-        onF(ctx)([])("read failure: " + message);
+        onF(ctx)([])(`read failure: ${message}`);
 
 export interface DecoderHkt extends Hkt1 {
     readonly type: Decoder<this["arg1"]>;

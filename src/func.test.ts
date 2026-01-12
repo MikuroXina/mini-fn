@@ -31,7 +31,7 @@ test("group", () => {
 });
 
 test("until", () => {
-    const padLeft = until((x: string) => 4 <= x.length)((x) => "0" + x);
+    const padLeft = until((x: string) => 4 <= x.length)((x) => `0${x}`);
 
     expect(padLeft("")).toStrictEqual("0000");
     expect(padLeft("1")).toStrictEqual("0001");

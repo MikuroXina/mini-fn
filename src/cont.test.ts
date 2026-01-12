@@ -126,7 +126,7 @@ test("shift and reset", () => {
 test("liftLocal", async () => {
     const lifted = liftLocal(promiseMonad)(Promise.resolve("foo"))<number>(
         (callback) => async (mr) => (await mr) + callback("").length - 1,
-    )((text) => text + "!")(pure(1));
+    )((text) => `${text}!`)(pure(1));
     const actual = await evalContT(promiseMonad)(lifted);
     expect(actual).toStrictEqual(3);
 });

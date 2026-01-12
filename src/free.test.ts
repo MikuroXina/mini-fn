@@ -172,7 +172,7 @@ test("teletype language", () => {
             <T>(f: TeletypeF<T>): State<string, T> =>
             (state: string): [T, string] =>
                 f.type === "PUT_STR_LN"
-                    ? [f.next, state + "\n" + f.line]
+                    ? [f.next, `${state}\n${f.line}`]
                     : [f.callback("fake input"), state],
     };
 
@@ -182,7 +182,7 @@ test("teletype language", () => {
         .addM("line", getLine)
         .runWith(({ line }) => putStrLn(line))
         .run(putStrLn("Finished"))
-        .finishM(({ line }) => pure<TeletypeHkt, string>(line + ", " + line));
+        .finishM(({ line }) => pure<TeletypeHkt, string>(`${line}, ${line}`));
 
     const actual = runState(run.nt(echo))("");
     expect(actual).toStrictEqual([

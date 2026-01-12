@@ -57,7 +57,7 @@ test("keys", () => {
                     ): ["foo", number] | ["bar", string] =>
                         entry[0] === "foo"
                             ? [entry[0], entry[1] + 1]
-                            : [entry[0], "vw " + entry[1]],
+                            : [entry[0], `vw ${entry[1]}`],
                 ) as [["foo", number], ["bar", string]],
         );
     expect(updated).toStrictEqual({

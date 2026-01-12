@@ -66,8 +66,8 @@ test("applicative functor laws", () => {
     );
 
     // composition
-    const exclamation = a.pure((x: string) => x + "!");
-    const question = a.pure((x: string) => x + "?");
+    const exclamation = a.pure((x: string) => `${x}!`);
+    const question = a.pure((x: string) => `${x}?`);
     expect(
         getValue(
             a.apply(
@@ -86,7 +86,7 @@ test("applicative functor laws", () => {
     ).toStrictEqual(getValue(a.apply(exclamation)(a.apply(question)(arrCoy))));
 
     // homomorphism
-    const period = (x: string) => x + ".";
+    const period = (x: string) => `${x}.`;
     expect(getValue(a.apply(a.pure(period))(a.pure("Alice")))).toStrictEqual(
         getValue(a.pure(period("Alice"))),
     );
@@ -117,7 +117,7 @@ test("monad laws", () => {
 
     // associativity
     const shout = (x: string) =>
-        coyoneda((x: string) => x + " eh!")<Array.ArrayHkt>([x]);
+        coyoneda((x: string) => `${x} eh!`)<Array.ArrayHkt>([x]);
     expect(
         getValue(m.flatMap(shout)(m.flatMap(upperCase)(data))),
     ).toStrictEqual(
@@ -175,12 +175,12 @@ test("foldRT", () => {
 
 test("traversable functor laws", () => {
     const tra = traversable(Array.traversable);
-    const arrCoy = coyoneda((x: string) => x + "!")<Array.ArrayHkt>(["42"]);
+    const arrCoy = coyoneda((x: string) => `${x}!`)<Array.ArrayHkt>(["42"]);
 
     // naturality
     const first = <T>(x: readonly T[]): Option.Option<T> =>
         0 in x ? Option.some(x[0]) : Option.none();
-    const dup = (x: string): readonly string[] => [x + "0", x + "1"];
+    const dup = (x: string): readonly string[] => [`${x}0`, `${x}1`];
     const equality = partialEq({
         lifter: Array.partialEqUnary,
         equality: (l: string, r: string) => l === r,
