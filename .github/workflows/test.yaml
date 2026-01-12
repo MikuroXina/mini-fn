@@ -23,7 +23,7 @@ jobs:
               run: pnpm run check
             - name: Generate coverage
               run: |
-                  pnpm run coverage --lcov --output=coverage/cov.lcov coverage/cov_profile/
+                  pnpm run coverage
             - uses: codecov/codecov-action@v5
               with:
                   use_oidc: true
