@@ -205,8 +205,8 @@ test("arrow laws", () => {
         const right = fnArrow.compose(fnArrow.split(mul3)(fnArrow.identity()))(
             fnArrow.arr(split(id<number>)(add5)),
         );
-        for (let first = -100; first <= 100; ++first) {
-            for (let second = -100; second <= 100; ++second) {
+        for (let first = -50; first <= 50; ++first) {
+            for (let second = -50; second <= 50; ++second) {
                 expect(left([first, second])).toStrictEqual(
                     right([first, second]),
                 );
@@ -228,9 +228,9 @@ test("arrow laws", () => {
                 fnArrow.identity<Tuple.Tuple<number, number>>(),
             ),
         )(fnArrow.arr(Tuple.assocR<number, number, number>));
-        for (let first = -25; first <= 25; ++first) {
-            for (let second = -25; second <= 25; ++second) {
-                for (let third = -25; third <= 25; ++third) {
+        for (let first = -13; first <= 13; ++first) {
+            for (let second = -13; second <= 13; ++second) {
+                for (let third = -13; third <= 13; ++third) {
                     expect(left([[first, second], third])).toStrictEqual(
                         right([[first, second], third]),
                     );

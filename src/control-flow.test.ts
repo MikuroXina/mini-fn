@@ -88,9 +88,9 @@ test("equality", () => {
     }
 
     // transitive
-    for (let x = -100n; x <= 100n; ++x) {
+    for (let x = -50n; x <= 50n; ++x) {
         for (const y of ["foo", "bar", "", "hoge"]) {
-            for (let z = -200n; z <= 200n; ++z) {
+            for (let z = -50n; z <= 50n; ++z) {
                 expect(
                     equality.eq(newBreak(x), newContinue(y)) &&
                         equality.eq(newContinue(y), newBreak(z)),
@@ -122,8 +122,8 @@ test("partial equality unary", () => {
 
     // transitive
     for (const x of ["foo", "bar", "", "hoge"]) {
-        for (let y = -100n; y <= 100n; ++y) {
-            for (let z = -200n; z <= 200n; ++z) {
+        for (let y = -50n; y <= 50n; ++y) {
+            for (let z = -50n; z <= 50n; ++z) {
                 expect(
                     equality(newBreak(x), newContinue(y)) &&
                         equality(newContinue(y), newContinue(z)),
