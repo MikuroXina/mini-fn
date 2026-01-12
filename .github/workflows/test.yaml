@@ -16,6 +16,9 @@ jobs:
         steps:
             - uses: actions/checkout@v6
             - uses: pnpm/action-setup@v4
+            - name: Install dependencies
+              run: pnpm install
+
             - name: Check format and types
               run: pnpm run check
             - name: Generate coverage
