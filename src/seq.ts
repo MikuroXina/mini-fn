@@ -1,8 +1,8 @@
-import type { Hkt1 } from "./hkt.ts";
-import { isNone, map as mapOption, none, type Option, some } from "./option.ts";
+import type { Hkt1 } from "./hkt.js";
+import { isNone, map as mapOption, none, type Option, some } from "./option.js";
 import {
-    deep,
     type Digit,
+    deep,
     empty,
     type FingerTree,
     fromReduce,
@@ -10,8 +10,8 @@ import {
     isSingle,
     type Node,
     reduceDigit,
-} from "./seq/finger-tree.ts";
-import type { Tuple } from "./tuple.ts";
+} from "./seq/finger-tree.js";
+import type { Tuple } from "./tuple.js";
 
 /**
  * The sequence of `A`, the homogenous data structure to store finite data. This is an alias of `FingerTree`.
@@ -36,7 +36,7 @@ export {
     isEmpty,
     reduceTree as reduce,
     size,
-} from "./seq/finger-tree.ts";
+} from "./seq/finger-tree.js";
 
 /**
  * The view of the left end of a `Seq`.

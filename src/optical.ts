@@ -1,19 +1,19 @@
-import { absurd } from "./func.ts";
-import type { Setter } from "./optical/setter.ts";
-import { none, type Option, some } from "./option.ts";
-import type { ContT } from "./cont.ts";
-import type { IdentityHkt } from "./identity.ts";
-import type { Get1 } from "./hkt.ts";
-import type { Pure } from "./type-class/pure.ts";
+import type { ContT } from "./cont.js";
+import { absurd } from "./func.js";
+import type { Get1 } from "./hkt.js";
+import type { IdentityHkt } from "./identity.js";
+import type { Setter } from "./optical/setter.js";
+import { none, type Option, some } from "./option.js";
+import type { Pure } from "./type-class/pure.js";
 
-export * as Getter from "./optical/getter.ts";
-export * as Lens from "./optical/lens.ts";
-export * as Parallel from "./optical/parallel.ts";
-export * as Prism from "./optical/prism.ts";
-export * as Retriable from "./optical/retriable.ts";
-export * as Setter from "./optical/setter.ts";
-export * as Sequential from "./optical/sequential.ts";
-export * as Traversal from "./optical/traversal.ts";
+export * as Getter from "./optical/getter.js";
+export * as Lens from "./optical/lens.js";
+export * as Parallel from "./optical/parallel.js";
+export * as Prism from "./optical/prism.js";
+export * as Retriable from "./optical/retriable.js";
+export * as Sequential from "./optical/sequential.js";
+export * as Setter from "./optical/setter.js";
+export * as Traversal from "./optical/traversal.js";
 
 /**
  * Generic computation combinator with two-terminal pair.
@@ -95,7 +95,8 @@ export const setT =
     <M>(pure: Pure<M>) =>
     <S, T, A, B>(lens: Optical<M, S, T, A, B>) =>
     (value: B) =>
-    (data: S): Get1<M, T> => overT(pure)(lens)(() => value)(data);
+    (data: S): Get1<M, T> =>
+        overT(pure)(lens)(() => value)(data);
 
 /**
  * Extracts the value of the focused entry.
@@ -105,7 +106,7 @@ export const getT =
     <S, T, A, B>(lens: Optical<M, S, T, A, B>) =>
     (data: S): Get1<M, Option<A>> =>
         lens<Option<A>>((a) => () => pure.pure(some(a)))(data)(() =>
-            pure.pure(none())
+            pure.pure(none()),
         );
 
 /**
@@ -142,7 +143,7 @@ export const focusedT =
             )((t) => pure.pure(t)),
         get: () =>
             o<Option<A>>((a) => () => pure.pure(some(a)))(data)(() =>
-                pure.pure(none())
+                pure.pure(none()),
             ),
         unwrap: () =>
             o<A>((a) => () => pure.pure(a))(data)(() => {
@@ -158,7 +159,8 @@ export const focusedT =
  * @returns The environment to compute.
  */
 export const opticalCat =
-    <M>(pure: Pure<M>) => <S>(data: S): OpticalCat<M, S, S, S, S> =>
+    <M>(pure: Pure<M>) =>
+    <S>(data: S): OpticalCat<M, S, S, S, S> =>
         focusedT(pure)(data)(identity());
 
 /**
@@ -177,7 +179,10 @@ export type OpticSimple<S, A> = Optic<S, S, A, A>;
 /**
  * The identity combinator which does nothing.
  */
-export const identity = <M, S>(): Optical<M, S, S, S, S> => (x) => x;
+export const identity =
+    <M, S>(): Optical<M, S, S, S, S> =>
+    (x) =>
+        x;
 
 /**
  * Composes two computations.
@@ -196,7 +201,8 @@ export const identity = <M, S>(): Optical<M, S, S, S, S> => (x) => x;
 export const compose =
     <M, X, Y, S, T>(left: Optical<M, X, Y, S, T>) =>
     <A, B>(right: Optical<M, S, T, A, B>): Optical<M, X, Y, A, B> =>
-    (ab) => left(right(ab));
+    (ab) =>
+        left(right(ab));
 
 /**
  * Modifies the value of the focused entry.
@@ -204,29 +210,35 @@ export const compose =
 export const over =
     <S, T, A, B>(lens: Optic<S, T, A, B>) =>
     (modifier: (a: A) => B) =>
-    (data: S): T => lens<T>((a) => (br) => br(modifier(a)))(data)((t) => t);
+    (data: S): T =>
+        lens<T>((a) => (br) => br(modifier(a)))(data)((t) => t);
 
 /**
  * Overwrites the value of the focused entry.
  */
 export const set =
-    <S, T, A, B>(lens: Optic<S, T, A, B>) => (value: B) => (data: S): T =>
+    <S, T, A, B>(lens: Optic<S, T, A, B>) =>
+    (value: B) =>
+    (data: S): T =>
         over(lens)(() => value)(data);
 
 /**
  * Extracts the value of the focused entry.
  */
 export const get =
-    <S, T, A, B>(lens: Optic<S, T, A, B>) => (data: S): Option<A> =>
+    <S, T, A, B>(lens: Optic<S, T, A, B>) =>
+    (data: S): Option<A> =>
         lens<Option<A>>((a) => () => some(a))(data)(none);
 
 /**
  * Extracts the value of the focused entry, or throw an error if no entry found.
  */
-export const unwrap = <S, T, A, B>(lens: Optic<S, T, A, B>) => (data: S): A =>
-    lens<A>((a) => () => a)(data)(() => {
-        throw new Error("no entry");
-    });
+export const unwrap =
+    <S, T, A, B>(lens: Optic<S, T, A, B>) =>
+    (data: S): A =>
+        lens<A>((a) => () => a)(data)(() => {
+            throw new Error("no entry");
+        });
 
 export type OpticCat<S, T, A, B> = {
     /**
@@ -279,7 +291,8 @@ export type OpticCat<S, T, A, B> = {
  * @returns The modified environment.
  */
 export const focused =
-    <S>(data: S) => <T, A, B>(o: Optic<S, T, A, B>): OpticCat<S, T, A, B> => ({
+    <S>(data: S) =>
+    <T, A, B>(o: Optic<S, T, A, B>): OpticCat<S, T, A, B> => ({
         feed: (right) => focused(data)(compose(o)(right)),
         over: (modifier) =>
             o<T>((a) => (br) => br(modifier(a)))(data)((t) => t),

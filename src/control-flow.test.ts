@@ -1,12 +1,12 @@
-import { assertEquals } from "../deps.ts";
-import { Array, Compose } from "../mod.ts";
+import { expect, test } from "vitest";
+import { Array, Compose } from "../mod.js";
 import {
     applicative,
     apply,
     biMap,
     breakValue,
-    continueValue,
     type ControlFlow,
+    continueValue,
     dec,
     enc,
     eq,
@@ -23,15 +23,15 @@ import {
     partialEqUnary,
     traversable,
     traversableMonad,
-} from "./control-flow.ts";
-import { applicative as applicativeIdentity } from "./identity.ts";
+} from "./control-flow.js";
+import { applicative as applicativeIdentity } from "./identity.js";
 import {
     applicative as applicativeOption,
     none,
     type Option,
     some,
-} from "./option.ts";
-import { unwrap } from "./result.ts";
+} from "./option.js";
+import { unwrap } from "./result.js";
 import {
     decU32Be,
     decUtf8,
@@ -39,38 +39,51 @@ import {
     encUtf8,
     runCode,
     runDecoder,
-} from "./serial.ts";
-import { eqSymbol, stringEq } from "./type-class/eq.ts";
+} from "./serial.js";
+import { eqSymbol, stringEq } from "./type-class/eq.js";
 
 const cases = [newContinue("foo"), newBreak("bar")] as const;
 
-Deno.test("type assertion", () => {
-    const actual = cases.map((
-        c: ControlFlow<string, string>,
-    ) => [isContinue(c), isBreak(c)]);
-    assertEquals(actual, [[true, false], [false, true]]);
+test("type assertion", () => {
+    const actual = cases.map((c: ControlFlow<string, string>) => [
+        isContinue(c),
+        isBreak(c),
+    ]);
+    expect(actual).toStrictEqual([
+        [true, false],
+        [false, true],
+    ]);
 });
 
-Deno.test("extract", () => {
+test("extract", () => {
     const actual = cases.map((c) => [continueValue(c), breakValue(c)]);
-    assertEquals(actual, [
+    expect(actual).toStrictEqual([
         [some("foo"), none()],
         [none(), some("bar")],
     ]);
 });
 
-Deno.test("equality", () => {
-    const equality = eq({
-        eq: (l: bigint, r: bigint) => l === r,
-        [eqSymbol]: true,
-    }, stringEq);
+test("equality", () => {
+    const equality = eq(
+        {
+            eq: (l: bigint, r: bigint) => l === r,
+            [eqSymbol]: true,
+        },
+        stringEq,
+    );
     // symmetric
     for (let x = -100n; x <= 100n; ++x) {
         for (const y of ["foo", "bar", "", "hoge"]) {
-            assertEquals(equality.eq(newBreak(x), newBreak(x)), true);
-            assertEquals(equality.eq(newContinue(y), newContinue(y)), true);
-            assertEquals(equality.eq(newBreak(x), newContinue(y)), false);
-            assertEquals(equality.eq(newContinue(y), newBreak(x)), false);
+            expect(equality.eq(newBreak(x), newBreak(x))).toStrictEqual(true);
+            expect(equality.eq(newContinue(y), newContinue(y))).toStrictEqual(
+                true,
+            );
+            expect(equality.eq(newBreak(x), newContinue(y))).toStrictEqual(
+                false,
+            );
+            expect(equality.eq(newContinue(y), newBreak(x))).toStrictEqual(
+                false,
+            );
         }
     }
 
@@ -78,32 +91,32 @@ Deno.test("equality", () => {
     for (let x = -100n; x <= 100n; ++x) {
         for (const y of ["foo", "bar", "", "hoge"]) {
             for (let z = -200n; z <= 200n; ++z) {
-                assertEquals(
+                expect(
                     equality.eq(newBreak(x), newContinue(y)) &&
                         equality.eq(newContinue(y), newBreak(z)),
-                    false,
-                );
-                assertEquals(
+                ).toStrictEqual(false);
+                expect(
                     equality.eq(newContinue(y), newBreak(x)) &&
                         equality.eq(newBreak(x), newBreak(z)),
-                    false,
-                );
+                ).toStrictEqual(false);
             }
         }
     }
 });
 
-Deno.test("partial equality unary", () => {
+test("partial equality unary", () => {
     const equalityUnary = partialEqUnary(stringEq);
     const equality = equalityUnary.liftEq((l: bigint, r: bigint) => l === r);
 
     // symmetric
     for (const x of ["foo", "bar", "", "hoge"]) {
         for (let y = -100n; y <= 100n; ++y) {
-            assertEquals(equality(newBreak(x), newBreak(x)), true);
-            assertEquals(equality(newContinue(y), newContinue(y)), true);
-            assertEquals(equality(newBreak(x), newContinue(y)), false);
-            assertEquals(equality(newContinue(y), newBreak(x)), false);
+            expect(equality(newBreak(x), newBreak(x))).toStrictEqual(true);
+            expect(equality(newContinue(y), newContinue(y))).toStrictEqual(
+                true,
+            );
+            expect(equality(newBreak(x), newContinue(y))).toStrictEqual(false);
+            expect(equality(newContinue(y), newBreak(x))).toStrictEqual(false);
         }
     }
 
@@ -111,116 +124,112 @@ Deno.test("partial equality unary", () => {
     for (const x of ["foo", "bar", "", "hoge"]) {
         for (let y = -100n; y <= 100n; ++y) {
             for (let z = -200n; z <= 200n; ++z) {
-                assertEquals(
+                expect(
                     equality(newBreak(x), newContinue(y)) &&
                         equality(newContinue(y), newContinue(z)),
-                    false,
-                );
-                assertEquals(
+                ).toStrictEqual(false);
+                expect(
                     equality(newContinue(y), newBreak(x)) &&
                         equality(newBreak(x), newContinue(z)),
-                    false,
-                );
+                ).toStrictEqual(false);
             }
         }
     }
 });
 
-Deno.test("map", () => {
-    const actual = cases.map((
-        c,
-    ) => [
+test("map", () => {
+    const actual = cases.map((c) => [
         mapContinue((x: string) => x.toUpperCase())(c),
         mapBreak((x: string) => x.toUpperCase())(c),
     ]);
-    assertEquals(actual, [
+    expect(actual).toStrictEqual([
         [newContinue("FOO"), newContinue("foo")],
         [newBreak("bar"), newBreak("BAR")],
     ]);
 });
 
-Deno.test("apply", () => {
+test("apply", () => {
     const mapper = newContinue((x: string) => x + "!") as ControlFlow<
         never[],
         (x: string) => string
     >;
-    assertEquals(apply(mapper)(newContinue("foo")), newContinue("foo!"));
-    assertEquals(apply(mapper)(newBreak([])), newBreak([]));
-    assertEquals(apply(newBreak([]))(newContinue("foo")), newBreak([]));
-    assertEquals(apply(newBreak([]))(newBreak([])), newBreak([]));
+    expect(apply(mapper)(newContinue("foo"))).toStrictEqual(
+        newContinue("foo!"),
+    );
+    expect(apply(mapper)(newBreak([]))).toStrictEqual(newBreak([]));
+    expect(apply(newBreak([]))(newContinue("foo"))).toStrictEqual(newBreak([]));
+    expect(apply(newBreak([]))(newBreak([]))).toStrictEqual(newBreak([]));
 });
 
-Deno.test("biMap", () => {
+test("biMap", () => {
     const actual = cases.map(
         biMap((x: string) => x + "!")((x: string) => x + "?"),
     );
-    assertEquals(actual, [
-        newContinue("foo?"),
-        newBreak("bar!"),
-    ]);
+    expect(actual).toStrictEqual([newContinue("foo?"), newBreak("bar!")]);
 });
 
-Deno.test("flatten", () => {
-    assertEquals(flatten(newBreak("hoge")), newBreak("hoge"));
-    assertEquals(flatten(newContinue(newBreak("foo"))), newBreak("foo"));
-    assertEquals(flatten(newContinue(newContinue("bar"))), newContinue("bar"));
+test("flatten", () => {
+    expect(flatten(newBreak("hoge"))).toStrictEqual(newBreak("hoge"));
+    expect(flatten(newContinue(newBreak("foo")))).toStrictEqual(
+        newBreak("foo"),
+    );
+    expect(flatten(newContinue(newContinue("bar")))).toStrictEqual(
+        newContinue("bar"),
+    );
 });
 
-Deno.test("functor laws", () => {
+test("functor laws", () => {
     const f = functor<never[]>();
     const data = newContinue(2);
     // identity
-    assertEquals(f.map((x: number) => x)(data), data);
+    expect(f.map((x: number) => x)(data)).toStrictEqual(data);
 
     // composition
     const add = (x: number) => x + 3;
     const mul = (x: number) => x * 2;
-    assertEquals(
-        f.map((x: number) => mul(add(x)))(data),
+    expect(f.map((x: number) => mul(add(x)))(data)).toStrictEqual(
         f.map(mul)(f.map(add)(data)),
     );
 });
 
-Deno.test("applicative laws", () => {
+test("applicative laws", () => {
     const a = applicative<string>();
     const strLen = a.pure((x: string) => x.length);
     const question = a.pure((x: string) => x + "?");
 
     for (const data of cases) {
         // identity
-        assertEquals(apply(a.pure((x: string) => x))(data), data);
+        expect(apply(a.pure((x: string) => x))(data)).toStrictEqual(data);
 
         // composition
-        assertEquals(
+        expect(
             apply(
                 apply(
                     apply(
                         a.pure(
                             (f: (x: string) => number) =>
-                            (g: (x: string) => string) =>
-                            (i: string) => f(g(i)),
+                                (g: (x: string) => string) =>
+                                (i: string) =>
+                                    f(g(i)),
                         ),
                     )(strLen),
                 )(question),
             )(data),
-            apply(strLen)(apply(question)(data)),
-        );
+        ).toStrictEqual(apply(strLen)(apply(question)(data)));
     }
 
     // homomorphism
-    assertEquals(
-        apply(a.pure((x: string) => x + "!"))(a.pure("foo")),
+    expect(apply(a.pure((x: string) => x + "!"))(a.pure("foo"))).toStrictEqual(
         a.pure("foo!"),
     );
 
     // interchange
-    assertEquals(
-        apply(strLen)(a.pure("boo")),
+    expect(apply(strLen)(a.pure("boo"))).toStrictEqual(
         apply(a.pure((f: (x: string) => number) => f("boo")))(strLen),
     );
 });
 
-Deno.test("monad laws", () => {
+test("monad laws", () => {
     const m = monad<number>();
     const continuing = (x: string): ControlFlow<number, string> =>
         newContinue(x);
@@ -230,75 +239,72 @@ Deno.test("monad laws", () => {
 
     // left identity
     for (const c of cases) {
-        assertEquals(m.flatMap(c)(m.pure("baz")), c("baz"));
+        expect(m.flatMap(c)(m.pure("baz"))).toStrictEqual(c("baz"));
     }
 
     // right identity
-    assertEquals(m.flatMap(m.pure)(newContinue("a")), newContinue("a"));
-    assertEquals(m.flatMap(m.pure)(newBreak(2)), newBreak(2));
+    expect(m.flatMap(m.pure)(newContinue("a"))).toStrictEqual(newContinue("a"));
+    expect(m.flatMap(m.pure)(newBreak(2))).toStrictEqual(newBreak(2));
 
     // associativity
     for (const data of [newContinue("a"), newBreak(2)]) {
-        assertEquals(
-            m.flatMap(breaking)(m.flatMap(continuing)(data)),
+        expect(m.flatMap(breaking)(m.flatMap(continuing)(data))).toStrictEqual(
             m.flatMap((x: string) => m.flatMap(breaking)(continuing(x)))(data),
         );
-        assertEquals(
-            m.flatMap(continuing)(m.flatMap(breaking)(data)),
+        expect(m.flatMap(continuing)(m.flatMap(breaking)(data))).toStrictEqual(
             m.flatMap((x: string) => m.flatMap(continuing)(breaking(x)))(data),
         );
     }
 });
 
-Deno.test("foldR", () => {
+test("foldR", () => {
     {
         const actual = foldR((next: string) => (acc: string) => next + acc)("")(
             cases[0],
         );
-        assertEquals(actual, "foo");
+        expect(actual).toStrictEqual("foo");
     }
     {
         const actual = foldR((next: string) => (acc: string) => next + acc)("")(
             cases[1],
         );
-        assertEquals(actual, "");
+        expect(actual).toStrictEqual("");
     }
 });
 
-Deno.test("traversable laws", () => {
+test("traversable laws", () => {
     const t = traversable<string>();
     // naturality
-    const first = <T>(
-        x: readonly T[],
-    ): Option<T> => 0 in x ? some(x[0]) : none();
+    const first = <T>(x: readonly T[]): Option<T> =>
+        0 in x ? some(x[0]) : none();
     const dup = (x: string): readonly string[] => [x + "0", x + "1"];
     const data = newContinue("fever");
-    assertEquals(
-        first(t.traverse(Array.applicative)(dup)(data)),
-        t.traverse(applicativeOption)((item: string) => first(dup(item)))(
-            data,
-        ),
+    expect(first(t.traverse(Array.applicative)(dup)(data))).toStrictEqual(
+        t.traverse(applicativeOption)((item: string) => first(dup(item)))(data),
     );
 
     // identity
     for (const c of cases) {
-        assertEquals(t.traverse(applicativeIdentity)((x: string) => x)(c), c);
+        expect(
+            t.traverse(applicativeIdentity)((x: string) => x)(c),
+        ).toStrictEqual(c);
     }
 
     // composition
     const firstCh = (x: string): Option<string> =>
         x.length > 0 ? some(x.charAt(0)) : none();
-    assertEquals(
+    expect(
         t.traverse(Compose.applicative(Array.applicative)(applicativeOption))(
             (x: string) => Array.map(firstCh)(dup(x)),
         )(data),
+    ).toStrictEqual(
         Array.map(t.traverse(applicativeOption)(firstCh))(
             t.traverse(Array.applicative)(dup)(data),
         ),
     );
 });
 
-Deno.test("traversable monad laws", () => {
+test("traversable monad laws", () => {
     const t = traversableMonad<number>();
 
     const continuing = (x: string): ControlFlow<number, string> =>
@@ -308,57 +314,54 @@ Deno.test("traversable monad laws", () => {
 
     // left identity
     for (const c of [continuing, breaking]) {
-        assertEquals(t.flatMap(c)(t.pure("baz")), c("baz"));
+        expect(t.flatMap(c)(t.pure("baz"))).toStrictEqual(c("baz"));
     }
 
     // right identity
-    assertEquals(t.flatMap(t.pure)(newContinue("a")), newContinue("a"));
-    assertEquals(t.flatMap(t.pure)(newBreak(2)), newBreak(2));
+    expect(t.flatMap(t.pure)(newContinue("a"))).toStrictEqual(newContinue("a"));
+    expect(t.flatMap(t.pure)(newBreak(2))).toStrictEqual(newBreak(2));
 
     // associativity
     for (const data of [newContinue("a"), newBreak(2)]) {
-        assertEquals(
-            t.flatMap(breaking)(t.flatMap(continuing)(data)),
+        expect(t.flatMap(breaking)(t.flatMap(continuing)(data))).toStrictEqual(
             t.flatMap((x: string) => t.flatMap(breaking)(continuing(x)))(data),
         );
-        assertEquals(
-            t.flatMap(continuing)(t.flatMap(breaking)(data)),
+        expect(t.flatMap(continuing)(t.flatMap(breaking)(data))).toStrictEqual(
             t.flatMap((x: string) => t.flatMap(continuing)(breaking(x)))(data),
         );
     }
 
     // naturality
-    const first = <T>(
-        x: readonly T[],
-    ): Option<T> => 0 in x ? some(x[0]) : none();
+    const first = <T>(x: readonly T[]): Option<T> =>
+        0 in x ? some(x[0]) : none();
     const dup = (x: string): readonly string[] => [x + "0", x + "1"];
     const data = newContinue("fever");
-    assertEquals(
-        first(t.traverse(Array.applicative)(dup)(data)),
-        t.traverse(applicativeOption)((item: string) => first(dup(item)))(
-            data,
-        ),
+    expect(first(t.traverse(Array.applicative)(dup)(data))).toStrictEqual(
+        t.traverse(applicativeOption)((item: string) => first(dup(item)))(data),
     );
 
     // identity
     for (const c of [newContinue("foo"), newBreak(6)]) {
-        assertEquals(t.traverse(applicativeIdentity)((x: string) => x)(c), c);
+        expect(
+            t.traverse(applicativeIdentity)((x: string) => x)(c),
+        ).toStrictEqual(c);
     }
 
     // composition
     const firstCh = (x: string): Option<string> =>
         x.length > 0 ? some(x.charAt(0)) : none();
-    assertEquals(
+    expect(
         t.traverse(Compose.applicative(Array.applicative)(applicativeOption))(
             (x: string) => Array.map(firstCh)(dup(x)),
         )(data),
+    ).toStrictEqual(
         Array.map(t.traverse(applicativeOption)(firstCh))(
             t.traverse(Array.applicative)(dup)(data),
         ),
     );
 });
 
-Deno.test("encode then decode", () => {
+test("encode then decode", () => {
     const data: readonly ControlFlow<string, number>[] = [
         newContinue(42),
         newBreak("foo"),
@@ -366,6 +369,6 @@ Deno.test("encode then decode", () => {
     for (const datum of data) {
         const code = runCode(enc(encUtf8)(encU32Be)(datum));
         const decoded = unwrap(runDecoder(dec(decUtf8())(decU32Be()))(code));
-        assertEquals(datum, decoded);
+        expect(datum).toStrictEqual(decoded);
     }
 });

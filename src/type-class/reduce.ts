@@ -1,4 +1,4 @@
-import type { Get1 } from "../hkt.ts";
+import type { Get1 } from "../hkt.js";
 
 export type Reduce<F> = {
     readonly reduceR: <A, B>(

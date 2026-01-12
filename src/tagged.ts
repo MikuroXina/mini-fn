@@ -1,4 +1,4 @@
-import type { Hkt2 } from "./hkt.ts";
+import type { Hkt2 } from "./hkt.js";
 
 export type Tagged<_S, B> = {
     readonly value: B;

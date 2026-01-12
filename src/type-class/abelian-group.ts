@@ -1,5 +1,5 @@
-import type { Group, GroupExceptZero } from "./group.ts";
-import { semiGroupSymbol } from "./semi-group.ts";
+import type { Group, GroupExceptZero } from "./group.js";
+import { semiGroupSymbol } from "./semi-group.js";
 
 export const abelSymbol = Symbol("ImplAbel");
 

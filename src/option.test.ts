@@ -1,295 +1,303 @@
-import { assertEquals } from "../deps.ts";
-import { Array, Compose, Identity, Result } from "../mod.ts";
-import * as Option from "./option.ts";
-import { equal, greater, less, type Ordering } from "./ordering.ts";
-import { decU32Be, encU32Be, runCode, runDecoder } from "./serial.ts";
-import { stringEq } from "./type-class/eq.ts";
-import { stringOrd } from "./type-class/ord.ts";
+import { expect, test } from "vitest";
+import { Array, Compose, Identity, Result } from "../mod.js";
+import * as Option from "./option.js";
+import { equal, greater, less, type Ordering } from "./ordering.js";
+import { decU32Be, encU32Be, runCode, runDecoder } from "./serial.js";
+import { stringEq } from "./type-class/eq.js";
+import { stringOrd } from "./type-class/ord.js";
 
-Deno.test("partial equality", () => {
-    assertEquals(
+test("partial equality", () => {
+    expect(
         Option.partialEquality(stringEq)(Option.none(), Option.none()),
-        true,
-    );
-    assertEquals(
+    ).toStrictEqual(true);
+    expect(
         Option.partialEquality(stringEq)(Option.some("xxx"), Option.none()),
-        false,
-    );
-    assertEquals(
+    ).toStrictEqual(false);
+    expect(
         Option.partialEquality(stringEq)(Option.none(), Option.some("xxx")),
-        false,
-    );
-    assertEquals(
+    ).toStrictEqual(false);
+    expect(
         Option.partialEquality(stringEq)(
             Option.some("xxx"),
             Option.some("xxy"),
         ),
-        false,
-    );
-    assertEquals(
+    ).toStrictEqual(false);
+    expect(
         Option.partialEquality(stringEq)(
             Option.some("xxx"),
             Option.some("xxx"),
         ),
-        true,
-    );
+    ).toStrictEqual(true);
 });
 
-Deno.test("partial order", () => {
+test("partial order", () => {
     const optionStrCmp = Option.partialCmp(stringOrd);
-    assertEquals(
-        optionStrCmp(Option.none(), Option.none()),
+    expect(optionStrCmp(Option.none(), Option.none())).toStrictEqual(
         Option.some<Ordering>(equal),
     );
-    assertEquals(
-        optionStrCmp(Option.none(), Option.some("abc")),
+    expect(optionStrCmp(Option.none(), Option.some("abc"))).toStrictEqual(
         Option.some<Ordering>(less),
     );
-    assertEquals(
-        optionStrCmp(Option.some("abc"), Option.none()),
+    expect(optionStrCmp(Option.some("abc"), Option.none())).toStrictEqual(
         Option.some<Ordering>(greater),
     );
-    assertEquals(
-        optionStrCmp(Option.some("abc"), Option.some("xyz")),
+    expect(optionStrCmp(Option.some("abc"), Option.some("xyz"))).toStrictEqual(
         Option.some<Ordering>(less),
     );
-    assertEquals(
-        optionStrCmp(Option.some("xyz"), Option.some("abc")),
+    expect(optionStrCmp(Option.some("xyz"), Option.some("abc"))).toStrictEqual(
         Option.some<Ordering>(greater),
     );
-    assertEquals(
-        optionStrCmp(Option.some("xyz"), Option.some("xyz")),
+    expect(optionStrCmp(Option.some("xyz"), Option.some("xyz"))).toStrictEqual(
         Option.some<Ordering>(equal),
     );
 });
 
-Deno.test("total order", () => {
+test("total order", () => {
     const optionStrCmp = Option.cmp(stringOrd);
-    assertEquals(
-        optionStrCmp(Option.none(), Option.none()),
-        equal,
-    );
-    assertEquals(
-        optionStrCmp(Option.none(), Option.some("abc")),
-        less,
-    );
-    assertEquals(
-        optionStrCmp(Option.some("abc"), Option.none()),
+    expect(optionStrCmp(Option.none(), Option.none())).toStrictEqual(equal);
+    expect(optionStrCmp(Option.none(), Option.some("abc"))).toStrictEqual(less);
+    expect(optionStrCmp(Option.some("abc"), Option.none())).toStrictEqual(
         greater,
     );
-    assertEquals(
-        optionStrCmp(Option.some("abc"), Option.some("xyz")),
+    expect(optionStrCmp(Option.some("abc"), Option.some("xyz"))).toStrictEqual(
         less,
     );
-    assertEquals(
-        optionStrCmp(Option.some("xyz"), Option.some("abc")),
+    expect(optionStrCmp(Option.some("xyz"), Option.some("abc"))).toStrictEqual(
         greater,
     );
-    assertEquals(
-        optionStrCmp(Option.some("xyz"), Option.some("xyz")),
+    expect(optionStrCmp(Option.some("xyz"), Option.some("xyz"))).toStrictEqual(
         equal,
     );
 });
 
-Deno.test("toString", () => {
-    assertEquals(Option.toString(Option.some(4)), "some(4)");
-    assertEquals(Option.toString(Option.none()), "none");
+test("toString", () => {
+    expect(Option.toString(Option.some(4))).toStrictEqual("some(4)");
+    expect(Option.toString(Option.none())).toStrictEqual("none");
 });
 
-Deno.test("flatten", () => {
-    assertEquals(Option.flatten(Option.some(Option.some(4))), Option.some(4));
-    assertEquals(Option.flatten(Option.some(Option.none())), Option.none());
-    assertEquals(Option.flatten(Option.none()), Option.none());
+test("flatten", () => {
+    expect(Option.flatten(Option.some(Option.some(4)))).toStrictEqual(
+        Option.some(4),
+    );
+    expect(Option.flatten(Option.some(Option.none()))).toStrictEqual(
+        Option.none(),
+    );
+    expect(Option.flatten(Option.none())).toStrictEqual(Option.none());
 });
 
-Deno.test("and", () => {
-    assertEquals(Option.and(Option.none())(Option.none()), Option.none());
-    assertEquals(Option.and(Option.none())(Option.some(2)), Option.none());
-    assertEquals(Option.and(Option.some("foo"))(Option.none()), Option.none());
-    assertEquals(
-        Option.and(Option.some("foo"))(Option.some(2)),
+test("and", () => {
+    expect(Option.and(Option.none())(Option.none())).toStrictEqual(
+        Option.none(),
+    );
+    expect(Option.and(Option.none())(Option.some(2))).toStrictEqual(
+        Option.none(),
+    );
+    expect(Option.and(Option.some("foo"))(Option.none())).toStrictEqual(
+        Option.none(),
+    );
+    expect(Option.and(Option.some("foo"))(Option.some(2))).toStrictEqual(
         Option.some("foo"),
     );
 });
 
-Deno.test("andThen", () => {
+test("andThen", () => {
     const sqrtThenToString = (num: number): Option.Option<string> =>
         0 <= num ? Option.some(Math.sqrt(num).toString()) : Option.none();
 
     const applied = Option.andThen(sqrtThenToString);
-    assertEquals(applied(Option.some(4)), Option.some("2"));
-    assertEquals(applied(Option.some(-1)), Option.none());
-    assertEquals(applied(Option.none()), Option.none());
+    expect(applied(Option.some(4))).toStrictEqual(Option.some("2"));
+    expect(applied(Option.some(-1))).toStrictEqual(Option.none());
+    expect(applied(Option.none())).toStrictEqual(Option.none());
 });
 
-Deno.test("or", () => {
-    assertEquals(Option.or(Option.none())(Option.none()), Option.none());
-    assertEquals(Option.or(Option.none())(Option.some(2)), Option.some(2));
-    assertEquals(Option.or(Option.some(100))(Option.none()), Option.some(100));
-    assertEquals(Option.or(Option.some(100))(Option.some(2)), Option.some(2));
+test("or", () => {
+    expect(Option.or(Option.none())(Option.none())).toStrictEqual(
+        Option.none(),
+    );
+    expect(Option.or(Option.none())(Option.some(2))).toStrictEqual(
+        Option.some(2),
+    );
+    expect(Option.or(Option.some(100))(Option.none())).toStrictEqual(
+        Option.some(100),
+    );
+    expect(Option.or(Option.some(100))(Option.some(2))).toStrictEqual(
+        Option.some(2),
+    );
 });
 
-Deno.test("orElse", () => {
+test("orElse", () => {
     const nobody = Option.orElse((): Option.Option<string> => Option.none());
-    const vikings = Option.orElse((): Option.Option<string> =>
-        Option.some("vikings")
+    const vikings = Option.orElse(
+        (): Option.Option<string> => Option.some("vikings"),
     );
 
-    assertEquals(vikings(Option.some("barbarians")), Option.some("barbarians"));
-    assertEquals(vikings(Option.none()), Option.some("vikings"));
-    assertEquals(nobody(Option.none()), Option.none());
+    expect(vikings(Option.some("barbarians"))).toStrictEqual(
+        Option.some("barbarians"),
+    );
+    expect(vikings(Option.none())).toStrictEqual(Option.some("vikings"));
+    expect(nobody(Option.none())).toStrictEqual(Option.none());
 });
 
-Deno.test("xor", () => {
-    assertEquals(Option.xor(Option.none())(Option.none()), Option.none());
-    assertEquals(Option.xor(Option.none())(Option.some(2)), Option.some(2));
-    assertEquals(Option.xor(Option.some(100))(Option.none()), Option.some(100));
-    assertEquals(Option.xor(Option.some(100))(Option.some(2)), Option.none());
+test("xor", () => {
+    expect(Option.xor(Option.none())(Option.none())).toStrictEqual(
+        Option.none(),
+    );
+    expect(Option.xor(Option.none())(Option.some(2))).toStrictEqual(
+        Option.some(2),
+    );
+    expect(Option.xor(Option.some(100))(Option.none())).toStrictEqual(
+        Option.some(100),
+    );
+    expect(Option.xor(Option.some(100))(Option.some(2))).toStrictEqual(
+        Option.none(),
+    );
 });
 
-Deno.test("isSomeAnd", () => {
-    assertEquals(Option.isSomeAnd((x: number) => x >= 2)(Option.some(2)), true);
-    assertEquals(
+test("isSomeAnd", () => {
+    expect(
+        Option.isSomeAnd((x: number) => x >= 2)(Option.some(2)),
+    ).toStrictEqual(true);
+    expect(
         Option.isSomeAnd((x: number) => x >= 2)(Option.some(1.9)),
-        false,
-    );
-    assertEquals(Option.isSomeAnd((x: number) => x >= 2)(Option.none()), false);
+    ).toStrictEqual(false);
+    expect(
+        Option.isSomeAnd((x: number) => x >= 2)(Option.none()),
+    ).toStrictEqual(false);
 });
 
-Deno.test("isNoneOr", () => {
-    assertEquals(Option.isNoneOr((x: number) => x >= 2)(Option.some(2)), true);
-    assertEquals(
+test("isNoneOr", () => {
+    expect(
+        Option.isNoneOr((x: number) => x >= 2)(Option.some(2)),
+    ).toStrictEqual(true);
+    expect(
         Option.isNoneOr((x: number) => x >= 2)(Option.some(1.9)),
-        false,
+    ).toStrictEqual(false);
+    expect(Option.isNoneOr((x: number) => x >= 2)(Option.none())).toStrictEqual(
+        true,
     );
-    assertEquals(Option.isNoneOr((x: number) => x >= 2)(Option.none()), true);
 });
 
-Deno.test("filter", () => {
+test("filter", () => {
     const isEven = Option.filter((x: number) => x % 2 === 0);
-    assertEquals(isEven(Option.none()), Option.none());
-    assertEquals(isEven(Option.some(3)), Option.none());
-    assertEquals(isEven(Option.some(4)), Option.some(4));
+    expect(isEven(Option.none())).toStrictEqual(Option.none());
+    expect(isEven(Option.some(3))).toStrictEqual(Option.none());
+    expect(isEven(Option.some(4))).toStrictEqual(Option.some(4));
 });
 
-Deno.test("unzip", () => {
-    assertEquals(Option.unzip(Option.some([1, "hi"])), [
+test("unzip", () => {
+    expect(Option.unzip(Option.some([1, "hi"]))).toStrictEqual([
         Option.some(1),
         Option.some("hi"),
     ]);
-    assertEquals(Option.unzip(Option.none()), [
+    expect(Option.unzip(Option.none())).toStrictEqual([
         Option.none(),
         Option.none(),
     ]);
 });
 
-Deno.test("zipWith", () => {
+test("zipWith", () => {
     interface Point {
         x: number;
         y: number;
     }
-    const newPoint = Option.zipWith((x: number, y: number): Point => ({
-        x,
-        y,
-    }));
-    assertEquals(
-        newPoint(Option.some(17.5))(Option.some(42.7)),
+    const newPoint = Option.zipWith(
+        (x: number, y: number): Point => ({
+            x,
+            y,
+        }),
+    );
+    expect(newPoint(Option.some(17.5))(Option.some(42.7))).toStrictEqual(
         Option.some({ x: 17.5, y: 42.7 }),
     );
-    assertEquals(newPoint(Option.none())(Option.none()), Option.none());
+    expect(newPoint(Option.none())(Option.none())).toStrictEqual(Option.none());
 });
 
-Deno.test("unwrapOr", () => {
+test("unwrapOr", () => {
     const unwrapOrBike = Option.unwrapOr("bike");
-    assertEquals(unwrapOrBike(Option.some("car")), "car");
-    assertEquals(unwrapOrBike(Option.none()), "bike");
+    expect(unwrapOrBike(Option.some("car"))).toStrictEqual("car");
+    expect(unwrapOrBike(Option.none())).toStrictEqual("bike");
 });
 
-Deno.test("unwrapOrElse", () => {
+test("unwrapOrElse", () => {
     const unwrapOrCalc = Option.unwrapOrElse(() => 6 ** 4);
-    assertEquals(unwrapOrCalc(Option.some(4)), 4);
-    assertEquals(unwrapOrCalc(Option.none()), 1296);
+    expect(unwrapOrCalc(Option.some(4))).toStrictEqual(4);
+    expect(unwrapOrCalc(Option.none())).toStrictEqual(1296);
 });
 
-Deno.test("contains", () => {
+test("contains", () => {
     const hasTwo = Option.contains(2);
-    assertEquals(hasTwo(Option.some(2)), true);
-    assertEquals(hasTwo(Option.some(3)), false);
-    assertEquals(hasTwo(Option.none()), false);
+    expect(hasTwo(Option.some(2))).toStrictEqual(true);
+    expect(hasTwo(Option.some(3))).toStrictEqual(false);
+    expect(hasTwo(Option.none())).toStrictEqual(false);
 });
 
-Deno.test("transpose", () => {
-    assertEquals(
-        Option.optResToResOpt(Option.some(Result.ok(5))),
+test("transpose", () => {
+    expect(Option.optResToResOpt(Option.some(Result.ok(5)))).toStrictEqual(
         Result.ok(Option.some(5)),
     );
-    assertEquals(
-        Option.optResToResOpt(Option.none()),
+    expect(Option.optResToResOpt(Option.none())).toStrictEqual(
         Result.ok(Option.none()),
     );
-    assertEquals(
-        Option.optResToResOpt(Option.some(Result.err(5))),
+    expect(Option.optResToResOpt(Option.some(Result.err(5)))).toStrictEqual(
         Result.err(5),
     );
 });
 
-Deno.test("okOr", () => {
+test("okOr", () => {
     const orZero = Option.okOr(0);
-    assertEquals(orZero(Option.some("foo")), Result.ok("foo"));
-    assertEquals(orZero(Option.none()), Result.err(0));
+    expect(orZero(Option.some("foo"))).toStrictEqual(Result.ok("foo"));
+    expect(orZero(Option.none())).toStrictEqual(Result.err(0));
 });
 
-Deno.test("okOrElse", () => {
+test("okOrElse", () => {
     const orZero = Option.okOrElse(() => 0);
-    assertEquals(orZero(Option.some("foo")), Result.ok("foo"));
-    assertEquals(orZero(Option.none()), Result.err(0));
+    expect(orZero(Option.some("foo"))).toStrictEqual(Result.ok("foo"));
+    expect(orZero(Option.none())).toStrictEqual(Result.err(0));
 });
 
-Deno.test("foldR", () => {
+test("foldR", () => {
     const applied = Option.foldR((next: number) => (acc: number) => next + acc)(
         1,
     );
 
-    assertEquals(applied(Option.some(2)), 3);
-    assertEquals(applied(Option.some(5)), 6);
-    assertEquals(applied(Option.none()), 1);
+    expect(applied(Option.some(2))).toStrictEqual(3);
+    expect(applied(Option.some(5))).toStrictEqual(6);
+    expect(applied(Option.none())).toStrictEqual(1);
 });
 
-Deno.test("traversable functor", () => {
+test("traversable functor", () => {
     // naturality
-    const first = <T>(
-        x: readonly T[],
-    ): Option.Option<T> => 0 in x ? Option.some(x[0]) : Option.none();
+    const first = <T>(x: readonly T[]): Option.Option<T> =>
+        0 in x ? Option.some(x[0]) : Option.none();
     const dup = (x: string): readonly string[] => [x + "0", x + "1"];
     for (const data of [Option.some("fever"), Option.none()]) {
-        assertEquals(
+        expect(
             first(Option.traversable.traverse(Array.applicative)(dup)(data)),
+        ).toStrictEqual(
             Option.traversable.traverse(Option.applicative)((item: string) =>
-                first(dup(item))
-            )(
-                data,
-            ),
+                first(dup(item)),
+            )(data),
         );
     }
 
     // identity
     const num = Option.some(5);
-    assertEquals(
+    expect(
         Option.traversable.traverse(Identity.applicative)((a: number) => a)(
             num,
         ),
-        num,
-    );
+    ).toStrictEqual(num);
 
     // composition
     const app = Compose.applicative(Array.applicative)(Option.applicative);
     const firstCh = (x: string): Option.Option<string> =>
         x.length > 0 ? Option.some(x.charAt(0)) : Option.none();
     for (const x of [Option.some("nice"), Option.none()]) {
-        assertEquals(
+        expect(
             Option.traversable.traverse(app)((item: string) =>
-                Array.map(firstCh)(dup(item))
+                Array.map(firstCh)(dup(item)),
             )(x),
+        ).toStrictEqual(
             Array.map(Option.traversable.traverse(Option.applicative)(firstCh))(
                 Option.traversable.traverse(Array.applicative)(dup)(x),
             ),
@@ -297,7 +305,7 @@ Deno.test("traversable functor", () => {
     }
 });
 
-Deno.test("monoid", () => {
+test("monoid", () => {
     const m = Option.monoid<number>();
 
     // associative
@@ -305,8 +313,7 @@ Deno.test("monoid", () => {
         const x = Option.some(4);
         const y = Option.some(3);
         const z = Option.some(8);
-        assertEquals(
-            m.combine(m.combine(x, y), z),
+        expect(m.combine(m.combine(x, y), z)).toStrictEqual(
             m.combine(x, m.combine(y, z)),
         );
     }
@@ -314,15 +321,15 @@ Deno.test("monoid", () => {
     // identity
     {
         const x = Option.some(4);
-        assertEquals(m.combine(x, m.identity), x);
-        assertEquals(m.combine(m.identity, x), x);
+        expect(m.combine(x, m.identity)).toStrictEqual(x);
+        expect(m.combine(m.identity, x)).toStrictEqual(x);
     }
 });
 
-Deno.test("encode then decode", () => {
+test("encode then decode", () => {
     for (const data of [Option.some(4), Option.none()]) {
         const code = runCode(Option.enc(encU32Be)(data));
         const decoded = Result.unwrap(runDecoder(Option.dec(decU32Be()))(code));
-        assertEquals(decoded, data);
+        expect(decoded).toStrictEqual(data);
     }
 });

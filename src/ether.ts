@@ -251,10 +251,10 @@
  * @module
  */
 
-import type { Get1, Hkt2, Hkt3 } from "./hkt.ts";
-import type { Monad } from "./type-class/monad.ts";
-import type { IdentityHkt } from "./identity.ts";
-import { doT } from "./cat.ts";
+import { doT } from "./cat.js";
+import type { Get1, Hkt2, Hkt3 } from "./hkt.js";
+import type { IdentityHkt } from "./identity.js";
+import type { Monad } from "./type-class/monad.js";
 
 /**
  * A symbol among Ether values, which resolves into the actual producing type.
@@ -316,15 +316,13 @@ export const runEtherT = <M, T>(
  * @param depSymbols The declaration of symbols by key, for `handler` which requires dependencies.
  * @returns A new `EtherT` having parameters as fields.
  */
-export const newEtherT = <M>() =>
-<
-    T,
-    const D extends Record<string, symbol> = Record<string, never>,
->(
-    selfSymbol: EtherSymbol<T>,
-    handler: (deps: EtherDeps<D>) => Get1<M, T>,
-    depSymbols: D = {} as D,
-): EtherT<D, M, T> => ({ selfSymbol, handler, depSymbols });
+export const newEtherT =
+    <M>() =>
+    <T, const D extends Record<string, symbol> = Record<string, never>>(
+        selfSymbol: EtherSymbol<T>,
+        handler: (deps: EtherDeps<D>) => Get1<M, T>,
+        depSymbols: D = {} as D,
+    ): EtherT<D, M, T> => ({ selfSymbol, handler, depSymbols });
 
 /**
  * Composes two `EtherT`s into a new one. Injects `lower` into `upper`.
@@ -340,11 +338,12 @@ export const composeT =
     <const E extends Record<string, symbol>, U>(
         upper: EtherT<E, M, U>,
     ): EtherT<OmitType<E, T> & D, M, U> => {
-        const targetKeys = Object.entries(upper.depSymbols).filter(([, sym]) =>
-            sym === lower.selfSymbol
-        ).map(([key]) => key);
+        const targetKeys = Object.entries(upper.depSymbols)
+            .filter(([, sym]) => sym === lower.selfSymbol)
+            .map(([key]) => key);
         const composedHandler = (deps: EtherDeps<OmitType<E, T> & D>) =>
-            doT(monad).addM("resolved", lower.handler(deps))
+            doT(monad)
+                .addM("resolved", lower.handler(deps))
                 .addMWith("ret", ({ resolved }) => {
                     const depsForUpper: Record<string, unknown> = {
                         ...deps,
@@ -353,12 +352,12 @@ export const composeT =
                         depsForUpper[targetKey] = resolved;
                     }
                     return upper.handler(depsForUpper as EtherDeps<E>);
-                }).finish(({ ret }) => ret);
+                })
+                .finish(({ ret }) => ret);
         const symbolsDeletedSelf = Object.fromEntries(
-            Object.entries({ ...upper.depSymbols, ...lower.depSymbols })
-                .filter(
-                    ([, depSym]) => depSym !== lower.selfSymbol,
-                ),
+            Object.entries({ ...upper.depSymbols, ...lower.depSymbols }).filter(
+                ([, depSym]) => depSym !== lower.selfSymbol,
+            ),
         );
         return {
             selfSymbol: upper.selfSymbol,
@@ -430,9 +429,9 @@ export const compose =
     <const E extends Record<string, symbol>, U>(
         upper: Ether<E, U>,
     ): Ether<OmitType<E, T> & D, U> => {
-        const targetKeys = Object.entries(upper.depSymbols).filter(([, sym]) =>
-            sym === lower.selfSymbol
-        ).map(([key]) => key);
+        const targetKeys = Object.entries(upper.depSymbols)
+            .filter(([, sym]) => sym === lower.selfSymbol)
+            .map(([key]) => key);
         const composedHandler = (deps: EtherDeps<OmitType<E, T> & D>) => {
             const resolved = lower.handler(deps);
             const depsForUpper: Record<string, unknown> = { ...deps };
@@ -442,10 +441,9 @@ export const compose =
             return upper.handler(depsForUpper as EtherDeps<E>);
         };
         const symbolsDeletedSelf = Object.fromEntries(
-            Object.entries({ ...upper.depSymbols, ...lower.depSymbols })
-                .filter(
-                    ([, depSym]) => depSym !== lower.selfSymbol,
-                ),
+            Object.entries({ ...upper.depSymbols, ...lower.depSymbols }).filter(
+                ([, depSym]) => depSym !== lower.selfSymbol,
+            ),
         );
         return {
             selfSymbol: upper.selfSymbol,

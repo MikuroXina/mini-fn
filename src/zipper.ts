@@ -1,4 +1,4 @@
-import type { Hkt1 } from "./hkt.ts";
+import type { Hkt1 } from "./hkt.js";
 import {
     appendToHead,
     drop,
@@ -10,29 +10,29 @@ import {
     partialEq as listPartialEq,
     partialEqUnary as listPartialEqUnary,
     partialOrd as listPartialOrd,
+    singleton as listSingleton,
     plus,
     reverse,
-    singleton as listSingleton,
     unCons,
-} from "./list.ts";
+} from "./list.js";
 import {
     andThen,
     isNone,
-    map as optionMap,
     type Option,
+    map as optionMap,
     unwrap,
-} from "./option.ts";
-import { andThen as thenWith, type Ordering } from "./ordering.ts";
-import type { Comonad } from "./type-class/comonad.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
-import type { Functor } from "./type-class/functor.ts";
-import { fromCmp, type Ord } from "./type-class/ord.ts";
+} from "./option.js";
+import { type Ordering, andThen as thenWith } from "./ordering.js";
+import type { Comonad } from "./type-class/comonad.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { Functor } from "./type-class/functor.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
 import {
     fromPartialEquality,
     type PartialEq,
     type PartialEqUnary,
-} from "./type-class/partial-eq.ts";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
+} from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
 
 /**
  * The zipper represents the cursor of non-empty list.
@@ -62,10 +62,9 @@ export const partialEq: <T>(equalityT: PartialEq<T>) => PartialEq<Zipper<T>> =
     fromPartialEquality(partialEquality);
 export const equality = <T>(
     equalityT: Eq<T>,
-): (l: Zipper<T>, r: Zipper<T>) => boolean => partialEquality(equalityT);
-export const eq: <T>(
-    equalityT: Eq<T>,
-) => Eq<Zipper<T>> = fromEquality(equality);
+): ((l: Zipper<T>, r: Zipper<T>) => boolean) => partialEquality(equalityT);
+export const eq: <T>(equalityT: Eq<T>) => Eq<Zipper<T>> =
+    fromEquality(equality);
 export const partialCmp =
     <T>(order: PartialOrd<T>) =>
     (lhs: Zipper<T>, rhs: Zipper<T>): Option<Ordering> =>
@@ -80,7 +79,8 @@ export const partialCmp =
 export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<Zipper<T>> =
     fromPartialCmp(partialCmp);
 export const cmp =
-    <T>(order: Ord<T>) => (lhs: Zipper<T>, rhs: Zipper<T>): Ordering =>
+    <T>(order: Ord<T>) =>
+    (lhs: Zipper<T>, rhs: Zipper<T>): Ordering =>
         thenWith(() => listOrd(order).cmp(lhs.right, rhs.right))(
             thenWith(() => order.cmp(lhs.current, rhs.current))(
                 listOrd(order).cmp(reverse(lhs.left), reverse(rhs.left)),
@@ -218,7 +218,8 @@ export const end = <T>(zipper: Zipper<T>): Zipper<T> => {
  */
 export const iterateLeft = <T>(zipper: Zipper<T>): List<Zipper<T>> => {
     const inner =
-        (z: Zipper<T>) => (list: List<Zipper<T>>): List<Zipper<T>> => {
+        (z: Zipper<T>) =>
+        (list: List<Zipper<T>>): List<Zipper<T>> => {
             const lAndLs = unCons(z.left);
             if (isNone(lAndLs)) {
                 return appendToHead(z)(list);
@@ -240,7 +241,8 @@ export const iterateLeft = <T>(zipper: Zipper<T>): List<Zipper<T>> => {
  */
 export const iterateRight = <T>(zipper: Zipper<T>): List<Zipper<T>> => {
     const inner =
-        (z: Zipper<T>) => (list: List<Zipper<T>>): List<Zipper<T>> => {
+        (z: Zipper<T>) =>
+        (list: List<Zipper<T>>): List<Zipper<T>> => {
             const rAndRs = unCons(z.right);
             if (isNone(rAndRs)) {
                 return appendToHead(z)(list);
@@ -275,7 +277,8 @@ export const duplicate = <T>(zipper: Zipper<T>): Zipper<Zipper<T>> => ({
  * @returns The mapped zipper.
  */
 export const map =
-    <T, U>(fn: (t: T) => U) => (zipper: Zipper<T>): Zipper<U> => ({
+    <T, U>(fn: (t: T) => U) =>
+    (zipper: Zipper<T>): Zipper<U> => ({
         left: listMap(fn)(zipper.left),
         current: fn(zipper.current),
         right: listMap(fn)(zipper.right),

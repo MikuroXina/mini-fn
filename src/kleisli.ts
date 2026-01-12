@@ -1,6 +1,6 @@
-import type { Apply3Only, Get1, Hkt3 } from "./hkt.ts";
-import type { Category } from "./type-class/category.ts";
-import type { Monad } from "./type-class/monad.ts";
+import type { Apply3Only, Get1, Hkt3 } from "./hkt.js";
+import type { Category } from "./type-class/category.js";
+import type { Monad } from "./type-class/monad.js";
 
 /**
  * The kleisli arrow from `A` to `B` in `M`.
@@ -22,7 +22,9 @@ export const category = <M>(
     identity: <A>() => ({
         runKleisli: monad.pure<A>,
     }),
-    compose: ({ runKleisli: g }) => ({ runKleisli: f }) => ({
-        runKleisli: (a) => monad.flatMap(g)(f(a)),
-    }),
+    compose:
+        ({ runKleisli: g }) =>
+        ({ runKleisli: f }) => ({
+            runKleisli: (a) => monad.flatMap(g)(f(a)),
+        }),
 });

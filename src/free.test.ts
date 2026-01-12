@@ -1,23 +1,23 @@
-import { assertEquals } from "../deps.ts";
-import { catT, doT, doVoidT } from "./cat.ts";
+import { expect, test } from "vitest";
+import { catT, doT, doVoidT } from "./cat.js";
 import {
     eq,
-    foldFree,
     type Free,
+    foldFree,
+    monad as freeMonad,
     liftF,
     monad,
-    monad as freeMonad,
     pure,
     runFree,
     wrap,
-} from "./free.ts";
-import type { Apply2Only, Hkt1 } from "./hkt.ts";
-import { monadRec, runState, type State, type StateHkt } from "./state.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Nt } from "./type-class/nt.ts";
+} from "./free.js";
+import type { Apply2Only, Hkt1 } from "./hkt.js";
+import { monadRec, runState, type State, type StateHkt } from "./state.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Nt } from "./type-class/nt.js";
 
-Deno.test("hello language", async (t) => {
+test("hello language", () => {
     type Hello<T> = {
         type: "Hello";
         next: T;
@@ -41,7 +41,8 @@ Deno.test("hello language", async (t) => {
     }
 
     const map =
-        <T1, U1>(fn: (t: T1) => U1) => (code: HelloLang<T1>): HelloLang<U1> => {
+        <T1, U1>(fn: (t: T1) => U1) =>
+        (code: HelloLang<T1>): HelloLang<U1> => {
             switch (code.type) {
                 case "Hello":
                     return { ...code, next: fn(code.next) };
@@ -88,65 +89,72 @@ Deno.test("hello language", async (t) => {
     const comparator = eq<HelloLangHkt, unknown>({
         equalityA: fromEquality(() => () => true)(),
         equalityFA: fromEquality(
-            <T>(x: Eq<T>) => (l: HelloLang<T>, r: HelloLang<T>) => {
-                if (l.type !== r.type) {
-                    return false;
-                }
-                switch (l.type) {
-                    case "Hello":
-                        return x.eq(l.next, (r as Hello<T>).next);
-                    case "Hey":
-                        return x.eq(l.next, (r as Hey<T>).next);
-                    case "YearsOld":
-                        return (
-                            l.years === (r as YearsOld<T>).years &&
-                            x.eq(l.next, (r as YearsOld<T>).next)
-                        );
-                    case "Bye":
-                        return true;
-                }
-            },
+            <T>(x: Eq<T>) =>
+                (l: HelloLang<T>, r: HelloLang<T>) => {
+                    if (l.type !== r.type) {
+                        return false;
+                    }
+                    switch (l.type) {
+                        case "Hello":
+                            return x.eq(l.next, (r as Hello<T>).next);
+                        case "Hey":
+                            return x.eq(l.next, (r as Hey<T>).next);
+                        case "YearsOld":
+                            return (
+                                l.years === (r as YearsOld<T>).years &&
+                                x.eq(l.next, (r as YearsOld<T>).next)
+                            );
+                        case "Bye":
+                            return true;
+                    }
+                },
         ),
         functor,
     });
 
-    await t.step("syntax tree", () => {
+    // syntax tree
+    {
         const empty: Free<HelloLangHkt, unknown> = pure({});
         const example: Free<HelloLangHkt, string> = wrap({
             type: "Hello",
             next: wrap({ type: "Hello", next: wrap({ type: "Bye" }) }),
         });
-        assertEquals(comparator.eq(example, example), true);
-        assertEquals(comparator.eq(example, empty), false);
-        assertEquals(comparator.eq(empty, example), false);
-        assertEquals(comparator.eq(empty, empty), true);
-        assertEquals(runProgram(example), "Hello.\nHello.\nBye.\n");
+        expect(comparator.eq(example, example)).toStrictEqual(true);
+        expect(comparator.eq(example, empty)).toStrictEqual(false);
+        expect(comparator.eq(empty, example)).toStrictEqual(false);
+        expect(comparator.eq(empty, empty)).toStrictEqual(true);
+        expect(runProgram(example)).toStrictEqual("Hello.\nHello.\nBye.\n");
 
         const exampleCode = doVoidT(m).run(hello).run(hello).run(bye).ctx;
-        assertEquals(comparator.eq(example, exampleCode), true);
-    });
+        expect(comparator.eq(example, exampleCode)).toStrictEqual(true);
+    }
 
-    await t.step("program monad", () => {
+    // program monad
+    {
         const subRoutine = doVoidT(m).run(hello).run(yearsOld(25)).ctx;
-        const program =
-            catT(m)(pure("")).run(hey).run(subRoutine).run(hey).run(bye).ctx;
+        const program = catT(m)(pure(""))
+            .run(hey)
+            .run(subRoutine)
+            .run(hey)
+            .run(bye).ctx;
 
-        assertEquals(
-            runProgram(program),
+        expect(runProgram(program)).toStrictEqual(
             "Hey.\nHello.\nI'm 25 years old.\nHey.\nBye.\n",
         );
-    });
+    }
 });
 
-Deno.test("teletype language", () => {
-    type TeletypeF<T> = {
-        type: "PUT_STR_LN";
-        line: string;
-        next: T;
-    } | {
-        type: "GET_LINE";
-        callback: (line: string) => T;
-    };
+test("teletype language", () => {
+    type TeletypeF<T> =
+        | {
+              type: "PUT_STR_LN";
+              line: string;
+              next: T;
+          }
+        | {
+              type: "GET_LINE";
+              callback: (line: string) => T;
+          };
     interface TeletypeHkt extends Hkt1 {
         readonly type: TeletypeF<this["arg1"]>;
     }
@@ -160,11 +168,12 @@ Deno.test("teletype language", () => {
     });
 
     const teletypeMock: Nt<TeletypeHkt, Apply2Only<StateHkt, string>> = {
-        nt: <T>(f: TeletypeF<T>): State<string, T> =>
-        (state: string): [T, string] =>
-            f.type === "PUT_STR_LN"
-                ? [f.next, state + "\n" + f.line]
-                : [f.callback("fake input"), state],
+        nt:
+            <T>(f: TeletypeF<T>): State<string, T> =>
+            (state: string): [T, string] =>
+                f.type === "PUT_STR_LN"
+                    ? [f.next, state + "\n" + f.line]
+                    : [f.callback("fake input"), state],
     };
 
     const run = foldFree(monadRec<string>())(teletypeMock);
@@ -176,5 +185,8 @@ Deno.test("teletype language", () => {
         .finishM(({ line }) => pure<TeletypeHkt, string>(line + ", " + line));
 
     const actual = runState(run.nt(echo))("");
-    assertEquals(actual, ["fake input, fake input", "\nfake input\nFinished"]);
+    expect(actual).toStrictEqual([
+        "fake input, fake input",
+        "\nfake input\nFinished",
+    ]);
 });

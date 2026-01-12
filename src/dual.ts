@@ -1,12 +1,12 @@
-import type { Fn, FnHkt } from "./func.ts";
-import type { Get2, Hkt2 } from "./hkt.ts";
-import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.ts";
-import type { GenericBifunctor } from "./type-class/bifunctor.ts";
-import type { Category } from "./type-class/category.ts";
-import type { Group } from "./type-class/group.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import type { Contravariant } from "./type-class/variance.ts";
+import type { Fn, FnHkt } from "./func.js";
+import type { Get2, Hkt2 } from "./hkt.js";
+import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.js";
+import type { GenericBifunctor } from "./type-class/bifunctor.js";
+import type { Category } from "./type-class/category.js";
+import type { Group } from "./type-class/group.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
+import type { Contravariant } from "./type-class/variance.js";
 
 /**
  * Inverse of arrow from `A` to `B`.
@@ -30,7 +30,9 @@ export const cat: Category<DualHkt> = {
  */
 export const contra: Contravariant<DualHkt> = {
     contraMap:
-        <T, U>(f: (t: T) => U) => <A>(bDual: Dual<A, U>): Dual<A, T> => (t) =>
+        <T, U>(f: (t: T) => U) =>
+        <A>(bDual: Dual<A, U>): Dual<A, T> =>
+        (t) =>
             bDual(f(t)),
 };
 

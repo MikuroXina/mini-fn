@@ -1,33 +1,33 @@
-import type { ComonadCofree } from "./cofree/comonad.ts";
-import { compose } from "./func.ts";
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
+import type { ComonadCofree } from "./cofree/comonad.js";
+import { compose } from "./func.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import {
-    defer as lazyDefer,
     force,
     known,
     type Lazy,
+    defer as lazyDefer,
     map as lazyMap,
     partialEq as lazyPartialEq,
     unzip,
-} from "./lazy.ts";
-import { isNone, type Option, unwrap as optionUnwrap } from "./option.ts";
-import { equal, type Ordering } from "./ordering.ts";
-import type { Tuple } from "./tuple.ts";
-import { type Comonad, extend } from "./type-class/comonad.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
-import type { Functor } from "./type-class/functor.ts";
-import { kleisli, liftM, type Monad } from "./type-class/monad.ts";
-import { fromCmp, type Ord } from "./type-class/ord.ts";
+} from "./lazy.js";
+import { isNone, type Option, unwrap as optionUnwrap } from "./option.js";
+import { equal, type Ordering } from "./ordering.js";
+import type { Tuple } from "./tuple.js";
+import { type Comonad, extend } from "./type-class/comonad.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { Functor } from "./type-class/functor.js";
+import { kleisli, liftM, type Monad } from "./type-class/monad.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
 import {
     fromPartialEquality,
     type PartialEq,
     type PartialEqUnary,
-} from "./type-class/partial-eq.ts";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
+} from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
 import {
     mapM as mapMTraversable,
     type Traversable,
-} from "./type-class/traversable.ts";
+} from "./type-class/traversable.js";
 
 export interface CofreeHkt extends Hkt2 {
     readonly type: Cofree<this["arg2"], this["arg1"]>;
@@ -53,7 +53,7 @@ export const partialEquality = <F, A>({
 }: {
     equalityA: PartialEq<A>;
     equalityFA: <T>(equality: PartialEq<T>) => PartialEq<Get1<F, T>>;
-}): (l: Cofree<F, A>, r: Cofree<F, A>) => boolean => {
+}): ((l: Cofree<F, A>, r: Cofree<F, A>) => boolean) => {
     const self = (l: Cofree<F, A>, r: Cofree<F, A>): boolean =>
         lazyPartialEq(equalityA).eq(l.current, r.current) &&
         lazyPartialEq(equalityFA(fromPartialEquality(() => self)())).eq(
@@ -75,7 +75,7 @@ export const equality = <F, A>({
 }: {
     equalityA: Eq<A>;
     equalityFA: <T>(equality: Eq<T>) => Eq<Get1<F, T>>;
-}): (l: Cofree<F, A>, r: Cofree<F, A>) => boolean => {
+}): ((l: Cofree<F, A>, r: Cofree<F, A>) => boolean) => {
     const self = (l: Cofree<F, A>, r: Cofree<F, A>): boolean =>
         lazyPartialEq(equalityA).eq(l.current, r.current) &&
         lazyPartialEq(equalityFA(fromEquality(() => self)())).eq(
@@ -97,11 +97,8 @@ export const partialCmp = <F, A>({
 }: {
     orderA: PartialOrd<A>;
     orderFA: <T>(order: PartialOrd<T>) => PartialOrd<Get1<F, T>>;
-}): (l: Cofree<F, A>, r: Cofree<F, A>) => Option<Ordering> => {
-    const self = (
-        l: Cofree<F, A>,
-        r: Cofree<F, A>,
-    ): Option<Ordering> => {
+}): ((l: Cofree<F, A>, r: Cofree<F, A>) => Option<Ordering>) => {
+    const self = (l: Cofree<F, A>, r: Cofree<F, A>): Option<Ordering> => {
         const res = orderA.partialCmp(force(l.current), force(r.current));
         if (isNone(res) || optionUnwrap(res) !== equal) {
             return res;
@@ -126,7 +123,7 @@ export const cmp = <F, A>({
 }: {
     orderA: Ord<A>;
     orderFA: <T>(order: Ord<T>) => Ord<Get1<F, T>>;
-}): (l: Cofree<F, A>, r: Cofree<F, A>) => Ordering => {
+}): ((l: Cofree<F, A>, r: Cofree<F, A>) => Ordering) => {
     const self = (l: Cofree<F, A>, r: Cofree<F, A>): Ordering => {
         const res = orderA.cmp(force(l.current), force(r.current));
         if (res !== equal) {
@@ -149,7 +146,7 @@ export const partialEqUnary = <F>(
 ): PartialEqUnary<CofreeHkt> => ({
     liftEq: <Lhs, Rhs>(
         equality: (l: Lhs, r: Rhs) => boolean,
-    ): (l: Cofree<F, Lhs>, r: Cofree<F, Rhs>) => boolean => {
+    ): ((l: Cofree<F, Lhs>, r: Cofree<F, Rhs>) => boolean) => {
         const self = (l: Cofree<F, Lhs>, r: Cofree<F, Rhs>): boolean =>
             lazyPartialEq({
                 eq: equality,
@@ -182,7 +179,8 @@ export const defer = <F, A>(
  * @returns The new instance.
  */
 export const make =
-    <A>(a: A) => <F>(f: Get1<F, Cofree<F, A>>): Cofree<F, A> => ({
+    <A>(a: A) =>
+    <F>(f: Get1<F, Cofree<F, A>>): Cofree<F, A> => ({
         current: known(a),
         rest: known(f),
     });
@@ -243,20 +241,21 @@ export const extract = head;
  * @param c - The instance of `Cofree`.
  * @returns The hoisted instance.
  */
-export const hoist = <F>(f: Functor<F>) =>
-<G>(
-    nat: <T>(a: Get1<F, T>) => Get1<G, T>,
-): <A>(c: Cofree<F, A>) => Cofree<G, A> => {
-    const self = <A>(c: Cofree<F, A>): Cofree<G, A> => ({
-        current: c.current,
-        rest: lazyMap<Get1<F, Cofree<F, A>>, Get1<G, Cofree<G, A>>>(
-            compose<Get1<F, Cofree<G, A>>, Get1<G, Cofree<G, A>>>(nat)(
-                f.map(self),
-            ),
-        )(c.rest),
-    });
-    return self;
-};
+export const hoist =
+    <F>(f: Functor<F>) =>
+    <G>(
+        nat: <T>(a: Get1<F, T>) => Get1<G, T>,
+    ): (<A>(c: Cofree<F, A>) => Cofree<G, A>) => {
+        const self = <A>(c: Cofree<F, A>): Cofree<G, A> => ({
+            current: c.current,
+            rest: lazyMap<Get1<F, Cofree<F, A>>, Get1<G, Cofree<G, A>>>(
+                compose<Get1<F, Cofree<G, A>>, Get1<G, Cofree<G, A>>>(nat)(
+                    f.map(self),
+                ),
+            )(c.rest),
+        });
+        return self;
+    };
 
 /**
  * Build a new `Cofree` from `builder`.
@@ -268,13 +267,13 @@ export const hoist = <F>(f: Functor<F>) =>
  */
 export const build =
     <F>(f: Functor<F>) =>
-    <S, A>(builder: (s: S) => [A, Get1<F, S>]): (init: S) => Cofree<F, A> => {
+    <S, A>(builder: (s: S) => [A, Get1<F, S>]): ((init: S) => Cofree<F, A>) => {
         const self = (init: S): Cofree<F, A> => {
             const [current, rest] = unzip(lazyDefer(() => builder(init)));
-            return ({
+            return {
                 current,
                 rest: lazyMap(f.map(self))(rest),
-            });
+            };
         };
         return self;
     };
@@ -290,7 +289,8 @@ export const build =
 export const coiter =
     <F>(functor: Functor<F>) =>
     <A>(psi: (a: A) => Get1<F, A>) =>
-    (a: A): Cofree<F, A> => make(a)(functor.map(coiter(functor)(psi))(psi(a)));
+    (a: A): Cofree<F, A> =>
+        make(a)(functor.map(coiter(functor)(psi))(psi(a)));
 
 /**
  * Generates a new `Cofree` from the co-iteration and seed wrapped with comonad `W`.
@@ -337,18 +337,16 @@ export const unfold =
 export const unfoldM = <F, M>(
     traversable: Traversable<F>,
     monad: Monad<M>,
-): <B, A>(
+): (<B, A>(
     unfolder: (b: B) => Get1<M, Lazy<Tuple<A, Get1<F, B>>>>,
-) => (init: B) => Get1<M, Cofree<F, A>> => {
+) => (init: B) => Get1<M, Cofree<F, A>>) => {
     const partial = <B, A>(
         unfolder: (b: B) => Get1<M, Lazy<Tuple<A, Get1<F, B>>>>,
-    ): (init: B) => Get1<M, Cofree<F, A>> =>
+    ): ((init: B) => Get1<M, Cofree<F, A>>) =>
         kleisli(monad)(unfolder)((tuple) => {
             const [x, t] = force(tuple);
             return liftM(monad)(make(x))(
-                mapMTraversable<F, M>(traversable, monad)(
-                    partial(unfolder),
-                )(t),
+                mapMTraversable<F, M>(traversable, monad)(partial(unfolder))(t),
             );
         });
     return partial;
@@ -362,7 +360,8 @@ export const unfoldM = <F, M>(
  * @returns The new instance.
  */
 export const section =
-    <F>(comonad: Comonad<F>) => <A>(as: Get1<F, A>): Cofree<F, A> =>
+    <F>(comonad: Comonad<F>) =>
+    <A>(as: Get1<F, A>): Cofree<F, A> =>
         make(comonad.extract(as))(extend(comonad)(section(comonad))(as));
 
 /**

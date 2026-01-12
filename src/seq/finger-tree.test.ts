@@ -1,6 +1,6 @@
-import { assertEquals } from "../../deps.ts";
-import { Array } from "../../mod.ts";
-import { cat } from "../cat.ts";
+import { expect, test } from "vitest";
+import { Array } from "../../mod.js";
+import { cat } from "../cat.js";
 import {
     appendBetween,
     appendManyToHead,
@@ -15,117 +15,103 @@ import {
     reduceNode,
     reduceTree,
     size,
-} from "./finger-tree.ts";
+} from "./finger-tree.js";
 
 const toArray = Array.fromReduce(reduceTree);
 
-Deno.test("type check", () => {
+test("type check", () => {
     const emptiness = empty;
     const single = fromArray([3]);
     const many = fromArray([2, 1, 8, 1, 8]);
 
-    assertEquals(isEmpty(emptiness), true);
-    assertEquals(isEmpty(single), false);
-    assertEquals(isEmpty(many), false);
+    expect(isEmpty(emptiness)).toStrictEqual(true);
+    expect(isEmpty(single)).toStrictEqual(false);
+    expect(isEmpty(many)).toStrictEqual(false);
 
-    assertEquals(isSingle(emptiness), false);
-    assertEquals(isSingle(single), true);
-    assertEquals(isSingle(many), false);
+    expect(isSingle(emptiness)).toStrictEqual(false);
+    expect(isSingle(single)).toStrictEqual(true);
+    expect(isSingle(many)).toStrictEqual(false);
 
-    assertEquals(isDeep(emptiness), false);
-    assertEquals(isDeep(single), false);
-    assertEquals(isDeep(many), true);
+    expect(isDeep(emptiness)).toStrictEqual(false);
+    expect(isDeep(single)).toStrictEqual(false);
+    expect(isDeep(many)).toStrictEqual(true);
 });
 
-Deno.test("reduceNode", () => {
+test("reduceNode", () => {
     const small: Node<string> = ["a", "b"];
     const big: Node<string> = ["x", "y", "z"];
 
     const concatStr = (x: string) => (y: string) => x + y;
-    assertEquals(reduceNode.reduceR(concatStr)(small)("!"), "ab!");
-    assertEquals(reduceNode.reduceR(concatStr)(big)("!"), "xyz!");
+    expect(reduceNode.reduceR(concatStr)(small)("!")).toStrictEqual("ab!");
+    expect(reduceNode.reduceR(concatStr)(big)("!")).toStrictEqual("xyz!");
 });
 
-Deno.test("size", () => {
+test("size", () => {
     const emptiness = empty;
     const single = fromArray([3]);
     const many = fromArray([2, 1, 8, 1, 8]);
 
-    assertEquals(size(emptiness), 0);
-    assertEquals(size(single), 1);
-    assertEquals(size(many), 5);
+    expect(size(emptiness)).toStrictEqual(0);
+    expect(size(single)).toStrictEqual(1);
+    expect(size(many)).toStrictEqual(5);
 });
 
-Deno.test("appendToHead", () => {
+test("appendToHead", () => {
     const actual = cat(empty)
         .feed(appendToHead("?"))
         .feed(appendToHead("i"))
-        .feed(appendToHead("h"))
-        .value;
+        .feed(appendToHead("h")).value;
 
-    assertEquals(toArray(actual), ["h", "i", "?"]);
+    expect(toArray(actual)).toStrictEqual(["h", "i", "?"]);
 });
 
-Deno.test("appendManyToHead", () => {
+test("appendManyToHead", () => {
     const actual = appendManyToHead(Array.reduce)("Vinegar".split(""))(empty);
 
-    assertEquals(toArray(actual), ["V", "i", "n", "e", "g", "a", "r"]);
+    expect(toArray(actual)).toStrictEqual(["V", "i", "n", "e", "g", "a", "r"]);
 });
 
-Deno.test("appendBetween", () => {
-    assertEquals(
+test("appendBetween", () => {
+    expect(
         toArray(appendBetween<string>(empty)(["d", "o", "t"])(empty)),
-        ["d", "o", "t"],
-    );
-    assertEquals(
+    ).toStrictEqual(["d", "o", "t"]);
+    expect(
         toArray(
             appendBetween<string>(fromArray(["g", "o"]))(["d", "o", "t"])(
                 empty,
             ),
         ),
-        ["g", "o", "d", "o", "t"],
-    );
-    assertEquals(
+    ).toStrictEqual(["g", "o", "d", "o", "t"]);
+    expect(
         toArray(
             appendBetween<string>(empty)(["d", "o", "t"])(
                 fromArray(["t", "e", "r"]),
             ),
         ),
-        ["d", "o", "t", "t", "e", "r"],
-    );
-    assertEquals(
+    ).toStrictEqual(["d", "o", "t", "t", "e", "r"]);
+    expect(
         toArray(
             appendBetween<string>(fromArray(["g", "o"]))(["d", "o", "t"])(
                 fromArray(["t", "e", "r"]),
             ),
         ),
-        ["g", "o", "d", "o", "t", "t", "e", "r"],
-    );
+    ).toStrictEqual(["g", "o", "d", "o", "t", "t", "e", "r"]);
 });
 
-Deno.test("concat", () => {
+test("concat", () => {
     const emptiness = empty;
     const single = fromArray([3]);
     const many = fromArray([2, 1, 8, 2, 8]);
 
-    assertEquals(toArray(concat(emptiness)(emptiness)), []);
-    assertEquals(toArray(concat(emptiness)(single)), [3]);
-    assertEquals(toArray(concat(single)(emptiness)), [3]);
-    assertEquals(toArray(concat(single)(single)), [3, 3]);
-    assertEquals(toArray(concat(emptiness)(many)), [2, 1, 8, 2, 8]);
-    assertEquals(toArray(concat(many)(emptiness)), [2, 1, 8, 2, 8]);
-    assertEquals(toArray(concat(single)(many)), [3, 2, 1, 8, 2, 8]);
-    assertEquals(toArray(concat(many)(single)), [2, 1, 8, 2, 8, 3]);
-    assertEquals(toArray(concat(many)(many)), [
-        2,
-        1,
-        8,
-        2,
-        8,
-        2,
-        1,
-        8,
-        2,
-        8,
+    expect(toArray(concat(emptiness)(emptiness))).toStrictEqual([]);
+    expect(toArray(concat(emptiness)(single))).toStrictEqual([3]);
+    expect(toArray(concat(single)(emptiness))).toStrictEqual([3]);
+    expect(toArray(concat(single)(single))).toStrictEqual([3, 3]);
+    expect(toArray(concat(emptiness)(many))).toStrictEqual([2, 1, 8, 2, 8]);
+    expect(toArray(concat(many)(emptiness))).toStrictEqual([2, 1, 8, 2, 8]);
+    expect(toArray(concat(single)(many))).toStrictEqual([3, 2, 1, 8, 2, 8]);
+    expect(toArray(concat(many)(single))).toStrictEqual([2, 1, 8, 2, 8, 3]);
+    expect(toArray(concat(many)(many))).toStrictEqual([
+        2, 1, 8, 2, 8, 2, 1, 8, 2, 8,
     ]);
 });

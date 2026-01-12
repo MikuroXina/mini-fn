@@ -1,14 +1,20 @@
-import { assertEquals } from "../deps.ts";
-import * as Number from "./number.ts";
-import { some } from "./option.ts";
-import { equal, greater, less, type Ordering } from "./ordering.ts";
-import { partialOrd, pure } from "./reverse.ts";
+import { expect, test } from "vitest";
+import * as Number from "./number.js";
+import { some } from "./option.js";
+import { equal, greater, less, type Ordering } from "./ordering.js";
+import { partialOrd, pure } from "./reverse.js";
 
-Deno.test("order", () => {
+test("order", () => {
     const order = partialOrd(Number.partialOrd);
-    assertEquals(order.eq(pure(2), pure(2)), true);
-    assertEquals(order.eq(pure(1), pure(2)), false);
-    assertEquals(order.partialCmp(pure(1), pure(2)), some(greater as Ordering));
-    assertEquals(order.partialCmp(pure(2), pure(1)), some(less as Ordering));
-    assertEquals(order.partialCmp(pure(2), pure(2)), some(equal as Ordering));
+    expect(order.eq(pure(2), pure(2))).toStrictEqual(true);
+    expect(order.eq(pure(1), pure(2))).toStrictEqual(false);
+    expect(order.partialCmp(pure(1), pure(2))).toStrictEqual(
+        some(greater as Ordering),
+    );
+    expect(order.partialCmp(pure(2), pure(1))).toStrictEqual(
+        some(less as Ordering),
+    );
+    expect(order.partialCmp(pure(2), pure(2))).toStrictEqual(
+        some(equal as Ordering),
+    );
 });

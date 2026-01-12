@@ -1,7 +1,7 @@
-import { type CatT, catT } from "../cat.ts";
-import type { Get1 } from "../hkt.ts";
-import type { Result } from "../result.ts";
-import type { Monad } from "./monad.ts";
+import { type CatT, catT } from "../cat.js";
+import type { Get1 } from "../hkt.js";
+import type { Result } from "../result.js";
+import type { Monad } from "./monad.js";
 
 /**
  * A monad which allows making the computation value into a `Result` with an error context message.
@@ -32,9 +32,8 @@ export type ErrorMonad<M> = Monad<M> & {
 /**
  * A `CatT` which helps you to handle a fail-able computation with an error message. Your provided context message will be used in message value of an `Error` object.
  */
-export type ErrorCat<M, T> =
-    & CatT<M, T>
-    & Readonly<{
+export type ErrorCat<M, T> = CatT<M, T> &
+    Readonly<{
         context: (context: string) => Result<Error, T>;
         withContext: (fn: () => string) => Result<Error, T>;
     }>;
@@ -46,14 +45,13 @@ export type ErrorCat<M, T> =
  * @param value - The computation environment.
  * @returns The `ErrorCat` instance.
  */
-export const errorCat = <M>(monad: ErrorMonad<M>) =>
-<T>(
-    env: Get1<M, T>,
-): ErrorCat<M, T> => ({
-    ...catT(monad)(env),
-    context: (context) => monad.context(context)(env),
-    withContext: (fn) => monad.withContext(fn)(env),
-});
+export const errorCat =
+    <M>(monad: ErrorMonad<M>) =>
+    <T>(env: Get1<M, T>): ErrorCat<M, T> => ({
+        ...catT(monad)(env),
+        context: (context) => monad.context(context)(env),
+        withContext: (fn) => monad.withContext(fn)(env),
+    });
 
 /**
  * Creates a `ErrorCat` from the `ErrorMonad` instance.

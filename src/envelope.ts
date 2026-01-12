@@ -1,4 +1,4 @@
-import { doT } from "./cat.ts";
+import { doT } from "./cat.js";
 import {
     type Code,
     type Decoder,
@@ -8,7 +8,7 @@ import {
     failDecoder,
     monadForCodeM,
     monadForDecoder,
-} from "./serial.ts";
+} from "./serial.js";
 
 /**
  * A envelope object to transport data into another machine.
@@ -31,10 +31,12 @@ export type Envelope<T> = Readonly<{
  * @param payload - A payload object to be packed.
  * @returns The new envelope with `payload`.
  */
-export const pack = (namespace: string) => <T>(payload: T): Envelope<T> => ({
-    namespace,
-    payload,
-});
+export const pack =
+    (namespace: string) =>
+    <T>(payload: T): Envelope<T> => ({
+        namespace,
+        payload,
+    });
 
 /**
  * Creates an `Encoder` for `Envelope<T>` from a `Encoder<T>`.
@@ -56,7 +58,8 @@ export const encode =
  * @returns The new decoder for `Envelope<T>`.
  */
 export const decodeFor =
-    (namespace: string) => <T>(decodeT: Decoder<T>): Decoder<Envelope<T>> =>
+    (namespace: string) =>
+    <T>(decodeT: Decoder<T>): Decoder<Envelope<T>> =>
         doT(monadForDecoder)
             .addM("actualNamespace", decUtf8())
             .when(

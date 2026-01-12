@@ -5,34 +5,34 @@
  * @packageDocumentation
  */
 
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
-import { cmp as listCmp, fromIterable, type List, toIterator } from "./list.ts";
-import { isNone, isSome, none, type Option, some } from "./option.ts";
-import type { Ordering } from "./ordering.ts";
-import { isOk, type Result } from "./result.ts";
-import { type Decoder, type Encoder, mapDecoder } from "./serial.ts";
+import { dec as decArray, enc as encArray } from "./array.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
+import { fromIterable, type List, cmp as listCmp, toIterator } from "./list.js";
+import { isNone, isSome, none, type Option, some } from "./option.js";
+import type { Ordering } from "./ordering.js";
+import { andThen } from "./ordering.js";
+import { isOk, type Result } from "./result.js";
+import { type Decoder, type Encoder, mapDecoder } from "./serial.js";
 import {
     dec as decTuple,
     enc as encTuple,
-    ord as tupleOrd,
     type Tuple,
-} from "./tuple.ts";
-import { dec as decArray, enc as encArray } from "./array.ts";
-import type { Applicative } from "./type-class/applicative.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
-import type { Foldable } from "./type-class/foldable.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { fromCmp, type Ord } from "./type-class/ord.ts";
+    ord as tupleOrd,
+} from "./tuple.js";
+import type { Applicative } from "./type-class/applicative.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { Foldable } from "./type-class/foldable.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
 import {
     fromPartialEquality,
     type PartialEq,
     type PartialEqUnary,
-} from "./type-class/partial-eq.ts";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import type { Traversable } from "./type-class/traversable.ts";
-import { andThen } from "./ordering.ts";
+} from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
+import type { Traversable } from "./type-class/traversable.js";
 
 /**
  * Compares two `Map`s with an equality between `L` and `R`.
@@ -50,10 +50,7 @@ export const eq =
         }
         for (const [leftKey, leftValue] of l) {
             const rightValue = r.get(leftKey);
-            if (
-                !r.has(leftKey) ||
-                !equality.eq(leftValue, rightValue!)
-            ) {
+            if (!r.has(leftKey) || !equality.eq(leftValue, rightValue!)) {
                 return false;
             }
         }
@@ -68,13 +65,11 @@ export const eq =
  * @param r - Right hand side to compare.
  * @returns The comparison result in {@link Ordering.Ordering | `Ordering`}. It will be always a {@link Option.Some | `Some`}.
  */
-export const partialCmp = <K, V>(ord: {
-    ordK: Ord<K>;
-    ordV: Ord<V>;
-}) =>
-(l: Map<K, V>, r: Map<K, V>): Option<Ordering> => {
-    return some(cmp(ord)(l, r));
-};
+export const partialCmp =
+    <K, V>(ord: { ordK: Ord<K>; ordV: Ord<V> }) =>
+    (l: Map<K, V>, r: Map<K, V>): Option<Ordering> => {
+        return some(cmp(ord)(l, r));
+    };
 /**
  * Compares two `Map`s with orders of key and value.
  *
@@ -84,18 +79,16 @@ export const partialCmp = <K, V>(ord: {
  * @param r - Right hand side to compare.
  * @returns The comparison result in {@link Ordering.Ordering | `Ordering`}.
  */
-export const cmp = <K, V>(ord: {
-    ordK: Ord<K>;
-    ordV: Ord<V>;
-}) =>
-(l: Map<K, V>, r: Map<K, V>): Ordering => {
-    const sorter = sortedEntries(ord);
-    const sortedL = sorter(l);
-    const sortedR = sorter(r);
-    return listCmp<Tuple<K, V>>(
-        tupleOrd({ ordA: ord.ordK, ordB: ord.ordV }),
-    )(sortedL, sortedR);
-};
+export const cmp =
+    <K, V>(ord: { ordK: Ord<K>; ordV: Ord<V> }) =>
+    (l: Map<K, V>, r: Map<K, V>): Ordering => {
+        const sorter = sortedEntries(ord);
+        const sortedL = sorter(l);
+        const sortedR = sorter(r);
+        return listCmp<Tuple<K, V>>(
+            tupleOrd({ ordA: ord.ordK, ordB: ord.ordV }),
+        )(sortedL, sortedR);
+    };
 
 /**
  * Generates a partial equality between `Map<K, L>` and `Map<K, R>` from the equality between `L` and `R`.
@@ -162,7 +155,10 @@ export const size = <K, V>(m: Map<K, V>): number => m.size;
  * @param m - To be checked.
  * @returns Whether the dictionary has an entry with the key.
  */
-export const has = <K>(key: K) => <V>(m: Map<K, V>): boolean => m.has(key);
+export const has =
+    <K>(key: K) =>
+    <V>(m: Map<K, V>): boolean =>
+        m.has(key);
 /**
  * Gets the item by the specified key from the dictionary.
  *
@@ -170,8 +166,10 @@ export const has = <K>(key: K) => <V>(m: Map<K, V>): boolean => m.has(key);
  * @param m - To be queried.
  * @returns Related value with the key if exists, or `None` if not.
  */
-export const get = <K>(key: K) => <V>(m: Map<K, V>): Option<V> =>
-    m.has(key) ? some(m.get(key)!) : none();
+export const get =
+    <K>(key: K) =>
+    <V>(m: Map<K, V>): Option<V> =>
+        m.has(key) ? some(m.get(key)!) : none();
 
 /**
  * Creates a new empty `Map` object.
@@ -187,8 +185,10 @@ export const empty = <K, V>(): Map<K, V> => new Map();
  * @param value - To be contained.
  * @returns A new `Map` with an entry of key and value.
  */
-export const singleton = <K>(key: K) => <V>(value: V): Map<K, V> =>
-    new Map([[key, value]]);
+export const singleton =
+    <K>(key: K) =>
+    <V>(value: V): Map<K, V> =>
+        new Map([[key, value]]);
 
 /**
  * Creates a new `Map` from the list of dictionary entries. If there are duplicate keys, the last one takes precedence.
@@ -324,7 +324,9 @@ export const clone = <K, V>(m: Map<K, V>): Map<K, V> => new Map(m);
  * @returns A new one with the inserted entry.
  */
 export const insert =
-    <K>(key: K) => <V>(value: V) => (m: Map<K, V>): Map<K, V> =>
+    <K>(key: K) =>
+    <V>(value: V) =>
+    (m: Map<K, V>): Map<K, V> =>
         clone(m).set(key, value);
 /**
  * Inserts a new entry with the key and value to the `Map` object immutably. If there is already an entry with the key, `combiner` will be called to merge their values.
@@ -374,14 +376,16 @@ export const insertWithKey =
  * @param m - To be removed.
  * @returns A new `Map` without the specified entry, or as is if there isn't.
  */
-export const remove = <K>(key: K) => <V>(m: Map<K, V>): Map<K, V> => {
-    if (!m.has(key)) {
-        return m;
-    }
-    const cloned = clone(m);
-    cloned.delete(key);
-    return cloned;
-};
+export const remove =
+    <K>(key: K) =>
+    <V>(m: Map<K, V>): Map<K, V> => {
+        if (!m.has(key)) {
+            return m;
+        }
+        const cloned = clone(m);
+        cloned.delete(key);
+        return cloned;
+    };
 
 /**
  * Modifies value of entry with the key, or does nothing if there isn't.
@@ -496,7 +500,7 @@ export const alterF =
     <K>(key: K) =>
     (m: Map<K, V>): Get1<F, Map<K, V>> =>
         f.map((toUpdate: Option<V>) =>
-            isNone(toUpdate) ? remove(key)(m) : insert(key)(toUpdate[1])(m)
+            isNone(toUpdate) ? remove(key)(m) : insert(key)(toUpdate[1])(m),
         )(updater(get(key)(m)));
 
 /**
@@ -506,8 +510,10 @@ export const alterF =
  * @param right - Right hand side to be combined.
  * @returns A new `Map` with entries came from both of them.
  */
-export const union = <K, V>(left: Map<K, V>) => (right: Map<K, V>): Map<K, V> =>
-    new Map([...right, ...left]);
+export const union =
+    <K, V>(left: Map<K, V>) =>
+    (right: Map<K, V>): Map<K, V> =>
+        new Map([...right, ...left]);
 
 /**
  * Combines two `Map`s into another one. If there are duplicate keys, their value will be merged with `combiner`.
@@ -576,7 +582,8 @@ export const unionMonoid = <K, V>(): Monoid<Map<K, V>> => ({
  * @returns A new `Map` without the entries with key in `right`.
  */
 export const difference =
-    <K, V1>(left: Map<K, V1>) => <V2>(right: Map<K, V2>): Map<K, V1> => {
+    <K, V1>(left: Map<K, V1>) =>
+    <V2>(right: Map<K, V2>): Map<K, V1> => {
         const cloned = clone(left);
         for (const rightKey of right.keys()) {
             cloned.delete(rightKey);
@@ -591,25 +598,26 @@ export const difference =
  * @param right - Haystack keys to remove.
  * @returns A new `Map` with the entries merged by `combiner`.
  */
-export const differenceWith = <V1, V2 = V1>(
-    combiner: (leftValue: V1) => (rightValue: V2) => Option<V1>,
-) =>
-<K>(left: Map<K, V1>) =>
-(right: Map<K, V2>): Map<K, V1> => {
-    const cloned = clone(left);
-    for (const [rightKey, rightValue] of right) {
-        if (!cloned.has(rightKey)) {
-            continue;
+export const differenceWith =
+    <V1, V2 = V1>(
+        combiner: (leftValue: V1) => (rightValue: V2) => Option<V1>,
+    ) =>
+    <K>(left: Map<K, V1>) =>
+    (right: Map<K, V2>): Map<K, V1> => {
+        const cloned = clone(left);
+        for (const [rightKey, rightValue] of right) {
+            if (!cloned.has(rightKey)) {
+                continue;
+            }
+            const toUpdate = combiner(left.get(rightKey)!)(rightValue);
+            if (isNone(toUpdate)) {
+                cloned.delete(rightKey);
+            } else {
+                cloned.set(rightKey, toUpdate[1]);
+            }
         }
-        const toUpdate = combiner(left.get(rightKey)!)(rightValue);
-        if (isNone(toUpdate)) {
-            cloned.delete(rightKey);
-        } else {
-            cloned.set(rightKey, toUpdate[1]);
-        }
-    }
-    return cloned;
-};
+        return cloned;
+    };
 /**
  * Makes a difference `left - right` immutably like {@link Map.difference | `difference`}, but you can replace the element instead of removing.
  *
@@ -618,27 +626,28 @@ export const differenceWith = <V1, V2 = V1>(
  * @param right - Haystack keys to remove.
  * @returns A new `Map` with the entries merged by `combiner`.
  */
-export const differenceWithKey = <K, V1, V2 = V1>(
-    combiner: (key: K) => (leftValue: V1) => (rightValue: V2) => Option<V1>,
-) =>
-(left: Map<K, V1>) =>
-(right: Map<K, V2>): Map<K, V1> => {
-    const cloned = clone(left);
-    for (const [rightKey, rightValue] of right) {
-        if (!cloned.has(rightKey)) {
-            continue;
+export const differenceWithKey =
+    <K, V1, V2 = V1>(
+        combiner: (key: K) => (leftValue: V1) => (rightValue: V2) => Option<V1>,
+    ) =>
+    (left: Map<K, V1>) =>
+    (right: Map<K, V2>): Map<K, V1> => {
+        const cloned = clone(left);
+        for (const [rightKey, rightValue] of right) {
+            if (!cloned.has(rightKey)) {
+                continue;
+            }
+            const toUpdate = combiner(rightKey)(left.get(rightKey)!)(
+                rightValue,
+            );
+            if (isNone(toUpdate)) {
+                cloned.delete(rightKey);
+            } else {
+                cloned.set(rightKey, toUpdate[1]);
+            }
         }
-        const toUpdate = combiner(rightKey)(left.get(rightKey)!)(
-            rightValue,
-        );
-        if (isNone(toUpdate)) {
-            cloned.delete(rightKey);
-        } else {
-            cloned.set(rightKey, toUpdate[1]);
-        }
-    }
-    return cloned;
-};
+        return cloned;
+    };
 
 /**
  * Makes an intersection, consisting entries which is in both of `left` and `right`. When picking up common key of them, the value of the `left` side hand will be used.
@@ -648,7 +657,8 @@ export const differenceWithKey = <K, V1, V2 = V1>(
  * @returns An intersection of `left` and `right`.
  */
 export const intersection =
-    <K, V1>(left: Map<K, V1>) => <V2>(right: Map<K, V2>): Map<K, V1> => {
+    <K, V1>(left: Map<K, V1>) =>
+    <V2>(right: Map<K, V2>): Map<K, V1> => {
         const m = new Map<K, V1>();
         for (const [leftKey, leftValue] of left) {
             if (right.has(leftKey)) {
@@ -685,22 +695,23 @@ export const intersectionWith =
  * @param right - The right hand side dictionary.
  * @returns A new merged `Map`.
  */
-export const intersectionWithKey = <K, V1, V2 = V1, V3 = V1>(
-    combiner: (key: K) => (left: V1) => (right: V2) => V3,
-) =>
-(left: Map<K, V1>) =>
-(right: Map<K, V2>): Map<K, V3> => {
-    const m = new Map<K, V3>();
-    for (const [leftKey, leftValue] of left) {
-        if (right.has(leftKey)) {
-            m.set(
-                leftKey,
-                combiner(leftKey)(leftValue)(right.get(leftKey)!),
-            );
+export const intersectionWithKey =
+    <K, V1, V2 = V1, V3 = V1>(
+        combiner: (key: K) => (left: V1) => (right: V2) => V3,
+    ) =>
+    (left: Map<K, V1>) =>
+    (right: Map<K, V2>): Map<K, V3> => {
+        const m = new Map<K, V3>();
+        for (const [leftKey, leftValue] of left) {
+            if (right.has(leftKey)) {
+                m.set(
+                    leftKey,
+                    combiner(leftKey)(leftValue)(right.get(leftKey)!),
+                );
+            }
         }
-    }
-    return m;
-};
+        return m;
+    };
 
 /**
  * Checks whether two `Map`s are disjoint about its keys.
@@ -710,7 +721,8 @@ export const intersectionWithKey = <K, V1, V2 = V1, V3 = V1>(
  * @returns Whether two `Map`s have no common keys.
  */
 export const isDisjoint =
-    <K, V1>(left: Map<K, V1>) => <V2>(right: Map<K, V2>): boolean => {
+    <K, V1>(left: Map<K, V1>) =>
+    <V2>(right: Map<K, V2>): boolean => {
         for (const leftKey of left.keys()) {
             if (right.has(leftKey)) {
                 return false;
@@ -727,7 +739,8 @@ export const isDisjoint =
  * @returns A new dictionary maps from `T` to `V`.
  */
 export const compose =
-    <U, V>(uv: Map<U, V>) => <T>(tu: Map<T, U>): Map<T, V> => {
+    <U, V>(uv: Map<U, V>) =>
+    <T>(tu: Map<T, U>): Map<T, V> => {
         const m = new Map<T, V>();
         for (const [t, u] of tu) {
             if (uv.has(u)) {
@@ -745,7 +758,8 @@ export const compose =
  * @returns A new `Map` with mapped values.
  */
 export const map =
-    <A, B>(mapper: (a: A) => B) => <K>(ma: Map<K, A>): Map<K, B> => {
+    <A, B>(mapper: (a: A) => B) =>
+    <K>(ma: Map<K, A>): Map<K, B> => {
         const mb = new Map<K, B>();
         for (const [key, value] of ma) {
             mb.set(key, mapper(value));
@@ -759,16 +773,15 @@ export const map =
  * @param ma - To be transformed.
  * @returns A new `Map` with mapped values.
  */
-export const mapWithKey = <K, A, B>(mapper: (key: K) => (a: A) => B) =>
-(
-    ma: Map<K, A>,
-): Map<K, B> => {
-    const mb = new Map<K, B>();
-    for (const [key, value] of ma) {
-        mb.set(key, mapper(key)(value));
-    }
-    return mb;
-};
+export const mapWithKey =
+    <K, A, B>(mapper: (key: K) => (a: A) => B) =>
+    (ma: Map<K, A>): Map<K, B> => {
+        const mb = new Map<K, B>();
+        for (const [key, value] of ma) {
+            mb.set(key, mapper(key)(value));
+        }
+        return mb;
+    };
 
 /**
  * Traverses the `Map` into the data structure `X` on applicative functor `T`.
@@ -825,11 +838,11 @@ export const traverseSomeWithKey =
         let traversing = app.pure(new Map<K, B>());
         for (const [key, value] of ka) {
             traversing = app.apply(
-                app.map((optB: Option<B>) => (kb: Map<K, B>): Map<K, B> =>
-                    isNone(optB) ? kb : insert(key)(optB[1])(kb)
-                )(
-                    mapper(key)(value),
-                ),
+                app.map(
+                    (optB: Option<B>) =>
+                        (kb: Map<K, B>): Map<K, B> =>
+                            isNone(optB) ? kb : insert(key)(optB[1])(kb),
+                )(mapper(key)(value)),
             )(traversing);
         }
         return traversing;
@@ -887,7 +900,8 @@ export const scanWithKey =
  * @returns A new `Map` with new keys.
  */
 export const mapKeys =
-    <K1, K2>(mapper: (key: K1) => K2) => <V>(m: Map<K1, V>): Map<K2, V> => {
+    <K1, K2>(mapper: (key: K1) => K2) =>
+    <V>(m: Map<K1, V>): Map<K2, V> => {
         const k2v = new Map<K2, V>();
         for (const [key, value] of m) {
             k2v.set(mapper(key), value);
@@ -1045,12 +1059,9 @@ export const sortedEntries =
     <K, V>({ ordK, ordV }: { ordK: Ord<K>; ordV: Ord<V> }) =>
     (m: Map<K, V>): List<Tuple<K, V>> => {
         const entries = [...m];
-        entries.sort((
-            [aKey, aValue],
-            [bKey, bValue],
-        ) => (
-            andThen(() => ordV.cmp(aValue, bValue))(ordK.cmp(aKey, bKey))
-        ));
+        entries.sort(([aKey, aValue], [bKey, bValue]) =>
+            andThen(() => ordV.cmp(aValue, bValue))(ordK.cmp(aKey, bKey)),
+        );
         return fromIterable(entries);
     };
 
@@ -1062,7 +1073,8 @@ export const sortedEntries =
  * @returns A new filtered `Map`.
  */
 export const filter =
-    <V>(pred: (value: V) => boolean) => <K>(m: Map<K, V>): Map<K, V> => {
+    <V>(pred: (value: V) => boolean) =>
+    <K>(m: Map<K, V>): Map<K, V> => {
         const filtered = new Map<K, V>();
         for (const [key, value] of m) {
             if (pred(value)) {
@@ -1141,7 +1153,8 @@ export const partitionWithKey =
  * @returns A new transformed `Map`.
  */
 export const mapOption =
-    <V, W>(mapper: (value: V) => Option<W>) => <K>(m: Map<K, V>): Map<K, W> => {
+    <V, W>(mapper: (value: V) => Option<W>) =>
+    <K>(m: Map<K, V>): Map<K, W> => {
         const kw = new Map<K, W>();
         for (const [key, value] of m) {
             const mapped = mapper(value);
@@ -1248,7 +1261,7 @@ export const isSubsetOfBy =
  */
 export const isSubsetOf = <V, W = V>(
     equality: PartialEq<V, W>,
-): <K>(subset: Map<K, V>) => (superset: Map<K, W>) => boolean =>
+): (<K>(subset: Map<K, V>) => (superset: Map<K, W>) => boolean) =>
     isSubsetOfBy((sub: V) => (sup: W) => equality.eq(sub, sup));
 
 /**
@@ -1283,7 +1296,7 @@ export const isProperSubsetOfBy =
  */
 export const isProperSubsetOf = <V, W = V>(
     equality: PartialEq<V, W>,
-): <K>(subset: Map<K, V>) => (superset: Map<K, W>) => boolean =>
+): (<K>(subset: Map<K, V>) => (superset: Map<K, W>) => boolean) =>
     isProperSubsetOfBy((sub: V) => (sup: W) => equality.eq(sub, sup));
 
 export interface MapHkt extends Hkt2 {
@@ -1319,7 +1332,8 @@ export const traversable = <K>(): Traversable<Apply2Only<MapHkt, K>> => ({
 export const enc =
     <K>(encK: Encoder<K>) =>
     <V>(encV: Encoder<V>): Encoder<Map<K, V>> =>
-    (value) => encArray(encTuple(encK)(encV))([...value.entries()]);
+    (value) =>
+        encArray(encTuple(encK)(encV))([...value.entries()]);
 /**
  * Deserializes the `Map` from a binary sequence.
  *
@@ -1328,7 +1342,8 @@ export const enc =
  * @returns A new `Decoder` instance for `Map<K, V>`/
  */
 export const dec =
-    <K>(decK: Decoder<K>) => <V>(decV: Decoder<V>): Decoder<Map<K, V>> =>
+    <K>(decK: Decoder<K>) =>
+    <V>(decV: Decoder<V>): Decoder<Map<K, V>> =>
         mapDecoder((kv: Tuple<K, V>[]) => new Map(kv))(
             decArray(decTuple(decK)(decV)),
         );

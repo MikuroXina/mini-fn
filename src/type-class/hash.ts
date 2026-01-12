@@ -1,19 +1,19 @@
-import { doT } from "../cat.ts";
-import { unwrap } from "../result.ts";
+import { doT } from "../cat.js";
+import { unwrap } from "../result.js";
 import {
+    decU8,
     decU16Le,
     decU32Le,
     decU64Le,
-    decU8,
     type Encoder,
     encU32Le,
     monadForDecoder,
     runCode,
     runDecoder,
     skip,
-} from "../serial.ts";
-import type { Eq } from "./eq.ts";
-import { nonNanOrd } from "./ord.ts";
+} from "../serial.js";
+import type { Eq } from "./eq.js";
+import { nonNanOrd } from "./ord.js";
 
 export type Hash<T> = Eq<T> & {
     readonly hash: (self: T) => (hasher: Hasher) => Hasher;
@@ -30,7 +30,8 @@ export const nonNanHash: Hash<number> = {
     },
 };
 export const fromEncoder =
-    <T>(equality: Eq<T>) => (encoder: Encoder<T>): Hash<T> => ({
+    <T>(equality: Eq<T>) =>
+    (encoder: Encoder<T>): Hash<T> => ({
         ...equality,
         hash: (self) => (hasher) => hasher.write(runCode(encoder(self))),
     });
@@ -65,10 +66,7 @@ const compress = ([v0, v1, v2, v3]: SipState): SipState => {
 const cRounds: (state: SipState) => SipState = compress;
 const dRounds = (state: SipState): SipState =>
     compress(compress(compress(state)));
-const reset = (
-    k0: bigint,
-    k1: bigint,
-): SipState => [
+const reset = (k0: bigint, k1: bigint): SipState => [
     k0 ^ 0x736f6d6570736575n,
     k1 ^ 0x646f72616e646f6dn,
     k0 ^ 0x6c7967656e657261n,
@@ -92,11 +90,7 @@ const newSip13: SipHasher = {
     nTail: 0,
 };
 
-const loadIntLe = (
-    bytes: ArrayBuffer,
-    index: number,
-    bits: number,
-): bigint =>
+const loadIntLe = (bytes: ArrayBuffer, index: number, bits: number): bigint =>
     unwrap(
         runDecoder(
             doT(monadForDecoder)
@@ -165,7 +159,8 @@ export const defaultHasher = (sipHasher: SipHasher = newSip13): Hasher => ({
         let needed = 0;
         if (next.nTail !== 0) {
             needed = 8 - next.nTail;
-            next.tail |= bytesToBigIntLe(bytes, 0, Math.min(length, needed)) <<
+            next.tail |=
+                bytesToBigIntLe(bytes, 0, Math.min(length, needed)) <<
                 (8n * BigInt(next.nTail));
             if (length < needed) {
                 next.nTail += length;

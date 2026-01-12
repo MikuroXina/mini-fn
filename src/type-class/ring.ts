@@ -1,5 +1,5 @@
-import { type AbelianGroup, trivialAbelianGroup } from "./abelian-group.ts";
-import { type Monoid, trivialMonoid } from "./monoid.ts";
+import { type AbelianGroup, trivialAbelianGroup } from "./abelian-group.js";
+import { type Monoid, trivialMonoid } from "./monoid.js";
 
 /**
  * A structure which can operate addition, subtraction and multiplication.

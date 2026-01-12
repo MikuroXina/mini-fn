@@ -42,12 +42,10 @@ jobs:
             - uses: actions/checkout@v6
               with:
                   fetch-depth: 0
-            - uses: denoland/setup-deno@v1
-              with:
-                  deno-version: 2.x
+            - uses: pnpm/action-setup@v4
 
             - name: Generate docs
-              run: deno task doc
+              run: pnpm run doc
 
             - name: Deploy to GitHub Pages
               uses: peaceiris/actions-gh-pages@v4
@@ -55,15 +53,11 @@ jobs:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   publish_dir: ./docs
 
-            - name: Setup Node.js package
-              run: |
-                  deno run -A ./scripts/build_npm.ts ${VERSION#v}
-
             - name: Publish package to npm
-              run: npm publish
+              run: pnpm publish
 
             - name: Publish package to jsr
-              run: npx jsr publish
+              run: pnpx jsr publish
 
             - name: Upload files
               env:

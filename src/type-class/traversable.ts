@@ -1,9 +1,9 @@
-import type { Get1 } from "../hkt.ts";
-import type { Applicative } from "./applicative.ts";
-import { apSecond } from "./apply.ts";
-import type { Foldable } from "./foldable.ts";
-import type { Functor } from "./functor.ts";
-import type { Monad } from "./monad.ts";
+import type { Get1 } from "../hkt.js";
+import type { Applicative } from "./applicative.js";
+import { apSecond } from "./apply.js";
+import type { Foldable } from "./foldable.js";
+import type { Functor } from "./functor.js";
+import type { Monad } from "./monad.js";
 
 /**
  * A structure which can be traversed to the structure of same shape by performing `Applicative` action.
@@ -14,21 +14,22 @@ import type { Monad } from "./monad.ts";
  * - Identity: For all x; `tra.traverse(Identity.applicative)((a) => a)(x)` equals to `x`,
  * - Composition: For all `f`, `g`, `x` and composed applicative functor `app` for `Compose<F, G, _>`; `tra.traverse(app)((item) => app.map(g)(f(item)))(x)` equals to `app.map(tra.traverse(app)(g))(tra.traverse(app)(f)(x))`.
  */
-export type Traversable<T> = Functor<T> & Foldable<T> & {
-    /**
-     * Maps each item of the structure `data` to an action, and evaluates them from left to right, then collects the result.
-     *
-     * @param app - The instance of `Applicative` for `F`.
-     * @param visitor - The visitor function, which takes an item and returns the action on `F`.
-     * @param data - The data to be traversed.
-     * @returns The collected result of actions.
-     */
-    readonly traverse: <F>(
-        app: Applicative<F>,
-    ) => <A, B>(
-        visitor: (a: A) => Get1<F, B>,
-    ) => (data: Get1<T, A>) => Get1<F, Get1<T, B>>;
-};
+export type Traversable<T> = Functor<T> &
+    Foldable<T> & {
+        /**
+         * Maps each item of the structure `data` to an action, and evaluates them from left to right, then collects the result.
+         *
+         * @param app - The instance of `Applicative` for `F`.
+         * @param visitor - The visitor function, which takes an item and returns the action on `F`.
+         * @param data - The data to be traversed.
+         * @returns The collected result of actions.
+         */
+        readonly traverse: <F>(
+            app: Applicative<F>,
+        ) => <A, B>(
+            visitor: (a: A) => Get1<F, B>,
+        ) => (data: Get1<T, A>) => Get1<F, Get1<T, B>>;
+    };
 
 /**
  * Evaluates actions of the structure `data` from left to right, then collects the result.
@@ -41,7 +42,7 @@ export type Traversable<T> = Functor<T> & Foldable<T> & {
 export const sequenceA = <T, F>(
     traversable: Traversable<T>,
     app: Applicative<F>,
-): <A>(data: Get1<T, Get1<F, A>>) => Get1<F, Get1<T, A>> =>
+): (<A>(data: Get1<T, Get1<F, A>>) => Get1<F, Get1<T, A>>) =>
     traversable.traverse<F>(app)((x) => x);
 
 /**
@@ -53,15 +54,11 @@ export const sequenceA = <T, F>(
  * @param data - The data to be traversed.
  * @returns The collected result of actions.
  */
-export const mapM = <T, M>(
-    traversable: Traversable<T>,
-    monad: Monad<M>,
-) =>
-<A, B>(
-    visitor: (a: A) => Get1<M, B>,
-) =>
-(data: Get1<T, A>): Get1<M, Get1<T, B>> =>
-    traversable.traverse(monad)(visitor)(data);
+export const mapM =
+    <T, M>(traversable: Traversable<T>, monad: Monad<M>) =>
+    <A, B>(visitor: (a: A) => Get1<M, B>) =>
+    (data: Get1<T, A>): Get1<M, Get1<T, B>> =>
+        traversable.traverse(monad)(visitor)(data);
 
 /**
  * Maps each item of the structure `data` to a monadic action, and evaluates them from left to right, but discards the results.
@@ -77,8 +74,9 @@ export const mapMVoid =
     <A, B>(visitor: (a: A) => Get1<M, B>) =>
     (data: Get1<T, A>): Get1<M, never[]> =>
         traversable.foldR(
-            (next: A) => (acc: Get1<M, never[]>): Get1<M, never[]> =>
-                apSecond(monad)(visitor(next))(acc),
+            (next: A) =>
+                (acc: Get1<M, never[]>): Get1<M, never[]> =>
+                    apSecond(monad)(visitor(next))(acc),
         )(monad.pure([]))(data);
 
 /**
@@ -90,14 +88,11 @@ export const mapMVoid =
  * @param visitor - The visitor function, which takes an item and returns the action on `M`.
  * @returns The collected result of actions.
  */
-export const forM = <T, M>(
-    traversable: Traversable<T>,
-    monad: Monad<M>,
-) =>
-<A>(data: Get1<T, A>) =>
-<B>(
-    visitor: (a: A) => Get1<M, B>,
-): Get1<M, Get1<T, B>> => traversable.traverse(monad)(visitor)(data);
+export const forM =
+    <T, M>(traversable: Traversable<T>, monad: Monad<M>) =>
+    <A>(data: Get1<T, A>) =>
+    <B>(visitor: (a: A) => Get1<M, B>): Get1<M, Get1<T, B>> =>
+        traversable.traverse(monad)(visitor)(data);
 
 /**
  * Maps each item of the structure `data` to a monadic action, and evaluates them from left to right, but discards the results.
@@ -113,8 +108,9 @@ export const forMVoid =
     <A>(data: Get1<T, A>) =>
     <B>(visitor: (a: A) => Get1<M, B>): Get1<M, never[]> =>
         traversable.foldR(
-            (next: A) => (acc: Get1<M, never[]>): Get1<M, never[]> =>
-                apSecond(monad)(visitor(next))(acc),
+            (next: A) =>
+                (acc: Get1<M, never[]>): Get1<M, never[]> =>
+                    apSecond(monad)(visitor(next))(acc),
         )(monad.pure([]))(data);
 
 /**
@@ -128,5 +124,5 @@ export const forMVoid =
 export const sequence = <T, M>(
     traversable: Traversable<T>,
     monad: Monad<M>,
-): <A>(data: Get1<T, Get1<M, A>>) => Get1<M, Get1<T, A>> =>
+): (<A>(data: Get1<T, Get1<M, A>>) => Get1<M, Get1<T, A>>) =>
     sequenceA(traversable, monad);

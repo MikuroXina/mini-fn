@@ -1,4 +1,4 @@
-import type { Get2 } from "../hkt.ts";
+import type { Get2 } from "../hkt.js";
 
 /**
  * A 2-arity kind which can compose two relationships. There is no required laws.

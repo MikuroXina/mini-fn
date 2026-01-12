@@ -1,4 +1,4 @@
-import type { Get1 } from "../hkt.ts";
+import type { Get1 } from "../hkt.js";
 
 export type FlatMap<S> = {
     readonly flatMap: <T1, U1>(
@@ -8,4 +8,4 @@ export type FlatMap<S> = {
 
 export const flatten = <S>(
     f: FlatMap<S>,
-): <T>(t: Get1<S, Get1<S, T>>) => Get1<S, T> => f.flatMap((t) => t);
+): (<T>(t: Get1<S, Get1<S, T>>) => Get1<S, T>) => f.flatMap((t) => t);

@@ -7,7 +7,7 @@ The minimal functional programming library.
 ---
 
 mini-fn provides simple, tiny library having functional features and its type
-declarations.
+declarations without dependencies.
 
 ## Examples
 

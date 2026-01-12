@@ -1,38 +1,31 @@
-import { assertEquals } from "../deps.ts";
-import { catT } from "./cat.ts";
-import { mapOr, none, type Option, some } from "./option.ts";
-import { local } from "./reader.ts";
-import { run } from "./reader.ts";
-import { ask } from "./reader.ts";
-import { monad } from "./reader.ts";
-import type { Reader } from "./reader.ts";
+import { expect, test } from "vitest";
+import { catT } from "./cat.js";
+import { mapOr, none, type Option, some } from "./option.js";
+import type { Reader } from "./reader.js";
+import { ask, local, monad, run } from "./reader.js";
 
-Deno.test("ask", () => {
+test("ask", () => {
     interface User {
         name: string;
     }
     const userCat = catT(monad<User>());
 
     const message = (): Reader<User, string> =>
-        userCat(ask<User>()).finish(
-            ({ name }) => `Hello, ${name}!`,
-        );
+        userCat(ask<User>()).finish(({ name }) => `Hello, ${name}!`);
     const box = (): Reader<User, string> =>
         userCat(message()).finish(
             (mes) => `<div class="message-box">${mes}</div>`,
         );
 
-    assertEquals(
-        run(box())({ name: "John" }),
+    expect(run(box())({ name: "John" })).toStrictEqual(
         '<div class="message-box">Hello, John!</div>',
     );
-    assertEquals(
-        run(box())({ name: "Alice" }),
+    expect(run(box())({ name: "Alice" })).toStrictEqual(
         '<div class="message-box">Hello, Alice!</div>',
     );
 });
 
-Deno.test("local", () => {
+test("local", () => {
     interface User {
         name: string;
         id: string;
@@ -52,12 +45,11 @@ Deno.test("local", () => {
         });
     const scoreReport = (id: string): Reader<Bulk, string> =>
         extractFromBulk(id)(
-            catT(monad<Option<User>>())(ask<Option<User>>())
-                .finish(
-                    mapOr("user not found")(({ name, score }) =>
-                        `${name}'s score is ${score}!`
-                    ),
+            catT(monad<Option<User>>())(ask<Option<User>>()).finish(
+                mapOr("user not found")(
+                    ({ name, score }) => `${name}'s score is ${score}!`,
                 ),
+            ),
         );
 
     const bulk: Bulk = {
@@ -66,6 +58,10 @@ Deno.test("local", () => {
             { name: "Alice", id: "4209", score: 320123 },
         ],
     };
-    assertEquals(run(scoreReport("1321"))(bulk), "John's score is 12130!");
-    assertEquals(run(scoreReport("4209"))(bulk), "Alice's score is 320123!");
+    expect(run(scoreReport("1321"))(bulk)).toStrictEqual(
+        "John's score is 12130!",
+    );
+    expect(run(scoreReport("4209"))(bulk)).toStrictEqual(
+        "Alice's score is 320123!",
+    );
 });

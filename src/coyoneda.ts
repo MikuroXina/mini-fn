@@ -1,19 +1,19 @@
-import { type Exists, newExists, runExists } from "./exists.ts";
-import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
-import { collect, type Distributive } from "./type-class/distributive.ts";
-import type { Applicative } from "./type-class/applicative.ts";
-import type { Apply } from "./type-class/apply.ts";
-import { type Comonad, extend } from "./type-class/comonad.ts";
-import type { Foldable } from "./type-class/foldable.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Monad } from "./type-class/monad.ts";
-import type { Pure } from "./type-class/pure.ts";
-import type { Traversable } from "./type-class/traversable.ts";
+import { type Exists, newExists, runExists } from "./exists.js";
+import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
+import type { Applicative } from "./type-class/applicative.js";
+import type { Apply } from "./type-class/apply.js";
+import { type Comonad, extend } from "./type-class/comonad.js";
+import { collect, type Distributive } from "./type-class/distributive.js";
+import type { Foldable } from "./type-class/foldable.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
 import {
     fromPartialEquality,
     type PartialEq,
     type PartialEqUnary,
-} from "./type-class/partial-eq.ts";
+} from "./type-class/partial-eq.js";
+import type { Pure } from "./type-class/pure.js";
+import type { Traversable } from "./type-class/traversable.js";
 
 /**
  * Calculation on a space `X` and mapping function from `X` to an inclusion space `A`.
@@ -46,25 +46,30 @@ export const partialEqUnary = <F>(
         <Lhs, Rhs>(equality: (l: Lhs, r: Rhs) => boolean) =>
         (l: Coyoneda<F, Lhs>, r: Coyoneda<F, Rhs>): boolean =>
             unCoyoneda(
-                <X>(lMap: (shape: X) => Lhs) => (lImage: Get1<F, X>): boolean =>
-                    unCoyoneda(
-                        <Y>(rMap: (shape: Y) => Rhs) =>
-                        (rImage: Get1<F, Y>): boolean =>
-                            lifter.liftEq((lhs: X, rhs: Y) =>
-                                equality(lMap(lhs), rMap(rhs))
-                            )(lImage, rImage),
-                    )(r),
+                <X>(lMap: (shape: X) => Lhs) =>
+                    (lImage: Get1<F, X>): boolean =>
+                        unCoyoneda(
+                            <Y>(rMap: (shape: Y) => Rhs) =>
+                                (rImage: Get1<F, Y>): boolean =>
+                                    lifter.liftEq((lhs: X, rhs: Y) =>
+                                        equality(lMap(lhs), rMap(rhs)),
+                                    )(lImage, rImage),
+                        )(r),
             )(l),
 });
 
-export const partialEquality = <F, A>({ lifter, equality }: {
+export const partialEquality = <F, A>({
+    lifter,
+    equality,
+}: {
     lifter: PartialEqUnary<F>;
     equality: (l: A, r: A) => boolean;
-}): (l: Coyoneda<F, A>, r: Coyoneda<F, A>) => boolean =>
+}): ((l: Coyoneda<F, A>, r: Coyoneda<F, A>) => boolean) =>
     partialEqUnary(lifter).liftEq(equality);
-export const partialEq: <F, A>(
-    deps: { lifter: PartialEqUnary<F>; equality: (l: A, r: A) => boolean },
-) => PartialEq<Coyoneda<F, A>> = fromPartialEquality(partialEquality);
+export const partialEq: <F, A>(deps: {
+    lifter: PartialEqUnary<F>;
+    equality: (l: A, r: A) => boolean;
+}) => PartialEq<Coyoneda<F, A>> = fromPartialEquality(partialEquality);
 
 /**
  * Creates a new `Coyoneda` from mapping function `map` and calculation on `F`.
@@ -74,7 +79,8 @@ export const partialEq: <F, A>(
  * @returns A new `Coyoneda`.
  */
 export const coyoneda =
-    <X, A>(map: (a: X) => A) => <F>(image: Get1<F, X>): Coyoneda<F, A> =>
+    <X, A>(map: (a: X) => A) =>
+    <F>(image: Get1<F, X>): Coyoneda<F, A> =>
         newExists<Coyoneda<F, A>, X>([map, image]);
 
 /**
@@ -87,7 +93,7 @@ export const unCoyoneda =
     <F, A, R>(runner: <X>(map: (shape: X) => A) => (image: Get1<F, X>) => R) =>
     (coy: Coyoneda<F, A>): R =>
         runExists<Coyoneda<F, A>, R>(<X>([map, image]: CoyonedaT<F, A, X>) =>
-            runner(map)(image)
+            runner(map)(image),
         )(coy);
 
 /**
@@ -107,7 +113,8 @@ export const lift = <F, A>(fa: Get1<F, A>): Coyoneda<F, A> =>
  * @returns The reduction on a presheaf.
  */
 export const lower =
-    <F>(functor: Functor<F>) => <A>(coy: Coyoneda<F, A>): Get1<F, A> =>
+    <F>(functor: Functor<F>) =>
+    <A>(coy: Coyoneda<F, A>): Get1<F, A> =>
         unCoyoneda(functor.map)(coy);
 
 /**
@@ -120,11 +127,13 @@ export const hoist =
     <F, G>(nat: <A>(fa: Get1<F, A>) => Get1<G, A>) =>
     <A>(coy: Coyoneda<F, A>): Coyoneda<G, A> =>
         runExists<Coyoneda<F, A>, Coyoneda<G, A>>(([map, image]) =>
-            coyoneda(map)(nat(image))
+            coyoneda(map)(nat(image)),
         )(coy);
 
-export const pureT = <F>(pure: Pure<F>) => <T>(item: T): Coyoneda<F, T> =>
-    lift(pure.pure(item));
+export const pureT =
+    <F>(pure: Pure<F>) =>
+    <T>(item: T): Coyoneda<F, T> =>
+        lift(pure.pure(item));
 
 /**
  * Maps the function into an function on `Coyoneda`.
@@ -133,10 +142,12 @@ export const pureT = <F>(pure: Pure<F>) => <T>(item: T): Coyoneda<F, T> =>
  * @returns The mapped function.
  */
 export const map =
-    <T, U>(fn: (t: T) => U) => <F>(coy: Coyoneda<F, T>): Coyoneda<F, U> =>
-        runExists<Coyoneda<F, T>, Coyoneda<F, U>>(<A>(
-            [map, image]: CoyonedaT<F, T, A>,
-        ) => coyoneda((t: A) => fn(map(t)))(image))(coy);
+    <T, U>(fn: (t: T) => U) =>
+    <F>(coy: Coyoneda<F, T>): Coyoneda<F, U> =>
+        runExists<Coyoneda<F, T>, Coyoneda<F, U>>(
+            <A>([map, image]: CoyonedaT<F, T, A>) =>
+                coyoneda((t: A) => fn(map(t)))(image),
+        )(coy);
 
 export const applyT =
     <F>(apply: Apply<F>) =>
@@ -149,35 +160,37 @@ export const flatMapT =
     <T, U>(fn: (t: T) => Coyoneda<F, U>) =>
     (coy: Coyoneda<F, T>): Coyoneda<F, U> =>
         lift(
-            runExists<Coyoneda<F, T>, Get1<F, U>>(<A>(
-                [map, image]: CoyonedaT<F, T, A>,
-            ) => flatMap.flatMap(
-                (x: A) => lower(flatMap)(fn(map(x))),
-            )(image))(coy),
+            runExists<Coyoneda<F, T>, Get1<F, U>>(
+                <A>([map, image]: CoyonedaT<F, T, A>) =>
+                    flatMap.flatMap((x: A) => lower(flatMap)(fn(map(x))))(
+                        image,
+                    ),
+            )(coy),
         );
 
 export const duplicateT =
     <F>(comonad: Comonad<F>) =>
     <T>(coy: Coyoneda<F, T>): Coyoneda<F, Coyoneda<F, T>> =>
-        runExists<Coyoneda<F, T>, Coyoneda<F, Coyoneda<F, T>>>(<A>(
-            [map, image]: CoyonedaT<F, T, A>,
-        ) => lift(extend(comonad)((x: Get1<F, A>) => coyoneda(map)(x))(image)))(
-            coy,
-        );
+        runExists<Coyoneda<F, T>, Coyoneda<F, Coyoneda<F, T>>>(
+            <A>([map, image]: CoyonedaT<F, T, A>) =>
+                lift(
+                    extend(comonad)((x: Get1<F, A>) => coyoneda(map)(x))(image),
+                ),
+        )(coy);
 
 export const extractT =
-    <F>(comonad: Comonad<F>) => <T>(coy: Coyoneda<F, T>): T =>
+    <F>(comonad: Comonad<F>) =>
+    <T>(coy: Coyoneda<F, T>): T =>
         runExists<Coyoneda<F, T>, T>(([map, image]) =>
-            map(comonad.extract(image))
+            map(comonad.extract(image)),
         )(coy);
 
 export const foldRT =
     <F>(foldable: Foldable<F>) =>
     <A, B>(folder: (next: A) => (acc: B) => B) =>
-    (init: B): (data: Coyoneda<F, A>) => B =>
-        unCoyoneda(
-            <X>(map: (x: X) => A) =>
-                foldable.foldR((next: X) => folder(map(next)))(init),
+    (init: B): ((data: Coyoneda<F, A>) => B) =>
+        unCoyoneda(<X>(map: (x: X) => A) =>
+            foldable.foldR((next: X) => folder(map(next)))(init),
         );
 
 export const traverseT =
@@ -185,9 +198,13 @@ export const traverseT =
     <F>(app: Applicative<F>) =>
     <A, B>(
         visitor: (item: A) => Get1<F, B>,
-    ): (data: Coyoneda<T, A>) => Get1<F, Coyoneda<T, B>> =>
-        unCoyoneda(<X>(map: (x: X) => A) => (image: Get1<T, X>) =>
-            app.map(lift)(tra.traverse(app)((a: X) => visitor(map(a)))(image))
+    ): ((data: Coyoneda<T, A>) => Get1<F, Coyoneda<T, B>>) =>
+        unCoyoneda(
+            <X>(map: (x: X) => A) =>
+                (image: Get1<T, X>) =>
+                    app.map(lift)(
+                        tra.traverse(app)((a: X) => visitor(map(a)))(image),
+                    ),
         );
 
 export const distributeT =

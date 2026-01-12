@@ -1,3 +1,4 @@
+import { expect, test } from "vitest";
 import {
     abelianGroup,
     applicative,
@@ -11,57 +12,51 @@ import {
     monad,
     split,
     until,
-} from "./func.ts";
-import { addAbelianGroup } from "./number.ts";
-import { assertEquals } from "../deps.ts";
-import * as Tuple from "./tuple.ts";
+} from "./func.js";
+import { addAbelianGroup } from "./number.js";
+import * as Tuple from "./tuple.js";
 
-Deno.test("group", () => {
+test("group", () => {
     for (const make of [group, abelianGroup]) {
         const groupForFn = make<void, number>(addAbelianGroup);
-        assertEquals(groupForFn.identity(), 0);
-        assertEquals(
+        expect(groupForFn.identity()).toStrictEqual(0);
+        expect(
             groupForFn.combine(
                 () => 1,
                 () => 2,
             )(),
-            3,
-        );
-        assertEquals(groupForFn.invert(() => 1)(), -1);
+        ).toStrictEqual(3);
+        expect(groupForFn.invert(() => 1)()).toStrictEqual(-1);
     }
 });
 
-Deno.test("until", () => {
+test("until", () => {
     const padLeft = until((x: string) => 4 <= x.length)((x) => "0" + x);
 
-    assertEquals(padLeft(""), "0000");
-    assertEquals(padLeft("1"), "0001");
-    assertEquals(padLeft("13"), "0013");
-    assertEquals(padLeft("131"), "0131");
-    assertEquals(padLeft("1316"), "1316");
-    assertEquals(padLeft("1316534"), "1316534");
+    expect(padLeft("")).toStrictEqual("0000");
+    expect(padLeft("1")).toStrictEqual("0001");
+    expect(padLeft("13")).toStrictEqual("0013");
+    expect(padLeft("131")).toStrictEqual("0131");
+    expect(padLeft("1316")).toStrictEqual("1316");
+    expect(padLeft("1316534")).toStrictEqual("1316534");
 });
 
-Deno.test("liftBinary", () => {
+test("liftBinary", () => {
     const cmp = liftBinary<number>()((a: string) => (b: string) => a === b);
     for (let i = 0; i < 10; ++i) {
-        assertEquals(
+        expect(
             cmp((x: number) => x.toString())((x: number) => x.toString(10))(i),
-            true,
-        );
+        ).toStrictEqual(true);
     }
 });
 
-const assertFnEquality = <T>(
-    left: Fn<number, T>,
-    right: Fn<number, T>,
-) => {
+const assertFnEquality = <T>(left: Fn<number, T>, right: Fn<number, T>) => {
     for (let i = -100; i <= 100; ++i) {
-        assertEquals(left(i), right(i));
+        expect(left(i)).toStrictEqual(right(i));
     }
 };
 
-Deno.test("functor laws", () => {
+test("functor laws", () => {
     const f = functor<number>();
 
     const fn = (x: number) => x.toString();
@@ -77,27 +72,31 @@ Deno.test("functor laws", () => {
     assertFnEquality(left, right);
 });
 
-Deno.test("applicative functor laws", () => {
+test("applicative functor laws", () => {
     const app = applicative<number>();
 
     // identity
     const toStr = (x: number) => x.toString();
-    const applied = app.apply(app.pure((x: string) => x))(
-        toStr,
-    );
+    const applied = app.apply(app.pure((x: string) => x))(toStr);
     assertFnEquality(toStr, applied);
 
     // composition
-    const addAndToStr = (a: number) => (b: number): string =>
-        (a + b).toString();
-    const addLength = (a: number) => (b: string): number => a + b.length;
+    const addAndToStr =
+        (a: number) =>
+        (b: number): string =>
+            (a + b).toString();
+    const addLength =
+        (a: number) =>
+        (b: string): number =>
+            a + b.length;
     const composedLeft = app.apply(
         app.apply(
             app.apply(
                 app.pure(
                     (f: Fn<number, string>) =>
-                    (g: Fn<string, number>) =>
-                    (i: string) => f(g(i)),
+                        (g: Fn<string, number>) =>
+                        (i: string) =>
+                            f(g(i)),
                 ),
             )(addAndToStr),
         )(addLength),
@@ -123,7 +122,7 @@ Deno.test("applicative functor laws", () => {
     }
 });
 
-Deno.test("monad laws", () => {
+test("monad laws", () => {
     const m = monad<number>();
 
     // left identity
@@ -150,19 +149,13 @@ const assertSplitFnEquality = <T, U>(
 ) => {
     for (let i = -100; i <= 100; ++i) {
         for (let j = -100; j <= 100; ++j) {
-            const param = [
-                i,
-                j,
-            ] as const;
-            assertEquals(
-                left(param),
-                right(param),
-            );
+            const param = [i, j] as const;
+            expect(left(param)).toStrictEqual(right(param));
         }
     }
 };
 
-Deno.test("arrow laws", () => {
+test("arrow laws", () => {
     // identity arrow
     assertFnEquality(fnArrow.arr(id<number>), fnArrow.identity<number>());
 
@@ -192,31 +185,31 @@ Deno.test("arrow laws", () => {
 
     // extracting first interchange
     {
-        const left = fnArrow.compose(
-            fnArrow.arr(Tuple.first<number, string>),
-        )(fnArrow.split(mul3)(fnArrow.identity()));
+        const left = fnArrow.compose(fnArrow.arr(Tuple.first<number, string>))(
+            fnArrow.split(mul3)(fnArrow.identity()),
+        );
         const right = fnArrow.compose(mul3)(
             fnArrow.arr(Tuple.first<number, string>),
         );
         for (let first = -100; first <= 100; ++first) {
             const second = "foo";
-            assertEquals(left([first, second]), right([first, second]));
+            expect(left([first, second])).toStrictEqual(right([first, second]));
         }
     }
 
     // independence
     {
-        const left = fnArrow.compose(
-            fnArrow.arr(
-                split(id<number>)(add5),
-            ),
-        )(split(mul3)(fnArrow.identity()));
-        const right = fnArrow.compose(
-            fnArrow.split(mul3)(fnArrow.identity()),
-        )(fnArrow.arr(split(id<number>)(add5)));
+        const left = fnArrow.compose(fnArrow.arr(split(id<number>)(add5)))(
+            split(mul3)(fnArrow.identity()),
+        );
+        const right = fnArrow.compose(fnArrow.split(mul3)(fnArrow.identity()))(
+            fnArrow.arr(split(id<number>)(add5)),
+        );
         for (let first = -100; first <= 100; ++first) {
             for (let second = -100; second <= 100; ++second) {
-                assertEquals(left([first, second]), right([first, second]));
+                expect(left([first, second])).toStrictEqual(
+                    right([first, second]),
+                );
             }
         }
     }
@@ -226,9 +219,9 @@ Deno.test("arrow laws", () => {
         const left = fnArrow.compose(
             fnArrow.arr(Tuple.assocR<number, number, number>),
         )(
-            fnArrow.split(
-                fnArrow.split(mul3)(fnArrow.identity<number>()),
-            )(fnArrow.identity()),
+            fnArrow.split(fnArrow.split(mul3)(fnArrow.identity<number>()))(
+                fnArrow.identity(),
+            ),
         );
         const right = fnArrow.compose(
             fnArrow.split(mul3)(
@@ -238,8 +231,7 @@ Deno.test("arrow laws", () => {
         for (let first = -25; first <= 25; ++first) {
             for (let second = -25; second <= 25; ++second) {
                 for (let third = -25; third <= 25; ++third) {
-                    assertEquals(
-                        left([[first, second], third]),
+                    expect(left([[first, second], third])).toStrictEqual(
                         right([[first, second], third]),
                     );
                 }

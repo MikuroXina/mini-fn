@@ -38,16 +38,18 @@ export interface Hkt5 extends Hkt4 {
 /**
  * Applies the first type parameter to HKT.
  */
-export type Apply1<S, A1> = S extends Hkt1 ? S & {
-        readonly arg1: A1;
-    }
+export type Apply1<S, A1> = S extends Hkt1
+    ? S & {
+          readonly arg1: A1;
+      }
     : never;
 /**
  * Applies the second type parameter to HKT.
  */
-export type Apply2Only<S, A2> = S extends Hkt2 ? S & {
-        readonly arg2: A2;
-    }
+export type Apply2Only<S, A2> = S extends Hkt2
+    ? S & {
+          readonly arg2: A2;
+      }
     : never;
 /**
  * Applies the first and second type parameter to HKT.
@@ -56,9 +58,10 @@ export type Apply2<S, A1, A2> = Apply1<S, A1> & Apply2Only<S, A2>;
 /**
  * Applies the third type parameter to HKT.
  */
-export type Apply3Only<S, A3> = S extends Hkt3 ? S & {
-        readonly arg3: A3;
-    }
+export type Apply3Only<S, A3> = S extends Hkt3
+    ? S & {
+          readonly arg3: A3;
+      }
     : never;
 /**
  * Applies the first, second and third type parameter to HKT.
@@ -67,29 +70,29 @@ export type Apply3<S, A1, A2, A3> = Apply2<S, A1, A2> & Apply3Only<S, A3>;
 /**
  * Applies the fourth type parameter to HKT.
  */
-export type Apply4Only<S, A4> = S extends Hkt4 ? S & {
-        readonly arg4: A4;
-    }
+export type Apply4Only<S, A4> = S extends Hkt4
+    ? S & {
+          readonly arg4: A4;
+      }
     : never;
 /**
  * Applies the first, second, third and fourth type parameter to HKT.
  */
-export type Apply4<S, A1, A2, A3, A4> =
-    & Apply3<S, A1, A2, A3>
-    & Apply4Only<S, A4>;
+export type Apply4<S, A1, A2, A3, A4> = Apply3<S, A1, A2, A3> &
+    Apply4Only<S, A4>;
 /**
  * Applies the fifth type parameter to HKT.
  */
-export type Apply5Only<S, A5> = S extends Hkt5 ? S & {
-        readonly arg4: A5;
-    }
+export type Apply5Only<S, A5> = S extends Hkt5
+    ? S & {
+          readonly arg4: A5;
+      }
     : never;
 /**
  * Applies the first, second, third, fourth and fifth type parameter to HKT.
  */
-export type Apply5<S, A1, A2, A3, A4, A5> =
-    & Apply4<S, A1, A2, A3, A4>
-    & Apply5Only<S, A5>;
+export type Apply5<S, A1, A2, A3, A4, A5> = Apply4<S, A1, A2, A3, A4> &
+    Apply5Only<S, A5>;
 
 /**
  * Gets the applied type of HKT.

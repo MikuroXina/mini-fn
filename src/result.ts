@@ -80,17 +80,17 @@
  * @module
  */
 
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
-import type { Optic } from "./optical.ts";
-import { newPrism } from "./optical/prism.ts";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
+import { newPrism } from "./optical/prism.js";
+import type { Optic } from "./optical.js";
 import {
     isSome,
     none,
     type Option,
-    some,
     toArray as optionToArray,
-} from "./option.ts";
-import { greater, less, type Ordering } from "./ordering.ts";
+    some,
+} from "./option.js";
+import { greater, less, type Ordering } from "./ordering.js";
 import {
     type Decoder,
     decSum,
@@ -99,26 +99,26 @@ import {
     encSum,
     encU8,
     mapDecoder,
-} from "./serial.ts";
-import type { Applicative } from "./type-class/applicative.ts";
-import type { Bifoldable } from "./type-class/bifoldable.ts";
-import type { Bifunctor } from "./type-class/bifunctor.ts";
-import type { Bitraversable } from "./type-class/bitraversable.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
-import type { ErrorMonad } from "./type-class/error-monad.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Monad } from "./type-class/monad.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { fromCmp, type Ord } from "./type-class/ord.ts";
+} from "./serial.js";
+import type { Applicative } from "./type-class/applicative.js";
+import type { Bifoldable } from "./type-class/bifoldable.js";
+import type { Bifunctor } from "./type-class/bifunctor.js";
+import type { Bitraversable } from "./type-class/bitraversable.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { ErrorMonad } from "./type-class/error-monad.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
 import {
     fromPartialEquality,
     type PartialEq,
     type PartialEqUnary,
-} from "./type-class/partial-eq.ts";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import type { TraversableMonad } from "./type-class/traversable-monad.ts";
-import type { Traversable } from "./type-class/traversable.ts";
+} from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
+import type { Traversable } from "./type-class/traversable.js";
+import type { TraversableMonad } from "./type-class/traversable-monad.js";
 
 const okSymbol = Symbol("ResultOk");
 const errSymbol = Symbol("ResultErr");
@@ -161,11 +161,11 @@ export const err = <E>(e: E): Err<E> => [errSymbol, e];
  * # Examples
  *
  * ```ts
- * import { err, isOk, ok } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { err, isOk, ok } from "./result.js";
+ * import { assertEquals } from "vitest";
  *
- * assertEquals(isOk(ok(-3)), true);
- * assertEquals(isOk(err("Some error message")), false);
+ * expect(isOk(ok(-3))).toStrictEqual(true);
+ * expect(isOk(err("Some error message"))).toStrictEqual(false);
  * ```
  */
 export const isOk = <E, T>(res: Result<E, T>): res is Ok<T> =>
@@ -180,54 +180,68 @@ export const isOk = <E, T>(res: Result<E, T>): res is Ok<T> =>
 export const isErr = <E, T>(res: Result<E, T>): res is Err<E> =>
     res[0] === errSymbol;
 
-export const partialEquality = <E, L, R = L>(
-    { equalityE, equalityT }: {
+export const partialEquality =
+    <E, L, R = L>({
+        equalityE,
+        equalityT,
+    }: {
         equalityE: PartialEq<E>;
         equalityT: PartialEq<L, R>;
-    },
-) =>
-(l: Result<E, L>, r: Result<E, R>): boolean => {
-    if (isErr(l) && isErr(r)) {
-        return equalityE.eq(l[1], r[1]);
-    }
-    if (isOk(l) && isOk(r)) {
-        return equalityT.eq(l[1], r[1]);
-    }
-    return false;
-};
-export const partialEq: <E, L, R = L>(
-    { equalityE, equalityT }: {
-        equalityE: PartialEq<E>;
-        equalityT: PartialEq<L, R>;
-    },
-) => PartialEq<Result<E, L>, Result<E, R>> = fromPartialEquality(
-    partialEquality,
-);
-export const equality = <E, L, R = L>(
-    equalities: { equalityE: Eq<E>; equalityT: Eq<L, R> },
-): (l: Result<E, L>, r: Result<E, R>) => boolean => partialEquality(equalities);
-export const eq: <E, L, R = L>(
-    equalities: { equalityE: Eq<E>; equalityT: Eq<L, R> },
-) => Eq<Result<E, L>, Result<E, R>> = fromEquality(equality);
-export const partialCmp = <E, T>(
-    { orderE, orderT }: { orderE: PartialOrd<E>; orderT: PartialOrd<T> },
-) =>
-(l: Result<E, T>, r: Result<E, T>): Option<Ordering> => {
-    // considered that Ok is lesser than Err
-    if (isOk(l)) {
-        if (isOk(r)) {
-            return orderT.partialCmp(l[1], r[1]);
+    }) =>
+    (l: Result<E, L>, r: Result<E, R>): boolean => {
+        if (isErr(l) && isErr(r)) {
+            return equalityE.eq(l[1], r[1]);
         }
-        return some(less);
-    }
-    if (isOk(r)) {
-        return some(greater);
-    }
-    return orderE.partialCmp(l[1], r[1]);
-};
-export const partialOrd: <E, T>(
-    { orderE, orderT }: { orderE: PartialOrd<E>; orderT: PartialOrd<T> },
-) => PartialOrd<Result<E, T>> = fromPartialCmp(partialCmp);
+        if (isOk(l) && isOk(r)) {
+            return equalityT.eq(l[1], r[1]);
+        }
+        return false;
+    };
+export const partialEq: <E, L, R = L>({
+    equalityE,
+    equalityT,
+}: {
+    equalityE: PartialEq<E>;
+    equalityT: PartialEq<L, R>;
+}) => PartialEq<Result<E, L>, Result<E, R>> =
+    fromPartialEquality(partialEquality);
+export const equality = <E, L, R = L>(equalities: {
+    equalityE: Eq<E>;
+    equalityT: Eq<L, R>;
+}): ((l: Result<E, L>, r: Result<E, R>) => boolean) =>
+    partialEquality(equalities);
+export const eq: <E, L, R = L>(equalities: {
+    equalityE: Eq<E>;
+    equalityT: Eq<L, R>;
+}) => Eq<Result<E, L>, Result<E, R>> = fromEquality(equality);
+export const partialCmp =
+    <E, T>({
+        orderE,
+        orderT,
+    }: {
+        orderE: PartialOrd<E>;
+        orderT: PartialOrd<T>;
+    }) =>
+    (l: Result<E, T>, r: Result<E, T>): Option<Ordering> => {
+        // considered that Ok is lesser than Err
+        if (isOk(l)) {
+            if (isOk(r)) {
+                return orderT.partialCmp(l[1], r[1]);
+            }
+            return some(less);
+        }
+        if (isOk(r)) {
+            return some(greater);
+        }
+        return orderE.partialCmp(l[1], r[1]);
+    };
+export const partialOrd: <E, T>({
+    orderE,
+    orderT,
+}: {
+    orderE: PartialOrd<E>;
+    orderT: PartialOrd<T>;
+}) => PartialOrd<Result<E, T>> = fromPartialCmp(partialCmp);
 export const cmp =
     <E, T>({ orderE, orderT }: { orderE: Ord<E>; orderT: Ord<T> }) =>
     (l: Result<E, T>, r: Result<E, T>): Ordering => {
@@ -244,9 +258,10 @@ export const cmp =
         return orderE.cmp(l[1], r[1]);
     };
 // This argument wrapper is needed for avoid cyclic-import problem.
-export const ord = <E, T>(
-    x: { orderE: Ord<E, E>; orderT: Ord<T, T> },
-): Ord<Result<E, T>> => fromCmp(cmp)(x);
+export const ord = <E, T>(x: {
+    orderE: Ord<E, E>;
+    orderT: Ord<T, T>;
+}): Ord<Result<E, T>> => fromCmp(cmp)(x);
 
 /**
  * The `PartialEqUnary` instance for `Result<E, _>`.
@@ -303,7 +318,9 @@ export const wrapAsyncThrowable =
  * @returns The mapped value.
  */
 export const either =
-    <E, R>(g: (e: E) => R) => <T>(f: (t: T) => R) => (res: Result<E, T>): R =>
+    <E, R>(g: (e: E) => R) =>
+    <T>(f: (t: T) => R) =>
+    (res: Result<E, T>): R =>
         isOk(res) ? f(res[1]) : g(res[1]);
 
 /**
@@ -315,13 +332,13 @@ export const either =
  * # Examples
  *
  * ```ts
- * import { err, flatten, ok } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { err, flatten, ok } from "./result.js";
+ * import { assertEquals } from "vitest";
  *
- * assertEquals(flatten(ok(ok("hello"))), ok("hello"));
- * assertEquals(flatten(err(ok("hello"))), err(ok("hello")));
- * assertEquals(flatten(ok(err(6))), err(6));
- * assertEquals(flatten(err(err(6))), err(err(6)));
+ * expect(flatten(ok(ok("hello")))).toStrictEqual(ok("hello"));
+ * expect(flatten(err(ok("hello")))).toStrictEqual(err(ok("hello")));
+ * expect(flatten(ok(err(6)))).toStrictEqual(err(6));
+ * expect(flatten(err(err(6)))).toStrictEqual(err(err(6)));
  * ```
  */
 export const flatten = <E, T>(resRes: Result<E, Result<E, T>>): Result<E, T> =>
@@ -336,11 +353,11 @@ export const flatten = <E, T>(resRes: Result<E, Result<E, T>>): Result<E, T> =>
  * # Examples
  *
  * ```ts
- * import { err, mergeOkErr, ok } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { err, mergeOkErr, ok } from "./result.js";
+ * import { assertEquals } from "vitest";
  *
- * assertEquals(mergeOkErr(ok(3)), 3);
- * assertEquals(mergeOkErr(err(4)), 4);
+ * expect(mergeOkErr(ok(3))).toStrictEqual(3);
+ * expect(mergeOkErr(err(4))).toStrictEqual(4);
  * ```
  */
 export const mergeOkErr = <T>(res: Result<T, T>) => res[1];
@@ -354,10 +371,10 @@ export const mergeOkErr = <T>(res: Result<T, T>) => res[1];
  * # Examples
  *
  * ```ts
- * import { err, ok, unwrap } from "./result.ts";
- * import { assertEquals, assertThrows } from "../deps.ts";
+ * import { err, ok, unwrap } from "./result.js";
+ * import { assertEquals, assertThrows } from "vitest";
  *
- * assertEquals(unwrap(ok(3)), 3);
+ * expect(unwrap(ok(3))).toStrictEqual(3);
  * assertThrows(() => unwrap(err(4)), "unwrapped Err");
  * ```
  */
@@ -377,11 +394,11 @@ export const unwrap = <E, T>(res: Result<E, T>): T => {
  * # Examples
  *
  * ```ts
- * import { err, ok, unwrapErr } from "./result.ts";
- * import { assertEquals, assertThrows } from "../deps.ts";
+ * import { err, ok, unwrapErr } from "./result.js";
+ * import { assertEquals, assertThrows } from "vitest";
  *
  * assertThrows(() => unwrapErr(ok(3)), "unwrapped Ok");
- * assertEquals(unwrapErr(err(4)), 4);
+ * expect(unwrapErr(err(4))).toStrictEqual(4);
  * ```
  */
 export const unwrapErr = <E, T>(res: Result<E, T>): E => {
@@ -401,8 +418,8 @@ export const unwrapErr = <E, T>(res: Result<E, T>): E => {
  * # Examples
  *
  * ```ts
- * import { and, err, ok } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { and, err, ok } from "./result.js";
+ * import { assertEquals } from "vitest";
  *
  * const success = ok<number>(2);
  * const failure = err("not a 2");
@@ -410,14 +427,15 @@ export const unwrapErr = <E, T>(res: Result<E, T>): E => {
  * const earlyError = err("early error");
  * const anotherSuccess = ok("different result");
 
- * assertEquals(and(lateError)(success), lateError);
- * assertEquals(and<number, string>(success)(earlyError), earlyError);
- * assertEquals(and(lateError)(failure), failure);
- * assertEquals(and(anotherSuccess)(success), anotherSuccess);
+ * expect(and(lateError)(success)).toStrictEqual(lateError);
+ * expect(and<number, string>(success)(earlyError)).toStrictEqual(earlyError);
+ * expect(and(lateError)(failure)).toStrictEqual(failure);
+ * expect(and(anotherSuccess)(success)).toStrictEqual(anotherSuccess);
  * ```
  */
 export const and =
-    <U, E>(resB: Result<E, U>) => <T>(resA: Result<E, T>): Result<E, U> =>
+    <U, E>(resB: Result<E, U>) =>
+    <T>(resA: Result<E, T>): Result<E, U> =>
         isOk(resA) ? resB : resA;
 
 /**
@@ -430,8 +448,8 @@ export const and =
  * # Examples
  *
  * ```ts
- * import { andThen, err, ok, Result } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { andThen, err, ok, Result } from "./result.js";
+ * import { assertEquals } from "vitest";
  *
  * const sqrtThenToString = andThen(
  *     (num: number): Result<string, string> =>
@@ -440,14 +458,15 @@ export const and =
  *             : ok(Math.sqrt(num).toString()),
  * );
 
- * assertEquals(sqrtThenToString(ok(4)), ok("2"));
- * assertEquals(sqrtThenToString(ok(-1)), err("num must not be negative"));
- * assertEquals(sqrtThenToString(err("not a number")), err("not a number"));
+ * expect(sqrtThenToString(ok(4))).toStrictEqual(ok("2"));
+ * expect(sqrtThenToString(ok(-1))).toStrictEqual(err("num must not be negative"));
+ * expect(sqrtThenToString(err("not a number"))).toStrictEqual(err("not a number"));
  * ```
  */
 export const andThen =
     <T, U, E>(fn: (t: T) => Result<E, U>) =>
-    (resA: Result<E, T>): Result<E, U> => isOk(resA) ? fn(resA[1]) : resA;
+    (resA: Result<E, T>): Result<E, U> =>
+        isOk(resA) ? fn(resA[1]) : resA;
 
 /**
  * Returns `fn(v)` if `res` is an `Ok(v)`, otherwise the error `res`. The order of arguments is reversed because of that it is useful for partial applying.
@@ -470,8 +489,8 @@ export const asyncAndThen =
  * # Examples
  *
  * ```ts
- * import { err, ok, or } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { err, ok, or } from "./result.js";
+ * import { assertEquals } from "vitest";
  *
  * const success = ok<number>(2);
  * const failure = err<string>("not a 2");
@@ -479,14 +498,15 @@ export const asyncAndThen =
  * const earlyError = err<string>("early error");
  * const anotherSuccess = ok<number>(100);
 
- * assertEquals(or<string, number>(lateError)(success), success);
- * assertEquals(or<string, number>(success)(earlyError), success);
- * assertEquals(or(lateError)(failure), lateError);
- * assertEquals(or(anotherSuccess)(success), success);
+ * expect(or<string, number>(lateError)(success)).toStrictEqual(success);
+ * expect(or<string, number>(success)(earlyError)).toStrictEqual(success);
+ * expect(or(lateError)(failure)).toStrictEqual(lateError);
+ * expect(or(anotherSuccess)(success)).toStrictEqual(success);
  * ```
  */
 export const or =
-    <E, T>(resB: Result<E, T>) => <F>(resA: Result<F, T>): Result<E, T> =>
+    <E, T>(resB: Result<E, T>) =>
+    <F>(resA: Result<F, T>): Result<E, T> =>
         isErr(resA) ? resB : resA;
 
 /**
@@ -499,21 +519,22 @@ export const or =
  * # Examples
  *
  * ```ts
- * import { err, ok, orElse } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { err, ok, orElse } from "./result.js";
+ * import { assertEquals } from "vitest";
  *
  * const sq = orElse((x: number) => ok<number>(x * x));
  * const residual = orElse((x: number) => err<number>(x));
 
- * assertEquals(sq(sq(ok(2))), ok(2));
- * assertEquals(sq(residual(ok(2))), ok(2));
- * assertEquals(residual(sq(err(3))), ok(9));
- * assertEquals(residual(residual(err(3))), err(3));
+ * expect(sq(sq(ok(2)))).toStrictEqual(ok(2));
+ * expect(sq(residual(ok(2)))).toStrictEqual(ok(2));
+ * expect(residual(sq(err(3)))).toStrictEqual(ok(9));
+ * expect(residual(residual(err(3)))).toStrictEqual(err(3));
  * ```
  */
 export const orElse =
     <F, T, E>(fn: (error: F) => Result<E, T>) =>
-    (resA: Result<F, T>): Result<E, T> => isErr(resA) ? fn(resA[1]) : resA;
+    (resA: Result<F, T>): Result<E, T> =>
+        isErr(resA) ? fn(resA[1]) : resA;
 
 /**
  * Takes the success value as an optional if the result is an `Ok`, otherwise returns `None`.
@@ -524,17 +545,16 @@ export const orElse =
  * # Examples
  *
  * ```ts
- * import { err, ok, optionOk, orElse } from "./result.ts";
- * import { some, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { err, ok, optionOk, orElse } from "./result.js";
+ * import { some, none } from "./option.js";
+ * import { assertEquals } from "vitest";
  *
- * assertEquals(optionOk(ok(2)), some(2));
- * assertEquals(optionOk(err("nothing left")), none());
+ * expect(optionOk(ok(2))).toStrictEqual(some(2));
+ * expect(optionOk(err("nothing left"))).toStrictEqual(none());
  * ```
  */
-export const optionOk = <E, T>(
-    res: Result<E, T>,
-): Option<T> => (isOk(res) ? some(res[1]) : none());
+export const optionOk = <E, T>(res: Result<E, T>): Option<T> =>
+    isOk(res) ? some(res[1]) : none();
 
 /**
  * Takes the error value as an optional if the result is an `Err`, otherwise returns `None`.
@@ -545,12 +565,12 @@ export const optionOk = <E, T>(
  * # Examples
  *
  * ```ts
- * import { err, ok, optionErr } from "./result.ts";
- * import { some, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { err, ok, optionErr } from "./result.js";
+ * import { some, none } from "./option.js";
+ * import { assertEquals } from "vitest";
  *
- * assertEquals(optionErr(ok(2)), none());
- * assertEquals(optionErr(err("nothing left")), some("nothing left"));
+ * expect(optionErr(ok(2))).toStrictEqual(none());
+ * expect(optionErr(err("nothing left"))).toStrictEqual(some("nothing left"));
  * ```
  */
 export const optionErr = <E, T>(res: Result<E, T>): Option<E> =>
@@ -565,11 +585,11 @@ export const optionErr = <E, T>(res: Result<E, T>): Option<E> =>
  * # Examples
  *
  * ```ts
- * import { err, ok, toString } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { err, ok, toString } from "./result.js";
+ * import { assertEquals } from "vitest";
  *
- * assertEquals(toString(ok(24)), "ok(24)");
- * assertEquals(toString(err("hoge")), "err(hoge)");
+ * expect(toString(ok(24))).toStrictEqual("ok(24)");
+ * expect(toString(err("hoge"))).toStrictEqual("err(hoge)");
  * ```
  */
 export const toString = <E, T>(res: Result<E, T>): string =>
@@ -584,11 +604,11 @@ export const toString = <E, T>(res: Result<E, T>): string =>
  * # Examples
  *
  * ```ts
- * import { err, ok, toArray } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { err, ok, toArray } from "./result.js";
+ * import { assertEquals } from "vitest";
  *
- * assertEquals(toArray(ok(24)), [24]);
- * assertEquals(toArray(err("hoge")), []);
+ * expect(toArray(ok(24))).toStrictEqual([24]);
+ * expect(toArray(err("hoge"))).toStrictEqual([]);
  * ```
  */
 export const toArray = <E, T>(res: Result<E, T>): T[] =>
@@ -601,7 +621,8 @@ export const toArray = <E, T>(res: Result<E, T>): T[] =>
  * @returns The mapped function.
  */
 export const map =
-    <T, U>(fn: (t: T) => U) => <E>(res: Result<E, T>): Result<E, U> =>
+    <T, U>(fn: (t: T) => U) =>
+    <E>(res: Result<E, T>): Result<E, U> =>
         isOk(res) ? ok(fn(res[1])) : res;
 /**
  * Applies `fn` to the contained success value, or returns the default value `init` if it is an `Err`.
@@ -612,7 +633,9 @@ export const map =
  * @returns The mapped value.
  */
 export const mapOr =
-    <U>(init: U) => <T>(fn: (t: T) => U) => <E>(res: Result<E, T>): U =>
+    <U>(init: U) =>
+    <T>(fn: (t: T) => U) =>
+    <E>(res: Result<E, T>): U =>
         isOk(res) ? fn(res[1]) : init;
 /**
  * Applies `fn` to the contained success value, or returns the fallback value by `fallback` if it is an `Err`.
@@ -625,7 +648,8 @@ export const mapOr =
 export const mapOrElse =
     <E, U>(fallback: (err: E) => U) =>
     <T>(fn: (t: T) => U) =>
-    (res: Result<E, T>): U => isOk(res) ? fn(res[1]) : fallback(res[1]);
+    (res: Result<E, T>): U =>
+        isOk(res) ? fn(res[1]) : fallback(res[1]);
 
 /**
  * Maps the function onto `Result<_, T>`.
@@ -634,7 +658,8 @@ export const mapOrElse =
  * @returns The mapped function.
  */
 export const mapErr =
-    <E, F>(fn: (t: E) => F) => <T>(res: Result<E, T>): Result<F, T> =>
+    <E, F>(fn: (t: E) => F) =>
+    <T>(res: Result<E, T>): Result<F, T> =>
         isErr(res) ? err(fn(res[1])) : res;
 
 /**
@@ -656,7 +681,8 @@ export const asyncMap =
  * @returns The result of tuple.
  */
 export const product =
-    <E, A>(aRes: Result<E, A>) => <B>(bRes: Result<E, B>): Result<E, [A, B]> =>
+    <E, A>(aRes: Result<E, A>) =>
+    <B>(bRes: Result<E, B>): Result<E, [A, B]> =>
         andThen((a: A) => map((b: B): [A, B] => [a, b])(bRes))(aRes);
 
 /**
@@ -666,8 +692,10 @@ export const product =
  * @param res - The source result.
  * @returns The unwrapped value.
  */
-export const unwrapOr = <T>(init: T) => <E>(res: Result<E, T>): T =>
-    isOk(res) ? res[1] : init;
+export const unwrapOr =
+    <T>(init: T) =>
+    <E>(res: Result<E, T>): T =>
+        isOk(res) ? res[1] : init;
 /**
  * Unwraps the success value, or returns the fallback value `fallback` if it is an `Err`.
  *
@@ -676,7 +704,8 @@ export const unwrapOr = <T>(init: T) => <E>(res: Result<E, T>): T =>
  * @returns The unwrapped value.
  */
 export const unwrapOrElse =
-    <E, T>(fallback: (err: E) => T) => (res: Result<E, T>): T =>
+    <E, T>(fallback: (err: E) => T) =>
+    (res: Result<E, T>): T =>
         isOk(res) ? res[1] : fallback(res[1]);
 
 /**
@@ -705,13 +734,13 @@ export const biMap =
  * # Examples
  *
  * ```ts
- * import { err, ok, resOptToOptRes } from "./result.ts";
- * import { some, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { err, ok, resOptToOptRes } from "./result.js";
+ * import { some, none } from "./option.js";
+ * import { assertEquals } from "vitest";
  *
- * assertEquals(resOptToOptRes(ok(some(5))), some(ok(5)));
- * assertEquals(resOptToOptRes(ok(none())), none());
- * assertEquals(resOptToOptRes(err("hoge")), some(err("hoge")));
+ * expect(resOptToOptRes(ok(some(5)))).toStrictEqual(some(ok(5)));
+ * expect(resOptToOptRes(ok(none()))).toStrictEqual(none());
+ * expect(resOptToOptRes(err("hoge"))).toStrictEqual(some(err("hoge")));
  * ```
  */
 export const resOptToOptRes = <E, T>(
@@ -730,20 +759,25 @@ export const resOptToOptRes = <E, T>(
  * A success return type of {@link Result.collect : `Result.collect`}.
  */
 export type CollectSuccessValue<R extends readonly Result<unknown, unknown>[]> =
-    R extends readonly [] ? never[]
+    R extends readonly []
+        ? never[]
         : {
-            -readonly [K in keyof R]: R[K] extends Result<unknown, infer T> ? T
-                : never;
-        };
+              -readonly [K in keyof R]: R[K] extends Result<unknown, infer T>
+                  ? T
+                  : never;
+          };
 
 /**
  * An error return type of {@link Result.collect : `Result.collect`}.
  */
 export type CollectErrorValue<R extends readonly Result<unknown, unknown>[]> =
-    R[number] extends Err<infer E> ? E
-        : R[number] extends Ok<unknown> ? never
-        : R[number] extends Result<infer E, unknown> ? E
-        : never;
+    R[number] extends Err<infer E>
+        ? E
+        : R[number] extends Ok<unknown>
+          ? never
+          : R[number] extends Result<infer E, unknown>
+            ? E
+            : never;
 
 /**
  * A return type of {@link Result.collect : `Result.collect`}.
@@ -767,9 +801,7 @@ export const collect = <const R extends readonly Result<unknown, unknown>[]>(
         }
         successes.push(res[1]);
     }
-    return ok(
-        successes,
-    ) as CollectReturn<R>;
+    return ok(successes) as CollectReturn<R>;
 };
 
 /**
@@ -955,13 +987,15 @@ export const ifOk = <E, T, U>(): Optic<Result<E, T>, Result<E, U>, T, U> =>
     );
 
 export const enc =
-    <E>(encE: Encoder<E>) => <T>(encT: Encoder<T>): Encoder<Result<E, T>> =>
+    <E>(encE: Encoder<E>) =>
+    <T>(encT: Encoder<T>): Encoder<Result<E, T>> =>
         encSum({
             [errSymbol]: ([, err]: Err<E>) => encE(err),
             [okSymbol]: ([, ok]: Ok<T>) => encT(ok),
         })(([key]) => key)((type) => encU8(type === errSymbol ? 0 : 1));
 export const dec =
-    <E>(decE: Decoder<E>) => <T>(decT: Decoder<T>): Decoder<Result<E, T>> =>
+    <E>(decE: Decoder<E>) =>
+    <T>(decT: Decoder<T>): Decoder<Result<E, T>> =>
         decSum(decU8())<Result<E, T>>([
             mapDecoder(err)(decE),
             mapDecoder(ok)(decT),

@@ -1,12 +1,14 @@
-import type { Get1, Get2 } from "../hkt.ts";
-import type { Applicative } from "./applicative.ts";
-import type { Distributive } from "./distributive.ts";
-import { type Profunctor, rightMap } from "./profunctor.ts";
-import type { Traversable } from "./traversable.ts";
+import type { Get1, Get2 } from "../hkt.js";
+import type { Applicative } from "./applicative.js";
+import type { Distributive } from "./distributive.js";
+import { type Profunctor, rightMap } from "./profunctor.js";
+import type { Traversable } from "./traversable.js";
 
-export type Settable<F> = Applicative<F> & Distributive<F> & Traversable<F> & {
-    readonly untainted: <A>(fa: Get1<F, A>) => A;
-};
+export type Settable<F> = Applicative<F> &
+    Distributive<F> &
+    Traversable<F> & {
+        readonly untainted: <A>(fa: Get1<F, A>) => A;
+    };
 
 export const untaintedDot =
     <F>(settable: Settable<F>) =>

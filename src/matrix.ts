@@ -7,26 +7,26 @@
  * @module
  */
 
-import { dec as decArray, enc as encArray } from "./array.ts";
-import { doT } from "./cat.ts";
+import { dec as decArray, enc as encArray } from "./array.js";
+import { doT } from "./cat.js";
 import {
-    decF64Be,
     type Decoder,
+    decF64Be,
     decU32Be,
-    encF64Be,
     type Encoder,
+    encF64Be,
     encU32Be,
     monadForCodeM,
     monadForDecoder,
-} from "./serial.ts";
-import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.ts";
-import type { Monoid } from "./type-class/monoid.ts";
+} from "./serial.js";
+import { type AbelianGroup, abelSymbol } from "./type-class/abelian-group.js";
+import type { Monoid } from "./type-class/monoid.js";
 import {
     fromPartialEquality,
     type PartialEq,
-} from "./type-class/partial-eq.ts";
-import type { Ring } from "./type-class/ring.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
+} from "./type-class/partial-eq.js";
+import type { Ring } from "./type-class/ring.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 /**
  * Strides of dimensions. The first element is steps needed to seek columns, and the second element is steps needed to seek rows.
@@ -73,8 +73,8 @@ export const partialEquality = (lhs: Matrix, rhs: Matrix): boolean => {
 /**
  * A `PartialEq` instance for `Matrix`.
  */
-export const partialEq: PartialEq<Matrix> = fromPartialEquality(() =>
-    partialEquality
+export const partialEq: PartialEq<Matrix> = fromPartialEquality(
+    () => partialEquality,
 )();
 
 /**
@@ -84,12 +84,14 @@ export const partialEq: PartialEq<Matrix> = fromPartialEquality(() =>
  * @param columns - The count of columns.
  * @returns The identity matrix in `rows` rows and `columns` columns.
  */
-export const identity = (rows: number) => (columns: number): Matrix => ({
-    nums: new Float64Array(rows * columns).map((_, i) =>
-        (i % (columns + 1) === 0) ? 1 : 0
-    ),
-    strides: [columns, 1],
-});
+export const identity =
+    (rows: number) =>
+    (columns: number): Matrix => ({
+        nums: new Float64Array(rows * columns).map((_, i) =>
+            i % (columns + 1) === 0 ? 1 : 0,
+        ),
+        strides: [columns, 1],
+    });
 
 /**
  * Creates a zeroes matrix with its size.
@@ -98,10 +100,12 @@ export const identity = (rows: number) => (columns: number): Matrix => ({
  * @param columns - The count of columns.
  * @returns The zeroes matrix in `rows` rows and `columns` columns.
  */
-export const zeroes = (rows: number) => (columns: number): Matrix => ({
-    nums: new Float64Array(rows * columns),
-    strides: [columns, 1],
-});
+export const zeroes =
+    (rows: number) =>
+    (columns: number): Matrix => ({
+        nums: new Float64Array(rows * columns),
+        strides: [columns, 1],
+    });
 /**
  * Creates a zeros matrix with its size.
  *
@@ -119,7 +123,7 @@ export const zeros = zeroes;
  */
 export const fromRows = (rowNums: readonly number[][]): Matrix => {
     const columns = Math.max(...rowNums.map((row) => row.length));
-    return ({
+    return {
         nums: new Float64Array(
             rowNums.flatMap((row) => {
                 const newRow = new Array<number>(columns);
@@ -129,7 +133,7 @@ export const fromRows = (rowNums: readonly number[][]): Matrix => {
             }),
         ),
         strides: [columns, 1],
-    });
+    };
 };
 
 /**
@@ -141,7 +145,7 @@ export const fromRows = (rowNums: readonly number[][]): Matrix => {
 export const fromColumns = (columnNums: readonly number[][]): Matrix => {
     const rows = Math.max(...columnNums.map((col) => col.length));
 
-    return ({
+    return {
         nums: new Float64Array(
             columnNums.flatMap((col) => {
                 const newCol = new Array<number>(rows);
@@ -151,7 +155,7 @@ export const fromColumns = (columnNums: readonly number[][]): Matrix => {
             }),
         ),
         strides: [1, rows],
-    });
+    };
 };
 
 /**
@@ -162,7 +166,9 @@ export const fromColumns = (columnNums: readonly number[][]): Matrix => {
  * @returns The fetched element of the matrix.
  */
 export const at =
-    (rowIndex: number) => (columnIndex: number) => (mat: Matrix): number => {
+    (rowIndex: number) =>
+    (columnIndex: number) =>
+    (mat: Matrix): number => {
         if (rowIndex < 0 || rowIndex >= columnLength(mat)) {
             throw new RangeError("`rowIndex` is out of range");
         }
@@ -182,10 +188,10 @@ export const at =
  * @returns The fetched element of the matrix.
  */
 export const atUnchecked =
-    (rowIndex: number) => (columnIndex: number) => (mat: Matrix): number =>
-        mat.nums.at(
-            rowIndex * mat.strides[0] + columnIndex * mat.strides[1],
-        )!;
+    (rowIndex: number) =>
+    (columnIndex: number) =>
+    (mat: Matrix): number =>
+        mat.nums.at(rowIndex * mat.strides[0] + columnIndex * mat.strides[1])!;
 
 /**
  * Extracts the internal numbers from the matrix. The layout of numbers may not intuitive order because of its strides.
@@ -266,10 +272,12 @@ export const transpose = (mat: Matrix): Matrix => ({
  * @param alpha - The coefficient to multiply.
  * @returns The scaled matrix.
  */
-export const scalarProduct = (alpha: number) => (mat: Matrix): Matrix => ({
-    ...mat,
-    nums: mat.nums.map((num) => alpha * num),
-});
+export const scalarProduct =
+    (alpha: number) =>
+    (mat: Matrix): Matrix => ({
+        ...mat,
+        nums: mat.nums.map((num) => alpha * num),
+    });
 
 /**
  * Swaps the major axises of stored numbers. It is useful to transform matrices for efficient arithmetic implementation. You can check which the major axis is by function `isMajorAxisRow`.
@@ -322,25 +330,27 @@ export const interchangeMajorAxis = (mat: Matrix): Matrix => {
  * @param right - The right hand term.
  * @returns The sum matrix of two.
  */
-export const add = (left: Matrix) => (right: Matrix): Matrix => {
-    if (
-        left.nums.length !== right.nums.length ||
-        rowLength(left) !== rowLength(right)
-    ) {
-        throw new TypeError("unmatched matrix size");
-    }
+export const add =
+    (left: Matrix) =>
+    (right: Matrix): Matrix => {
+        if (
+            left.nums.length !== right.nums.length ||
+            rowLength(left) !== rowLength(right)
+        ) {
+            throw new TypeError("unmatched matrix size");
+        }
 
-    if (!isMajorAxisRow(left)) {
-        left = interchangeMajorAxis(left);
-    }
-    if (!isMajorAxisRow(right)) {
-        right = interchangeMajorAxis(right);
-    }
-    return {
-        strides: left.strides,
-        nums: left.nums.map((l, i) => l + right.nums.at(i)!),
+        if (!isMajorAxisRow(left)) {
+            left = interchangeMajorAxis(left);
+        }
+        if (!isMajorAxisRow(right)) {
+            right = interchangeMajorAxis(right);
+        }
+        return {
+            strides: left.strides,
+            nums: left.nums.map((l, i) => l + right.nums.at(i)!),
+        };
     };
-};
 
 /**
  * Multiplies two matrices in the linear algebra way. Throws if column length of the left term does not equal to row length of the right term.
@@ -349,31 +359,33 @@ export const add = (left: Matrix) => (right: Matrix): Matrix => {
  * @param right - The right hand term.
  * @returns The product matrix of two.
  */
-export const mul = (left: Matrix) => (right: Matrix): Matrix => {
-    const vecLen = columnLength(left);
-    if (vecLen !== rowLength(right)) {
-        throw new TypeError(
-            "column length of left does not equal to row length of right",
-        );
-    }
-
-    const resRowLen = rowLength(left);
-    const resColLen = columnLength(right);
-    const nums = new Float64Array(resRowLen * resColLen);
-    for (let colIdx = 0; colIdx < resColLen; ++colIdx) {
-        for (let rowIdx = 0; rowIdx < resRowLen; ++rowIdx) {
-            let sum = 0.0;
-            for (let idx = 0; idx < vecLen; ++idx) {
-                sum += at(colIdx)(idx)(left) * at(idx)(rowIdx)(right);
-            }
-            nums.set([sum], rowIdx + resRowLen * colIdx);
+export const mul =
+    (left: Matrix) =>
+    (right: Matrix): Matrix => {
+        const vecLen = columnLength(left);
+        if (vecLen !== rowLength(right)) {
+            throw new TypeError(
+                "column length of left does not equal to row length of right",
+            );
         }
-    }
-    return {
-        nums,
-        strides: [resRowLen, 1],
+
+        const resRowLen = rowLength(left);
+        const resColLen = columnLength(right);
+        const nums = new Float64Array(resRowLen * resColLen);
+        for (let colIdx = 0; colIdx < resColLen; ++colIdx) {
+            for (let rowIdx = 0; rowIdx < resRowLen; ++rowIdx) {
+                let sum = 0.0;
+                for (let idx = 0; idx < vecLen; ++idx) {
+                    sum += at(colIdx)(idx)(left) * at(idx)(rowIdx)(right);
+                }
+                nums.set([sum], rowIdx + resRowLen * colIdx);
+            }
+        }
+        return {
+            nums,
+            strides: [resRowLen, 1],
+        };
     };
-};
 
 /**
  * Multiplies two matrices by element wise. Throws if the shapes of them are unequal.
@@ -382,25 +394,27 @@ export const mul = (left: Matrix) => (right: Matrix): Matrix => {
  * @param right - The right hand term.
  * @returns The product matrix of two.
  */
-export const mulElementWise = (left: Matrix) => (right: Matrix): Matrix => {
-    if (
-        left.nums.length !== right.nums.length ||
-        rowLength(left) !== rowLength(right)
-    ) {
-        throw new TypeError("unmatched matrix size");
-    }
+export const mulElementWise =
+    (left: Matrix) =>
+    (right: Matrix): Matrix => {
+        if (
+            left.nums.length !== right.nums.length ||
+            rowLength(left) !== rowLength(right)
+        ) {
+            throw new TypeError("unmatched matrix size");
+        }
 
-    if (!isMajorAxisRow(left)) {
-        left = interchangeMajorAxis(left);
-    }
-    if (!isMajorAxisRow(right)) {
-        right = interchangeMajorAxis(right);
-    }
-    return {
-        strides: left.strides,
-        nums: left.nums.map((l, i) => l * right.nums.at(i)!),
+        if (!isMajorAxisRow(left)) {
+            left = interchangeMajorAxis(left);
+        }
+        if (!isMajorAxisRow(right)) {
+            right = interchangeMajorAxis(right);
+        }
+        return {
+            strides: left.strides,
+            nums: left.nums.map((l, i) => l * right.nums.at(i)!),
+        };
     };
-};
 
 /**
  * Creates the monoid instance about matrix addition.
@@ -410,7 +424,8 @@ export const mulElementWise = (left: Matrix) => (right: Matrix): Matrix => {
  * @returns The `Monoid` instance of addition.
  */
 export const addMonoid =
-    (rows: number) => (columns: number): Monoid<Matrix> => ({
+    (rows: number) =>
+    (columns: number): Monoid<Matrix> => ({
         identity: zeroes(rows)(columns),
         combine: (l, r) => add(l)(r),
         [semiGroupSymbol]: true,
@@ -424,7 +439,8 @@ export const addMonoid =
  * @returns The `AbelianGroup` instance of addition.
  */
 export const addGroup =
-    (rows: number) => (columns: number): AbelianGroup<Matrix> => ({
+    (rows: number) =>
+    (columns: number): AbelianGroup<Matrix> => ({
         identity: zeroes(rows)(columns),
         combine: (l, r) => add(l)(r),
         invert: scalarProduct(-1),
@@ -440,7 +456,8 @@ export const addGroup =
  * @returns The `Monoid` instance of multiplication.
  */
 export const mulMonoid =
-    (rows: number) => (columns: number): Monoid<Matrix> => ({
+    (rows: number) =>
+    (columns: number): Monoid<Matrix> => ({
         identity: identity(rows)(columns),
         combine: (l, r) => mul(l)(r),
         [semiGroupSymbol]: true,
@@ -453,16 +470,19 @@ export const mulMonoid =
  * @param columns - The count of columns.
  * @returns The `Ring` instance of addition and multiplication.
  */
-export const ring = (rows: number) => (columns: number): Ring<Matrix> => ({
-    additive: addGroup(rows)(columns),
-    multiplication: mulMonoid(rows)(columns),
-});
+export const ring =
+    (rows: number) =>
+    (columns: number): Ring<Matrix> => ({
+        additive: addGroup(rows)(columns),
+        multiplication: mulMonoid(rows)(columns),
+    });
 
 /**
  * The `Encoder` implementation for `Matrix`.
  */
 export const enc: Encoder<Matrix> = (mat: Matrix) =>
-    doT(monadForCodeM).run(encU32Be(mat.strides[0]))
+    doT(monadForCodeM)
+        .run(encU32Be(mat.strides[0]))
         .run(encU32Be(mat.strides[1]))
         .run(encArray(encF64Be)([...mat.nums]))
         .finish(() => []);

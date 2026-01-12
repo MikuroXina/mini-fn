@@ -1,6 +1,6 @@
-import { constant } from "../func.ts";
-import type { Get1 } from "../hkt.ts";
-import type { Invariant } from "./variance.ts";
+import { constant } from "../func.js";
+import type { Get1 } from "../hkt.js";
+import type { Invariant } from "./variance.js";
 
 /**
  * A structure which able to lift up in `F`.
@@ -28,11 +28,12 @@ export type Functor<F> = {
  * @param f - The mapper function.
  * @returns The nest-mapped function.
  */
-export const map = <FA, FB>(funcA: Functor<FA>, funcB: Functor<FB>) =>
-<T, U>(
-    f: (t: T) => U,
-): (funcT: Get1<FA, Get1<FB, T>>) => Get1<FA, Get1<FB, U>> =>
-    funcA.map(funcB.map(f));
+export const map =
+    <FA, FB>(funcA: Functor<FA>, funcB: Functor<FB>) =>
+    <T, U>(
+        f: (t: T) => U,
+    ): ((funcT: Get1<FA, Get1<FB, T>>) => Get1<FA, Get1<FB, U>>) =>
+        funcA.map(funcB.map(f));
 
 /**
  * @param func - The instance of `Functor` for `F`.
@@ -41,7 +42,8 @@ export const map = <FA, FB>(funcA: Functor<FA>, funcB: Functor<FB>) =>
  * @returns The replaced object of `F` contains the item `a`.
  */
 export const replace =
-    <F>(func: Functor<F>) => <A>(a: A): <B>(fb: Get1<F, B>) => Get1<F, A> =>
+    <F>(func: Functor<F>) =>
+    <A>(a: A): (<B>(fb: Get1<F, B>) => Get1<F, A>) =>
         func.map(constant(a));
 
 /**
@@ -54,7 +56,7 @@ export const replace =
  */
 export const flap =
     <S>(func: Functor<S>) =>
-    <T, U>(item: T): (t: Get1<S, (t: T) => U>) => Get1<S, U> =>
+    <T, U>(item: T): ((t: Get1<S, (t: T) => U>) => Get1<S, U>) =>
         func.map((f: (argT: T) => U) => f(item));
 
 /**
@@ -65,11 +67,12 @@ export const flap =
  * @param t - The item in `S`.
  * @returns The bound object in `S`.
  */
-export const bindTo = <S>(func: Functor<S>) =>
-<N extends PropertyKey>(
-    name: N,
-): <T>(t: Get1<S, T>) => Get1<S, Record<N, T>> =>
-    func.map(<T>(a: T) => ({ [name]: a }) as Record<N, T>);
+export const bindTo =
+    <S>(func: Functor<S>) =>
+    <N extends PropertyKey>(
+        name: N,
+    ): (<T>(t: Get1<S, T>) => Get1<S, Record<N, T>>) =>
+        func.map(<T>(a: T) => ({ [name]: a }) as Record<N, T>);
 
 /**
  * @param func - The instance of `Functor` for `S`.

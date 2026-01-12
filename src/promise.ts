@@ -1,20 +1,20 @@
-import type { MonadCont } from "./cont/monad.ts";
-import { absurd, id } from "./func.ts";
-import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.ts";
-import type { MonadPromise } from "./promise/monad.ts";
-import type { Apply } from "./type-class/apply.ts";
-import type { Applicative } from "./type-class/applicative.ts";
-import { type FlatMap, flatten } from "./type-class/flat-map.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Monad } from "./type-class/monad.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import type { SemiGroupal } from "./type-class/semi-groupal.ts";
-import type { Traversable } from "./type-class/traversable.ts";
-import type { TraversableMonad } from "./type-class/traversable-monad.ts";
-import type { Pure } from "./type-class/pure.ts";
-import type { MonadRec } from "./type-class/monad-rec.ts";
-import { type ControlFlow, isContinue, newContinue } from "./control-flow.ts";
+import type { MonadCont } from "./cont/monad.js";
+import { type ControlFlow, isContinue, newContinue } from "./control-flow.js";
+import { absurd, id } from "./func.js";
+import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
+import type { MonadPromise } from "./promise/monad.js";
+import type { Applicative } from "./type-class/applicative.js";
+import type { Apply } from "./type-class/apply.js";
+import { type FlatMap, flatten } from "./type-class/flat-map.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
+import type { MonadRec } from "./type-class/monad-rec.js";
+import type { Monoid } from "./type-class/monoid.js";
+import type { Pure } from "./type-class/pure.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
+import type { SemiGroupal } from "./type-class/semi-groupal.js";
+import type { Traversable } from "./type-class/traversable.js";
+import type { TraversableMonad } from "./type-class/traversable-monad.js";
 
 /**
  * Monad transformer `PromiseT`, a generic form of `Promise`.
@@ -24,8 +24,10 @@ export type PromiseT<M, A> = Promise<Get1<M, A>>;
 /**
  * Wraps the value of monad into a `Promise`. This is an alias of `Promise.resolve`.
  */
-export const pureT = <M>(f: Pure<M>) => <A>(a: A): PromiseT<M, A> =>
-    Promise.resolve(f.pure(a));
+export const pureT =
+    <M>(f: Pure<M>) =>
+    <A>(a: A): PromiseT<M, A> =>
+        Promise.resolve(f.pure(a));
 
 /**
  * Makes two `PromiseT`s into a `PromiseT` of tuple.
@@ -52,7 +54,8 @@ export const productT =
 export const mapT =
     <M>(f: Functor<M>) =>
     <T, U>(fn: (t: T) => U) =>
-    (t: PromiseT<M, T>): PromiseT<M, U> => t.then(f.map(fn));
+    (t: PromiseT<M, T>): PromiseT<M, U> =>
+        t.then(f.map(fn));
 
 /**
  * Maps and flatten an item of `PromiseT` by `fn`.
@@ -66,8 +69,7 @@ export const flatMapT =
     <M>(m: Traversable<M> & FlatMap<M>) =>
     <T, U>(fn: (t: T) => PromiseT<M, U>) =>
     (t: PromiseT<M, T>): PromiseT<M, U> =>
-        t.then(m.traverse(applicative)(fn))
-            .then(flatten(m));
+        t.then(m.traverse(applicative)(fn)).then(flatten(m));
 
 /**
  * Applies the function in a `PromiseT`.
@@ -149,7 +151,8 @@ export const pure = <A>(value: A): Promise<A> => Promise.resolve(value);
  * @returns The promise of product.
  */
 export const product =
-    <A>(a: Promise<A>) => <B>(b: Promise<B>): Promise<[A, B]> =>
+    <A>(a: Promise<A>) =>
+    <B>(b: Promise<B>): Promise<[A, B]> =>
         Promise.all([a, b]);
 
 /**
@@ -160,7 +163,8 @@ export const product =
  * @returns The transformed promise.
  */
 export const map: <T, U>(fn: (t: T) => U) => (t: Promise<T>) => Promise<U> =
-    (f) => (t) => t.then(f);
+    (f) => (t) =>
+        t.then(f);
 
 /**
  * Maps and flatten an item in the promise by `fn`.
@@ -203,16 +207,15 @@ export const callCC = <A, B>(
         );
     });
 
-export const tailRecM = <X, A>(
-    stepper: (state: A) => Promise<ControlFlow<X, A>>,
-) =>
-async (state: A): Promise<X> => {
-    let flow: ControlFlow<X, A> = newContinue(state);
-    while (isContinue(flow)) {
-        flow = await stepper(flow[1]);
-    }
-    return flow[1];
-};
+export const tailRecM =
+    <X, A>(stepper: (state: A) => Promise<ControlFlow<X, A>>) =>
+    async (state: A): Promise<X> => {
+        let flow: ControlFlow<X, A> = newContinue(state);
+        while (isContinue(flow)) {
+            flow = await stepper(flow[1]);
+        }
+        return flow[1];
+    };
 
 export interface PromiseHkt extends Hkt1 {
     readonly type: Promise<this["arg1"]>;

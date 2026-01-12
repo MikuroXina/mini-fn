@@ -12,35 +12,35 @@
  * @packageDocumentation
  */
 
-import { type CatT, doT } from "./cat.ts";
+import { BinaryHeap } from "../mod.js";
+import { type CatT, doT } from "./cat.js";
+import type { Apply2Only, Hkt1 } from "./hkt.js";
 import {
     appendToHead,
     empty,
     filter,
     foldable,
     fromArray,
-    length,
     type List,
-    mapOption,
+    length,
     monad as listMonad,
+    mapOption,
     plus,
     range,
     toIterator,
     unique,
-} from "./list.ts";
-import { none, type Option, some, unwrap } from "./option.ts";
-import { equal, greater, less } from "./ordering.ts";
-import { err, isErr, ok, type Result } from "./result.ts";
-import { BinaryHeap } from "../mod.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { fromProjection, nonNanOrd, type Ord } from "./type-class/ord.ts";
-import type { Apply2Only, Hkt1 } from "./hkt.ts";
-import type { HasInf } from "./type-class/has-inf.ts";
-import { doMut, type Mut, type MutHkt, type MutRef } from "./mut.ts";
-import { mapMIgnore } from "./type-class/foldable.ts";
-import { fromEncoder } from "./type-class/hash.ts";
-import { enc, eq } from "./tuple.ts";
-import { encU32Le } from "./serial.ts";
+} from "./list.js";
+import { doMut, type Mut, type MutHkt, type MutRef } from "./mut.js";
+import { none, type Option, some, unwrap } from "./option.js";
+import { equal, greater, less } from "./ordering.js";
+import { err, isErr, ok, type Result } from "./result.js";
+import { encU32Le } from "./serial.js";
+import { enc, eq } from "./tuple.js";
+import { mapMIgnore } from "./type-class/foldable.js";
+import type { HasInf } from "./type-class/has-inf.js";
+import { fromEncoder } from "./type-class/hash.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { fromProjection, nonNanOrd, type Ord } from "./type-class/ord.js";
 
 declare const vertexNominal: unique symbol;
 /**
@@ -69,8 +69,10 @@ export type Edge = readonly [from: Vertex, to: Vertex];
  * @param graph - Context of lookup.
  * @returns The adjacent vertices from `from`.
  */
-export const adjsFrom = (from: Vertex) => (graph: Graph): List<Vertex> =>
-    graph[from] ?? empty();
+export const adjsFrom =
+    (from: Vertex) =>
+    (graph: Graph): List<Vertex> =>
+        graph[from] ?? empty();
 
 /**
  * Gets the existing vertices from the graph.
@@ -99,9 +101,10 @@ export const edges = (graph: Graph): List<Edge> =>
  * @param graph - To be queried.
  * @returns The index bounds.
  */
-export const bounds = (
-    graph: Graph,
-): Bounds => [0 as Vertex, graph.length - 1 as Vertex];
+export const bounds = (graph: Graph): Bounds => [
+    0 as Vertex,
+    (graph.length - 1) as Vertex,
+];
 
 /**
  * Counts the outgoing degree edges by vertex.
@@ -110,7 +113,7 @@ export const bounds = (
  * @returns The numbers of outgoing degrees by vertex.
  */
 export const outDegree = (graph: Graph): number[] =>
-    graph.map((adj) => adj ? length(adj) : 0);
+    graph.map((adj) => (adj ? length(adj) : 0));
 
 /**
  * Counts the incoming degree edges by vertex.
@@ -137,7 +140,9 @@ export const inDegree = (graph: Graph): number[] => {
  */
 export const fromEdges =
     <K>(order: Ord<K>) =>
-    <L>(edges: readonly [label: L, from: K, to: readonly K[]][]): {
+    <L>(
+        edges: readonly [label: L, from: K, to: readonly K[]][],
+    ): {
         graph: Graph;
         getVertex: (vertex: Vertex) => [label: L, from: K, to: readonly K[]];
         indexVertex: (key: K) => Option<Vertex>;
@@ -162,7 +167,7 @@ export const fromEdges =
             return none();
         };
         const graph: Graph = sortedEdges.map(([, , to]) =>
-            mapOption(indexVertex)(fromArray(to))
+            mapOption(indexVertex)(fromArray(to)),
         );
         return {
             graph,
@@ -178,24 +183,26 @@ export const fromEdges =
  * @param edges - A list of edges, pair of vertices having `from` and `to`.
  * @returns The new graph.
  */
-export const build = ([start, end]: Bounds) => (edges: List<Edge>): Graph => {
-    if (!(start <= end)) {
-        throw new Error("`start` must be less than or equals to `end`");
-    }
-    const graph = [...new Array(end + 1)].map(() => empty()) as List<
-        Vertex
-    >[];
-    for (const [from, to] of toIterator(edges)) {
-        if (!(start <= from && from <= end)) {
-            throw new Error("`from` is out of bounds");
+export const build =
+    ([start, end]: Bounds) =>
+    (edges: List<Edge>): Graph => {
+        if (!(start <= end)) {
+            throw new Error("`start` must be less than or equals to `end`");
         }
-        if (!(start <= to && to <= end)) {
-            throw new Error("`to` is out of bounds");
+        const graph = [...new Array(end + 1)].map(() =>
+            empty(),
+        ) as List<Vertex>[];
+        for (const [from, to] of toIterator(edges)) {
+            if (!(start <= from && from <= end)) {
+                throw new Error("`from` is out of bounds");
+            }
+            if (!(start <= to && to <= end)) {
+                throw new Error("`to` is out of bounds");
+            }
+            graph[from] = appendToHead(to)(graph[from]!);
         }
-        graph[from] = appendToHead(to)(graph[from]!);
-    }
-    return graph;
-};
+        return graph;
+    };
 
 /**
  * Gets the reversed edges on the graph.
@@ -230,20 +237,22 @@ export const transpose: (graph: Graph) => Graph = toReversed;
  * @param graph - To be traversed.
  * @returns The visited indices in pre-order.
  */
-export const preOrder = (start: Vertex) => (graph: Graph): Vertex[] => {
-    const visited = new Set<Vertex>();
-    const stack = [start] as Vertex[];
-    while (stack.length > 0) {
-        const visiting = stack.pop()!;
-        visited.add(visiting);
-        for (const next of toIterator(adjsFrom(visiting)(graph))) {
-            if (!visited.has(next)) {
-                stack.push(next);
+export const preOrder =
+    (start: Vertex) =>
+    (graph: Graph): Vertex[] => {
+        const visited = new Set<Vertex>();
+        const stack = [start] as Vertex[];
+        while (stack.length > 0) {
+            const visiting = stack.pop()!;
+            visited.add(visiting);
+            for (const next of toIterator(adjsFrom(visiting)(graph))) {
+                if (!visited.has(next)) {
+                    stack.push(next);
+                }
             }
         }
-    }
-    return [...visited];
-};
+        return [...visited];
+    };
 
 /**
  * Extracts the visited vertex indices in post-order starting from `start`.
@@ -252,21 +261,23 @@ export const preOrder = (start: Vertex) => (graph: Graph): Vertex[] => {
  * @param graph - To be traversed.
  * @returns The visited indices in post-order.
  */
-export const postOrder = (start: Vertex) => (graph: Graph): Vertex[] => {
-    const nodes = [] as Vertex[];
-    const visited = new Set<Vertex>();
-    const visit = (visiting: Vertex) => {
-        visited.add(visiting);
-        for (const next of toIterator(adjsFrom(visiting)(graph))) {
-            if (!visited.has(next)) {
-                visit(next);
+export const postOrder =
+    (start: Vertex) =>
+    (graph: Graph): Vertex[] => {
+        const nodes = [] as Vertex[];
+        const visited = new Set<Vertex>();
+        const visit = (visiting: Vertex) => {
+            visited.add(visiting);
+            for (const next of toIterator(adjsFrom(visiting)(graph))) {
+                if (!visited.has(next)) {
+                    visit(next);
+                }
             }
-        }
-        nodes.push(visiting);
+            nodes.push(visiting);
+        };
+        visit(start);
+        return nodes;
     };
-    visit(start);
-    return nodes;
-};
 
 /**
  * An error that shows there is a cycle in the graph at the edge.
@@ -467,7 +478,8 @@ export const stronglyConnectedComponents = (graph: Graph): Set<Vertex>[] => {
  * @returns The indices of vertex which can reach from `start` vertex.
  */
 export const reachableVertices =
-    (start: Vertex) => (graph: Graph): Set<Vertex> => {
+    (start: Vertex) =>
+    (graph: Graph): Set<Vertex> => {
         const visited = new Set<Vertex>();
         const stack = [start];
         while (stack.length > 0) {
@@ -491,7 +503,9 @@ export const reachableVertices =
  * @returns Whether there is a path.
  */
 export const canReach =
-    (start: Vertex) => (goal: Vertex) => (graph: Graph): boolean => {
+    (start: Vertex) =>
+    (goal: Vertex) =>
+    (graph: Graph): boolean => {
         if (start === goal) {
             return true;
         }
@@ -534,53 +548,52 @@ export const dijkstra =
             readonly type: readonly [Vertex, this["arg1"]];
         }
         doMut(<S>(cat: CatT<Apply2Only<MutHkt, S>, Record<string, never>>) =>
-            cat.addM(
-                "heap",
-                BinaryHeap.empty(
-                    fromProjection<WeightedVertexHkt>(([, weight]) => weight)(
-                        order,
+            cat
+                .addM(
+                    "heap",
+                    BinaryHeap.empty(
+                        fromProjection<WeightedVertexHkt>(
+                            ([, weight]) => weight,
+                        )(order),
                     ),
-                ),
-            ).runWith(({ heap }) =>
-                BinaryHeap.insert(
-                    [start, monoid.identity] as WeightedVertex,
-                )(heap)
-            ).finishM(({ heap }) => {
-                const body = cat
-                    .addM("min", BinaryHeap.popMin(heap))
-                    .finishM(({ min }) => {
-                        const [visiting, visitingDist] = unwrap(min);
-                        visited.add(visiting);
-                        dist[visiting] = visitingDist;
-                        return mapMIgnore(foldable, cat.monad)(
-                            (next: Vertex) => {
+                )
+                .runWith(({ heap }) =>
+                    BinaryHeap.insert([
+                        start,
+                        monoid.identity,
+                    ] as WeightedVertex)(heap),
+                )
+                .finishM(({ heap }) => {
+                    const body = cat
+                        .addM("min", BinaryHeap.popMin(heap))
+                        .finishM(({ min }) => {
+                            const [visiting, visitingDist] = unwrap(min);
+                            visited.add(visiting);
+                            dist[visiting] = visitingDist;
+                            return mapMIgnore(
+                                foldable,
+                                cat.monad,
+                            )((next: Vertex) => {
                                 if (visited.has(next)) {
                                     return cat.monad.pure([]);
                                 }
-                                const nextWeight = edgeWeight([
-                                    visiting,
-                                    next,
-                                ]);
+                                const nextWeight = edgeWeight([visiting, next]);
                                 return BinaryHeap.insert([
                                     next,
-                                    monoid.combine(
-                                        visitingDist,
-                                        nextWeight,
-                                    ),
+                                    monoid.combine(visitingDist, nextWeight),
                                 ] as WeightedVertex)(heap);
-                            },
-                        )(adjsFrom(visiting)(graph));
-                    });
-                const loop = (
-                    heap: MutRef<S, BinaryHeap.BinaryHeap<WeightedVertex>>,
-                ): Mut<S, never[]> =>
-                    cat.monad.flatMap((wasEmpty) =>
-                        wasEmpty
-                            ? cat.monad.pure([])
-                            : cat.monad.flatMap(() => loop(heap))(body)
-                    )(BinaryHeap.isEmpty(heap));
-                return loop(heap);
-            })
+                            })(adjsFrom(visiting)(graph));
+                        });
+                    const loop = (
+                        heap: MutRef<S, BinaryHeap.BinaryHeap<WeightedVertex>>,
+                    ): Mut<S, never[]> =>
+                        cat.monad.flatMap((wasEmpty) =>
+                            wasEmpty
+                                ? cat.monad.pure([])
+                                : cat.monad.flatMap(() => loop(heap))(body),
+                        )(BinaryHeap.isEmpty(heap));
+                    return loop(heap);
+                }),
         );
         return dist;
     };

@@ -1,7 +1,7 @@
-import { compose, id } from "./func.ts";
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { PartialEqUnary } from "./type-class/partial-eq.ts";
+import { compose, id } from "./func.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
+import type { Functor } from "./type-class/functor.js";
+import type { PartialEqUnary } from "./type-class/partial-eq.js";
 
 /**
  * The yoneda functor, a partial application of `map` to its second argument.
@@ -30,7 +30,8 @@ export const partialEqUnary = <F>(
  * @returns The partial application of `functor.map`.
  */
 export const lift =
-    <F>(functor: Functor<F>) => <A>(a: Get1<F, A>): Yoneda<F, A> => ({
+    <F>(functor: Functor<F>) =>
+    <A>(a: Get1<F, A>): Yoneda<F, A> => ({
         yoneda: (f) => functor.map(f)(a),
     });
 
@@ -50,7 +51,8 @@ export const lower = <F, A>(y: Yoneda<F, A>): Get1<F, A> => y.yoneda(id);
  * @returns The mapped yoneda
  */
 export const map =
-    <A, B>(mapper: (a: A) => B) => <F>(y: Yoneda<F, A>): Yoneda<F, B> => ({
+    <A, B>(mapper: (a: A) => B) =>
+    <F>(y: Yoneda<F, A>): Yoneda<F, B> => ({
         yoneda: <X>(fn: (b: B) => X) => y.yoneda<X>(compose(fn)(mapper)),
     });
 

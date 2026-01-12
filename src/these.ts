@@ -1,7 +1,7 @@
-import { doT } from "./cat.ts";
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
-import { id } from "./identity.ts";
-import { appendToHead, either, empty, type List } from "./list.ts";
+import { doT } from "./cat.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
+import { id } from "./identity.js";
+import { appendToHead, either, empty, type List } from "./list.js";
 import {
     type Decoder,
     decSum,
@@ -12,16 +12,16 @@ import {
     mapDecoder,
     monadForCodeM,
     monadForDecoder,
-} from "./serial.ts";
-import { make as makeTuple, type Tuple } from "./tuple.ts";
-import type { Applicative } from "./type-class/applicative.ts";
-import type { Bifunctor } from "./type-class/bifunctor.ts";
-import { type Eq, eqSymbol } from "./type-class/eq.ts";
-import type { Foldable } from "./type-class/foldable.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Monad } from "./type-class/monad.ts";
-import type { PartialEq, PartialEqUnary } from "./type-class/partial-eq.ts";
-import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.ts";
+} from "./serial.js";
+import { make as makeTuple, type Tuple } from "./tuple.js";
+import type { Applicative } from "./type-class/applicative.js";
+import type { Bifunctor } from "./type-class/bifunctor.js";
+import { type Eq, eqSymbol } from "./type-class/eq.js";
+import type { Foldable } from "./type-class/foldable.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
+import type { PartialEq, PartialEqUnary } from "./type-class/partial-eq.js";
+import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.js";
 
 const thisSymbol = Symbol("TheseThis");
 /**
@@ -77,7 +77,9 @@ export type Both<A, B> = readonly [typeof bothSymbol, A, B];
  * @param b - The second value to be contained.
  * @returns The new `Both`.
  */
-export const newBoth = <A>(a: A) => <B>(b: B): Both<A, B> => [bothSymbol, a, b];
+export const newBoth =
+    <A>(a: A) =>
+    <B>(b: B): Both<A, B> => [bothSymbol, a, b];
 /**
  * Checks whether the `These` is a `Both`.
  *
@@ -168,7 +170,8 @@ export const these =
  * @returns The converted tuple.
  */
 export const intoTuple =
-    <A>(defaultA: A) => <B>(defaultB: B): (t: These<A, B>) => Tuple<A, B> =>
+    <A>(defaultA: A) =>
+    <B>(defaultB: B): ((t: These<A, B>) => Tuple<A, B>) =>
         these((a: A) => makeTuple(a)(defaultB))(makeTuple(defaultA)<B>)(
             makeTuple,
         );
@@ -183,7 +186,7 @@ export const intoTuple =
  */
 export const biMap =
     <A, B>(first: (a: A) => B) =>
-    <C, D>(second: (c: C) => D): (curr: These<A, C>) => These<B, D> =>
+    <C, D>(second: (c: C) => D): ((curr: These<A, C>) => These<B, D>) =>
         these((a: A) => newThis(first(a)) as These<B, D>)(
             (c: C) => newThat(second(c)) as These<B, D>,
         )((a) => (c) => newBoth(first(a))(second(c)) as These<B, D>);
@@ -196,7 +199,7 @@ export const biMap =
  */
 export const merge = <A>(
     merger: (thisA: A) => (thatA: A) => A,
-): (t: These<A, A>) => A => these(id<A>)(id<A>)(merger);
+): ((t: These<A, A>) => A) => these(id<A>)(id<A>)(merger);
 
 /**
  * Maps and merges the `These`'s value with the provided functions.
@@ -210,7 +213,8 @@ export const mergeWith =
     <A, C>(f: (a: A) => C) =>
     <B>(g: (b: B) => C) =>
     (merger: (thisC: C) => (thatC: C) => C) =>
-    (t: These<A, B>): C => merge(merger)(biMap(f)(g)(t));
+    (t: These<A, B>): C =>
+        merge(merger)(biMap(f)(g)(t));
 
 /**
  * Sorts out the list of `These`s into the lists of `This`, `That` and `Both` values.
@@ -221,24 +225,24 @@ export const mergeWith =
 export const partition = <A, B>(
     list: List<These<A, B>>,
 ): [List<A>, List<B>, List<Tuple<A, B>>] =>
-    either<[List<A>, List<B>, List<Tuple<A, B>>]>(
-        () => [empty(), empty(), empty()],
-    )(
-        (t: These<A, B>, ts: List<These<A, B>>) => {
-            const [restThis, restThat, restBoth] = partition(ts);
-            return these<A, [List<A>, List<B>, List<Tuple<A, B>>]>((a) => [
-                appendToHead(a)(restThis),
+    either<[List<A>, List<B>, List<Tuple<A, B>>]>(() => [
+        empty(),
+        empty(),
+        empty(),
+    ])((t: These<A, B>, ts: List<These<A, B>>) => {
+        const [restThis, restThat, restBoth] = partition(ts);
+        return these<A, [List<A>, List<B>, List<Tuple<A, B>>]>((a) => [
+            appendToHead(a)(restThis),
+            restThat,
+            restBoth,
+        ])<B>((b) => [restThis, appendToHead(b)(restThat), restBoth])(
+            (a) => (b) => [
+                restThis,
                 restThat,
-                restBoth,
-            ])<B>((b) => [restThis, appendToHead(b)(restThat), restBoth])(
-                (a) => (b) => [
-                    restThis,
-                    restThat,
-                    appendToHead(makeTuple(a)(b))(restBoth),
-                ],
-            )(t);
-        },
-    )(list);
+                appendToHead(makeTuple(a)(b))(restBoth),
+            ],
+        )(t);
+    })(list);
 
 /**
  * Sorts out the list of `These`s into the lists of left and right values.
@@ -252,16 +256,13 @@ export const partitionHere = <A, B>(
     either<[List<A>, List<B>]>(() => [empty(), empty()])(
         (t: These<A, B>, ts: List<These<A, B>>) => {
             const [restThis, restThat] = partitionHere(ts);
-            return these<A, [List<A>, List<B>]>((
-                a,
-            ) => [appendToHead(a)(restThis), restThat])<B>(
-                (b) => [restThis, appendToHead(b)(restThat)],
-            )(
-                (a) => (b) => [
-                    appendToHead(a)(restThis),
-                    appendToHead(b)(restThat),
-                ],
-            )(t);
+            return these<A, [List<A>, List<B>]>((a) => [
+                appendToHead(a)(restThis),
+                restThat,
+            ])<B>((b) => [restThis, appendToHead(b)(restThat)])((a) => (b) => [
+                appendToHead(a)(restThis),
+                appendToHead(b)(restThat),
+            ])(t);
         },
     )(list);
 
@@ -275,9 +276,11 @@ export const distributeTheseTuple = <A, B, C>(
     t: These<Tuple<A, B>, C>,
 ): Tuple<These<A, C>, These<B, C>> =>
     these<Tuple<A, B>, Tuple<These<A, C>, These<B, C>>>(([a, b]) =>
-        makeTuple(newThis(a))(newThis(b))
+        makeTuple(newThis(a))(newThis(b)),
     )<C>((c) => makeTuple(newThat(c))(newThat(c)))(
-        ([a, b]) => (c) => makeTuple(newBoth(a)(c))(newBoth(b)(c)),
+        ([a, b]) =>
+            (c) =>
+                makeTuple(newBoth(a)(c))(newBoth(b)(c)),
     )(t);
 
 /**
@@ -286,12 +289,10 @@ export const distributeTheseTuple = <A, B, C>(
  * @param t - The tuple having `These`s.
  * @returns The undistributed `These` of tuples.
  */
-export const undistributeTheseTuple = <A, B, C>(
-    [t1, t2]: Tuple<These<A, C>, These<B, C>>,
-): These<
-    Tuple<A, B>,
-    C
-> => {
+export const undistributeTheseTuple = <A, B, C>([t1, t2]: Tuple<
+    These<A, C>,
+    These<B, C>
+>): These<Tuple<A, B>, C> => {
     if (isThat(t1)) {
         return t1;
     }
@@ -317,16 +318,15 @@ export const undistributeTheseTuple = <A, B, C>(
  * @param t - The tuple having a `These` on left.
  * @returns The distributed `These` of tuples.
  */
-export const distributeTupleThese = <A, B, C>(
-    [t, c]: Tuple<These<A, B>, C>,
-): These<
-    Tuple<A, C>,
-    Tuple<B, C>
-> => these<A, These<Tuple<A, C>, Tuple<B, C>>>((a) => newThis(makeTuple(a)(c)))<
-    B
->((b) => newThat(makeTuple(b)(c)))((a) => (b) =>
-    newBoth(makeTuple(a)(c))(makeTuple(b)(c))
-)(t);
+export const distributeTupleThese = <A, B, C>([t, c]: Tuple<
+    These<A, B>,
+    C
+>): These<Tuple<A, C>, Tuple<B, C>> =>
+    these<A, These<Tuple<A, C>, Tuple<B, C>>>((a) =>
+        newThis(makeTuple(a)(c)),
+    )<B>((b) => newThat(makeTuple(b)(c)))(
+        (a) => (b) => newBoth(makeTuple(a)(c))(makeTuple(b)(c)),
+    )(t);
 
 /**
  * Undistributes `These` in `Tuple`.
@@ -338,11 +338,11 @@ export const undistributeTupleThese = <A, B, C>(
     t: These<Tuple<A, C>, Tuple<B, C>>,
 ): Tuple<These<A, B>, C> =>
     these<Tuple<A, C>, Tuple<These<A, B>, C>>(([a, c]) =>
-        makeTuple(newThis(a))(c)
-    )<Tuple<B, C>>(
-        ([b, c]) => makeTuple(newThat(b))(c),
-    )(
-        ([a, c]) => ([b]) => makeTuple(newBoth(a)(b))(c),
+        makeTuple(newThis(a))(c),
+    )<Tuple<B, C>>(([b, c]) => makeTuple(newThat(b))(c))(
+        ([a, c]) =>
+            ([b]) =>
+                makeTuple(newBoth(a)(b))(c),
     )(t);
 
 /**
@@ -360,27 +360,25 @@ export const combine =
         if (isThis(l)) {
             const leftA = l[1];
             return these<A, These<A, B>>((rightA) =>
-                newThis(semiA.combine(leftA, rightA))
-            )<B>(
-                (rightB) => newBoth(leftA)(rightB),
-            )((rightA) => (rightB) =>
-                newBoth(semiA.combine(leftA, rightA))(rightB)
+                newThis(semiA.combine(leftA, rightA)),
+            )<B>((rightB) => newBoth(leftA)(rightB))(
+                (rightA) => (rightB) =>
+                    newBoth(semiA.combine(leftA, rightA))(rightB),
             )(r);
         }
         if (isThat(l)) {
             const leftB = l[1];
             return these<A, These<A, B>>((rightA) => newBoth(rightA)(leftB))<B>(
                 (rightB) => newThat(semiB.combine(leftB, rightB)),
-            )((rightA) => (rightB) =>
-                newBoth(rightA)(semiB.combine(leftB, rightB))
+            )(
+                (rightA) => (rightB) =>
+                    newBoth(rightA)(semiB.combine(leftB, rightB)),
             )(r);
         }
         const [, leftA, leftB] = l;
         return these<A, These<A, B>>((rightA) =>
-            newBoth(semiA.combine(leftA, rightA))(leftB)
-        )<B>(
-            (rightB) => newBoth(leftA)(semiB.combine(leftB, rightB)),
-        )(
+            newBoth(semiA.combine(leftA, rightA))(leftB),
+        )<B>((rightB) => newBoth(leftA)(semiB.combine(leftB, rightB)))(
             (rightA) => (rightB) =>
                 newBoth(semiA.combine(leftA, rightA))(
                     semiB.combine(leftB, rightB),
@@ -396,7 +394,8 @@ export const combine =
  * @returns The mapped `These`.
  */
 export const map =
-    <B, C>(fn: (b: B) => C) => <A>(t: These<A, B>): These<A, C> =>
+    <B, C>(fn: (b: B) => C) =>
+    <A>(t: These<A, B>): These<A, C> =>
         these<A, These<A, C>>((a) => newThis(a))<B>((b) => newThat(fn(b)))(
             (a) => (b) => newBoth(a)(fn(b)),
         )(t);
@@ -413,8 +412,8 @@ export const foldR =
     <A, B>(folder: (a: A) => (b: B) => B) =>
     (init: B) =>
     <X>(data: These<X, A>): B =>
-        these<X, B>(() => init)<A>((a) => folder(a)(init))(() => (a) =>
-            folder(a)(init)
+        these<X, B>(() => init)<A>((a) => folder(a)(init))(
+            () => (a) => folder(a)(init),
         )(data);
 
 /**
@@ -430,7 +429,7 @@ export const traverse =
     <A, B>(visitor: (a: A) => Get1<F, B>) =>
     <X>(data: These<X, A>): Get1<F, These<X, B>> =>
         these<X, Get1<F, These<X, B>>>((x) => app.pure(newThis(x)))<A>((b) =>
-            app.map(newThat)(visitor(b))
+            app.map(newThat)(visitor(b)),
         )((x) => (b) => app.map(newBoth(x))(visitor(b)))(data);
 
 /**
@@ -546,7 +545,8 @@ export const monad = <A>(
 });
 
 export const enc =
-    <A>(encA: Encoder<A>) => <B>(encB: Encoder<B>): Encoder<These<A, B>> =>
+    <A>(encA: Encoder<A>) =>
+    <B>(encB: Encoder<B>): Encoder<These<A, B>> =>
         encSum({
             [thisSymbol]: ([, a]: This<A>) => encA(a),
             [thatSymbol]: ([, b]: That<B>) => encB(b),
@@ -555,12 +555,11 @@ export const enc =
                     .run(encA(a))
                     .finishM(() => encB(b)),
         })(([key]) => key)((key) =>
-            encU8(
-                key === thisSymbol ? 0 : (key === thatSymbol ? 1 : 2),
-            )
+            encU8(key === thisSymbol ? 0 : key === thatSymbol ? 1 : 2),
         );
 export const dec =
-    <A>(decA: Decoder<A>) => <B>(decB: Decoder<B>): Decoder<These<A, B>> =>
+    <A>(decA: Decoder<A>) =>
+    <B>(decB: Decoder<B>): Decoder<These<A, B>> =>
         decSum(decU8())<These<A, B>>([
             mapDecoder(newThis)(decA),
             mapDecoder(newThat)(decB),

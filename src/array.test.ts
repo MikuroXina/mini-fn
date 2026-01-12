@@ -1,4 +1,4 @@
-import { assertEquals } from "../deps.ts";
+import { expect, test } from "vitest";
 import {
     cmp,
     dec,
@@ -12,119 +12,104 @@ import {
     reduceL,
     reduceR,
     traverse,
-} from "./array.ts";
-import { range, reduce } from "./list.ts";
-import { some } from "./option.ts";
-import { equal, greater, less, type Ordering } from "./ordering.ts";
-import { monad as promiseMonad, type PromiseHkt } from "./promise.ts";
-import { unwrap } from "./result.ts";
-import { decU32Be, encU32Be, runCode, runDecoder } from "./serial.ts";
-import { stringEq } from "./type-class/eq.ts";
-import { stringOrd } from "./type-class/ord.ts";
-import { strict } from "./type-class/partial-eq.ts";
+} from "./array.js";
+import { range, reduce } from "./list.js";
+import { some } from "./option.js";
+import { equal, greater, less, type Ordering } from "./ordering.js";
+import { type PromiseHkt, monad as promiseMonad } from "./promise.js";
+import { unwrap } from "./result.js";
+import { decU32Be, encU32Be, runCode, runDecoder } from "./serial.js";
+import { stringEq } from "./type-class/eq.js";
+import { stringOrd } from "./type-class/ord.js";
+import { strict } from "./type-class/partial-eq.js";
 
-Deno.test("partial equality", () => {
+test("partial equality", () => {
     const partialEq = partialEquality(strict<number>());
 
-    assertEquals(partialEq([], []), true);
-    assertEquals(partialEq([0], [0]), true);
-    assertEquals(partialEq([2], [2]), true);
+    expect(partialEq([], [])).toStrictEqual(true);
+    expect(partialEq([0], [0])).toStrictEqual(true);
+    expect(partialEq([2], [2])).toStrictEqual(true);
 
-    assertEquals(partialEq([], [1]), false);
-    assertEquals(partialEq([1], []), false);
-    assertEquals(partialEq([0], [0, 3]), false);
-    assertEquals(partialEq([4, 0], [0]), false);
+    expect(partialEq([], [1])).toStrictEqual(false);
+    expect(partialEq([1], [])).toStrictEqual(false);
+    expect(partialEq([0], [0, 3])).toStrictEqual(false);
+    expect(partialEq([4, 0], [0])).toStrictEqual(false);
 });
 
-Deno.test("equality", () => {
+test("equality", () => {
     const eq = equality(stringEq);
 
-    assertEquals(eq([], []), true);
-    assertEquals(eq(["0"], ["0"]), true);
-    assertEquals(eq(["2"], ["2"]), true);
+    expect(eq([], [])).toStrictEqual(true);
+    expect(eq(["0"], ["0"])).toStrictEqual(true);
+    expect(eq(["2"], ["2"])).toStrictEqual(true);
 
-    assertEquals(eq([], ["1"]), false);
-    assertEquals(eq(["1"], []), false);
-    assertEquals(eq(["0"], ["0", "3"]), false);
-    assertEquals(eq(["4", "0"], ["0"]), false);
+    expect(eq([], ["1"])).toStrictEqual(false);
+    expect(eq(["1"], [])).toStrictEqual(false);
+    expect(eq(["0"], ["0", "3"])).toStrictEqual(false);
+    expect(eq(["4", "0"], ["0"])).toStrictEqual(false);
 });
 
-Deno.test("partial order", () => {
+test("partial order", () => {
     const cmp = partialCmp(stringOrd);
 
-    assertEquals(cmp([], []), some<Ordering>(equal));
-    assertEquals(cmp(["0"], ["0"]), some<Ordering>(equal));
-    assertEquals(cmp(["2"], ["2"]), some<Ordering>(equal));
+    expect(cmp([], [])).toStrictEqual(some<Ordering>(equal));
+    expect(cmp(["0"], ["0"])).toStrictEqual(some<Ordering>(equal));
+    expect(cmp(["2"], ["2"])).toStrictEqual(some<Ordering>(equal));
 
-    assertEquals(cmp([], ["1"]), some<Ordering>(less));
-    assertEquals(cmp(["0"], ["0", "3"]), some<Ordering>(less));
-    assertEquals(cmp(["1"], []), some<Ordering>(greater));
-    assertEquals(cmp(["4", "0"], ["0"]), some<Ordering>(greater));
+    expect(cmp([], ["1"])).toStrictEqual(some<Ordering>(less));
+    expect(cmp(["0"], ["0", "3"])).toStrictEqual(some<Ordering>(less));
+    expect(cmp(["1"], [])).toStrictEqual(some<Ordering>(greater));
+    expect(cmp(["4", "0"], ["0"])).toStrictEqual(some<Ordering>(greater));
 });
 
-Deno.test("total order", () => {
+test("total order", () => {
     const totalCmp = cmp(stringOrd);
 
-    assertEquals(totalCmp([], []), equal);
-    assertEquals(totalCmp(["0"], ["0"]), equal);
-    assertEquals(totalCmp(["2"], ["2"]), equal);
+    expect(totalCmp([], [])).toStrictEqual(equal);
+    expect(totalCmp(["0"], ["0"])).toStrictEqual(equal);
+    expect(totalCmp(["2"], ["2"])).toStrictEqual(equal);
 
-    assertEquals(totalCmp([], ["1"]), less);
-    assertEquals(totalCmp(["0"], ["0", "3"]), less);
-    assertEquals(totalCmp(["1"], []), greater);
-    assertEquals(totalCmp(["4", "0"], ["0"]), greater);
+    expect(totalCmp([], ["1"])).toStrictEqual(less);
+    expect(totalCmp(["0"], ["0", "3"])).toStrictEqual(less);
+    expect(totalCmp(["1"], [])).toStrictEqual(greater);
+    expect(totalCmp(["4", "0"], ["0"])).toStrictEqual(greater);
 });
 
 const sub = (next: number) => (acc: number) => next - acc;
 
-Deno.test("foldR", () => {
-    assertEquals(
-        foldR(sub)(0)([]),
-        0,
-    );
+test("foldR", () => {
+    expect(foldR(sub)(0)([])).toStrictEqual(0);
 
-    const actual = foldR(sub)(0)([
-        1,
-        4,
-        2,
-        3,
-        5,
-        2,
-        3,
-    ]);
-    assertEquals(actual, 2);
+    const actual = foldR(sub)(0)([1, 4, 2, 3, 5, 2, 3]);
+    expect(actual).toStrictEqual(2);
 });
 
-Deno.test("traverse", async () => {
+test("traverse", async () => {
     const actual = await traverse<PromiseHkt>(promiseMonad)((item: string) =>
-        Promise.resolve(item.length)
+        Promise.resolve(item.length),
     )(["foo", "hoge"]);
-    assertEquals(actual, [3, 4]);
+    expect(actual).toStrictEqual([3, 4]);
 });
 
-Deno.test("functor", () => {
+test("functor", () => {
     const data = [1, 4, 2, 3, 5, 2, 3];
     // identity
-    assertEquals(
-        monad.map((x: number) => x)(data),
-        data,
-    );
+    expect(monad.map((x: number) => x)(data)).toStrictEqual(data);
 
     // composition
     const alpha = (x: number) => x + 3;
     const beta = (x: number) => x * 4;
-    assertEquals(
-        monad.map((x: number) => beta(alpha(x)))(data),
+    expect(monad.map((x: number) => beta(alpha(x)))(data)).toStrictEqual(
         monad.map(beta)(monad.map(alpha)(data)),
     );
 });
 
-Deno.test("applicative", () => {
+test("applicative", () => {
     type NumToNum = (i: number) => number;
     // identity
     {
         const x = [1, 4, 2, 3, 5, 2, 3];
-        assertEquals(monad.apply(monad.pure((i: number) => i))(x), x);
+        expect(monad.apply(monad.pure((i: number) => i))(x)).toStrictEqual(x);
     }
 
     // composition
@@ -132,28 +117,27 @@ Deno.test("applicative", () => {
         const x = [(i: number) => i + 3, (i: number) => i * 4];
         const y = [(i: number) => i + 5, (i: number) => i * 3];
         const z = [1, 4, 2, 3, 5, 2, 3];
-        assertEquals(
+        expect(
             monad.apply(
                 monad.apply(
                     monad.apply(
                         monad.pure(
                             (f: NumToNum) =>
-                            (g: NumToNum): NumToNum =>
-                            (i: number) => f(g(i)),
+                                (g: NumToNum): NumToNum =>
+                                (i: number) =>
+                                    f(g(i)),
                         ),
                     )(x),
                 )(y),
             )(z),
-            monad.apply(x)(monad.apply(y)(z)),
-        );
+        ).toStrictEqual(monad.apply(x)(monad.apply(y)(z)));
     }
 
     // homomorphism
     {
         const x = 42;
         const add = (x: number) => [x + 1, x + 2, x + 3];
-        assertEquals(
-            monad.apply(monad.pure(add))(monad.pure(x)),
+        expect(monad.apply(monad.pure(add))(monad.pure(x))).toStrictEqual(
             monad.pure(add(x)),
         );
     }
@@ -162,54 +146,52 @@ Deno.test("applicative", () => {
     {
         const f = [(i: number) => i + 3, (i: number) => i * 4];
         const x = 42;
-        assertEquals(
-            monad.apply(f)(monad.pure(x)),
+        expect(monad.apply(f)(monad.pure(x))).toStrictEqual(
             monad.apply(monad.pure((i: NumToNum) => i(x)))(f),
         );
     }
 });
 
-Deno.test("monad", () => {
+test("monad", () => {
     const data = [1, 4, 2, 3, 5, 2, 3];
     const add = (x: number) => [x + 1, x + 2, x + 3];
     const mul = (x: number) => [x * 2, x * 3, x * 4];
 
     // left identity
-    assertEquals(monad.flatMap(add)(monad.pure(1)), add(1));
-    assertEquals(monad.flatMap(mul)(monad.pure(1)), mul(1));
+    expect(monad.flatMap(add)(monad.pure(1))).toStrictEqual(add(1));
+    expect(monad.flatMap(mul)(monad.pure(1))).toStrictEqual(mul(1));
 
     // right identity
-    assertEquals(monad.flatMap(monad.pure)(data), data);
+    expect(monad.flatMap(monad.pure)(data)).toStrictEqual(data);
 
     // associativity
-    assertEquals(
-        monad.flatMap(add)(monad.flatMap(mul)(data)),
+    expect(monad.flatMap(add)(monad.flatMap(mul)(data))).toStrictEqual(
         monad.flatMap((x: number) => monad.flatMap(add)(mul(x)))(data),
     );
 });
 
-Deno.test("fromReduce", () => {
+test("fromReduce", () => {
     const actual = fromReduce(reduce)(range(0, 4));
-    assertEquals(actual, [0, 1, 2, 3]);
+    expect(actual).toStrictEqual([0, 1, 2, 3]);
 });
 
-Deno.test("reduceR", () => {
-    assertEquals(reduceR(sub)([])(0), 0);
+test("reduceR", () => {
+    expect(reduceR(sub)([])(0)).toStrictEqual(0);
 
     const actual = reduceR(sub)([1, 4, 2, 3, 5, 2, 3])(0);
-    assertEquals(actual, 2);
+    expect(actual).toStrictEqual(2);
 });
 
-Deno.test("reduceL", () => {
-    assertEquals(reduceL(sub)(0)([]), 0);
+test("reduceL", () => {
+    expect(reduceL(sub)(0)([])).toStrictEqual(0);
 
     const actual = reduceL(sub)(0)([1, 4, 2, 3, 5, 2, 3]);
-    assertEquals(actual, -20);
+    expect(actual).toStrictEqual(-20);
 });
 
-Deno.test("encode then decode", () => {
+test("encode then decode", () => {
     const data = [1, 4, 2, 3, 5, 2, 3];
     const code = runCode(enc(encU32Be)(data));
     const decoded = unwrap(runDecoder(dec(decU32Be()))(code));
-    assertEquals(decoded, data);
+    expect(decoded).toStrictEqual(data);
 });

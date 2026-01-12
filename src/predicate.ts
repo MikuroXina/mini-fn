@@ -1,7 +1,7 @@
-import type { Hkt1 } from "./hkt.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import type { Contravariant } from "./type-class/variance.ts";
+import type { Hkt1 } from "./hkt.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
+import type { Contravariant } from "./type-class/variance.js";
 
 /**
  * The function from `A` to `boolean`. For any set `A`, the set of `Predicate<A>` will be isomorphic to the set of power set of `A`.

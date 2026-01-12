@@ -1,8 +1,8 @@
-import { absurd, constant } from "./func.ts";
-import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.ts";
-import * as Identity from "./identity.ts";
-import type { MonadPromise } from "./promise/monad.ts";
-import type { Monad } from "./type-class/monad.ts";
+import { absurd, constant } from "./func.js";
+import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
+import * as Identity from "./identity.js";
+import type { MonadPromise } from "./promise/monad.js";
+import type { Monad } from "./type-class/monad.js";
 
 /**
  * Monad transformer `ContT`, the generic form of `Cont`.
@@ -26,7 +26,8 @@ export const runContT: <R, M, A>(
  * @returns The final continuation.
  */
 export const evalContT =
-    <M>(monad: Monad<M>) => <R>(contT: ContT<R, M, R>): Get1<M, R> =>
+    <M>(monad: Monad<M>) =>
+    <R>(contT: ContT<R, M, R>): Get1<M, R> =>
         contT(monad.pure);
 /**
  * Applies the function to transform the result of a continuation passing computation. This has more stronger typing because `ContT` does not require that `M` has the instance of `Monad`.
@@ -38,7 +39,8 @@ export const evalContT =
 export const mapContT =
     <M, R>(mapper: (mr: Get1<M, R>) => Get1<M, R>) =>
     <A>(contT: ContT<R, M, A>): ContT<R, M, A> =>
-    (fn) => contT((a) => mapper(fn(a)));
+    (fn) =>
+        contT((a) => mapper(fn(a)));
 /**
  * Applies the function to transform the continuation passed to the computation.
  *
@@ -46,11 +48,13 @@ export const mapContT =
  * @param contT - The computation.
  * @returns The transformed `ContT`.
  */
-export const withContT = <M, A, B, R>(
-    callback: (fn: (b: B) => Get1<M, R>) => (a: A) => Get1<M, R>,
-) =>
-(contT: ContT<R, M, A>): ContT<R, M, B> =>
-(fn) => contT(callback(fn));
+export const withContT =
+    <M, A, B, R>(
+        callback: (fn: (b: B) => Get1<M, R>) => (a: A) => Get1<M, R>,
+    ) =>
+    (contT: ContT<R, M, A>): ContT<R, M, B> =>
+    (fn) =>
+        contT(callback(fn));
 
 /**
  * Calls `computation` with the current continuation. This provides an escape continuation mechanism for use with continuation monads. Escape continuation `exit` can abort the current computation and return a value immediately, like non local exits or exception. The advantage of using this over calling `pure` is that makes the continuation explicit, allowing more flexibility and better control.
@@ -63,10 +67,10 @@ export const withContT = <M, A, B, R>(
  * # Examples
  *
  * ```ts
- * import { Cont, callCC, flatMap, pure, runCont, when } from "./cont.ts";
- * import { IdentityHkt, id } from "./identity.ts";
- * import { cat } from "./cat.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { Cont, callCC, flatMap, pure, runCont, when } from "./cont.js";
+ * import { IdentityHkt, id } from "./identity.js";
+ * import { cat } from "./cat.js";
+ * import { assertEquals } from "vitest";
  *
  * const validateName =
  *     (name: string) =>
@@ -81,17 +85,20 @@ export const withContT = <M, A, B, R>(
  *     );
  *     return runCont(cont)(id);
  * };
- * assertEquals(whatYourName("Alice"), "Welcome, Alice!");
- * assertEquals(whatYourName(""), "expected at least 1 character");
+ * expect(whatYourName("Alice"), "Welcome).toStrictEqual(Alice!");
+ * expect(whatYourName("")).toStrictEqual("expected at least 1 character");
  * ```
  */
-export const callCC = <R, M, A, B>(
-    computation: (exit: (a: A) => ContT<R, M, B>) => ContT<R, M, A>,
-): ContT<R, M, A> =>
-(c): Get1<M, R> =>
-    computation(
-        (a): ContT<R, M, B> => (_fn): Get1<M, R> => c(a),
-    )(c);
+export const callCC =
+    <R, M, A, B>(
+        computation: (exit: (a: A) => ContT<R, M, B>) => ContT<R, M, A>,
+    ): ContT<R, M, A> =>
+    (c): Get1<M, R> =>
+        computation(
+            (a): ContT<R, M, B> =>
+                (_fn): Get1<M, R> =>
+                    c(a),
+        )(c);
 
 /**
  * Delimits the continuation of any `shiftT` inside `M`.
@@ -103,7 +110,8 @@ export const callCC = <R, M, A, B>(
 export const resetT =
     <M>(monad: Monad<M>) =>
     <R, S>(contT: ContT<R, M, R>): ContT<S, M, R> =>
-    (c) => monad.flatMap(c)(evalContT(monad)(contT));
+    (c) =>
+        monad.flatMap(c)(evalContT(monad)(contT));
 /**
  * Captures the continuation up to the nearest enclosing `resetT`, and passes it to `computation`.
  *
@@ -111,11 +119,13 @@ export const resetT =
  * @param computation - The computation will be provided `exit`.
  * @returns The limited continuation.
  */
-export const shiftT = <M>(monad: Monad<M>) =>
-<R, A>(
-    computation: (exit: (a: A) => Get1<M, R>) => ContT<R, M, R>,
-): ContT<R, M, A> =>
-(fn) => evalContT(monad)(computation(fn));
+export const shiftT =
+    <M>(monad: Monad<M>) =>
+    <R, A>(
+        computation: (exit: (a: A) => Get1<M, R>) => ContT<R, M, R>,
+    ): ContT<R, M, A> =>
+    (fn) =>
+        evalContT(monad)(computation(fn));
 
 /**
  * Yields the function `local` for `Cont<R, M, _>`.
@@ -135,7 +145,7 @@ export const liftLocal =
     <A>(src: ContT<R, M, A>): ContT<R, M, A> =>
     (c) =>
         monad.flatMap((r: S) =>
-            cleanup(local)(src((x) => cleanup(constant(r))(c(x))))
+            cleanup(local)(src((x) => cleanup(constant(r))(c(x)))),
         )(ask);
 
 /**
@@ -149,7 +159,7 @@ export type Cont<R, A> = ContT<R, Identity.IdentityHkt, A>;
  * @param cont - The computation.
  * @returns The running result.
  */
-export const runCont = <R, A>(cont: Cont<R, A>): (fn: (a: A) => R) => R =>
+export const runCont = <R, A>(cont: Cont<R, A>): ((fn: (a: A) => R) => R) =>
     runContT<R, Identity.IdentityHkt, A>(cont);
 /**
  * Runs the computation with the identity from `R` to `R`.
@@ -160,11 +170,11 @@ export const runCont = <R, A>(cont: Cont<R, A>): (fn: (a: A) => R) => R =>
  * # Examples
  *
  * ```ts
- * import { evalCont, pure } from "./cont.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { evalCont, pure } from "./cont.js";
+ * import { assertEquals } from "vitest";
  *
  * const actual = evalCont<number>(pure(42));
- * assertEquals(actual, 42);
+ * expect(actual).toStrictEqual(42);
  * ```
  */
 export const evalCont: <R>(cont: Cont<R, R>) => R = evalContT(Identity.monad);
@@ -175,16 +185,16 @@ export const evalCont: <R>(cont: Cont<R, R>) => R = evalContT(Identity.monad);
  * # Examples
  *
  * ```ts
- * import { evalCont, mapCont, pure } from "./cont.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { evalCont, mapCont, pure } from "./cont.js";
+ * import { assertEquals } from "vitest";
  *
  * const actual = evalCont(mapCont((x: number) => x + 1)(pure(42)));
- * assertEquals(actual, 43);
+ * expect(actual).toStrictEqual(43);
  * ```
  */
 export const mapCont = <R>(
     mapper: (r: R) => R,
-): <A>(cont: Cont<R, A>) => Cont<R, A> =>
+): (<A>(cont: Cont<R, A>) => Cont<R, A>) =>
     mapContT<Identity.IdentityHkt, R>(mapper);
 
 /**
@@ -193,8 +203,8 @@ export const mapCont = <R>(
  * # Examples
  *
  * ```ts
- * import { assertEquals } from "../deps.ts";
- * import { runCont, withCont } from "./cont.ts";
+ * import { assertEquals } from "vitest";
+ * import { runCont, withCont } from "./cont.js";
  *
  * const cont = withCont((fn: (x: number) => boolean) => (a: string) =>
  *     fn(parseInt(a, 10))
@@ -202,12 +212,12 @@ export const mapCont = <R>(
  *     (callback) => callback("foo"),
  * );
  * const actual = runCont(cont)(Number.isNaN);
- * assertEquals(actual, true);
+ * expect(actual).toStrictEqual(true);
  * ```
  */
 export const withCont = <A, B, R>(
     callback: (fn: (b: B) => R) => (a: A) => R,
-): (cont: Cont<R, A>) => Cont<R, B> =>
+): ((cont: Cont<R, A>) => Cont<R, B>) =>
     withContT<Identity.IdentityHkt, A, B, R>(callback);
 
 /**
@@ -227,9 +237,7 @@ export const reset: <R, S>(contT: Cont<R, R>) => Cont<S, R> = resetT(
  */
 export const shift: <R, A>(
     computation: (exit: (a: A) => R) => Cont<R, R>,
-) => Cont<R, A> = shiftT(
-    Identity.monad,
-);
+) => Cont<R, A> = shiftT(Identity.monad);
 
 /**
  * Wraps the value with `ContT`.
@@ -237,7 +245,10 @@ export const shift: <R, A>(
  * @param a - The value to be wrapped.
  * @returns The new computation.
  */
-export const pureT = <R, M, A>(a: A): ContT<R, M, A> => (fn) => fn(a);
+export const pureT =
+    <R, M, A>(a: A): ContT<R, M, A> =>
+    (fn) =>
+        fn(a);
 
 /**
  * Wraps the value with `Cont`.
@@ -256,7 +267,8 @@ export const pure = <R, A>(a: A): Cont<R, A> =>
 export const map =
     <A, B>(mapper: (a: A) => B) =>
     <R, M>(cont: ContT<R, M, A>): ContT<R, M, B> =>
-    (c) => cont((a) => c(mapper(a)));
+    (c) =>
+        cont((a) => c(mapper(a)));
 /**
  * Maps and flattens the continuation with `mapper`.
  *
@@ -266,7 +278,8 @@ export const map =
 export const flatMap =
     <R, M, A, B>(mapper: (a: A) => ContT<R, M, B>) =>
     (cont: ContT<R, M, A>): ContT<R, M, B> =>
-    (c) => cont((a) => mapper(a)(c));
+    (c) =>
+        cont((a) => mapper(a)(c));
 /**
  * Applies `app` function while wrapped by `ContT`.
  *
@@ -276,7 +289,8 @@ export const flatMap =
 export const apply =
     <R, M, A, B>(app: ContT<R, M, (a: A) => B>) =>
     (cont: ContT<R, M, A>): ContT<R, M, B> =>
-    (c) => app((g) => cont((a) => c(g(a))));
+    (c) =>
+        app((g) => cont((a) => c(g(a))));
 /**
  * Make a product of two `ContT`s.
  *
@@ -287,7 +301,8 @@ export const apply =
 export const product =
     <R, M, A>(ca: ContT<R, M, A>) =>
     <B>(cb: ContT<R, M, B>): ContT<R, M, [A, B]> =>
-    (c) => ca((a) => cb((b) => c([a, b])));
+    (c) =>
+        ca((a) => cb((b) => c([a, b])));
 
 /**
  * Lifts the instance of `M` with `Monad`.
@@ -297,7 +312,9 @@ export const product =
  * @returns The computation wraps `m`.
  */
 export const lift =
-    <M>(monad: Monad<M>) => <R, A>(m: Get1<M, A>): ContT<R, M, A> => (mapper) =>
+    <M>(monad: Monad<M>) =>
+    <R, A>(m: Get1<M, A>): ContT<R, M, A> =>
+    (mapper) =>
         monad.flatMap(mapper)(m);
 
 /**
@@ -308,7 +325,8 @@ export const lift =
  * @returns The computation wraps `p`.
  */
 export const liftPromise =
-    <M>(monad: MonadPromise<M>) => <R, A>(p: Promise<A>): ContT<R, M, A> =>
+    <M>(monad: MonadPromise<M>) =>
+    <R, A>(p: Promise<A>): ContT<R, M, A> =>
         lift(monad)(monad.liftPromise(p));
 
 /**
@@ -318,10 +336,12 @@ export const liftPromise =
  * @param cont - The computation evaluated if `cond` is `true`.
  * @returns The composed computation.
  */
-export const when = (cond: boolean) =>
-<R, M = Identity.IdentityHkt>(
-    cont: ContT<R, M, never[]>,
-): ContT<R, M, never[]> => cond ? cont : pure([]);
+export const when =
+    (cond: boolean) =>
+    <R, M = Identity.IdentityHkt>(
+        cont: ContT<R, M, never[]>,
+    ): ContT<R, M, never[]> =>
+        cond ? cont : pure([]);
 /**
  * Provides a branch statement for `Cont`. `cont` will be evaluated if `cond` is `false`, otherwise it will be an empty computation.
  *
@@ -339,9 +359,8 @@ export const unless =
  * @param cond - The condition as branch statement.
  * @returns The assertion computation.
  */
-export const guard = <R>(
-    cond: boolean,
-): Cont<R, never[]> => (cond ? pure([]) : absurd);
+export const guard = <R>(cond: boolean): Cont<R, never[]> =>
+    cond ? pure([]) : absurd;
 
 export interface ContHkt extends Hkt2 {
     readonly type: Cont<this["arg2"], this["arg1"]>;

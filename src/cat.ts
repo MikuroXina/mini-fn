@@ -6,25 +6,25 @@
  * @packageDocumentation
  * @module
  */
-import { type ControlFlow, isBreak } from "./control-flow.ts";
-import type { Get1, Hkt1 } from "./hkt.ts";
+import { type ControlFlow, isBreak } from "./control-flow.js";
+import type { Get1, Hkt1 } from "./hkt.js";
 import {
     type Eq,
     fromProjection as eqFromProjection,
-} from "./type-class/eq.ts";
-import type { Monad } from "./type-class/monad.ts";
+} from "./type-class/eq.js";
+import type { Monad } from "./type-class/monad.js";
 import {
-    fromProjection as ordFromProjection,
     type Ord,
-} from "./type-class/ord.ts";
+    fromProjection as ordFromProjection,
+} from "./type-class/ord.js";
 import {
-    fromProjection as partialEqFromProjection,
     type PartialEq,
-} from "./type-class/partial-eq.ts";
+    fromProjection as partialEqFromProjection,
+} from "./type-class/partial-eq.js";
 import {
-    fromProjection as partialOrdFromProjection,
     type PartialOrd,
-} from "./type-class/partial-ord.ts";
+    fromProjection as partialOrdFromProjection,
+} from "./type-class/partial-ord.js";
 
 /**
  * Contains a `ctx` and can be transformed into another one by some methods.
@@ -158,56 +158,58 @@ export type CatT<M, CTX> = {
  * @returns A new `CatT`.
  */
 export const catT =
-    <M>(monad: Monad<M>) => <CTX>(ctx: Get1<M, CTX>): CatT<M, CTX> => ({
+    <M>(monad: Monad<M>) =>
+    <CTX>(ctx: Get1<M, CTX>): CatT<M, CTX> => ({
         ctx,
         monad,
         addM: <const K extends PropertyKey, A>(key: K, value: Get1<M, A>) =>
             catT(monad)(
                 monad.flatMap((c: CTX) =>
-                    monad.map((v: A) =>
-                        ({ ...c, [key]: v }) as Record<K, A> & CTX
-                    )(value)
+                    monad.map(
+                        (v: A) => ({ ...c, [key]: v }) as Record<K, A> & CTX,
+                    )(value),
                 )(ctx),
             ),
         addWith: <const K extends PropertyKey, A>(
             key: K,
             fn: (ctx: CTX) => A,
-        ) => catT(monad)(
-            monad.map(
-                (c: CTX) =>
-                    ({
-                        ...c,
-                        [key]: fn(c),
-                    }) as Record<K, A> & CTX,
-            )(ctx),
-        ),
+        ) =>
+            catT(monad)(
+                monad.map(
+                    (c: CTX) =>
+                        ({
+                            ...c,
+                            [key]: fn(c),
+                        }) as Record<K, A> & CTX,
+                )(ctx),
+            ),
         run: (computation) =>
             catT(monad)(
                 monad.flatMap((c: CTX) => monad.map(() => c)(computation))(ctx),
             ),
         runWith: (computation) =>
             catT(monad)(
-                monad.flatMap(
-                    (c: CTX) => monad.map(() => c)(computation(c)),
-                )(ctx),
+                monad.flatMap((c: CTX) => monad.map(() => c)(computation(c)))(
+                    ctx,
+                ),
             ),
         addMWith: <const K extends PropertyKey, A>(
             key: K,
             fn: (ctx: CTX) => Get1<M, A>,
-        ) => catT(monad)(
-            monad.flatMap((c: CTX) =>
-                monad.map((v: A) => ({ ...c, [key]: v }) as Record<K, A> & CTX)(
-                    fn(c),
-                )
-            )(ctx),
-        ),
+        ) =>
+            catT(monad)(
+                monad.flatMap((c: CTX) =>
+                    monad.map(
+                        (v: A) => ({ ...c, [key]: v }) as Record<K, A> & CTX,
+                    )(fn(c)),
+                )(ctx),
+            ),
         when: (cond, computation) =>
             catT(monad)(
-                monad.flatMap(
-                    (c: CTX) =>
-                        monad.map(() => c)(
-                            cond(c) ? computation(c) : monad.pure([]),
-                        ),
+                monad.flatMap((c: CTX) =>
+                    monad.map(() => c)(
+                        cond(c) ? computation(c) : monad.pure([]),
+                    ),
                 )(ctx),
             ),
         loop: <S>(
@@ -216,11 +218,10 @@ export const catT =
         ): CatT<M, CTX> => {
             const go = (state: S): Get1<M, CTX> =>
                 monad.flatMap((c: CTX) =>
-                    monad.flatMap((
-                        flow: ControlFlow<never[], S>,
-                    ): Get1<M, CTX> =>
-                        isBreak(flow) ? monad.pure(c) : go(flow[1])
-                    )(body(state, c))
+                    monad.flatMap(
+                        (flow: ControlFlow<never[], S>): Get1<M, CTX> =>
+                            isBreak(flow) ? monad.pure(c) : go(flow[1]),
+                    )(body(state, c)),
                 )(ctx);
             return catT(monad)(go(initialState));
         },
@@ -230,8 +231,8 @@ export const catT =
                     monad.flatMap((bool: boolean) =>
                         bool
                             ? monad.flatMap(() => go(ctx))(body(c))
-                            : monad.pure(c)
-                    )(cond(c))
+                            : monad.pure(c),
+                    )(cond(c)),
                 )(ctx);
             return catT(monad)(go(ctx));
         },
@@ -257,9 +258,9 @@ export const doVoidT = <M>(monad: Monad<M>): CatT<M, never[]> =>
  * # Examples
  *
  * ```ts
- * import { monad as optionMonad, none, some } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- * import { doT } from "./cat.ts";
+ * import { monad as optionMonad, none, some } from "./option.js";
+ * import { assertEquals } from "vitest";
+ * import { doT } from "./cat.js";
  *
  * const optionA = some(1);
  * const optionB = some(2);
@@ -282,7 +283,7 @@ export const doVoidT = <M>(monad: Monad<M>): CatT<M, never[]> =>
  * );
  *
  * const result = computation.finish(({ a, b, c }) => a + b + c);
- * assertEquals(result, some(6));
+ * expect(result).toStrictEqual(some(6));
  * ```
  */
 export const doT = <M>(monad: Monad<M>): CatT<M, Record<string, never>> =>
@@ -331,13 +332,13 @@ export type Cat<T> = {
  * # Examples
  *
  * ```ts
- * import { cat } from "./cat.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { cat } from "./cat.js";
+ * import { assertEquals } from "vitest";
  *
  * const result = cat(-3)
  *     .feed((x) => x ** 2)
  *     .feed((x) => x.toString());
- * assertEquals(result.value, "9");
+ * expect(result.value).toStrictEqual("9");
  * ```
  */
 export const cat = <T>(value: T): Cat<T> => ({
@@ -361,9 +362,8 @@ export const partialEq: <T>(equality: PartialEq<T>) => PartialEq<Cat<T>> =
 /**
  * Creates a `Eq` comparator for `Cat` from another existing one.
  */
-export const eq: <T>(equality: Eq<T>) => Eq<Cat<T>> = eqFromProjection<CatHkt>(
-    get,
-);
+export const eq: <T>(equality: Eq<T>) => Eq<Cat<T>> =
+    eqFromProjection<CatHkt>(get);
 /**
  * Creates a `PartialOrd` comparator for `Cat` from another existing one.
  */
@@ -372,9 +372,8 @@ export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<Cat<T>> =
 /**
  * Creates a `Ord` comparator for `Cat` from another existing one.
  */
-export const ord: <T>(order: Ord<T>) => Ord<Cat<T>> = ordFromProjection<CatHkt>(
-    get,
-);
+export const ord: <T>(order: Ord<T>) => Ord<Cat<T>> =
+    ordFromProjection<CatHkt>(get);
 
 /**
  * Inspects the passing value with an inspector. It is useful for using some side effects.
@@ -385,22 +384,24 @@ export const ord: <T>(order: Ord<T>) => Ord<Cat<T>> = ordFromProjection<CatHkt>(
  * # Examples
  *
  * ```ts
- * import { cat, inspect } from "./cat.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { cat, inspect } from "./cat.js";
+ * import { assertEquals } from "vitest";
  *
  * const result = cat(-3)
- *     .feed(inspect((x) => assertEquals(x, -3)))
+ *     .feed(inspect((x) => expect(x).toStrictEqual(-3)))
  *     .feed((x) => x ** 2)
- *     .feed(inspect((x) => assertEquals(x, 9)))
+ *     .feed(inspect((x) => expect(x).toStrictEqual(9)))
  *     .feed((x) => x.toString())
- *     .feed(inspect((x) => assertEquals(x, "9")));
- * assertEquals(result.value, "9");
+ *     .feed(inspect((x) => expect(x).toStrictEqual("9")));
+ * expect(result.value).toStrictEqual("9");
  * ```
  */
-export const inspect = <T>(inspector: (t: T) => void) => (t: T): T => {
-    inspector(t);
-    return t;
-};
+export const inspect =
+    <T>(inspector: (t: T) => void) =>
+    (t: T): T => {
+        inspector(t);
+        return t;
+    };
 
 /**
  * An inspector which applied `console.log` to `inspect`.
@@ -453,15 +454,17 @@ export const flatten = <T>(catCat: Cat<Cat<T>>): Cat<T> => catCat.value;
  * # Examples
  *
  * ```ts
- * import { cat, product } from "./cat.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { cat, product } from "./cat.js";
+ * import { assertEquals } from "vitest";
  *
  * const actual = product(cat(5))(cat("foo")).value;
- * assertEquals(actual, [5, "foo"]);
+ * expect(actual, [5).toStrictEqual("foo"]);
  * ```
  */
-export const product = <A>(a: Cat<A>) => <B>(b: Cat<B>): Cat<[A, B]> =>
-    cat([a.value, b.value]);
+export const product =
+    <A>(a: Cat<A>) =>
+    <B>(b: Cat<B>): Cat<[A, B]> =>
+        cat([a.value, b.value]);
 
 /**
  * Maps an inner value of a `Cat` into another one by applying a function. It is useful to lift a function for `Cat`.
@@ -472,14 +475,17 @@ export const product = <A>(a: Cat<A>) => <B>(b: Cat<B>): Cat<[A, B]> =>
  * # Examples
  *
  * ```ts
- * import { cat, map } from "./cat.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { cat, map } from "./cat.js";
+ * import { assertEquals } from "vitest";
  *
  * const actual = map((v: number) => v / 2)(cat(10)).value;
- * assertEquals(actual, 5);
+ * expect(actual).toStrictEqual(5);
  * ```
  */
-export const map = <T, U>(fn: (t: T) => U) => (c: Cat<T>): Cat<U> => c.feed(fn);
+export const map =
+    <T, U>(fn: (t: T) => U) =>
+    (c: Cat<T>): Cat<U> =>
+        c.feed(fn);
 
 /**
  * Maps an inner value of `Cat` into another `Cat` by applying a function. It is useful to lift a subroutine with `Cat`.
@@ -490,17 +496,19 @@ export const map = <T, U>(fn: (t: T) => U) => (c: Cat<T>): Cat<U> => c.feed(fn);
  * # Examples
  *
  * ```ts
- * import { Cat, cat, flatMap } from "./cat.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { Cat, cat, flatMap } from "./cat.js";
+ * import { assertEquals } from "vitest";
  *
  * const sub = (num: number): Cat<string> =>
  *     cat(num).feed((x) => x.toString());
  * const actual = flatMap(sub)(cat(6)).value;
- * assertEquals(actual, "6");
+ * expect(actual).toStrictEqual("6");
  * ```
  */
-export const flatMap = <T, U>(fn: (t: T) => Cat<U>) => (c: Cat<T>): Cat<U> =>
-    flatten(map(fn)(c));
+export const flatMap =
+    <T, U>(fn: (t: T) => Cat<U>) =>
+    (c: Cat<T>): Cat<U> =>
+        flatten(map(fn)(c));
 
 /**
  * Lifts down a `Cat` which contains a mapping function. It is useful to decompose a function in `Cat`.
@@ -511,16 +519,17 @@ export const flatMap = <T, U>(fn: (t: T) => Cat<U>) => (c: Cat<T>): Cat<U> =>
  * # Examples
  *
  * ```ts
- * import { cat, apply } from "./cat.ts";
- * import { assertEquals } from "../deps.ts";
+ * import { cat, apply } from "./cat.js";
+ * import { assertEquals } from "vitest";
  *
  * const sub = cat((numeral: string) => parseInt(numeral, 10));
  * const actual = apply(sub)(cat("1024")).value;
- * assertEquals(actual, 1024);
+ * expect(actual).toStrictEqual(1024);
  * ```
  */
 export const apply =
-    <T1, U1>(fn: Cat<(t: T1) => U1>) => (t: Cat<T1>): Cat<U1> =>
+    <T1, U1>(fn: Cat<(t: T1) => U1>) =>
+    (t: Cat<T1>): Cat<U1> =>
         flatMap(t.feed)(fn);
 
 /**

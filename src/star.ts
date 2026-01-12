@@ -1,6 +1,6 @@
-import type { Apply3Only, Get1, Get2, Hkt3 } from "./hkt.ts";
-import type { Functor } from "./type-class/functor.ts";
-import { type Profunctor, rightMap } from "./type-class/profunctor.ts";
+import type { Apply3Only, Get1, Get2, Hkt3 } from "./hkt.js";
+import type { Functor } from "./type-class/functor.js";
+import { type Profunctor, rightMap } from "./type-class/profunctor.js";
 
 export type Star<F, D, C> = (d: D) => Get1<F, C>;
 
@@ -16,8 +16,8 @@ export const pro = <F>(
 
 export const map = <F>(
     functor: Functor<F>,
-): <T, U>(
+): (<T, U>(
     fn: (t: T) => U,
 ) => <A>(
     item: Get2<Apply3Only<StarHkt, F>, A, T>,
-) => Get2<Apply3Only<StarHkt, F>, A, U> => rightMap(pro(functor));
+) => Get2<Apply3Only<StarHkt, F>, A, U>) => rightMap(pro(functor));

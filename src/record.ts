@@ -1,34 +1,16 @@
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
+import { foldR as foldRArray } from "./array.js";
+import { doT } from "./cat.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import {
-    cmp as listCmp,
     fromIterable,
     isNull,
     type List,
+    cmp as listCmp,
     partialCmp as listPartialCmp,
-} from "./list.ts";
-import { isNone, isSome, none, type Option, some } from "./option.ts";
-import type { Ordering } from "./ordering.ts";
-import { isOk, type Result } from "./result.ts";
-import {
-    ord as tupleOrd,
-    partialOrd as tuplePartialOrd,
-    type Tuple,
-} from "./tuple.ts";
-import type { Applicative } from "./type-class/applicative.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
-import type { Foldable } from "./type-class/foldable.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { fromCmp, type Ord } from "./type-class/ord.ts";
-import {
-    fromPartialEquality,
-    type PartialEq,
-    type PartialEqUnary,
-} from "./type-class/partial-eq.ts";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import type { Traversable } from "./type-class/traversable.ts";
-import { cmp as stringCmp, ord as stringOrd } from "./string.ts";
+} from "./list.js";
+import { isNone, isSome, none, type Option, some } from "./option.js";
+import type { Ordering } from "./ordering.js";
+import { isOk, type Result } from "./result.js";
 import {
     type Code,
     type Decoder,
@@ -43,18 +25,37 @@ import {
     monadForDecoder,
     pureCodeM,
     pureDecoder,
-} from "./serial.ts";
-import { foldR as foldRArray } from "./array.ts";
-import { doT } from "./cat.ts";
+} from "./serial.js";
+import { cmp as stringCmp, ord as stringOrd } from "./string.js";
+import {
+    type Tuple,
+    ord as tupleOrd,
+    partialOrd as tuplePartialOrd,
+} from "./tuple.js";
+import type { Applicative } from "./type-class/applicative.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { Foldable } from "./type-class/foldable.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
+import {
+    fromPartialEquality,
+    type PartialEq,
+    type PartialEqUnary,
+} from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
+import type { Traversable } from "./type-class/traversable.js";
 
 export const eq =
     <K extends string, L, R = L>(equality: PartialEq<L, R>) =>
     (l: Record<K, L>, r: Record<K, R>): boolean => {
-        for (const leftKey of (Object.keys(l) as (keyof typeof l)[])) {
+        for (const leftKey of Object.keys(l) as (keyof typeof l)[]) {
             const leftValue = l[leftKey];
             const rightValue = r[leftKey];
             if (
-                !leftValue || !rightValue ||
+                !leftValue ||
+                !rightValue ||
                 !equality.eq(leftValue, rightValue)
             ) {
                 return false;
@@ -62,28 +63,27 @@ export const eq =
         }
         return true;
     };
-export const partialCmp = <K extends string, V>(
-    ordV: Ord<V>,
-) =>
-(l: Record<K, V>, r: Record<K, V>): Option<Ordering> => {
-    const sorter = sortedEntries<K, V>(ordV);
-    const sortedL = sorter(l);
-    const sortedR = sorter(r);
-    return listPartialCmp<Tuple<K, V>>(
-        tuplePartialOrd({ ordA: stringOrd, ordB: ordV }),
-    )(sortedL, sortedR);
-};
-export const cmp = <K extends string, V>(
-    ordV: Ord<V>,
-) =>
-(l: Record<K, V>, r: Record<K, V>): Ordering => {
-    const sorter = sortedEntries<K, V>(ordV);
-    const sortedL = sorter(l);
-    const sortedR = sorter(r);
-    return listCmp<Tuple<K, V>>(
-        tupleOrd({ ordA: stringOrd, ordB: ordV }),
-    )(sortedL, sortedR);
-};
+export const partialCmp =
+    <K extends string, V>(ordV: Ord<V>) =>
+    (l: Record<K, V>, r: Record<K, V>): Option<Ordering> => {
+        const sorter = sortedEntries<K, V>(ordV);
+        const sortedL = sorter(l);
+        const sortedR = sorter(r);
+        return listPartialCmp<Tuple<K, V>>(
+            tuplePartialOrd({ ordA: stringOrd, ordB: ordV }),
+        )(sortedL, sortedR);
+    };
+export const cmp =
+    <K extends string, V>(ordV: Ord<V>) =>
+    (l: Record<K, V>, r: Record<K, V>): Ordering => {
+        const sorter = sortedEntries<K, V>(ordV);
+        const sortedL = sorter(l);
+        const sortedR = sorter(r);
+        return listCmp<Tuple<K, V>>(tupleOrd({ ordA: stringOrd, ordB: ordV }))(
+            sortedL,
+            sortedR,
+        );
+    };
 
 export const partialEquality: <K extends string, L, R = L>(
     equality: PartialEq<L, R>,
@@ -94,9 +94,8 @@ export const equality: <K extends string, L, R = L>(
 export const partialOrd: <K extends string, V>(
     ordV: Ord<V>,
 ) => PartialOrd<Record<K, V>> = fromPartialCmp(partialCmp);
-export const ord: <K extends string, V>(
-    ordV: Ord<V>,
-) => Ord<Record<K, V>> = fromCmp(cmp);
+export const ord: <K extends string, V>(ordV: Ord<V>) => Ord<Record<K, V>> =
+    fromCmp(cmp);
 
 /**
  * The `PartialEqUnary` instance for `Record<K, _>`.
@@ -113,16 +112,20 @@ export const size = <K extends string, V>(m: Record<K, V>): number =>
     Object.keys(m).length;
 
 export const has =
-    <K extends string>(key: K) => <V>(m: Record<K, V>): boolean => key in m;
+    <K extends string>(key: K) =>
+    <V>(m: Record<K, V>): boolean =>
+        key in m;
 export const get =
-    <K extends string>(key: K) => <V>(m: Record<K, V>): Option<V> =>
+    <K extends string>(key: K) =>
+    <V>(m: Record<K, V>): Option<V> =>
         key in m ? some(m[key]) : none();
 
 export const empty = <K extends string, V>(): Record<K, V> =>
     ({}) as Record<K, V>;
 
 export const singleton =
-    <const K extends string>(key: K) => <V>(value: V): Record<K, V> =>
+    <const K extends string>(key: K) =>
+    <V>(value: V): Record<K, V> =>
         ({
             [key]: value,
         }) as Record<K, V>;
@@ -144,23 +147,24 @@ export const fromListWith =
         const m = {} as Record<K, V>;
         while (!isNull(list)) {
             const [key, value] = list.current()[1]!;
-            m[key] = (key in m) ? combiner(value)(m[key]) : value;
+            m[key] = key in m ? combiner(value)(m[key]) : value;
             list = list.rest();
         }
         return m;
     };
-export const fromListWithKey = <K extends string, V>(
-    combiner: (key: K) => (newValue: V) => (oldValue: V) => V,
-) =>
-(list: List<Tuple<K, V>>): Record<K, V> => {
-    const m = {} as Record<K, V>;
-    while (!isNull(list)) {
-        const [key, value] = list.current()[1]!;
-        m[key] = (key in m) ? combiner(key)(value)(m[key]) : value;
-        list = list.rest();
-    }
-    return m;
-};
+export const fromListWithKey =
+    <K extends string, V>(
+        combiner: (key: K) => (newValue: V) => (oldValue: V) => V,
+    ) =>
+    (list: List<Tuple<K, V>>): Record<K, V> => {
+        const m = {} as Record<K, V>;
+        while (!isNull(list)) {
+            const [key, value] = list.current()[1]!;
+            m[key] = key in m ? combiner(key)(value)(m[key]) : value;
+            list = list.rest();
+        }
+        return m;
+    };
 
 export const fromArray = <K extends string, V>(
     arr: readonly Tuple<K, V>[],
@@ -200,23 +204,25 @@ export const insertWith =
         cloned[key] = value;
         return cloned;
     };
-export const insertWithKey = <K extends string, V>(
-    combiner: (key: K) => (newValue: V) => (oldValue: V) => V,
-) =>
-(key: K) =>
-(value: V) =>
-(m: Record<K, V>): Record<K, V> => {
-    const cloned = clone(m);
-    if (key in cloned) {
-        cloned[key] = combiner(key)(value)(cloned[key]);
+export const insertWithKey =
+    <K extends string, V>(
+        combiner: (key: K) => (newValue: V) => (oldValue: V) => V,
+    ) =>
+    (key: K) =>
+    (value: V) =>
+    (m: Record<K, V>): Record<K, V> => {
+        const cloned = clone(m);
+        if (key in cloned) {
+            cloned[key] = combiner(key)(value)(cloned[key]);
+            return cloned;
+        }
+        cloned[key] = value;
         return cloned;
-    }
-    cloned[key] = value;
-    return cloned;
-};
+    };
 
 export const remove =
-    <K extends string>(key: K) => <V>(m: Record<K, V>): Record<K, V> => {
+    <K extends string>(key: K) =>
+    <V>(m: Record<K, V>): Record<K, V> => {
         if (!(key in m)) {
             return m;
         }
@@ -292,7 +298,7 @@ export const alterF =
     <K extends string>(key: K) =>
     (m: Record<K, V>): Get1<F, Record<K, V>> =>
         f.map((toUpdate: Option<V>) =>
-            isNone(toUpdate) ? remove(key)(m) : insert(key)(toUpdate[1])(m)
+            isNone(toUpdate) ? remove(key)(m) : insert(key)(toUpdate[1])(m),
         )(updater(get(key)(m)));
 
 export const union =
@@ -304,12 +310,14 @@ export const unionWith =
     <K extends string>(left: Record<K, V>) =>
     (right: Record<K, V>): Record<K, V> => {
         const cloned = clone(left);
-        for (
-            const [rightKey, rightValue] of Object.entries(right) as [K, V][]
-        ) {
-            cloned[rightKey] = (rightKey in cloned)
-                ? combiner(cloned[rightKey])(rightValue)
-                : rightValue;
+        for (const [rightKey, rightValue] of Object.entries(right) as [
+            K,
+            V,
+        ][]) {
+            cloned[rightKey] =
+                rightKey in cloned
+                    ? combiner(cloned[rightKey])(rightValue)
+                    : rightValue;
         }
         return cloned;
     };
@@ -318,14 +326,14 @@ export const unionWithKey =
     (left: Record<K, V>) =>
     (right: Record<K, V>): Record<K, V> => {
         const cloned = clone(left);
-        for (
-            const [rightKey, rightValue] of Object.entries(right) as [K, V][]
-        ) {
-            cloned[rightKey] = (rightKey in cloned)
-                ? combiner(rightKey)(cloned[rightKey])(
-                    rightValue,
-                )
-                : rightValue;
+        for (const [rightKey, rightValue] of Object.entries(right) as [
+            K,
+            V,
+        ][]) {
+            cloned[rightKey] =
+                rightKey in cloned
+                    ? combiner(rightKey)(cloned[rightKey])(rightValue)
+                    : rightValue;
         }
         return cloned;
     };
@@ -335,71 +343,73 @@ export const unionMonoid = <K extends string, V>(): Monoid<Record<K, V>> => ({
     [semiGroupSymbol]: true,
 });
 
-export const difference = <K extends string, V1>(left: Record<K, V1>) =>
-<V2>(
-    right: Record<K, V2>,
-): Record<K, V1> => {
-    const cloned = clone(left);
-    for (const rightKey of Object.keys(right) as K[]) {
-        delete cloned[rightKey];
-    }
-    return cloned;
-};
-export const differenceWith = <V1, V2 = V1>(
-    combiner: (leftValue: V1) => (rightValue: V2) => Option<V1>,
-) =>
-<K extends string>(left: Record<K, V1>) =>
-(right: Record<K, V2>): Record<K, V1> => {
-    const cloned = clone(left);
-    for (
-        const [rightKey, rightValue] of Object.entries(right) as [K, V2][]
-    ) {
-        if (!(rightKey in cloned)) {
-            continue;
-        }
-        const toUpdate = combiner(left[rightKey])(rightValue);
-        if (isNone(toUpdate)) {
+export const difference =
+    <K extends string, V1>(left: Record<K, V1>) =>
+    <V2>(right: Record<K, V2>): Record<K, V1> => {
+        const cloned = clone(left);
+        for (const rightKey of Object.keys(right) as K[]) {
             delete cloned[rightKey];
-        } else {
-            cloned[rightKey] = toUpdate[1];
         }
-    }
-    return cloned;
-};
-export const differenceWithKey = <K extends string, V1, V2 = V1>(
-    combiner: (key: K) => (leftValue: V1) => (rightValue: V2) => Option<V1>,
-) =>
-(left: Record<K, V1>) =>
-(right: Record<K, V2>): Record<K, V1> => {
-    const cloned = clone(left);
-    for (const [rightKey, rightValue] of Object.entries(right) as [K, V2][]) {
-        if (!(rightKey in cloned)) {
-            continue;
+        return cloned;
+    };
+export const differenceWith =
+    <V1, V2 = V1>(
+        combiner: (leftValue: V1) => (rightValue: V2) => Option<V1>,
+    ) =>
+    <K extends string>(left: Record<K, V1>) =>
+    (right: Record<K, V2>): Record<K, V1> => {
+        const cloned = clone(left);
+        for (const [rightKey, rightValue] of Object.entries(right) as [
+            K,
+            V2,
+        ][]) {
+            if (!(rightKey in cloned)) {
+                continue;
+            }
+            const toUpdate = combiner(left[rightKey])(rightValue);
+            if (isNone(toUpdate)) {
+                delete cloned[rightKey];
+            } else {
+                cloned[rightKey] = toUpdate[1];
+            }
         }
-        const toUpdate = combiner(rightKey)(left[rightKey])(
-            rightValue,
-        );
-        if (isNone(toUpdate)) {
-            delete cloned[rightKey];
-        } else {
-            cloned[rightKey] = toUpdate[1];
+        return cloned;
+    };
+export const differenceWithKey =
+    <K extends string, V1, V2 = V1>(
+        combiner: (key: K) => (leftValue: V1) => (rightValue: V2) => Option<V1>,
+    ) =>
+    (left: Record<K, V1>) =>
+    (right: Record<K, V2>): Record<K, V1> => {
+        const cloned = clone(left);
+        for (const [rightKey, rightValue] of Object.entries(right) as [
+            K,
+            V2,
+        ][]) {
+            if (!(rightKey in cloned)) {
+                continue;
+            }
+            const toUpdate = combiner(rightKey)(left[rightKey])(rightValue);
+            if (isNone(toUpdate)) {
+                delete cloned[rightKey];
+            } else {
+                cloned[rightKey] = toUpdate[1];
+            }
         }
-    }
-    return cloned;
-};
+        return cloned;
+    };
 
-export const intersection = <K extends string, V1>(left: Record<K, V1>) =>
-<V2>(
-    right: Record<K, V2>,
-): Record<K, V1> => {
-    const m = {} as Record<K, V1>;
-    for (const [leftKey, leftValue] of Object.entries(left) as [K, V1][]) {
-        if (leftKey in right) {
-            m[leftKey] = leftValue;
+export const intersection =
+    <K extends string, V1>(left: Record<K, V1>) =>
+    <V2>(right: Record<K, V2>): Record<K, V1> => {
+        const m = {} as Record<K, V1>;
+        for (const [leftKey, leftValue] of Object.entries(left) as [K, V1][]) {
+            if (leftKey in right) {
+                m[leftKey] = leftValue;
+            }
         }
-    }
-    return m;
-};
+        return m;
+    };
 export const intersectionWith =
     <V1, V2 = V1, V3 = V1>(combiner: (left: V1) => (right: V2) => V3) =>
     <K extends string>(left: Record<K, V1>) =>
@@ -412,19 +422,20 @@ export const intersectionWith =
         }
         return m;
     };
-export const intersectionWithKey = <K extends string, V1, V2 = V1, V3 = V1>(
-    combiner: (key: K) => (left: V1) => (right: V2) => V3,
-) =>
-(left: Record<K, V1>) =>
-(right: Record<K, V2>): Record<K, V3> => {
-    const m = {} as Record<K, V3>;
-    for (const [leftKey, leftValue] of Object.entries(left) as [K, V1][]) {
-        if (leftKey in right) {
-            m[leftKey] = combiner(leftKey)(leftValue)(right[leftKey]);
+export const intersectionWithKey =
+    <K extends string, V1, V2 = V1, V3 = V1>(
+        combiner: (key: K) => (left: V1) => (right: V2) => V3,
+    ) =>
+    (left: Record<K, V1>) =>
+    (right: Record<K, V2>): Record<K, V3> => {
+        const m = {} as Record<K, V3>;
+        for (const [leftKey, leftValue] of Object.entries(left) as [K, V1][]) {
+            if (leftKey in right) {
+                m[leftKey] = combiner(leftKey)(leftValue)(right[leftKey]);
+            }
         }
-    }
-    return m;
-};
+        return m;
+    };
 
 export const isDisjoint =
     <K extends string, V1>(left: Record<K, V1>) =>
@@ -460,9 +471,7 @@ export const map =
     };
 export const mapWithKey =
     <K extends string, A, B>(mapper: (key: K) => (a: A) => B) =>
-    (
-        ma: Record<K, A>,
-    ): Record<K, B> => {
+    (ma: Record<K, A>): Record<K, B> => {
         const mb = {} as Record<K, B>;
         for (const [key, value] of Object.entries(ma) as [K, A][]) {
             mb[key] = mapper(key)(value);
@@ -503,11 +512,11 @@ export const traverseSomeWithKey =
         let traversing = app.pure({} as Record<K, B>);
         for (const [key, value] of Object.entries(ka) as [K, A][]) {
             traversing = app.apply(
-                app.map((optB: Option<B>) => (kb: Record<K, B>): Record<K, B> =>
-                    isNone(optB) ? kb : insert(key)(optB[1])(kb)
-                )(
-                    mapper(key)(value),
-                ),
+                app.map(
+                    (optB: Option<B>) =>
+                        (kb: Record<K, B>): Record<K, B> =>
+                            isNone(optB) ? kb : insert(key)(optB[1])(kb),
+                )(mapper(key)(value)),
             )(traversing);
         }
         return traversing;
@@ -526,26 +535,25 @@ export const scan =
         }
         return [acc, kr];
     };
-export const scanWithKey = <A, K extends string, V, R>(
-    scanner: (acc: A) => (key: K) => (value: V) => Tuple<A, R>,
-) =>
-(init: A) =>
-(m: Record<K, V>): Tuple<A, Record<K, R>> => {
-    let acc = init;
-    const kr = {} as Record<K, R>;
-    for (const [key, value] of Object.entries(m) as [K, V][]) {
-        const [a, r] = scanner(acc)(key)(value);
-        kr[key] = r;
-        acc = a;
-    }
-    return [acc, kr];
-};
+export const scanWithKey =
+    <A, K extends string, V, R>(
+        scanner: (acc: A) => (key: K) => (value: V) => Tuple<A, R>,
+    ) =>
+    (init: A) =>
+    (m: Record<K, V>): Tuple<A, Record<K, R>> => {
+        let acc = init;
+        const kr = {} as Record<K, R>;
+        for (const [key, value] of Object.entries(m) as [K, V][]) {
+            const [a, r] = scanner(acc)(key)(value);
+            kr[key] = r;
+            acc = a;
+        }
+        return [acc, kr];
+    };
 
 export const mapKeys =
     <K1 extends string, K2 extends string>(mapper: (key: K1) => K2) =>
-    <V>(
-        m: Record<K1, V>,
-    ): Record<K2, V> => {
+    <V>(m: Record<K1, V>): Record<K2, V> => {
         const k2v = {} as Record<K2, V>;
         for (const [key, value] of Object.entries(m) as [K1, V][]) {
             k2v[mapper(key)] = value;
@@ -559,9 +567,8 @@ export const mapKeysWith =
         const k2v = {} as Record<K2, V>;
         for (const [key, value] of Object.entries(m) as [K1, V][]) {
             const mappedKey = mapper(key);
-            k2v[mappedKey] = (mappedKey in k2v)
-                ? combiner(value)(k2v[mappedKey])
-                : value;
+            k2v[mappedKey] =
+                mappedKey in k2v ? combiner(value)(k2v[mappedKey]) : value;
         }
         return k2v;
     };
@@ -581,10 +588,9 @@ export const foldRWithKey =
     (init: X) =>
     (m: Record<K, V>): X => {
         let acc = init;
-        for (
-            const [key, value] of [...(Object.entries(m) as [K, V][])]
-                .toReversed()
-        ) {
+        for (const [key, value] of [
+            ...(Object.entries(m) as [K, V][]),
+        ].toReversed()) {
             acc = folder(key)(value)(acc);
         }
         return acc;
@@ -634,12 +640,8 @@ export const sortedEntries =
     <K extends string, V>(ordV: Ord<V>) =>
     (m: Record<K, V>): List<Tuple<K, V>> => {
         const entries = Object.entries(m) as [K, V][];
-        entries.sort((
-            [aKey, aValue],
-            [bKey, bValue],
-        ) => (aKey === bKey
-            ? ordV.cmp(aValue, bValue)
-            : stringCmp(aKey, bKey))
+        entries.sort(([aKey, aValue], [bKey, bValue]) =>
+            aKey === bKey ? ordV.cmp(aValue, bValue) : stringCmp(aKey, bKey),
         );
         return fromIterable(entries);
     };
@@ -667,21 +669,22 @@ export const filterWithKey =
         return filtered;
     };
 
-export const partition = <V>(pred: (value: V) => boolean) =>
-<K extends string>(
-    m: Record<K, V>,
-): [satisfied: Record<K, V>, dropped: Record<K, V>] => {
-    const satisfied = {} as Record<K, V>;
-    const dropped = {} as Record<K, V>;
-    for (const [key, value] of Object.entries(m) as [K, V][]) {
-        if (pred(value)) {
-            satisfied[key] = value;
-        } else {
-            dropped[key] = value;
+export const partition =
+    <V>(pred: (value: V) => boolean) =>
+    <K extends string>(
+        m: Record<K, V>,
+    ): [satisfied: Record<K, V>, dropped: Record<K, V>] => {
+        const satisfied = {} as Record<K, V>;
+        const dropped = {} as Record<K, V>;
+        for (const [key, value] of Object.entries(m) as [K, V][]) {
+            if (pred(value)) {
+                satisfied[key] = value;
+            } else {
+                dropped[key] = value;
+            }
         }
-    }
-    return [satisfied, dropped];
-};
+        return [satisfied, dropped];
+    };
 export const partitionWithKey =
     <K extends string, V>(pred: (key: K) => (value: V) => boolean) =>
     (m: Record<K, V>): [satisfied: Record<K, V>, dropped: Record<K, V>] => {
@@ -739,22 +742,23 @@ export const mapResult =
         }
         return [errors, oks];
     };
-export const mapResultWithKey = <K extends string, V, E, W>(
-    mapper: (key: K) => (value: V) => Result<E, W>,
-) =>
-(m: Record<K, V>): [errors: Record<K, E>, oks: Record<K, W>] => {
-    const errors = {} as Record<K, E>;
-    const oks = {} as Record<K, W>;
-    for (const [key, value] of Object.entries(m) as [K, V][]) {
-        const mapped = mapper(key)(value);
-        if (isOk(mapped)) {
-            oks[key] = mapped[1];
-        } else {
-            errors[key] = mapped[1];
+export const mapResultWithKey =
+    <K extends string, V, E, W>(
+        mapper: (key: K) => (value: V) => Result<E, W>,
+    ) =>
+    (m: Record<K, V>): [errors: Record<K, E>, oks: Record<K, W>] => {
+        const errors = {} as Record<K, E>;
+        const oks = {} as Record<K, W>;
+        for (const [key, value] of Object.entries(m) as [K, V][]) {
+            const mapped = mapper(key)(value);
+            if (isOk(mapped)) {
+                oks[key] = mapped[1];
+            } else {
+                errors[key] = mapped[1];
+            }
         }
-    }
-    return [errors, oks];
-};
+        return [errors, oks];
+    };
 
 export const isSubsetOfBy =
     <V, W>(equality: (sub: V) => (sup: W) => boolean) =>
@@ -772,9 +776,9 @@ export const isSubsetOfBy =
     };
 export const isSubsetOf = <V>(
     equality: PartialEq<V>,
-): <K extends string>(
+): (<K extends string>(
     subset: Record<K, V>,
-) => (superset: Record<K, V>) => boolean =>
+) => (superset: Record<K, V>) => boolean) =>
     isSubsetOfBy((sub: V) => (sup: V) => equality.eq(sub, sup));
 
 export const isProperSubsetOfBy =
@@ -794,9 +798,9 @@ export const isProperSubsetOfBy =
     };
 export const isProperSubsetOf = <V>(
     equality: PartialEq<V>,
-): <K extends string>(
+): (<K extends string>(
     subset: Record<K, V>,
-) => (superset: Record<K, V>) => boolean =>
+) => (superset: Record<K, V>) => boolean) =>
     isSubsetOfBy((sub: V) => (sup: V) => equality.eq(sub, sup));
 
 export interface RecordHkt extends Hkt2 {
@@ -822,39 +826,47 @@ export const traversable = <K extends string>(): Traversable<
     traverse,
 });
 
-export const enc = <K extends string, V>(
-    encoders: Record<K, Encoder<V>>,
-): Encoder<Record<K, V>> =>
-(value) => {
-    const entries = Object.entries(value) as [K, V][];
-    return doT(monadForCodeM)
-        .run(encU32Be(entries.length))
-        .finishM(() =>
-            foldRArray(([key, code]: [K, Code]) => (acc: Code): Code =>
-                doT(monadForCodeM)
-                    .addM("key", encUtf8(key))
-                    .run(code)
-                    .finishM(() => acc)
-            )(pureCodeM([]))(entries.map((
-                [key, value],
-            ): [K, Code] => [key, encoders[key](value)]))
-        );
-};
+export const enc =
+    <K extends string, V>(
+        encoders: Record<K, Encoder<V>>,
+    ): Encoder<Record<K, V>> =>
+    (value) => {
+        const entries = Object.entries(value) as [K, V][];
+        return doT(monadForCodeM)
+            .run(encU32Be(entries.length))
+            .finishM(() =>
+                foldRArray(
+                    ([key, code]: [K, Code]) =>
+                        (acc: Code): Code =>
+                            doT(monadForCodeM)
+                                .addM("key", encUtf8(key))
+                                .run(code)
+                                .finishM(() => acc),
+                )(pureCodeM([]))(
+                    entries.map(([key, value]): [K, Code] => [
+                        key,
+                        encoders[key](value),
+                    ]),
+                ),
+            );
+    };
 export const dec = <K extends string, V>(
     decoders: Record<K, Decoder<V>>,
 ): Decoder<Record<K, V>> => {
-    const go = (entries: [K, V][]) => (len: number): Decoder<Record<K, V>> =>
-        len === 0
-            ? pureDecoder(Object.fromEntries(entries) as Record<K, V>)
-            : doT(monadForDecoder)
-                .addM("key", decUtf8())
-                .when(
-                    ({ key }) => !Object.hasOwn(decoders, key),
-                    ({ key }) => failDecoder(`unknown key found: ${key}`),
-                )
-                .addMWith("value", ({ key }) => decoders[key as K])
-                .finishM(({ key, value }) =>
-                    go([...entries, [key, value] as [K, V]])(len - 1)
-                );
+    const go =
+        (entries: [K, V][]) =>
+        (len: number): Decoder<Record<K, V>> =>
+            len === 0
+                ? pureDecoder(Object.fromEntries(entries) as Record<K, V>)
+                : doT(monadForDecoder)
+                      .addM("key", decUtf8())
+                      .when(
+                          ({ key }) => !Object.hasOwn(decoders, key),
+                          ({ key }) => failDecoder(`unknown key found: ${key}`),
+                      )
+                      .addMWith("value", ({ key }) => decoders[key as K])
+                      .finishM(({ key, value }) =>
+                          go([...entries, [key, value] as [K, V]])(len - 1),
+                      );
     return flatMapDecoder(go([]))(decU32Be());
 };

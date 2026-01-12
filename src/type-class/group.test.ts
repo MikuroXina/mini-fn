@@ -1,7 +1,7 @@
-import { assertEquals, assertThrows } from "../../deps.ts";
-import { none, type Option, some } from "../option.ts";
-import { type GroupExceptZero, powiEZ, subtractEZ } from "./group.ts";
-import { semiGroupSymbol } from "./semi-group.ts";
+import { expect, test } from "vitest";
+import { none, type Option, some } from "../option.js";
+import { type GroupExceptZero, powiEZ, subtractEZ } from "./group.js";
+import { semiGroupSymbol } from "./semi-group.js";
 
 type Matrix = readonly [a: number, b: number, c: number, d: number];
 
@@ -25,38 +25,31 @@ const matrixGroup: GroupExceptZero<Matrix> = {
     [semiGroupSymbol]: true,
 };
 
-Deno.test("subtract", () => {
-    assertEquals(
-        subtractEZ(matrixGroup)([1, 2, 3, 4])([5, 6, 7, 8]),
+test("subtract", () => {
+    expect(subtractEZ(matrixGroup)([1, 2, 3, 4])([5, 6, 7, 8])).toStrictEqual(
         some([3, -2, 2, -1] as Matrix),
     );
 });
 
-Deno.test("powi", () => {
-    assertEquals(
-        powiEZ(matrixGroup)([1, 2, 3, 4])(11),
+test("powi", () => {
+    expect(powiEZ(matrixGroup)([1, 2, 3, 4])(11)).toStrictEqual(
         some([25699957, 37455814, 56183721, 81883678] as Matrix),
     );
-    assertEquals(
-        powiEZ(matrixGroup)([1, 2, 3, 4])(4),
+    expect(powiEZ(matrixGroup)([1, 2, 3, 4])(4)).toStrictEqual(
         some([199, 290, 435, 634] as Matrix),
     );
-    assertEquals(
-        powiEZ(matrixGroup)([1, 2, 3, 4])(0),
+    expect(powiEZ(matrixGroup)([1, 2, 3, 4])(0)).toStrictEqual(
         some([1, 0, 0, 1] as Matrix),
     );
-    assertEquals(
-        powiEZ(matrixGroup)([1, 2, 3, 4])(-9),
-        some(
-            [
-                -1418567 / 256,
-                648891 / 256,
-                1946673 / 512,
-                -890461 / 512,
-            ] as Matrix,
-        ),
+    expect(powiEZ(matrixGroup)([1, 2, 3, 4])(-9)).toStrictEqual(
+        some([
+            -1418567 / 256,
+            648891 / 256,
+            1946673 / 512,
+            -890461 / 512,
+        ] as Matrix),
     );
-    assertThrows(() => {
+    expect(() => {
         powiEZ(matrixGroup)([1, 2, 3, 4])(0.5);
-    }, "`exp` must be an integer");
+    }).toThrowError("`exp` must be an integer");
 });
