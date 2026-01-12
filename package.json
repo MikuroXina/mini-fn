@@ -15,7 +15,7 @@
         "test": "vitest",
         "coverage": "vitest run --coverage --coverage.provider v8 --coverage.reporter lcov",
         "doc": "typedoc --tsconfig tsconfig.doc.json --skipErrorChecking --name @mikuroxina/mini-fn mod.ts",
-        "lint": "biome check",
+        "check": "biome check",
         "format": "biome check --write"
     },
     "exports": {
