@@ -13,7 +13,7 @@
     },
     "scripts": {
         "test": "vitest",
-        "coverage": "vitest run --coverage --coverage.provider v8 --coverage.reporter lcov",
+        "coverage": "vitest run --coverage --coverage.provider v8 --coverage.reporter json",
         "doc": "typedoc --tsconfig tsconfig.doc.json --skipErrorChecking --name @mikuroxina/mini-fn mod.ts",
         "check": "biome check",
         "format": "biome check --write"

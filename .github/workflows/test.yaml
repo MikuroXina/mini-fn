@@ -27,7 +27,7 @@ jobs:
             - uses: codecov/codecov-action@v5
               with:
                   use_oidc: true
-                  files: ./coverage/lcov.info
+                  files: ./coverage/coverage-final.json
                   name: mini-fn
                   verbose: true
                   fail_ci_if_error: true
