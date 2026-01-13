@@ -1,4 +1,4 @@
-import { reduce as reduceArray } from "../array.js";
+import * as Array from "../array.js";
 import { flip, id } from "../func.js";
 import type { Get1, Hkt1 } from "../hkt.js";
 import type { Reduce } from "../type-class/reduce.js";
@@ -66,7 +66,7 @@ export interface DigitHkt extends Hkt1 {
 /**
  * The instance of `Reduce` for `Digit`.
  */
-export const reduceDigit: Reduce<DigitHkt> = reduceArray;
+export const reduceDigit: Reduce<DigitHkt> = Array.reduce;
 
 /**
  * A leaf of subtree.
@@ -179,7 +179,7 @@ export const reduceTree: Reduce<FingerTreeHkt> = {
                 return reducer(tree.data);
             }
             const { left, nextTree, right } = tree;
-            const arrayReducer = reduceArray.reduceR(reducer);
+            const arrayReducer = Array.reduce.reduceR(reducer);
             const treeArrayReducer = reduceTree.reduceR(arrayReducer);
             return (b: B) =>
                 arrayReducer(left)(
@@ -197,7 +197,7 @@ export const reduceTree: Reduce<FingerTreeHkt> = {
                 return reducer(b)(tree.data);
             }
             const { left, nextTree, right } = tree;
-            const arrayReducer = reduceArray.reduceL(reducer);
+            const arrayReducer = Array.reduce.reduceL(reducer);
             const treeArrayReducer = reduceTree.reduceL(arrayReducer);
             return arrayReducer(
                 treeArrayReducer(arrayReducer(b)(left))(nextTree),
@@ -330,8 +330,9 @@ export const fromReduce =
  * @param fa - The elements to be constructed as a tree.
  * @returns The new tree.
  */
-export const fromArray: <A>(fa: readonly A[]) => FingerTree<A> =
-    fromReduce(reduceArray);
+export const fromArray: <A>(fa: readonly A[]) => FingerTree<A> = fromReduce(
+    Array.reduce,
+);
 
 const nodes = <A>(middle: readonly A[]): Node<A>[] => {
     if (middle.length < 2) {
@@ -368,19 +369,19 @@ export const appendBetween =
     (middle: readonly A[]) =>
     (right: FingerTree<A>): FingerTree<A> => {
         if (isEmpty(left)) {
-            return appendManyToHead(reduceArray)(middle)(right);
+            return appendManyToHead(Array.reduce)(middle)(right);
         }
         if (isEmpty(right)) {
-            return appendManyToTail(reduceArray)(left)(middle);
+            return appendManyToTail(Array.reduce)(left)(middle);
         }
         if (isSingle(left)) {
             return appendToHead(left.data)(
-                appendManyToHead(reduceArray)(middle)(right),
+                appendManyToHead(Array.reduce)(middle)(right),
             );
         }
         if (isSingle(right)) {
             return appendToTail(right.data)(
-                appendManyToTail(reduceArray)(left)(middle),
+                appendManyToTail(Array.reduce)(left)(middle),
             );
         }
         return deep(left.left)(

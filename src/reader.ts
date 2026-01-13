@@ -28,8 +28,14 @@
  * @module
  */
 
+// @ts-expect-error
+// biome-ignore lint/correctness/noUnusedImports: for test
+import * as Cat from "./cat.js";
 import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
 import { type IdentityHkt, monad as identityMonad } from "./identity.js";
+// @ts-expect-error
+// biome-ignore lint/correctness/noUnusedImports: for test
+import * as Option from "./option.js";
 import type { Tuple } from "./tuple.js";
 import type { Functor } from "./type-class/functor.js";
 import { liftM, type Monad } from "./type-class/monad.js";
@@ -100,9 +106,9 @@ export const askM = <R, S>(m: Monad<S>): Get1<S, Reader<R, R>> =>
  *     name: string;
  * }
  * const message = (): Reader<User, string> =>
- *     cat(ask<User>()).feed(map(({ name }) => `Hello, ${name}!`)).value;
+ *     Cat.cat(ask<User>()).feed(map(({ name }) => `Hello, ${name}!`)).value;
  * const box = (): Reader<User, string> =>
- *     cat(message()).feed(
+ *     Cat.cat(message()).feed(
  *         map((mes) => `<div class="message-box">${mes}</div>`),
  *     ).value;
  *
@@ -143,15 +149,15 @@ export const ask = <R>(): Reader<R, R> => askM<R, IdentityHkt>(identityMonad);
  *     local((bulk: Bulk): Option<User> => {
  *         const found = bulk.users.find((elem) => elem.id === id);
  *         if (!found) {
- *             return none();
+ *             return Option.none();
  *         }
- *         return some(found);
+ *         return Option.some(found);
  *     });
  * const scoreReport = (id: string): Reader<Bulk, string> =>
- *     cat(ask<Option<User>>())
+ *     Cat.cat(ask<Option.Option<User>>())
  *         .feed(
  *             map(
- *                 mapOr("user not found")(({ name, score }) =>
+ *                 Option.mapOr("user not found")(({ name, score }) =>
  *                     `${name}'s score is ${score}!`
  *                 ),
  *             ),

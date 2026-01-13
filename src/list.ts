@@ -141,15 +141,11 @@ import { type Applicative, liftA2 } from "./type-class/applicative.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Foldable } from "./type-class/foldable.js";
 import type { Functor } from "./type-class/functor.js";
-import { defaultHasher, type Hash } from "./type-class/hash.js";
+import * as Hash from "./type-class/hash.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
-import {
-    fromPartialEquality,
-    type PartialEq,
-    type PartialEqUnary,
-} from "./type-class/partial-eq.js";
+import * as PartialEq from "./type-class/partial-eq.js";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
 import type { Reduce } from "./type-class/reduce.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
@@ -170,7 +166,7 @@ export type List<T> = {
 };
 
 export const partialEquality = <T>(
-    equalityT: PartialEq<T>,
+    equalityT: PartialEq.PartialEq<T>,
 ): ((l: List<T>, r: List<T>) => boolean) => {
     const self = (l: List<T>, r: List<T>): boolean =>
         (Option.isNone(l.current()) && Option.isNone(r.current())) ||
@@ -179,8 +175,10 @@ export const partialEquality = <T>(
 
     return self;
 };
-export const partialEq: <T>(equalityT: PartialEq<T>) => PartialEq<List<T>> =
-    fromPartialEquality(partialEquality);
+export const partialEq: <T>(
+    equalityT: PartialEq.PartialEq<T>,
+) => PartialEq.PartialEq<List<T>> =
+    PartialEq.fromPartialEquality(partialEquality);
 export const equality = <T>(
     equalityT: Eq<T>,
 ): ((l: List<T>, r: List<T>) => boolean) => {
@@ -238,7 +236,7 @@ export const cmp =
     };
 export const ord: <T>(order: Ord<T>) => Ord<List<T>> = fromCmp(cmp);
 
-export const partialEqUnary: PartialEqUnary<ListHkt> = {
+export const partialEqUnary: PartialEq.PartialEqUnary<ListHkt> = {
     liftEq:
         <Lhs, Rhs>(equality: (l: Lhs, r: Rhs) => boolean) =>
         (l: List<Lhs>, r: List<Rhs>): boolean => {
@@ -460,9 +458,9 @@ export const plus =
  * @example
  * ```ts @import.meta.vitest
  * const iter = toIterator(appendToHead(1)(singleton(4)));
- * expect(iter.next()).toBe({ value: 1, done: false });
- * expect(iter.next()).toBe({ value: 4, done: false });
- * expect(iter.next()).toBe({ value: undefined, done: true });
+ * expect(iter.next()).toStrictEqual({ value: 1, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 4, done: false });
+ * expect(iter.next()).toStrictEqual({ value: undefined, done: true });
  * ```
  */
 export const appendToHead =
@@ -483,9 +481,9 @@ export const appendToHead =
  * @example
  * ```ts @import.meta.vitest
  * const iter = toIterator(appendToTail(1)(singleton(4)));
- * expect(iter.next()).toBe({ value: 4, done: false });
- * expect(iter.next()).toBe({ value: 1, done: false });
- * expect(iter.next()).toBe({ value: undefined, done: true });
+ * expect(iter.next()).toStrictEqual({ value: 4, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 1, done: false });
+ * expect(iter.next()).toStrictEqual({ value: undefined, done: true });
  * ```
  */
 export const appendToTail =
@@ -1736,7 +1734,7 @@ export const findIndex =
  * @returns The found position if exists.
  */
 export const elemIndex =
-    <T>(equalityT: PartialEq<T>) =>
+    <T>(equalityT: PartialEq.PartialEq<T>) =>
     (target: T): ((list: List<T>) => Option.Option<number>) =>
         findIndex((value: T) => equalityT.eq(value, target));
 /**
@@ -1787,11 +1785,11 @@ export const findIndicesLazy =
  * @returns The found positions.
  */
 export const elemIndices =
-    <T>(equalityT: PartialEq<T>) =>
+    <T>(equalityT: PartialEq.PartialEq<T>) =>
     (target: T): ((list: List<T>) => number[]) =>
         findIndices((value: T) => equalityT.eq(value, target));
 export const elemIndicesLazy =
-    <T>(equalityT: PartialEq<T>) =>
+    <T>(equalityT: PartialEq.PartialEq<T>) =>
     (target: T): ((list: List<T>) => List<number>) =>
         findIndicesLazy((value: T) => equalityT.eq(value, target));
 
@@ -1983,7 +1981,7 @@ export const spanNot = <T>(
  *
  * @example
  * ```ts @import.meta.vitest
- * const stripFoo = stripPrefix(strict<string>())(fromString("foo"));
+ * const stripFoo = stripPrefix(PartialEq.strict<string>())(fromString("foo"));
  *
  * {
  *     const optList = stripFoo(fromString("foobar"));
@@ -2003,7 +2001,7 @@ export const spanNot = <T>(
  * ```
  */
 export const stripPrefix =
-    <T>(equalityT: PartialEq<T>) =>
+    <T>(equalityT: PartialEq.PartialEq<T>) =>
     (prefix: List<T>) =>
     (list: List<T>): Option.Option<List<T>> =>
         either<Option.Option<List<T>>>(() => Option.some(list))((x: T, xs) =>
@@ -2039,13 +2037,13 @@ export const groupBy = <T>(
  *
  * @example
  * ```ts @import.meta.vitest
- * const grouped = toArray(group(strict<string>())(fromString("Mississippi")))
+ * const grouped = toArray(group(PartialEq.strict<string>())(fromString("Mississippi")))
  *     .map((list) => toString(list));
  * expect(grouped).toStrictEqual(["M", "i", "ss", "i", "ss", "i", "pp", "i"]);
  * ```
  */
 export const group = <T>(
-    equalityT: PartialEq<T>,
+    equalityT: PartialEq.PartialEq<T>,
 ): ((list: List<T>) => List<List<T>>) =>
     groupBy((l) => (r) => equalityT.eq(l, r));
 
@@ -2074,14 +2072,16 @@ export const filter =
  *
  * @example
  * ```ts @import.meta.vitest
- * const uniqueNums = unique(nonNanHash)(fromIterable([1, 4, 2, 3, 5, 2, 3]));
+ * const uniqueNums = unique(Hash.nonNanHash)(fromIterable([1, 4, 2, 3, 5, 2, 3]));
  * expect(toArray(uniqueNums)).toStrictEqual([1, 4, 2, 3, 5]);
  * ```
  */
-export const unique = <T>(hasher: Hash<T>): ((list: List<T>) => List<T>) => {
+export const unique = <T>(
+    hasher: Hash.Hash<T>,
+): ((list: List<T>) => List<T>) => {
     const known = new Map<bigint, T>();
     return filter((item: T) => {
-        const hash = hasher.hash(item)(defaultHasher()).state();
+        const hash = hasher.hash(item)(Hash.defaultHasher()).state();
         if (!known.has(hash)) {
             known.set(hash, item);
             return true;

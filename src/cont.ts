@@ -1,3 +1,6 @@
+// @ts-expect-error
+// biome-ignore lint/correctness/noUnusedImports: for test
+import * as Cat from "./cat.js";
 import { absurd, constant } from "./func.js";
 import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
 import * as Identity from "./identity.js";
@@ -75,11 +78,11 @@ export const withContT =
  * const whatYourName = (name: string): string => {
  *     const cont = callCC<string, IdentityHkt, string, never[]>(
  *         (exit) =>
- *             cat(validateName(name)(exit)).feed(
+ *             Cat.cat(validateName(name)(exit)).feed(
  *                 flatMap<string, IdentityHkt, never[], string>(() => pure<string, string>(`Welcome, ${name}!`)),
  *             ).value,
  *     );
- *     return runCont(cont)(id);
+ *     return runCont(cont)(Identity.id);
  * };
  * expect(whatYourName("Alice")).toStrictEqual("Welcome, Alice!");
  * expect(whatYourName("")).toStrictEqual("expected at least 1 character");
