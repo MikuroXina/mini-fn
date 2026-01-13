@@ -20,10 +20,8 @@ export type Fn<A, B> = (a: A) => B;
  *
  * # Examples
  *
- * ```ts
- * import { assertEquals } from "vitest";
- * import { id } from "./func.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(id(2)).toStrictEqual(2);
  * expect(id("foo")).toStrictEqual("foo");
  * ```
@@ -35,10 +33,8 @@ export const id = <T>(x: T) => x;
  *
  * # Examples
  *
- * ```ts
- * import { assertEquals } from "vitest";
- * import { constant } from "./func.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const fn = constant(4);
  * expect(fn(3)).toStrictEqual(4);
  * expect(fn("foo")).toStrictEqual(4);
@@ -54,14 +50,11 @@ export const constant =
  *
  * # Examples
  *
- * ```ts
- * import { absurd } from "./func.js";
- * import { assertThrows } from "vitest";
- *
- * assertThrows(() => {
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(() => {
  *     absurd<number>();
- *     throw new Error("this line must not be run");
- * }, "PANIC: absurd must not be called");
+ * }).toThrowError("PANIC: absurd must not be called");
  * ```
  */
 export const absurd = <T>(): T => {
@@ -77,10 +70,8 @@ export const absurd = <T>(): T => {
  *
  * # Examples
  *
- * ```ts
- * import { assertEquals } from "vitest";
- * import { pipe } from "./func.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(pipe((x: number) => x + 1)((x) => x * 2)(3)).toStrictEqual(8);
  * ```
  */
@@ -99,10 +90,8 @@ export const pipe =
  *
  * # Examples
  *
- * ```ts
- * import { assertEquals } from "vitest";
- * import { compose } from "./func.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(compose((x: number) => x + 1)((x: number) => x * 2)(3)).toStrictEqual(7);
  * ```
  */
@@ -120,10 +109,8 @@ export const compose =
  *
  * # Examples
  *
- * ```ts
- * import { assertEquals } from "vitest";
- * import { flip } from "./func.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const fn = flip((a: string) => (b: string) => a + b);
  * expect(fn("a")("b")).toStrictEqual("ba");
  * expect(fn("asd")("btg")).toStrictEqual("btgasd");
@@ -145,10 +132,8 @@ export const flip =
  *
  * # Examples
  *
- * ```ts
- * import { assertEquals } from "vitest";
- * import { until } from "./func.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const padLeft = until((x: string) => 4 <= x.length)((x) => "0" + x);
  * expect(padLeft("")).toStrictEqual("0000");
  * expect(padLeft("1")).toStrictEqual("0001");
@@ -177,10 +162,8 @@ export const until =
  *
  * # Examples
  *
- * ```ts
- * import { assertEquals } from "vitest";
- * import { map } from "./func.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const mapper = map<string>()((x: number) => x * 2);
  * expect(mapper(parseInt)("20")).toStrictEqual(40);
  * ```
@@ -200,10 +183,8 @@ export const map =
  *
  * # Examples
  *
- * ```ts
- * import { apply } from "./func.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const applier = apply<string>()((str) => (radix: number) =>
  *     parseInt(str, radix)
  * );
@@ -227,10 +208,8 @@ export const apply =
  *
  * # Examples
  *
- * ```ts
- * import { assertEquals } from "vitest";
- * import { liftBinary } from "./func.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const lifter = liftBinary<void>()((a: number) => (b: number) => a + b);
  * expect(lifter(() => 1)(() => 2)()).toStrictEqual(3);
  * ```
@@ -252,10 +231,8 @@ export const liftBinary =
  *
  * # Examples
  *
- * ```ts
- * import { assertEquals } from "vitest";
- * import { flatMap } from "./func.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const mapper = flatMap<number>()((x: number) => (y: number) => x * y);
  * expect(mapper((x) => x + 1)(3)).toStrictEqual(12);
  * ```

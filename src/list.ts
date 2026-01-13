@@ -268,10 +268,8 @@ export const partialEqUnary: PartialEqUnary<ListHkt> = {
  *
  * # Examples
  *
- * ```ts
- * import { empty, isNull, repeat } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(isNull(empty())).toStrictEqual(true);
  * expect(isNull(repeat(0))).toStrictEqual(false);
  * ```
@@ -287,15 +285,13 @@ export const isNull = <T>(list: List<T>): boolean =>
  *
  * # Examples
  *
- * ```ts
- * import { iota, successors, toIterator } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const iter = toIterator(iota);
- * expect(iter.next(), { value: 0).toStrictEqual(done: false });
- * expect(iter.next(), { value: 1).toStrictEqual(done: false });
- * expect(iter.next(), { value: 2).toStrictEqual(done: false });
- * expect(iter.next(), { value: 3).toStrictEqual(done: false });
+ * expect(iter.next()).toStrictEqual({ value: 0, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 1, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 2, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 3, done: false });
  * ```
  */
 export function* toIterator<T>(list: List<T>): Generator<T, void> {
@@ -316,9 +312,7 @@ export function* toIterator<T>(list: List<T>): Generator<T, void> {
  * @param list - The list to be converted.
  * @returns The array of elements.
  */
-export const toArray = <T>(list: List<T>): T[] => [...toIterator(list)];
-
-/**
+export const toArray = <T>(list: List<T>): T[] => [...toIterator(list)]; /**
  * Makes the list into an `Option` having head and rest.
  *
  * @param list - The list to be un-constructed.
@@ -326,14 +320,12 @@ export const toArray = <T>(list: List<T>): T[] => [...toIterator(list)];
  *
  * # Examples
  *
- * ```ts
- * import { List, empty, unCons, singleton } from "./list.js";
- * import * as Option from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(unCons(empty())).toStrictEqual(Option.none());
- * assertEquals(
+ * expect(
  *     unCons(singleton(42)),
+ * ).toStrictEqual(
  *     Option.some([42, empty()] as [number, List<number>]),
  * );
  * ```
@@ -365,15 +357,13 @@ export const either =
  *
  * # Examples
  *
- * ```ts
- * import { iota, successors, toIterator, map } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const mapped = toIterator(map((x: number) => x * 3 + 1)(iota));
- * expect(mapped.next(), { value: 1).toStrictEqual(done: false });
- * expect(mapped.next(), { value: 4).toStrictEqual(done: false });
- * expect(mapped.next(), { value: 7).toStrictEqual(done: false });
- * expect(mapped.next(), { value: 10).toStrictEqual(done: false });
+ * expect(mapped.next()).toStrictEqual({ value: 1, done: false });
+ * expect(mapped.next()).toStrictEqual({ value: 4, done: false });
+ * expect(mapped.next()).toStrictEqual({ value: 7, done: false });
+ * expect(mapped.next()).toStrictEqual({ value: 10, done: false });
  * ```
  */
 export const map =
@@ -425,24 +415,23 @@ export const fromIterable = <T>(iterable: Iterable<T>): List<T> =>
  *
  * # Examples
  *
- * ```ts
- * import { List, empty, plus, singleton, toIterator, unCons } from "./list.js";
- * import * as Option from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const singleZero = singleton(0);
  * const emptiness = empty<number>();
  *
  * const iter = toIterator(plus(singleZero)(singleZero));
- * expect(iter.next(), { value: 0).toStrictEqual(done: false });
- * expect(iter.next(), { value: 0).toStrictEqual(done: false });
- * expect(iter.next(), { value: undefined).toStrictEqual(done: true });
- * assertEquals(
+ * expect(iter.next()).toStrictEqual({ value: 0, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 0, done: false });
+ * expect(iter.next()).toStrictEqual({ value: undefined, done: true });
+ * expect(
  *     unCons(plus(singleZero)(emptiness)),
+ * ).toStrictEqual(
  *     Option.some([0, empty()] as [number, List<number>]),
  * );
- * assertEquals(
+ * expect(
  *     unCons(plus(emptiness)(singleZero)),
+ * ).toStrictEqual(
  *     Option.some([0, empty()] as [number, List<number>]),
  * );
  * expect(unCons(plus(emptiness)(emptiness))).toStrictEqual(Option.none());
@@ -468,14 +457,12 @@ export const plus =
  *
  * # Examples
  *
- * ```ts
- * import { List, appendToHead, singleton, toIterator } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const iter = toIterator(appendToHead(1)(singleton(4)));
- * expect(iter.next(), { value: 1).toStrictEqual(done: false });
- * expect(iter.next(), { value: 4).toStrictEqual(done: false });
- * expect(iter.next(), { value: undefined).toStrictEqual(done: true });
+ * expect(iter.next()).toBe({ value: 1, done: false });
+ * expect(iter.next()).toBe({ value: 4, done: false });
+ * expect(iter.next()).toBe({ value: undefined, done: true });
  * ```
  */
 export const appendToHead =
@@ -493,14 +480,12 @@ export const appendToHead =
  *
  * # Examples
  *
- * ```ts
- * import { appendToTail, singleton, toIterator } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const iter = toIterator(appendToTail(1)(singleton(4)));
- * expect(iter.next(), { value: 4).toStrictEqual(done: false });
- * expect(iter.next(), { value: 1).toStrictEqual(done: false });
- * expect(iter.next(), { value: undefined).toStrictEqual(done: true });
+ * expect(iter.next()).toBe({ value: 4, done: false });
+ * expect(iter.next()).toBe({ value: 1, done: false });
+ * expect(iter.next()).toBe({ value: undefined, done: true });
  * ```
  */
 export const appendToTail =
@@ -533,15 +518,13 @@ export const repeatWith = <T>(elem: () => T): List<T> => ({
  *
  * # Examples
  *
- * ```ts
- * import { repeat, toIterator } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const iter = toIterator(repeat(13));
- * expect(iter.next(), { value: 13).toStrictEqual(done: false });
- * expect(iter.next(), { value: 13).toStrictEqual(done: false });
- * expect(iter.next(), { value: 13).toStrictEqual(done: false });
- * expect(iter.next(), { value: 13).toStrictEqual(done: false });
+ * expect(iter.next()).toStrictEqual({ value: 13, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 13, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 13, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 13, done: false });
  * ```
  */
 export const repeat = <T>(value: T): List<T> => repeatWith(() => value);
@@ -555,16 +538,14 @@ export const repeat = <T>(value: T): List<T> => repeatWith(() => value);
  *
  * # Examples
  *
- * ```ts
- * import { successors, toIterator } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const iter = toIterator(successors((str: string) => str + "a")(""));
- * expect(iter.next(), { value: "").toStrictEqual(done: false });
- * expect(iter.next(), { value: "a").toStrictEqual(done: false });
- * expect(iter.next(), { value: "aa").toStrictEqual(done: false });
- * expect(iter.next(), { value: "aaa").toStrictEqual(done: false });
- * expect(iter.next(), { value: "aaaa").toStrictEqual(done: false });
+ * expect(iter.next()).toStrictEqual({ value: "", done: false });
+ * expect(iter.next()).toStrictEqual({ value: "a", done: false });
+ * expect(iter.next()).toStrictEqual({ value: "aa", done: false });
+ * expect(iter.next()).toStrictEqual({ value: "aaa", done: false });
+ * expect(iter.next()).toStrictEqual({ value: "aaaa", done: false });
  * ```
  */
 export const successors =
@@ -589,12 +570,10 @@ export const iota: List<number> = successors((x: number) => x + 1)(0);
  *
  * # Examples
  *
- * ```ts
- * import { range, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
- * expect(toArray(range(0, 5)), [0, 1, 2, 3).toStrictEqual(4]);
- * expect(toArray(range(0, 5).toStrictEqual(0.5)), [
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(toArray(range(0, 5))).toStrictEqual([0, 1, 2, 3, 4]);
+ * expect(toArray(range(0, 5, 0.5))).toStrictEqual([
  *     0,
  *     0.5,
  *     1,
@@ -607,7 +586,7 @@ export const iota: List<number> = successors((x: number) => x + 1)(0);
  *     4.5,
  * ]);
  * expect(toArray(range(2, 3))).toStrictEqual([2]);
- * expect(toArray(range(3, 6)), [3, 4).toStrictEqual(5]);
+ * expect(toArray(range(3, 6))).toStrictEqual([3, 4, 5]);
  * expect(toArray(range(3, 3))).toStrictEqual([]);
  * expect(toArray(range(5, 0))).toStrictEqual([]);
  * expect(toArray(range(3, 2))).toStrictEqual([]);
@@ -627,14 +606,12 @@ export const range = (start: number, end: number, step = 1): List<number> => ({
  *
  * # Examples
  *
- * ```ts
- * import { digits, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
- * expect(toArray(digits(51413, 10)), [3, 1, 4, 1).toStrictEqual(5]);
- * expect(toArray(digits(0x51413, 16)), [3, 1, 4, 1).toStrictEqual(5]);
- * expect(toArray(digits(0o51413, 8)), [3, 1, 4, 1).toStrictEqual(5]);
- * expect(toArray(digits(0b1001011001).toStrictEqual(2)), [
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(toArray(digits(51413, 10))).toStrictEqual([3, 1, 4, 1, 5]);
+ * expect(toArray(digits(0x51413, 16))).toStrictEqual([3, 1, 4, 1, 5]);
+ * expect(toArray(digits(0o51413, 8))).toStrictEqual([3, 1, 4, 1, 5]);
+ * expect(toArray(digits(0b1001011001, 2))).toStrictEqual([
  *     1,
  *     0,
  *     0,
@@ -665,11 +642,9 @@ const segmenter = new Intl.Segmenter();
  *
  * # Examples
  *
- * ```ts
- * import { fromString, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
- * expect(toArray(fromString("hoge")), ["h", "o", "g").toStrictEqual("e"]);
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(toArray(fromString("hoge"))).toStrictEqual(["h", "o", "g", "e"]);
  * expect(toArray(fromString(""))).toStrictEqual([]);
  * ```
  */
@@ -686,11 +661,9 @@ export const fromString = (str: string): List<string> =>
  *
  * # Examples
  *
- * ```ts
- * import { fromArray, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
- * expect(toArray(fromArray([2.81, 3.14, 1.58])), [2.81, 3.14).toStrictEqual(1.58]);
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(toArray(fromArray([2.81, 3.14, 1.58]))).toStrictEqual([2.81, 3.14, 1.58]);
  * expect(toArray(fromArray([]))).toStrictEqual([]);
  * ```
  */
@@ -707,11 +680,8 @@ export const fromArray = <T>(arr: readonly T[]): List<T> => ({
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromOption } from "./list.js";
- * import * as Option from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const listOf2 = fromOption(Option.some(2));
  * expect(listOf2.current()).toStrictEqual(Option.some(2));
  * expect(listOf2.rest()).toStrictEqual(empty());
@@ -748,16 +718,16 @@ export const fromReduce =
  *
  * # Examples
  *
- * ```ts
- * import { foldL, fromString } from "./list.js";
- * import { assertEquals } from "vitest";
- *
- * assertEquals(
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(
  *     foldL((x: string) => (y: string) => y + x)("")(fromString("hoge")),
+ * ).toStrictEqual(
  *     "egoh",
  * );
- * assertEquals(
+ * expect(
  *     foldL((x: string) => (y: string) => y + x)("")(fromString("")),
+ * ).toStrictEqual(
  *     "",
  * );
  * ```
@@ -802,16 +772,16 @@ export const foldL1 =
  *
  * # Examples
  *
- * ```ts
- * import { foldR, fromString } from "./list.js";
- * import { assertEquals } from "vitest";
- *
- * assertEquals(
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(
  *     foldR((x: string) => (y: string) => x + y)("")(fromString("hoge")),
+ * ).toStrictEqual(
  *     "hoge",
  * );
- * assertEquals(
+ * expect(
  *     foldR((x: string) => (y: string) => y + x)("")(fromString("")),
+ * ).toStrictEqual(
  *     "",
  * );
  * ```
@@ -871,10 +841,8 @@ export const toString: (list: List<string>) => string = foldL(
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromString, length, singleton } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(length(empty())).toStrictEqual(0);
  * expect(length(singleton(42))).toStrictEqual(1);
  * expect(length(fromString("foo"))).toStrictEqual(3);
@@ -901,15 +869,13 @@ export const build = <A>(
  *
  * # Examples
  *
- * ```ts
- * import { concat, empty, fromArray, singleton, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const aList = singleton(42);
  * const bList = empty<number>();
  * const cList = fromArray([5, 4, 1, 2]);
  * const listList = fromArray([aList, bList, cList]);
- * expect(toArray(concat(listList)), [42, 5, 4, 1).toStrictEqual(2]);
+ * expect(toArray(concat(listList))).toStrictEqual([42, 5, 4, 1, 2]);
  * ```
  */
 export const concat = <T>(listList: List<List<T>>): List<T> =>
@@ -968,13 +934,11 @@ export const apply =
  *
  * # Examples
  *
- * ```ts
- * import { fromArray, scanL, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const aList = fromArray([1, 2, 2, 4, 4, 3]);
  * const partialSum = scanL((a: number) => (b: number) => a + b)(0)(aList);
- * expect(toArray(partialSum), [0, 1, 3, 5, 9, 13).toStrictEqual(16]);
+ * expect(toArray(partialSum)).toStrictEqual([0, 1, 3, 5, 9, 13, 16]);
  * ```
  */
 export const scanL = <T, U>(
@@ -1001,11 +965,8 @@ export const scanL = <T, U>(
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromString, head, singleton } from "./list.js";
- * import * as Option from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(head(empty())).toStrictEqual(Option.none());
  * expect(head(fromString("hoge"))).toStrictEqual(Option.some("h"));
  *
@@ -1024,11 +985,8 @@ export const head = <T>(list: List<T>): Option.Option<T> => list.current();
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromString, last, singleton } from "./list.js";
- * import * as Option from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(last(empty())).toStrictEqual(Option.none());
  * expect(last(fromString("hoge"))).toStrictEqual(Option.some("e"));
  *
@@ -1068,13 +1026,11 @@ export const tail = <T>(list: List<T>): List<T> => list.rest();
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromArray, fromString, reverse, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(reverse(empty())).toStrictEqual(empty());
- * expect(toArray(reverse(fromArray([1, 4, 2, 3]))), [3, 2, 4).toStrictEqual(1]);
- * expect(toArray(reverse(fromString("hoge"))), ["e", "g", "o").toStrictEqual("h"]);
+ * expect(toArray(reverse(fromArray([1, 4, 2, 3])))).toStrictEqual([3, 2, 4, 1]);
+ * expect(toArray(reverse(fromString("hoge")))).toStrictEqual(["e", "g", "o", "h"]);
  * ```
  */
 export const reverse = <T>(list: List<T>): List<T> => {
@@ -1093,13 +1049,11 @@ export const reverse = <T>(list: List<T>): List<T> => {
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromArray, init, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(init(empty())).toStrictEqual(empty());
  *
- * expect(toArray(init(fromArray([5, 2, 1, 3]))), [5, 2).toStrictEqual(1]);
+ * expect(toArray(init(fromArray([5, 2, 1, 3])))).toStrictEqual([5, 2, 1]);
  * ```
  */
 export const init = <T>(list: List<T>): List<T> => reverse(tail(reverse(list)));
@@ -1113,14 +1067,12 @@ export const init = <T>(list: List<T>): List<T> => reverse(tail(reverse(list)));
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromArray, toArray, zip } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const aList = fromArray([1, 4, 2]);
  * const bList = fromArray([3, 5, 2]);
  *
- * assertEquals(toArray(zip(aList)(bList)), [
+ * expect(toArray(zip(aList)(bList))).toStrictEqual([
  *     [1, 3],
  *     [4, 5],
  *     [2, 2],
@@ -1153,15 +1105,13 @@ export const enumerate: <T>(items: List<T>) => List<[index: number, T]> =
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromArray, toArray, zip3 } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const aList = fromArray([1, 4, 2]);
  * const bList = fromArray([3, 5, 2]);
  * const cList = fromArray([3, 8, 4, 7, 6]);
  *
- * assertEquals(toArray(zip3(aList)(bList)(cList)), [
+ * expect(toArray(zip3(aList)(bList)(cList))).toStrictEqual([
  *     [1, 3, 3],
  *     [4, 5, 8],
  *     [2, 2, 4],
@@ -1196,16 +1146,14 @@ export const zip3 =
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromArray, toArray, zip4 } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const aList = fromArray([1, 4, 2]);
  * const bList = fromArray([3, 5, 2]);
  * const cList = fromArray([3, 8, 4, 7, 6]);
  * const dList = fromArray([6, 2, 9, 8]);
  *
- * assertEquals(toArray(zip4(aList)(bList)(cList)(dList)), [
+ * expect(toArray(zip4(aList)(bList)(cList)(dList))).toStrictEqual([
  *     [1, 3, 3, 6],
  *     [4, 5, 8, 2],
  *     [2, 2, 4, 9],
@@ -1247,15 +1195,13 @@ export const zip4 =
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromArray, toArray, zipWith } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const aList = fromArray([1, 4, 2]);
  * const bList = fromArray([3, 5, 2]);
  *
  * const zipped = zipWith((a: number) => (b: number) => a * b)(aList)(bList);
- * expect(toArray(zipped), [3, 20).toStrictEqual(4]);
+ * expect(toArray(zipped)).toStrictEqual([3, 20, 4]);
  * ```
  */
 export const zipWith = <T, U, V>(
@@ -1283,10 +1229,8 @@ export const zipWith = <T, U, V>(
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromArray, toArray, unzip } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const [aList, bList] = unzip(
  *     fromArray([
  *         [2, 3],
@@ -1294,8 +1238,8 @@ export const zipWith = <T, U, V>(
  *         [11, 3],
  *     ]),
  * );
- * expect(toArray(aList), [2, 5).toStrictEqual(11]);
- * expect(toArray(bList), [3, 4).toStrictEqual(3]);
+ * expect(toArray(aList)).toStrictEqual([2, 5, 11]);
+ * expect(toArray(bList)).toStrictEqual([3, 4, 3]);
  * ```
  */
 export const unzip = <A, B>(list: List<[A, B]>): [List<A>, List<B>] =>
@@ -1323,10 +1267,8 @@ const prependToAll =
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromString, intersperse, toString } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(intersperse(0)(empty())).toStrictEqual(empty());
  *
  * expect(toString(intersperse(" ")(fromString("hoge")))).toStrictEqual("h o g e");
@@ -1348,16 +1290,14 @@ export const intersperse =
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromArray, fromString, intercalate, singleton, toString } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(intercalate(singleton(0))(empty())).toStrictEqual(empty());
  *
  * const joined = intercalate(fromString(", "))(
  *     fromArray([fromString("foo"), fromString("bar"), fromString("bee")]),
  * );
- * expect(toString(joined), "foo, bar).toStrictEqual(bee");
+ * expect(toString(joined)).toStrictEqual("foo, bar, bee");
  * ```
  */
 export const intercalate =
@@ -1373,14 +1313,12 @@ export const intercalate =
  *
  * # Examples
  *
- * ```ts
- * import { fromArray, transpose, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const matrix = fromArray([fromArray([1, 2, 3]), fromArray([4, 5, 6])]);
  * const transposed = transpose(matrix);
  * const actual = toArray(transposed).map((col) => toArray(col));
- * assertEquals(actual, [
+ * expect(actual).toStrictEqual([
  *     [1, 4],
  *     [2, 5],
  *     [3, 6],
@@ -1456,13 +1394,11 @@ export const subsequencesExceptEmpty = <T>(list: List<T>): List<List<T>> =>
  *
  * # Examples
  *
- * ```ts
- * import { fromArray, subsequences, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const subSeq = subsequences(fromArray([1, 2, 3, 4]));
  * const sequences = toArray(subSeq).map((seq) => toArray(seq));
- * assertEquals(sequences, [
+ * expect(sequences).toStrictEqual([
  *     [],
  *     [1],
  *     [2],
@@ -1493,15 +1429,13 @@ export const subsequences = <T>(list: List<T>): List<List<T>> =>
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromArray, permutations, range, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(permutations(empty())).toStrictEqual(empty());
  *
  * const subSeq = permutations(range(1, 5));
  * const sequences = toArray(subSeq).map((seq) => toArray(seq));
- * assertEquals(sequences, [
+ * expect(sequences).toStrictEqual([
  *     [1, 2, 3, 4],
  *     [2, 1, 3, 4],
  *     [3, 2, 1, 4],
@@ -1582,11 +1516,8 @@ export const permutations = <A>(list: List<A>): List<List<A>> => {
  *
  * # Examples
  *
- * ```ts
- * import { unfoldR, toArray } from "./list.js";
- * import * as Option from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const decrement = (n: number): Option.Option<[number, number]> => {
  *     if (n == 0) {
  *         return Option.none();
@@ -1594,7 +1525,7 @@ export const permutations = <A>(list: List<A>): List<List<A>> => {
  *     return Option.some([n, n - 1]);
  * };
  *
- * assertEquals(toArray(unfoldR(decrement)(10)), [
+ * expect(toArray(unfoldR(decrement)(10))).toStrictEqual([
  *     10,
  *     9,
  *     8,
@@ -1632,15 +1563,13 @@ export const unfoldR =
  *
  * # Examples
  *
- * ```ts
- * import { range, take, toIterator } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const taken = take(2)(range(1, 6));
  * const iter = toIterator(taken);
- * expect(iter.next(), { value: 1).toStrictEqual(done: false });
- * expect(iter.next(), { value: 2).toStrictEqual(done: false });
- * expect(iter.next(), { value: undefined).toStrictEqual(done: true });
+ * expect(iter.next()).toStrictEqual({ value: 1, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 2, done: false });
+ * expect(iter.next()).toStrictEqual({ value: undefined, done: true });
  * ```
  */
 export const take =
@@ -1668,16 +1597,14 @@ export const take =
  *
  * # Examples
  *
- * ```ts
- * import { drop, range, toIterator } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const dropped = drop(2)(range(1, 6));
  * const iter = toIterator(dropped);
- * expect(iter.next(), { value: 3).toStrictEqual(done: false });
- * expect(iter.next(), { value: 4).toStrictEqual(done: false });
- * expect(iter.next(), { value: 5).toStrictEqual(done: false });
- * expect(iter.next(), { value: undefined).toStrictEqual(done: true });
+ * expect(iter.next()).toStrictEqual({ value: 3, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 4, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 5, done: false });
+ * expect(iter.next()).toStrictEqual({ value: undefined, done: true });
  * ```
  */
 export const drop =
@@ -1704,13 +1631,11 @@ export const drop =
  *
  * # Examples
  *
- * ```ts
- * import { range, splitAt, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const [left, right] = splitAt(2)(range(1, 6));
- * expect(toArray(left), [1).toStrictEqual(2]);
- * expect(toArray(right), [3, 4).toStrictEqual(5]);
+ * expect(toArray(left)).toStrictEqual([1, 2]);
+ * expect(toArray(right)).toStrictEqual([3, 4, 5]);
  * ```
  */
 export const splitAt =
@@ -1729,17 +1654,15 @@ export const splitAt =
  *
  * # Examples
  *
- * ```ts
- * import { range, replicate, toIterator } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const replicated = replicate(4)(42);
  * const iter = toIterator(replicated);
- * expect(iter.next(), { value: 42).toStrictEqual(done: false });
- * expect(iter.next(), { value: 42).toStrictEqual(done: false });
- * expect(iter.next(), { value: 42).toStrictEqual(done: false });
- * expect(iter.next(), { value: 42).toStrictEqual(done: false });
- * expect(iter.next(), { value: undefined).toStrictEqual(done: true });
+ * expect(iter.next()).toStrictEqual({ value: 42, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 42, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 42, done: false });
+ * expect(iter.next()).toStrictEqual({ value: 42, done: false });
+ * expect(iter.next()).toStrictEqual({ value: undefined, done: true });
  * ```
  */
 export const replicate =
@@ -1756,11 +1679,8 @@ export const replicate =
  *
  * # Examples
  *
- * ```ts
- * import { atMay, range } from "./list.js";
- * import * as Option from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const nums = range(1, 6);
  * expect(atMay(0)(nums)).toStrictEqual(Option.some(1));
  * expect(atMay(4)(nums)).toStrictEqual(Option.some(5));
@@ -1786,11 +1706,8 @@ export const atMay =
  *
  * # Examples
  *
- * ```ts
- * import { findIndex, fromArray } from "./list.js";
- * import * as Option from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const list = fromArray([1, 4, 2, 3, 5]);
  *
  * expect(findIndex((x: number) => 4 <= x)(list)).toStrictEqual(Option.some(1));
@@ -1831,15 +1748,12 @@ export const elemIndex =
  *
  * # Examples
  *
- * ```ts
- * import { findIndices, fromArray } from "./list.js";
- * import * as Option from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const list = fromArray([1, 4, 2, 3, 5]);
  *
- * expect(findIndices((x: number) => 4 <= x)(list), [1).toStrictEqual(4]);
- * expect(findIndices((x: number) => 0 <= x)(list), [0, 1, 2, 3).toStrictEqual(4]);
+ * expect(findIndices((x: number) => 4 <= x)(list)).toStrictEqual([1, 4]);
+ * expect(findIndices((x: number) => 0 <= x)(list)).toStrictEqual([0, 1, 2, 3, 4]);
  * expect(findIndices((x: number) => 8 <= x)(list)).toStrictEqual([]);
  * ```
  */
@@ -1889,13 +1803,11 @@ export const elemIndicesLazy =
  *
  * # Examples
  *
- * ```ts
- * import { range, takeWhile, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const nums = range(1, 100);
  * const takeWhileSquared = takeWhile((x: number) => x * x <= 20)(nums);
- * expect(toArray(takeWhileSquared), [1, 2, 3).toStrictEqual(4]);
+ * expect(toArray(takeWhileSquared)).toStrictEqual([1, 2, 3, 4]);
  * ```
  */
 export const takeWhile =
@@ -1918,23 +1830,23 @@ export const takeWhile =
  *
  * # Examples
  *
- * ```ts
- * import { dropWhile, fromArray, toArray, toIterator } from "./list.js";
- * import { assertEquals } from "vitest";
- *
- * assertEquals([
+ * @example
+ * ```ts @import.meta.vitest
+ * expect([
  *     ...toIterator(
  *         dropWhile((x: number) => x < 3)(
  *             fromArray([1, 2, 3, 4, 5, 1, 2, 3]),
  *         ),
  *     ),
- * ], [3, 4, 5, 1, 2, 3]);
- * assertEquals(
+ * ]).toStrictEqual([3, 4, 5, 1, 2, 3]);
+ * expect(
  *     toArray(dropWhile((x: number) => x < 9)(fromArray([1, 2, 3]))),
+ * ).toStrictEqual(
  *     [],
  * );
- * assertEquals(
+ * expect(
  *     toArray(dropWhile((x: number) => x < 0)(fromArray([1, 2, 3]))),
+ * ).toStrictEqual(
  *     [1, 2, 3],
  * );
  * ```
@@ -1954,23 +1866,23 @@ export const dropWhile =
  *
  * # Examples
  *
- * ```ts
- * import { dropWhileEnd, fromArray, toArray, toIterator } from "./list.js";
- * import { assertEquals } from "vitest";
- *
- * assertEquals([
+ * @example
+ * ```ts @import.meta.vitest
+ * expect([
  *     ...toIterator(
  *         dropWhileEnd((x: number) => x < 3)(
  *             fromArray([1, 2, 3, 4, 5, 1, 2]),
  *         ),
  *     ),
- * ], [1, 2, 3, 4, 5]);
- * assertEquals(
+ * ]).toStrictEqual([1, 2, 3, 4, 5]);
+ * expect(
  *     toArray(dropWhileEnd((x: number) => x < 9)(fromArray([1, 2, 3]))),
+ * ).toStrictEqual(
  *     [],
  * );
- * assertEquals(
+ * expect(
  *     toArray(dropWhileEnd((x: number) => x < 0)(fromArray([1, 2, 3]))),
+ * ).toStrictEqual(
  *     [1, 2, 3],
  * );
  * ```
@@ -1990,26 +1902,24 @@ export const dropWhileEnd = <T>(
  *
  * # Examples
  *
- * ```ts
- * import { fromArray, span, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * {
  *     const [left, right] = span((x: number) => x < 3)(
  *         fromArray([1, 2, 3, 4, 1, 2, 3, 4]),
  *     );
- *     expect(toArray(left), [1).toStrictEqual(2]);
- *     expect(toArray(right), [3, 4, 1, 2, 3).toStrictEqual(4]);
+ *     expect(toArray(left)).toStrictEqual([1, 2]);
+ *     expect(toArray(right)).toStrictEqual([3, 4, 1, 2, 3, 4]);
  * }
  * {
  *     const [left, right] = span((x: number) => x < 9)(fromArray([1, 2, 3]));
- *     expect(toArray(left), [1, 2).toStrictEqual(3]);
+ *     expect(toArray(left)).toStrictEqual([1, 2, 3]);
  *     expect(toArray(right)).toStrictEqual([]);
  * }
  * {
  *     const [left, right] = span((x: number) => x < 0)(fromArray([1, 2, 3]));
  *     expect(toArray(left)).toStrictEqual([]);
- *     expect(toArray(right), [1, 2).toStrictEqual(3]);
+ *     expect(toArray(right)).toStrictEqual([1, 2, 3]);
  * }
  * ```
  */
@@ -2032,29 +1942,27 @@ export const span =
  *
  * # Examples
  *
- * ```ts
- * import { fromArray, spanNot, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * {
  *     const [left, right] = spanNot((x: number) => x > 3)(
  *         fromArray([1, 2, 3, 4, 1, 2, 3, 4]),
  *     );
- *     expect(toArray(left), [1, 2).toStrictEqual(3]);
- *     expect(toArray(right), [4, 1, 2, 3).toStrictEqual(4]);
+ *     expect(toArray(left)).toStrictEqual([1, 2, 3]);
+ *     expect(toArray(right)).toStrictEqual([4, 1, 2, 3, 4]);
  * }
  * {
  *     const [left, right] = spanNot((x: number) => x < 9)(
  *         fromArray([1, 2, 3]),
  *     );
  *     expect(toArray(left)).toStrictEqual([]);
- *     expect(toArray(right), [1, 2).toStrictEqual(3]);
+ *     expect(toArray(right)).toStrictEqual([1, 2, 3]);
  * }
  * {
  *     const [left, right] = spanNot((x: number) => x > 9)(
  *         fromArray([1, 2, 3]),
  *     );
- *     expect(toArray(left), [1, 2).toStrictEqual(3]);
+ *     expect(toArray(left)).toStrictEqual([1, 2, 3]);
  *     expect(toArray(right)).toStrictEqual([]);
  * }
  * ```
@@ -2073,12 +1981,8 @@ export const spanNot = <T>(
  *
  * # Examples
  *
- * ```ts
- * import { fromString, stripPrefix, toString } from "./list.js";
- * import * as Option from "./option.js";
- * import { assertEquals } from "vitest";
- * import { strict } from "./type-class/partial-eq.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const stripFoo = stripPrefix(strict<string>())(fromString("foo"));
  *
  * {
@@ -2133,15 +2037,11 @@ export const groupBy = <T>(
  *
  * # Examples
  *
- * ```ts
- * import { fromString, group, toArray, toString } from "./list.js";
- * import * as Option from "./option.js";
- * import { assertEquals } from "vitest";
- * import { strict } from "./type-class/partial-eq.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const grouped = toArray(group(strict<string>())(fromString("Mississippi")))
  *     .map((list) => toString(list));
- * expect(grouped, ["M", "i", "ss", "i", "ss", "i", "pp").toStrictEqual("i"]);
+ * expect(grouped).toStrictEqual(["M", "i", "ss", "i", "ss", "i", "pp", "i"]);
  * ```
  */
 export const group = <T>(
@@ -2172,13 +2072,10 @@ export const filter =
  *
  * # Examples
  *
- * ```ts
- * import { fromIterable, toArray, unique } from "./list.js";
- * import { assertEquals } from "vitest";
- * import { nonNanHash } from "./type-class/hash.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const uniqueNums = unique(nonNanHash)(fromIterable([1, 4, 2, 3, 5, 2, 3]));
- * expect(toArray(uniqueNums), [1, 4, 2, 3).toStrictEqual(5]);
+ * expect(toArray(uniqueNums)).toStrictEqual([1, 4, 2, 3, 5]);
  * ```
  */
 export const unique = <T>(hasher: Hash<T>): ((list: List<T>) => List<T>) => {
@@ -2274,13 +2171,11 @@ export const applyCartesian =
  *
  * # Examples
  *
- * ```ts
- * import { fromArray, fromString, choices, range, toArray } from "./list.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const choice = choices(fromArray([range(0, 3), range(3, 6)]));
  * const sequences = toArray(choice).map((seq) => toArray(seq));
- * assertEquals(sequences, [
+ * expect(sequences).toStrictEqual([
  *     [0, 3],
  *     [0, 4],
  *     [1, 3],

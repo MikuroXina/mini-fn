@@ -257,10 +257,9 @@ export const doVoidT = <M>(monad: Monad<M>): CatT<M, never[]> =>
  *
  * # Examples
  *
- * ```ts
- * import { monad as optionMonad, none, some } from "./option.js";
- * import { assertEquals } from "vitest";
- * import { doT } from "./cat.js";
+ * @example
+ * ```ts @import.meta.vitest
+ * const { monad: optionMonad, none, some } = await import("./option.js");
  *
  * const optionA = some(1);
  * const optionB = some(2);
@@ -272,13 +271,14 @@ export const doVoidT = <M>(monad: Monad<M>): CatT<M, never[]> =>
  *     .addWith("bSquared", ({ b }) => b * b)
  *     .addM("c", optionC);
  *
- * assertEquals(
+ * expect(
  *     computation
  *         .addMWith("cSqrt", ({ c }) => {
  *             const sqrt = Math.sqrt(c);
  *             return Number.isInteger(sqrt) ? some(sqrt) : none();
  *         })
  *         .finish(({ bSquared, cSqrt }) => bSquared + cSqrt),
+ * ).toStrictEqual(
  *     none(),
  * );
  *
@@ -331,10 +331,8 @@ export type Cat<T> = {
  *
  * # Examples
  *
- * ```ts
- * import { cat } from "./cat.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const result = cat(-3)
  *     .feed((x) => x ** 2)
  *     .feed((x) => x.toString());
@@ -383,10 +381,8 @@ export const ord: <T>(order: Ord<T>) => Ord<Cat<T>> =
  *
  * # Examples
  *
- * ```ts
- * import { cat, inspect } from "./cat.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const result = cat(-3)
  *     .feed(inspect((x) => expect(x).toStrictEqual(-3)))
  *     .feed((x) => x ** 2)
@@ -453,12 +449,10 @@ export const flatten = <T>(catCat: Cat<Cat<T>>): Cat<T> => catCat.value;
  *
  * # Examples
  *
- * ```ts
- * import { cat, product } from "./cat.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const actual = product(cat(5))(cat("foo")).value;
- * expect(actual, [5).toStrictEqual("foo"]);
+ * expect(actual).toStrictEqual([5, "foo"]);
  * ```
  */
 export const product =
@@ -474,10 +468,8 @@ export const product =
  *
  * # Examples
  *
- * ```ts
- * import { cat, map } from "./cat.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const actual = map((v: number) => v / 2)(cat(10)).value;
  * expect(actual).toStrictEqual(5);
  * ```
@@ -495,10 +487,8 @@ export const map =
  *
  * # Examples
  *
- * ```ts
- * import { Cat, cat, flatMap } from "./cat.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const sub = (num: number): Cat<string> =>
  *     cat(num).feed((x) => x.toString());
  * const actual = flatMap(sub)(cat(6)).value;
@@ -518,10 +508,8 @@ export const flatMap =
  *
  * # Examples
  *
- * ```ts
- * import { cat, apply } from "./cat.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const sub = cat((numeral: string) => parseInt(numeral, 10));
  * const actual = apply(sub)(cat("1024")).value;
  * expect(actual).toStrictEqual(1024);

@@ -94,11 +94,8 @@ export const askM = <R, S>(m: Monad<S>): Get1<S, Reader<R, R>> =>
  *
  * # Examples
  *
- * ```ts
- * import { ask, map, Reader, run } from "./reader.js";
- * import { cat } from "./cat.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * interface User {
  *     name: string;
  * }
@@ -109,12 +106,14 @@ export const askM = <R, S>(m: Monad<S>): Get1<S, Reader<R, R>> =>
  *         map((mes) => `<div class="message-box">${mes}</div>`),
  *     ).value;
  *
- * assertEquals(
+ * expect(
  *     run(box())({ name: "John" }),
+ * ).toStrictEqual(
  *     '<div class="message-box">Hello, John!</div>',
  * );
- * assertEquals(
+ * expect(
  *     run(box())({ name: "Alice" }),
+ * ).toStrictEqual(
  *     '<div class="message-box">Hello, Alice!</div>',
  * );
  * ```
@@ -130,12 +129,8 @@ export const ask = <R>(): Reader<R, R> => askM<R, IdentityHkt>(identityMonad);
  *
  * # Examples
  *
- * ```ts
- * import { ask, local, map, Reader, run } from "./reader.js";
- * import { cat } from "./cat.js";
- * import { assertEquals } from "vitest";
- * import { Option, some, mapOr, none } from "./option.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * interface User {
  *     name: string;
  *     id: string;

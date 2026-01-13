@@ -135,10 +135,8 @@ export const deep =
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromArray, size } from "./finger-tree.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const emptiness = empty;
  * const single = fromArray([3]);
  * const many = fromArray([2, 1, 8, 1, 8]);
@@ -401,11 +399,8 @@ export const appendBetween =
  *
  * # Examples
  *
- * ```ts
- * import { concat, empty, fromArray, reduceTree } from "./finger-tree.js";
- * import * as Array from "../array.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const toArray = Array.fromReduce(reduceTree);
  *
  * const emptiness = empty;
@@ -417,15 +412,15 @@ export const appendBetween =
  * expect(toArray(concat(emptiness)(single))).toStrictEqual([3]);
  * expect(toArray(concat(single)(emptiness))).toStrictEqual([3]);
  *
- * expect(toArray(concat(single)(single)), [3).toStrictEqual(3]);
+ * expect(toArray(concat(single)(single))).toStrictEqual([3, 3]);
  *
- * expect(toArray(concat(emptiness)(many)), [2, 1, 8, 2).toStrictEqual(8]);
- * expect(toArray(concat(many)(emptiness)), [2, 1, 8, 2).toStrictEqual(8]);
+ * expect(toArray(concat(emptiness)(many))).toStrictEqual([2, 1, 8, 2, 8]);
+ * expect(toArray(concat(many)(emptiness))).toStrictEqual([2, 1, 8, 2, 8]);
  *
- * expect(toArray(concat(single)(many)), [3, 2, 1, 8, 2).toStrictEqual(8]);
- * expect(toArray(concat(many)(single)), [2, 1, 8, 2, 8).toStrictEqual(3]);
+ * expect(toArray(concat(single)(many))).toStrictEqual([3, 2, 1, 8, 2, 8]);
+ * expect(toArray(concat(many)(single))).toStrictEqual([2, 1, 8, 2, 8, 3]);
  *
- * assertEquals(toArray(concat(many)(many)), [
+ * expect(toArray(concat(many)(many))).toStrictEqual([
  *     2,
  *     1,
  *     8,

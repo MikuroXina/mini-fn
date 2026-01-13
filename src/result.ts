@@ -160,10 +160,8 @@ export const err = <E>(e: E): Err<E> => [errSymbol, e];
  *
  * # Examples
  *
- * ```ts
- * import { err, isOk, ok } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(isOk(ok(-3))).toStrictEqual(true);
  * expect(isOk(err("Some error message"))).toStrictEqual(false);
  * ```
@@ -331,10 +329,8 @@ export const either =
  *
  * # Examples
  *
- * ```ts
- * import { err, flatten, ok } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(flatten(ok(ok("hello")))).toStrictEqual(ok("hello"));
  * expect(flatten(err(ok("hello")))).toStrictEqual(err(ok("hello")));
  * expect(flatten(ok(err(6)))).toStrictEqual(err(6));
@@ -352,10 +348,8 @@ export const flatten = <E, T>(resRes: Result<E, Result<E, T>>): Result<E, T> =>
  *
  * # Examples
  *
- * ```ts
- * import { err, mergeOkErr, ok } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(mergeOkErr(ok(3))).toStrictEqual(3);
  * expect(mergeOkErr(err(4))).toStrictEqual(4);
  * ```
@@ -370,12 +364,10 @@ export const mergeOkErr = <T>(res: Result<T, T>) => res[1];
  *
  * # Examples
  *
- * ```ts
- * import { err, ok, unwrap } from "./result.js";
- * import { assertEquals, assertThrows } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(unwrap(ok(3))).toStrictEqual(3);
- * assertThrows(() => unwrap(err(4)), "unwrapped Err");
+ * expect(() => unwrap(err(4))).toThrowError("unwrapped Err");
  * ```
  */
 export const unwrap = <E, T>(res: Result<E, T>): T => {
@@ -393,11 +385,9 @@ export const unwrap = <E, T>(res: Result<E, T>): T => {
  *
  * # Examples
  *
- * ```ts
- * import { err, ok, unwrapErr } from "./result.js";
- * import { assertEquals, assertThrows } from "vitest";
- *
- * assertThrows(() => unwrapErr(ok(3)), "unwrapped Ok");
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(() => unwrapErr(ok(3))).toThrowError("unwrapped Ok");
  * expect(unwrapErr(err(4))).toStrictEqual(4);
  * ```
  */
@@ -417,10 +407,8 @@ export const unwrapErr = <E, T>(res: Result<E, T>): E => {
  *
  * # Examples
  *
- * ```ts
- * import { and, err, ok } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const success = ok<number>(2);
  * const failure = err("not a 2");
  * const lateError = err("late error");
@@ -447,10 +435,8 @@ export const and =
  *
  * # Examples
  *
- * ```ts
- * import { andThen, err, ok, Result } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const sqrtThenToString = andThen(
  *     (num: number): Result<string, string> =>
  *         num < 0
@@ -488,10 +474,8 @@ export const asyncAndThen =
  *
  * # Examples
  *
- * ```ts
- * import { err, ok, or } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const success = ok<number>(2);
  * const failure = err<string>("not a 2");
  * const lateError = err<string>("late error");
@@ -518,10 +502,8 @@ export const or =
  *
  * # Examples
  *
- * ```ts
- * import { err, ok, orElse } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const sq = orElse((x: number) => ok<number>(x * x));
  * const residual = orElse((x: number) => err<number>(x));
 
@@ -544,11 +526,8 @@ export const orElse =
  *
  * # Examples
  *
- * ```ts
- * import { err, ok, optionOk, orElse } from "./result.js";
- * import { some, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(optionOk(ok(2))).toStrictEqual(some(2));
  * expect(optionOk(err("nothing left"))).toStrictEqual(none());
  * ```
@@ -564,11 +543,8 @@ export const optionOk = <E, T>(res: Result<E, T>): Option<T> =>
  *
  * # Examples
  *
- * ```ts
- * import { err, ok, optionErr } from "./result.js";
- * import { some, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(optionErr(ok(2))).toStrictEqual(none());
  * expect(optionErr(err("nothing left"))).toStrictEqual(some("nothing left"));
  * ```
@@ -584,10 +560,8 @@ export const optionErr = <E, T>(res: Result<E, T>): Option<E> =>
  *
  * # Examples
  *
- * ```ts
- * import { err, ok, toString } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(toString(ok(24))).toStrictEqual("ok(24)");
  * expect(toString(err("hoge"))).toStrictEqual("err(hoge)");
  * ```
@@ -603,10 +577,8 @@ export const toString = <E, T>(res: Result<E, T>): string =>
  *
  * # Examples
  *
- * ```ts
- * import { err, ok, toArray } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(toArray(ok(24))).toStrictEqual([24]);
  * expect(toArray(err("hoge"))).toStrictEqual([]);
  * ```
@@ -733,11 +705,8 @@ export const biMap =
  *
  * # Examples
  *
- * ```ts
- * import { err, ok, resOptToOptRes } from "./result.js";
- * import { some, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(resOptToOptRes(ok(some(5)))).toStrictEqual(some(ok(5)));
  * expect(resOptToOptRes(ok(none()))).toStrictEqual(none());
  * expect(resOptToOptRes(err("hoge"))).toStrictEqual(some(err("hoge")));

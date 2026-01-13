@@ -66,12 +66,8 @@ export const withContT =
  *
  * # Examples
  *
- * ```ts
- * import { Cont, callCC, flatMap, pure, runCont, when } from "./cont.js";
- * import { IdentityHkt, id } from "./identity.js";
- * import { cat } from "./cat.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const validateName =
  *     (name: string) =>
  *     (exit: (a: string) => Cont<string, never[]>): Cont<string, never[]> =>
@@ -85,7 +81,7 @@ export const withContT =
  *     );
  *     return runCont(cont)(id);
  * };
- * expect(whatYourName("Alice"), "Welcome).toStrictEqual(Alice!");
+ * expect(whatYourName("Alice")).toStrictEqual("Welcome, Alice!");
  * expect(whatYourName("")).toStrictEqual("expected at least 1 character");
  * ```
  */
@@ -169,10 +165,8 @@ export const runCont = <R, A>(cont: Cont<R, A>): ((fn: (a: A) => R) => R) =>
  *
  * # Examples
  *
- * ```ts
- * import { evalCont, pure } from "./cont.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const actual = evalCont<number>(pure(42));
  * expect(actual).toStrictEqual(42);
  * ```
@@ -184,10 +178,8 @@ export const evalCont: <R>(cont: Cont<R, R>) => R = evalContT(Identity.monad);
  *
  * # Examples
  *
- * ```ts
- * import { evalCont, mapCont, pure } from "./cont.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const actual = evalCont(mapCont((x: number) => x + 1)(pure(42)));
  * expect(actual).toStrictEqual(43);
  * ```
@@ -202,10 +194,8 @@ export const mapCont = <R>(
  *
  * # Examples
  *
- * ```ts
- * import { assertEquals } from "vitest";
- * import { runCont, withCont } from "./cont.js";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const cont = withCont((fn: (x: number) => boolean) => (a: string) =>
  *     fn(parseInt(a, 10))
  * )(

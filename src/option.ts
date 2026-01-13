@@ -101,10 +101,8 @@ export const fromPredicate =
  *
  * # Examples
  *
- * ```ts
- * import { some, none, isSome } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(isSome(some(2))).toStrictEqual(true);
  * expect(isSome(none())).toStrictEqual(false);
  * ```
@@ -120,10 +118,8 @@ export const isSome = <T>(opt: Option<T>): opt is Some<T> =>
  *
  * # Examples
  *
- * ```ts
- * import { some, none, isNone } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(isNone(some(2))).toStrictEqual(false);
  * expect(isNone(none())).toStrictEqual(true);
  * ```
@@ -138,10 +134,8 @@ export const isNone = <T>(opt: Option<T>): opt is None => opt[0] === noneSymbol;
  *
  * # Examples
  *
- * ```ts
- * import { some, none, toString } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(toString(some(2))).toStrictEqual("some(2)");
  * expect(toString(none())).toStrictEqual("none");
  * ```
@@ -157,10 +151,8 @@ export const toString = <T>(opt: Option<T>): string =>
  *
  * # Examples
  *
- * ```ts
- * import { some, none, toArray } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(toArray(some(2))).toStrictEqual([2]);
  * expect(toArray(none())).toStrictEqual([]);
  * ```
@@ -235,10 +227,8 @@ export const partialEqUnary: PartialEqUnary<OptionHkt> = {
  *
  * # Examples
  *
- * ```ts
- * import { flatten, some, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(flatten(some(some(6)))).toStrictEqual(some(6));
  * expect(flatten(some(none()))).toStrictEqual(none());
  * expect(flatten(none())).toStrictEqual(none());
@@ -273,10 +263,8 @@ export const unwrap = <T>(opt: Option<T>): T => {
  *
  * # Examples
  *
- * ```ts
- * import { and, some, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(and(none())(none())).toStrictEqual(none());
  * expect(and(none())(some(2))).toStrictEqual(none());
  * expect(and(some("foo"))(none())).toStrictEqual(none());
@@ -301,10 +289,8 @@ export const and =
  *
  * # Examples
  *
- * ```ts
- * import { andThen, Option, some, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const sqrtThenToString = (num: number): Option<string> =>
  *     0 <= num ? some(Math.sqrt(num).toString()) : none();
  *
@@ -332,10 +318,8 @@ export const andThen =
  *
  * # Examples
  *
- * ```ts
- * import { or, some, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(or(none())(none())).toStrictEqual(none());
  * expect(or(none())(some(2))).toStrictEqual(some(2));
  * expect(or(some(100))(none())).toStrictEqual(some(100));
@@ -360,10 +344,8 @@ export const or =
  *
  * # Examples
  *
- * ```ts
- * import { orElse, Option, some, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const nobody = orElse((): Option<string> => none());
  * const vikings = orElse((): Option<string> => some("vikings"));
  *
@@ -390,10 +372,8 @@ export const orElse =
  *
  * # Examples
  *
- * ```ts
- * import { some, none, xor } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(xor(none())(none())).toStrictEqual(none());
  * expect(xor(none())(some(2))).toStrictEqual(some(2));
  * expect(xor(some(100))(none())).toStrictEqual(some(100));
@@ -446,10 +426,8 @@ export const isNoneOr =
  *
  * # Examples
  *
- * ```ts
- * import { filter, some, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const isEven = filter((x: number) => x % 2 == 0);
  *
  * expect(isEven(none())).toStrictEqual(none());
@@ -477,11 +455,9 @@ export const filter =
  *
  * # Examples
  *
- * ```ts
- * import { some, none, zip } from "./option.js";
- * import { assertEquals } from "vitest";
- *
- * expect(zip(some(1))(some("hi")), some([1, "hi"] as [number).toStrictEqual(string]));
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(zip(some(1))(some("hi"))).toStrictEqual(some([1, "hi"] as [number, string]));
  * expect(zip(some(1))(none())).toStrictEqual(none());
  * expect(zip(none())(some(1))).toStrictEqual(none());
  * expect(zip(none())(none())).toStrictEqual(none());
@@ -504,15 +480,13 @@ export const zip =
  *
  * # Examples
  *
- * ```ts
- * import { some, none, unzip } from "./option.js";
- * import { assertEquals } from "vitest";
- *
- * expect(unzip(some([1).toStrictEqual("hi"])), [
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(unzip(some([1, "hi"]))).toStrictEqual([
  *     some(1),
  *     some("hi"),
  * ]);
- * assertEquals(unzip(none()), [
+ * expect(unzip(none())).toStrictEqual([
  *     none(),
  *     none(),
  * ]);
@@ -535,10 +509,8 @@ export const unzip = <T, U>(opt: Option<[T, U]>): [Option<T>, Option<U>] => {
  *
  * # Examples
  *
- * ```ts
- * import { some, none, zipWith } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * interface Point {
  *     x: number;
  *     y: number;
@@ -549,7 +521,7 @@ export const unzip = <T, U>(opt: Option<[T, U]>): [Option<T>, Option<U>] => {
  *     y,
  * }));
  *
- * expect(newPoint(some(17.5))(some(42.7)), some({ x: 17.5).toStrictEqual(y: 42.7 }));
+ * expect(newPoint(some(17.5))(some(42.7))).toStrictEqual(some({ x: 17.5, y: 42.7 }));
  * expect(newPoint(none())(none())).toStrictEqual(none());
  * ```
  */
@@ -572,10 +544,8 @@ export const zipWith =
  *
  * # Examples
  *
- * ```ts
- * import { some, none, unwrapOr } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const unwrapOrBike = unwrapOr("bike");
  *
  * expect(unwrapOrBike(some("car"))).toStrictEqual("car");
@@ -599,10 +569,8 @@ export const unwrapOr =
  *
  * # Examples
  *
- * ```ts
- * import { some, none, unwrapOrElse } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const unwrapOrCalc = unwrapOrElse(() => 6 ** 4);
  *
  * expect(unwrapOrCalc(some(4))).toStrictEqual(4);
@@ -626,10 +594,8 @@ export const unwrapOrElse =
  *
  * # Examples
  *
- * ```ts
- * import { some, map, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const strLen = map((str: string) => str.length);
  *
  * expect(strLen(some("Hello, World!"))).toStrictEqual(some(13));
@@ -655,10 +621,8 @@ export const map =
  *
  * # Examples
  *
- * ```ts
- * import { some, mapOr, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const strLenOrAnswer = mapOr(42)((str: string) => str.length);
  *
  * expect(strLenOrAnswer(some("Hello, World!"))).toStrictEqual(13);
@@ -685,10 +649,8 @@ export const mapOr =
  *
  * # Examples
  *
- * ```ts
- * import { some, mapOrElse, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const strLenOrCalc = mapOrElse(() => 6 ** 4)((str: string) => str.length);
  *
  * expect(strLenOrCalc(some("Hello, World!"))).toStrictEqual(13);
@@ -714,10 +676,8 @@ export const mapOrElse =
  *
  * # Examples
  *
- * ```ts
- * import { contains, some, none } from "./option.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const hasTwo = contains(2);
  *
  * expect(hasTwo(some(2))).toStrictEqual(true);
@@ -742,11 +702,8 @@ export const contains =
  *
  * # Examples
  *
- * ```ts
- * import { optResToResOpt, some, none } from "./option.js";
- * import { err, ok } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * expect(optResToResOpt(some(ok(5)))).toStrictEqual(ok(some(5)));
  * expect(optResToResOpt(none())).toStrictEqual(ok(none()));
  * expect(optResToResOpt(some(err(5)))).toStrictEqual(err(5));
@@ -773,11 +730,8 @@ export const optResToResOpt = <E, T>(
  *
  * # Examples
  *
- * ```ts
- * import { okOr, some, none } from "./option.js";
- * import { err, ok } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const orZero = okOr(0);
  *
  * expect(orZero(some("foo"))).toStrictEqual(ok("foo"));
@@ -798,11 +752,8 @@ export const okOr =
  *
  * # Examples
  *
- * ```ts
- * import { okOrElse, some, none } from "./option.js";
- * import { err, ok } from "./result.js";
- * import { assertEquals } from "vitest";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const orZero = okOrElse(() => 0);
  *
  * expect(orZero(some("foo"))).toStrictEqual(ok("foo"));
