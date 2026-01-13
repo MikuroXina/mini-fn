@@ -6,7 +6,7 @@ import {
     decU32Le,
     decU64Le,
     type Encoder,
-    encU32Le,
+    encF64Le,
     monadForDecoder,
     runCode,
     runDecoder,
@@ -25,8 +25,7 @@ export const nonNanHash: Hash<number> = {
         if (Number.isNaN(self)) {
             throw new Error("NaN is not allowed for this hash impl");
         }
-        // FIXME: Replace encU32Le with encF64Le
-        return hasher.write(runCode(encU32Le(self)));
+        return hasher.write(runCode(encF64Le(self)));
     },
 };
 export const fromEncoder =
