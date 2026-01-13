@@ -34,4 +34,4 @@ jobs:
                   report_type: test_results
 
             - name: Dry run publish
-              run: pnpm publish --dry-run
+              run: pnpm publish --dry-run --no-git-checks
