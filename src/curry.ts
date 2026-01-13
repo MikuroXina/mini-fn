@@ -1,14 +1,17 @@
-type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends
-    <T>() => T extends Y ? 1 : 2 ? true
-    : false;
+type Equal<X, Y> =
+    (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
+        ? true
+        : false;
 
 /**
  * Curried form of the function type `F`.
  */
 export type Curried<F> = F extends (...args: infer A) => infer R
-    ? Equal<F, () => R> extends true ? () => R
-    : A extends [infer A1, ...infer S] ? (arg: A1) => Curried<(...rest: S) => R>
-    : R
+    ? Equal<F, () => R> extends true
+        ? () => R
+        : A extends [infer A1, ...infer S]
+          ? (arg: A1) => Curried<(...rest: S) => R>
+          : R
     : never;
 
 /**
@@ -24,7 +27,8 @@ export function curry<F extends (...args: unknown[]) => unknown>(
         return (() => fn()) as Curried<F>;
     }
     const curried =
-        (target: F, ...argStack: unknown[]) => (newArg: unknown) => {
+        (target: F, ...argStack: unknown[]) =>
+        (newArg: unknown) => {
             const totalArgs = [...argStack, newArg];
             if (target.length <= totalArgs.length) {
                 return target(...totalArgs);

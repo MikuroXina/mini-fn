@@ -5,20 +5,20 @@
  * @packageDocumentation
  */
 
-import { doT } from "./cat.ts";
+import { doT } from "./cat.js";
 import {
+    type Mut,
+    type MutRef,
     mapMut,
     modifyMutRef,
     monad as mutMonad,
-    type Mut,
-    type MutRef,
     newMutRef,
     pureMut,
     readMutRef,
-} from "./mut.ts";
-import { none, type Option, some } from "./option.ts";
-import { isLe } from "./ordering.ts";
-import { type Ord, reversed } from "./type-class/ord.ts";
+} from "./mut.js";
+import { none, type Option, some } from "./option.js";
+import { isLe } from "./ordering.js";
+import { type Ord, reversed } from "./type-class/ord.js";
 
 export type BinaryHeapInner<T> = {
     /**
@@ -107,7 +107,7 @@ export const getMin = <S, T>(
     heap: MutRef<S, BinaryHeap<T>>,
 ): Mut<S, Option<T>> =>
     mapMut((heap: BinaryHeapInner<T>) =>
-        0 in heap.items ? some(heap.items[0]) : none()
+        0 in heap.items ? some(heap.items[0]) : none(),
     )(readMutRef(heap));
 
 /**
@@ -136,37 +136,41 @@ const parentOf = (index: number): number => Math.floor((index - 1) / 2);
 const leftChildOf = (index: number) => 2 * index + 1;
 const rightChildOf = (index: number) => 2 * index + 2;
 
-const upHeap = (target: number) => <T>(order: Ord<T>) => (items: T[]): void => {
-    while (true) {
-        const parent = parentOf(target);
-        if (
-            parent < 0 ||
-            isLe(order.cmp(items[parent]!, items[target]!))
-        ) {
-            return;
+const upHeap =
+    (target: number) =>
+    <T>(order: Ord<T>) =>
+    (items: T[]): void => {
+        while (true) {
+            const parent = parentOf(target);
+            if (parent < 0 || isLe(order.cmp(items[parent]!, items[target]!))) {
+                return;
+            }
+            const temp = items[parent]!;
+            items[parent] = items[target]!;
+            items[target] = temp;
+            target = parent;
         }
-        const temp = items[parent]!;
-        items[parent] = items[target]!;
-        items[target] = temp;
-        target = parent;
-    }
-};
+    };
 const downHeap =
-    (target: number) => <T>(order: Ord<T>) => (items: T[]): void => {
+    (target: number) =>
+    <T>(order: Ord<T>) =>
+    (items: T[]): void => {
         while (true) {
             const leftChild = leftChildOf(target);
             const rightChild = rightChildOf(target);
             if (
-                leftChild >= items.length || rightChild >= items.length ||
+                leftChild >= items.length ||
+                rightChild >= items.length ||
                 (isLe(order.cmp(items[target]!, items[leftChild]!)) &&
                     isLe(order.cmp(items[target]!, items[rightChild]!)))
             ) {
                 return;
             }
-            const swapTo =
-                isLe(order.cmp(items[leftChild]!, items[rightChild]!))
-                    ? leftChild
-                    : rightChild;
+            const swapTo = isLe(
+                order.cmp(items[leftChild]!, items[rightChild]!),
+            )
+                ? leftChild
+                : rightChild;
             const temp = items[swapTo]!;
             items[swapTo] = items[target]!;
             items[target] = temp;
@@ -182,7 +186,8 @@ const downHeap =
  * @returns The inserted new heap.
  */
 export const insert =
-    <T>(item: T) => <S>(heap: MutRef<S, BinaryHeap<T>>): Mut<S, never[]> =>
+    <T>(item: T) =>
+    <S>(heap: MutRef<S, BinaryHeap<T>>): Mut<S, never[]> =>
         modifyMutRef(heap)((heap) => {
             heap.items.push(item);
             upHeap(heap.items.length - 1)(heap.order)(heap.items);
@@ -220,7 +225,8 @@ export const popMin = <S, T>(
  * @returns The removed item, or none if empty.
  */
 export const popMinAndInsert =
-    <T>(item: T) => <S>(heap: MutRef<S, BinaryHeap<T>>): Mut<S, Option<T>> =>
+    <T>(item: T) =>
+    <S>(heap: MutRef<S, BinaryHeap<T>>): Mut<S, Option<T>> =>
         doT(mutMonad<S>())
             .addM("inner", readMutRef(heap))
             .addM("wasEmpty", isEmpty(heap))

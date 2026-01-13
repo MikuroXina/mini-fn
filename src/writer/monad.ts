@@ -1,15 +1,19 @@
-import type { Get1 } from "../hkt.ts";
-import type { Monad } from "../type-class/monad.ts";
-import type { Monoid } from "../type-class/monoid.ts";
+import type { Get1 } from "../hkt.js";
+import type { Monad } from "../type-class/monad.js";
+import type { Monoid } from "../type-class/monoid.js";
 
-export type MonadWriter<W, M> = Monoid<W> & Monad<M> & {
-    readonly tell: (output: W) => Get1<M, never[]>;
-    readonly listen: <A>(action: Get1<M, A>) => Get1<M, [A, W]>;
-    readonly pass: <A>(action: Get1<M, [A, (output: W) => W]>) => Get1<M, A>;
-};
+export type MonadWriter<W, M> = Monoid<W> &
+    Monad<M> & {
+        readonly tell: (output: W) => Get1<M, never[]>;
+        readonly listen: <A>(action: Get1<M, A>) => Get1<M, [A, W]>;
+        readonly pass: <A>(
+            action: Get1<M, [A, (output: W) => W]>,
+        ) => Get1<M, A>;
+    };
 
 export const writer =
-    <W, M>(mw: MonadWriter<W, M>) => <A>([a, w]: readonly [A, W]): Get1<M, A> =>
+    <W, M>(mw: MonadWriter<W, M>) =>
+    <A>([a, w]: readonly [A, W]): Get1<M, A> =>
         mw.flatMap<never[], A>(() => mw.pure(a))(mw.tell(w));
 
 export const listens =

@@ -10,34 +10,34 @@ import {
     isBreak,
     newBreak,
     newContinue,
-} from "./control-flow.ts";
-import * as Coyoneda from "./coyoneda.ts";
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.ts";
-import * as Option from "./option.ts";
-import type { Ordering } from "./ordering.ts";
-import * as Result from "./result.ts";
-import type { Tuple } from "./tuple.ts";
-import type { Applicative } from "./type-class/applicative.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
+} from "./control-flow.js";
+import * as Coyoneda from "./coyoneda.js";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
+import * as Option from "./option.js";
+import type { Ordering } from "./ordering.js";
+import * as Result from "./result.js";
+import type { Tuple } from "./tuple.js";
+import type { Applicative } from "./type-class/applicative.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
 import {
     type Foldable,
     foldL as foldableFoldL,
     foldMap as foldableFoldMap,
-} from "./type-class/foldable.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { MonadRec } from "./type-class/monad-rec.ts";
-import { kleisli, type Monad } from "./type-class/monad.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import type { Nt } from "./type-class/nt.ts";
-import { fromCmp, type Ord } from "./type-class/ord.ts";
+} from "./type-class/foldable.js";
+import type { Functor } from "./type-class/functor.js";
+import { kleisli, type Monad } from "./type-class/monad.js";
+import type { MonadRec } from "./type-class/monad-rec.js";
+import type { Monoid } from "./type-class/monoid.js";
+import type { Nt } from "./type-class/nt.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
 import {
     fromPartialEquality,
     type PartialEq,
     type PartialEqUnary,
-} from "./type-class/partial-eq.ts";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
-import type { Pure } from "./type-class/pure.ts";
-import type { Traversable } from "./type-class/traversable.ts";
+} from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
+import type { Pure } from "./type-class/pure.js";
+import type { Traversable } from "./type-class/traversable.js";
 
 const returnNominal = Symbol("FreePure");
 /**
@@ -80,12 +80,13 @@ export const partialEqUnary = <F>(
 ): PartialEqUnary<Apply2Only<FreeHkt, F>> => ({
     liftEq: <L, R = L>(
         equality: (l: L, r: R) => boolean,
-    ): (l: Free<F, L>, r: Free<F, R>) => boolean => {
+    ): ((l: Free<F, L>, r: Free<F, R>) => boolean) => {
         const self = (l: Free<F, L>, r: Free<F, R>): boolean =>
             isReturn(l) && isReturn(r)
                 ? equality(l[1], r[1])
-                : isBind(l) && isBind(r) &&
-                    Coyoneda.partialEqUnary(eqUnary).liftEq(self)(l[1], r[1]);
+                : isBind(l) &&
+                  isBind(r) &&
+                  Coyoneda.partialEqUnary(eqUnary).liftEq(self)(l[1], r[1]);
         return self;
     },
 });
@@ -93,15 +94,16 @@ export const partialEqUnary = <F>(
 /**
  * Wraps a `Free` item on `F` into a new `Free`.
  */
-export const wrap = <F, T>(
-    f: Get1<F, Free<F, T>>,
-): Free<F, T> => newBind(Coyoneda.lift(f));
+export const wrap = <F, T>(f: Get1<F, Free<F, T>>): Free<F, T> =>
+    newBind(Coyoneda.lift(f));
 
 /**
  * It is equivalent to `Free.wrap(p.pure(f))`.
  */
-export const suspendF = <F>(p: Pure<F>) => <T>(f: Free<F, T>): Free<F, T> =>
-    wrap(p.pure(f));
+export const suspendF =
+    <F>(p: Pure<F>) =>
+    <T>(f: Free<F, T>): Free<F, T> =>
+        wrap(p.pure(f));
 
 /**
  * Substitute the kind `F` of `Free<F, _>` with `G` by a natural transformation from `F` to `G`.
@@ -112,12 +114,15 @@ export const suspendF = <F>(p: Pure<F>) => <T>(f: Free<F, T>): Free<F, T> =>
  */
 export const substFree = <F, G>(
     nat: Nt<F, Apply2Only<FreeHkt, G>>,
-): <T>(f: Free<F, T>) => Free<G, T> => {
+): (<T>(f: Free<F, T>) => Free<G, T>) => {
     const go = <T>(f: Free<F, T>): Free<G, T> =>
-        isReturn(f) ? pure(f[1]) : Coyoneda.unCoyoneda(
-            <X>(mapper: (shape: X) => Free<F, T>) => (image: Get1<F, X>) =>
-                flatMap((x: X) => go(mapper(x)))(nat.nt(image)),
-        )(f[1]);
+        isReturn(f)
+            ? pure(f[1])
+            : Coyoneda.unCoyoneda(
+                  <X>(mapper: (shape: X) => Free<F, T>) =>
+                      (image: Get1<F, X>) =>
+                          flatMap((x: X) => go(mapper(x)))(nat.nt(image)),
+              )(f[1]);
     return go;
 };
 
@@ -148,21 +153,18 @@ export const runFree =
  * @param fr - A list of tokens to be run.
  * @returns The execution result on `M`.
  */
-export const runFreeM = <F>(functor: Functor<F>) =>
-<M>(m: MonadRec<M>) =>
-<T>(
-    runner: (token: Get1<F, Free<F, T>>) => Get1<M, Free<F, T>>,
-): (fr: Free<F, T>) => Get1<M, T> =>
-    m.tailRecM(
-        (fr: Free<F, T>): Get1<M, ControlFlow<T, Free<F, T>>> => {
+export const runFreeM =
+    <F>(functor: Functor<F>) =>
+    <M>(m: MonadRec<M>) =>
+    <T>(
+        runner: (token: Get1<F, Free<F, T>>) => Get1<M, Free<F, T>>,
+    ): ((fr: Free<F, T>) => Get1<M, T>) =>
+        m.tailRecM((fr: Free<F, T>): Get1<M, ControlFlow<T, Free<F, T>>> => {
             if (isReturn(fr)) {
                 return m.map(newBreak)(m.pure(fr[1]));
             }
-            return m.map(newContinue)(
-                runner(Coyoneda.lower(functor)(fr[1])),
-            );
-        },
-    );
+            return m.map(newContinue)(runner(Coyoneda.lower(functor)(fr[1])));
+        });
 
 /**
  * Converts a `Free` into a function of continuation passing style.
@@ -172,15 +174,16 @@ export const runFreeM = <F>(functor: Functor<F>) =>
  * @param data - A `Free` item to be converted.
  * @returns The continuation result of given functions.
  */
-export const intoCont = <F, T, R>(
-    onBind: <S>(next: (s: S) => Free<F, T>) => (data: Get1<F, S>) => R,
-) =>
-(onReturn: (t: T) => R) =>
-(data: Free<F, T>): R => {
-    return isReturn(data)
-        ? onReturn(data[1])
-        : Coyoneda.unCoyoneda(onBind)(data[1]);
-};
+export const intoCont =
+    <F, T, R>(
+        onBind: <S>(next: (s: S) => Free<F, T>) => (data: Get1<F, S>) => R,
+    ) =>
+    (onReturn: (t: T) => R) =>
+    (data: Free<F, T>): R => {
+        return isReturn(data)
+            ? onReturn(data[1])
+            : Coyoneda.unCoyoneda(onBind)(data[1]);
+    };
 /**
  * Converts a `Free` into a `Result` value. A `Return` will be mapped to an `Err` and a `Bind` will be mapped to an `Ok`.
  *
@@ -192,11 +195,9 @@ export const intoResult =
     <F>(functor: Functor<F>) =>
     <T>(f: Free<F, T>): Result.Result<T, Get1<F, Free<F, T>>> =>
         intoCont(
-            <S>(
-                next: (t: S) => Free<F, T>,
-            ) =>
-            (data: Get1<F, S>): Result.Result<T, Get1<F, Free<F, T>>> =>
-                Result.ok(functor.map(next)(data)),
+            <S>(next: (t: S) => Free<F, T>) =>
+                (data: Get1<F, S>): Result.Result<T, Get1<F, Free<F, T>>> =>
+                    Result.ok(functor.map(next)(data)),
         )(Result.err)(f);
 
 /**
@@ -204,16 +205,19 @@ export const intoResult =
  */
 export const pure = <F, T>(item: T): Free<F, T> => newReturn(item);
 
-export const map = <T, U>(fn: (t: T) => U) => <F>(f: Free<F, T>): Free<F, U> =>
-    flatMap((t: T): Free<F, U> => pure(fn(t)))(f);
+export const map =
+    <T, U>(fn: (t: T) => U) =>
+    <F>(f: Free<F, T>): Free<F, U> =>
+        flatMap((t: T): Free<F, U> => pure(fn(t)))(f);
 
 export const apply =
-    <F, T, U>(fn: Free<F, (t: T) => U>) => (f: Free<F, T>): Free<F, U> =>
+    <F, T, U>(fn: Free<F, (t: T) => U>) =>
+    (f: Free<F, T>): Free<F, U> =>
         flatMap((fn: (t: T) => U) => map(fn)(f))(fn);
 
 export const flatMap = <F, T, U>(
     fn: (t: T) => Free<F, U>,
-): (f: Free<F, T>) => Free<F, U> => {
+): ((f: Free<F, T>) => Free<F, U>) => {
     const go = (f: Free<F, T>): Free<F, U> => {
         if (isReturn(f)) {
             return fn(f[1]);
@@ -229,38 +233,47 @@ export const flatten = <F, T>(nested: Free<F, Free<F, T>>): Free<F, T> =>
 export const tailRecM =
     <F, B, C>(stepper: (state: C) => Free<F, ControlFlow<B, C>>) =>
     (state: C): Free<F, B> =>
-        flatMap((flow: ControlFlow<B, C>): Free<F, B> =>
-            isBreak(flow) ? pure(flow[1]) : tailRecM(stepper)(flow[1])
+        flatMap(
+            (flow: ControlFlow<B, C>): Free<F, B> =>
+                isBreak(flow) ? pure(flow[1]) : tailRecM(stepper)(flow[1]),
         )(stepper(state));
 
-export const foldR = <F>(f: Foldable<F> & Functor<F>) =>
-<A, B>(
-    folder: (next: A) => (acc: B) => B,
-): (init: B) => (data: Free<F, A>) => B => {
-    const go = (init: B) => (data: Free<F, A>): B =>
-        Result.mapOrElse((ok: A) => folder(ok)(init))(
-            f.foldR((next: Free<F, A>) => (acc: B) => go(acc)(next))(init),
-        )(intoResult(f)(data));
-    return go;
-};
+export const foldR =
+    <F>(f: Foldable<F> & Functor<F>) =>
+    <A, B>(
+        folder: (next: A) => (acc: B) => B,
+    ): ((init: B) => (data: Free<F, A>) => B) => {
+        const go =
+            (init: B) =>
+            (data: Free<F, A>): B =>
+                Result.mapOrElse((ok: A) => folder(ok)(init))(
+                    f.foldR((next: Free<F, A>) => (acc: B) => go(acc)(next))(
+                        init,
+                    ),
+                )(intoResult(f)(data));
+        return go;
+    };
 
-export const foldL = <F>(f: Foldable<F> & Functor<F>) =>
-<A, B>(
-    folder: (acc: B) => (next: A) => B,
-): (init: B) => (data: Free<F, A>) => B => {
-    const go = (init: B) => (data: Free<F, A>): B =>
-        Result.mapOrElse(folder(init))(
-            foldableFoldL(f)((acc: B) => (next: Free<F, A>) => go(acc)(next))(
-                init,
-            ),
-        )(intoResult(f)(data));
-    return go;
-};
+export const foldL =
+    <F>(f: Foldable<F> & Functor<F>) =>
+    <A, B>(
+        folder: (acc: B) => (next: A) => B,
+    ): ((init: B) => (data: Free<F, A>) => B) => {
+        const go =
+            (init: B) =>
+            (data: Free<F, A>): B =>
+                Result.mapOrElse(folder(init))(
+                    foldableFoldL(f)(
+                        (acc: B) => (next: Free<F, A>) => go(acc)(next),
+                    )(init),
+                )(intoResult(f)(data));
+        return go;
+    };
 
 export const foldMap =
     <F>(f: Foldable<F> & Functor<F>) =>
     <M>(monoid: Monoid<M>) =>
-    <T>(mapper: (t: T) => M): (data: Free<F, T>) => M => {
+    <T>(mapper: (t: T) => M): ((data: Free<F, T>) => M) => {
         const go = (data: Free<F, T>): M =>
             Result.mapOrElse(mapper)(
                 foldableFoldMap<F, Free<F, T>, M>(f, monoid)(go),
@@ -268,39 +281,39 @@ export const foldMap =
         return go;
     };
 
-export const traverse = <F>(
-    app: Traversable<F> & Applicative<F>,
-) =>
-<A, B>(
-    visitor: (a: A) => Get1<F, B>,
-): (data: Free<F, A>) => Get1<F, Free<F, B>> => {
-    const go = (data: Free<F, A>): Get1<F, Free<F, B>> =>
-        Result.mapOrElse((a: A): Get1<F, Free<F, B>> =>
-            app.map(pure)(visitor(a))
-        )((fa: Get1<F, Free<F, A>>) =>
-            app.map((a: Get1<F, Free<F, B>>) => flatten(liftF(a)))(
-                app.traverse(app)(go)(fa),
-            )
-        )(intoResult(app)(data));
-    return go;
-};
+export const traverse =
+    <F>(app: Traversable<F> & Applicative<F>) =>
+    <A, B>(
+        visitor: (a: A) => Get1<F, B>,
+    ): ((data: Free<F, A>) => Get1<F, Free<F, B>>) => {
+        const go = (data: Free<F, A>): Get1<F, Free<F, B>> =>
+            Result.mapOrElse(
+                (a: A): Get1<F, Free<F, B>> => app.map(pure)(visitor(a)),
+            )((fa: Get1<F, Free<F, A>>) =>
+                app.map((a: Get1<F, Free<F, B>>) => flatten(liftF(a)))(
+                    app.traverse(app)(go)(fa),
+                ),
+            )(intoResult(app)(data));
+        return go;
+    };
 
-export const partialEquality = <F, A>({
-    equalityA,
-    equalityFA,
-    functor,
-}: {
-    equalityA: PartialEq<A>;
-    equalityFA: <T>(equality: PartialEq<T>) => PartialEq<Get1<F, T>>;
-    functor: Functor<F>;
-}) =>
-(l: Free<F, A>, r: Free<F, A>): boolean =>
-    Result.partialEquality({
-        equalityE: equalityA,
-        equalityT: equalityFA<Free<F, A>>(
-            partialEq({ equalityA, equalityFA, functor }),
-        ),
-    })(intoResult(functor)(l), intoResult(functor)(r));
+export const partialEquality =
+    <F, A>({
+        equalityA,
+        equalityFA,
+        functor,
+    }: {
+        equalityA: PartialEq<A>;
+        equalityFA: <T>(equality: PartialEq<T>) => PartialEq<Get1<F, T>>;
+        functor: Functor<F>;
+    }) =>
+    (l: Free<F, A>, r: Free<F, A>): boolean =>
+        Result.partialEquality({
+            equalityE: equalityA,
+            equalityT: equalityFA<Free<F, A>>(
+                partialEq({ equalityA, equalityFA, functor }),
+            ),
+        })(intoResult(functor)(l), intoResult(functor)(r));
 export const partialEq: <F, A>({
     equalityA,
     equalityFA,
@@ -310,22 +323,23 @@ export const partialEq: <F, A>({
     equalityFA: <T>(equality: PartialEq<T>) => PartialEq<Get1<F, T>>;
     functor: Functor<F>;
 }) => PartialEq<Free<F, A>> = fromPartialEquality(partialEquality);
-export const equality = <F, A>({
-    equalityA,
-    equalityFA,
-    functor,
-}: {
-    equalityA: Eq<A>;
-    equalityFA: <T>(equality: Eq<T>) => Eq<Get1<F, T>>;
-    functor: Functor<F>;
-}) =>
-(l: Free<F, A>, r: Free<F, A>): boolean =>
-    Result.equality({
-        equalityE: equalityA,
-        equalityT: equalityFA<Free<F, A>>(
-            eq({ equalityA, equalityFA, functor }),
-        ),
-    })(intoResult(functor)(l), intoResult(functor)(r));
+export const equality =
+    <F, A>({
+        equalityA,
+        equalityFA,
+        functor,
+    }: {
+        equalityA: Eq<A>;
+        equalityFA: <T>(equality: Eq<T>) => Eq<Get1<F, T>>;
+        functor: Functor<F>;
+    }) =>
+    (l: Free<F, A>, r: Free<F, A>): boolean =>
+        Result.equality({
+            equalityE: equalityA,
+            equalityT: equalityFA<Free<F, A>>(
+                eq({ equalityA, equalityFA, functor }),
+            ),
+        })(intoResult(functor)(l), intoResult(functor)(r));
 export const eq: <F, A>({
     equalityA,
     equalityFA,
@@ -335,22 +349,23 @@ export const eq: <F, A>({
     equalityFA: <T>(equality: Eq<T>) => Eq<Get1<F, T>>;
     functor: Functor<F>;
 }) => Eq<Free<F, A>> = fromEquality(equality);
-export const partialCmp = <F, A>({
-    orderA,
-    orderFA,
-    functor,
-}: {
-    orderA: PartialOrd<A>;
-    orderFA: <T>(order: PartialOrd<T>) => PartialOrd<Get1<F, T>>;
-    functor: Functor<F>;
-}) =>
-(l: Free<F, A>, r: Free<F, A>): Option.Option<Ordering> =>
-    Result.partialCmp({
-        orderE: orderA,
-        orderT: orderFA<Free<F, A>>(
-            partialOrd({ orderA, orderFA, functor }),
-        ),
-    })(intoResult(functor)(l), intoResult(functor)(r));
+export const partialCmp =
+    <F, A>({
+        orderA,
+        orderFA,
+        functor,
+    }: {
+        orderA: PartialOrd<A>;
+        orderFA: <T>(order: PartialOrd<T>) => PartialOrd<Get1<F, T>>;
+        functor: Functor<F>;
+    }) =>
+    (l: Free<F, A>, r: Free<F, A>): Option.Option<Ordering> =>
+        Result.partialCmp({
+            orderE: orderA,
+            orderT: orderFA<Free<F, A>>(
+                partialOrd({ orderA, orderFA, functor }),
+            ),
+        })(intoResult(functor)(l), intoResult(functor)(r));
 export const partialOrd: <F, A>({
     orderA,
     orderFA,
@@ -360,22 +375,21 @@ export const partialOrd: <F, A>({
     orderFA: <T>(order: PartialOrd<T>) => PartialOrd<Get1<F, T>>;
     functor: Functor<F>;
 }) => PartialOrd<Free<F, A>> = fromPartialCmp(partialCmp);
-export const cmp = <F, A>({
-    orderA,
-    orderFA,
-    functor,
-}: {
-    orderA: Ord<A>;
-    orderFA: <T>(order: Ord<T>) => Ord<Get1<F, T>>;
-    functor: Functor<F>;
-}) =>
-(l: Free<F, A>, r: Free<F, A>): Ordering =>
-    Result.cmp({
-        orderE: orderA,
-        orderT: orderFA<Free<F, A>>(
-            ord({ orderA, orderFA, functor }),
-        ),
-    })(intoResult(functor)(l), intoResult(functor)(r));
+export const cmp =
+    <F, A>({
+        orderA,
+        orderFA,
+        functor,
+    }: {
+        orderA: Ord<A>;
+        orderFA: <T>(order: Ord<T>) => Ord<Get1<F, T>>;
+        functor: Functor<F>;
+    }) =>
+    (l: Free<F, A>, r: Free<F, A>): Ordering =>
+        Result.cmp({
+            orderE: orderA,
+            orderT: orderFA<Free<F, A>>(ord({ orderA, orderFA, functor })),
+        })(intoResult(functor)(l), intoResult(functor)(r));
 export const ord: <F, A>({
     orderA,
     orderFA,
@@ -394,7 +408,8 @@ export const ord: <F, A>({
  * @returns The reduction of `F`.
  */
 export const retract =
-    <F>(monad: Monad<F>) => <T>(fr: Free<F, T>): Get1<F, T> => {
+    <F>(monad: Monad<F>) =>
+    <T>(fr: Free<F, T>): Get1<F, T> => {
         if (isReturn(fr)) {
             return monad.pure(fr[1]);
         }
@@ -474,7 +489,7 @@ export const iterM =
  */
 export const hoistFree = <F, G>(
     nat: Nt<F, G>,
-): <T>(fr: Free<F, T>) => Free<G, T> =>
+): (<T>(fr: Free<F, T>) => Free<G, T>) =>
     substFree({ nt: <T>(ft: Get1<F, T>): Free<G, T> => liftF(nat.nt(ft)) });
 
 /**
@@ -486,7 +501,8 @@ export const hoistFree = <F, G>(
  * @returns The product of two `Free`s.
  */
 export const productT =
-    <F, A>(a: Free<F, A>) => <B>(b: Free<F, B>): Free<F, Tuple<A, B>> =>
+    <F, A>(a: Free<F, A>) =>
+    <B>(b: Free<F, B>): Free<F, Tuple<A, B>> =>
         flatMap((a: A) => map((b: B): Tuple<A, B> => [a, b])(b))(a);
 
 /**
@@ -497,24 +513,23 @@ export const productT =
  * @param ft - A `Free` instance.
  * @returns The folded value contained by `M`.
  */
-export const foldFree = <M>(m: MonadRec<M>) =>
-<F>(
-    nat: Nt<F, M>,
-): Nt<Apply2Only<FreeHkt, F>, M> => ({
-    nt: <T>(ft: Free<F, T>): Get1<M, T> =>
-        m.tailRecM<T, Free<F, T>>(
-            (f: Free<F, T>): Get1<M, ControlFlow<T, Free<F, T>>> => {
-                if (isReturn(f)) {
-                    return m.map(newBreak<T>)(m.pure(f[1]));
-                }
-                return Coyoneda.lower(m)(
-                    Coyoneda.hoist(nat.nt)(
-                        Coyoneda.map(newContinue<Free<F, T>>)(f[1]),
-                    ),
-                );
-            },
-        )(ft),
-});
+export const foldFree =
+    <M>(m: MonadRec<M>) =>
+    <F>(nat: Nt<F, M>): Nt<Apply2Only<FreeHkt, F>, M> => ({
+        nt: <T>(ft: Free<F, T>): Get1<M, T> =>
+            m.tailRecM<T, Free<F, T>>(
+                (f: Free<F, T>): Get1<M, ControlFlow<T, Free<F, T>>> => {
+                    if (isReturn(f)) {
+                        return m.map(newBreak<T>)(m.pure(f[1]));
+                    }
+                    return Coyoneda.lower(m)(
+                        Coyoneda.hoist(nat.nt)(
+                            Coyoneda.map(newContinue<Free<F, T>>)(f[1]),
+                        ),
+                    );
+                },
+            )(ft),
+    });
 
 /**
  * Lifts up the item into a `Free`.
@@ -522,9 +537,8 @@ export const foldFree = <M>(m: MonadRec<M>) =>
  * @param ft - A `F` instance to be lifted.
  * @returns The new `Free`.
  */
-export const liftF = <F, T>(
-    ft: Get1<F, T>,
-): Free<F, T> => newBind(Coyoneda.coyoneda(pure<F, T>)(ft));
+export const liftF = <F, T>(ft: Get1<F, T>): Free<F, T> =>
+    newBind(Coyoneda.coyoneda(pure<F, T>)(ft));
 
 /**
  * Cuts off the tree of computations at n-th index. If `n` is zero or less, the empty operation will be returned.
@@ -564,7 +578,7 @@ export const unfold =
     <A, B>(fn: (b: B) => Result.Result<A, Get1<F, B>>) =>
     (seed: B): Free<F, A> =>
         Result.either((a: A): Free<F, A> => pure(a))((fb: Get1<F, B>) =>
-            wrap(functor.map(unfold(functor)(fn))(fb))
+            wrap(functor.map(unfold(functor)(fn))(fb)),
         )(fn(seed));
 /**
  * Unfolds into a `Free` from `seed` with monad `M`.
@@ -579,15 +593,16 @@ export const unfoldM =
     <F, M>(traversable: Traversable<F>, monad: Monad<M>) =>
     <A, B>(
         f: (b: B) => Get1<M, Result.Result<A, Get1<F, B>>>,
-    ): (b: B) => Get1<M, Free<F, A>> =>
+    ): ((b: B) => Get1<M, Free<F, A>>) =>
         kleisli(monad)(f)(
-            Result.either((a: A): Get1<M, Free<F, A>> => monad.pure(pure(a)))((
-                fb,
-            ) => monad.map(wrap)(
-                traversable.traverse(monad)(unfoldM(traversable, monad)(f))(
-                    fb,
-                ),
-            )),
+            Result.either((a: A): Get1<M, Free<F, A>> => monad.pure(pure(a)))(
+                (fb) =>
+                    monad.map(wrap)(
+                        traversable.traverse(monad)(
+                            unfoldM(traversable, monad)(f),
+                        )(fb),
+                    ),
+            ),
         );
 
 export interface FreeHkt extends Hkt2 {

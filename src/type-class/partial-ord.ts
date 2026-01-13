@@ -1,10 +1,10 @@
-import type { Get1, Hkt1 } from "../hkt.ts";
-import { flatMap, map, mapOr, type Option, some } from "../option.ts";
-import { and, equal, isEq, type Ordering } from "../ordering.ts";
-import type { Monoid } from "./monoid.ts";
-import type { PartialEq } from "./partial-eq.ts";
-import { semiGroupSymbol } from "./semi-group.ts";
-import type { Contravariant } from "./variance.ts";
+import type { Get1, Hkt1 } from "../hkt.js";
+import { flatMap, map, mapOr, type Option, some } from "../option.js";
+import { and, equal, isEq, type Ordering } from "../ordering.js";
+import type { Monoid } from "./monoid.js";
+import type { PartialEq } from "./partial-eq.js";
+import { semiGroupSymbol } from "./semi-group.js";
+import type { Contravariant } from "./variance.js";
 
 /**
  * All instances of `PartialOrd` must satisfy following conditions:
@@ -15,14 +15,15 @@ export type PartialOrd<Lhs, Rhs = Lhs> = PartialEq<Lhs, Rhs> & {
     readonly partialCmp: (lhs: Lhs, rhs: Rhs) => Option<Ordering>;
 };
 
-export const fromPartialCmp = <Lhs, Rhs, X = void>(
-    partialCmp: (x: X) => (lhs: Lhs, rhs: Rhs) => Option<Ordering>,
-) =>
-(x: X): PartialOrd<Lhs, Rhs> => ({
-    partialCmp: partialCmp(x),
-    eq: (l, r) =>
-        mapOr(false)((order: Ordering) => isEq(order))(partialCmp(x)(l, r)),
-});
+export const fromPartialCmp =
+    <Lhs, Rhs, X = void>(
+        partialCmp: (x: X) => (lhs: Lhs, rhs: Rhs) => Option<Ordering>,
+    ) =>
+    (x: X): PartialOrd<Lhs, Rhs> => ({
+        partialCmp: partialCmp(x),
+        eq: (l, r) =>
+            mapOr(false)((order: Ordering) => isEq(order))(partialCmp(x)(l, r)),
+    });
 
 export const fromProjection =
     <F>(projection: <X>(structure: Get1<F, X>) => X) =>
@@ -36,12 +37,16 @@ export interface PartialOrdHkt extends Hkt1 {
 }
 
 export const contravariant: Contravariant<PartialOrdHkt> = {
-    contraMap: <T1, U1>(f: (t1: T1) => U1) => (ord: PartialOrd<U1>) =>
-        fromPartialCmp(() => (l: T1, r: T1) => ord.partialCmp(f(l), f(r)))(),
+    contraMap:
+        <T1, U1>(f: (t1: T1) => U1) =>
+        (ord: PartialOrd<U1>) =>
+            fromPartialCmp(
+                () => (l: T1, r: T1) => ord.partialCmp(f(l), f(r)),
+            )(),
 };
 
-export const identity: PartialOrd<unknown> = fromPartialCmp(() => () =>
-    some(equal)
+export const identity: PartialOrd<unknown> = fromPartialCmp(
+    () => () => some(equal),
 )();
 
 export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
@@ -50,7 +55,7 @@ export const monoid = <Lhs, Rhs>(): Monoid<PartialOrd<Lhs, Rhs>> => ({
             flatMap((first: Ordering) =>
                 map((second: Ordering) => and(second)(first))(
                     y.partialCmp(l, r),
-                )
+                ),
             )(x.partialCmp(l, r)),
         eq: (l, r) => x.eq(l, r) && y.eq(l, r),
     }),

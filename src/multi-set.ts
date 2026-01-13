@@ -6,13 +6,13 @@
  */
 
 import {
-    mapMut,
-    modifyMutRef,
     type Mut,
     type MutRef,
+    mapMut,
+    modifyMutRef,
     newMutRef,
     readMutRef,
-} from "./mut.ts";
+} from "./mut.js";
 
 export type MultiSetInner<T> = {
     /**
@@ -54,8 +54,10 @@ export const len = <T>(set: MultiSet<T>): number => set.len;
  * @param set - To be checked.
  * @returns Whether `items` is contained.
  */
-export const contains = <T>(item: T) => (set: MultiSet<T>): boolean =>
-    set.counts.has(item);
+export const contains =
+    <T>(item: T) =>
+    (set: MultiSet<T>): boolean =>
+        set.counts.has(item);
 
 /**
  * Gets the number of `item`s stored in the multi-set.
@@ -64,8 +66,10 @@ export const contains = <T>(item: T) => (set: MultiSet<T>): boolean =>
  * @param set - To be queried.
  * @returns The number of items stored.
  */
-export const count = <T>(item: T) => (set: MultiSet<T>): number =>
-    set.counts.get(item) ?? 0;
+export const count =
+    <T>(item: T) =>
+    (set: MultiSet<T>): number =>
+        set.counts.get(item) ?? 0;
 
 /**
  * Makes the multi-set into a mutable variable.
@@ -89,7 +93,8 @@ export const intoMut = <S, T>(
  * @returns The inserting operation.
  */
 export const insert =
-    <T>(item: T) => <S>(ref: MutRef<S, MultiSetInner<T>>): Mut<S, never[]> =>
+    <T>(item: T) =>
+    <S>(ref: MutRef<S, MultiSetInner<T>>): Mut<S, never[]> =>
         modifyMutRef(ref)((set) => {
             if (set.counts.has(item)) {
                 set.counts.set(item, set.counts.get(item)! + 1);
@@ -108,7 +113,8 @@ export const insert =
  * @returns Whether removing succeeded.
  */
 export const remove =
-    <T>(item: T) => <S>(ref: MutRef<S, MultiSetInner<T>>): Mut<S, boolean> =>
+    <T>(item: T) =>
+    <S>(ref: MutRef<S, MultiSetInner<T>>): Mut<S, boolean> =>
         mapMut((set: MultiSetInner<T>) => {
             if (set.counts.get(item) === 1) {
                 set.counts.delete(item);

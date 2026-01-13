@@ -5,13 +5,13 @@
  * @module
  */
 
-import type { Apply2Only, Apply3Only, Get1, Hkt3 } from "./hkt.ts";
-import { type Applicative, liftA2 } from "./type-class/applicative.ts";
-import { collect, type Distributive } from "./type-class/distributive.ts";
-import type { Foldable } from "./type-class/foldable.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { PartialEqUnary } from "./type-class/partial-eq.ts";
-import type { Traversable } from "./type-class/traversable.ts";
+import type { Apply2Only, Apply3Only, Get1, Hkt3 } from "./hkt.js";
+import { type Applicative, liftA2 } from "./type-class/applicative.js";
+import { collect, type Distributive } from "./type-class/distributive.js";
+import type { Foldable } from "./type-class/foldable.js";
+import type { Functor } from "./type-class/functor.js";
+import type { PartialEqUnary } from "./type-class/partial-eq.js";
+import type { Traversable } from "./type-class/traversable.js";
 
 /**
  * Right to left composition of `F` and `G` functors.
@@ -37,7 +37,7 @@ export const getCompose = <F, G, T>(c: Compose<F, G, T>): Get1<F, Get1<G, T>> =>
 
 export const map =
     <F, G>(f: Functor<F>, g: Functor<G>) =>
-    <T, U>(fn: (t: T) => U): (t: Compose<F, G, T>) => Compose<F, G, U> =>
+    <T, U>(fn: (t: T) => U): ((t: Compose<F, G, T>) => Compose<F, G, U>) =>
         f.map(g.map(fn));
 
 /**
@@ -60,14 +60,15 @@ export const functor =
  * @param g - The `Applicative` instance for `G`.
  * @returns The composed applicative functor.
  */
-export const applicative = <F>(f: Applicative<F>) =>
-<G>(
-    g: Applicative<G>,
-): Applicative<Apply2Only<Apply3Only<ComposeHkt, F>, G>> => ({
-    pure: (t) => f.pure(g.pure(t)),
-    map: map(f, g),
-    apply: liftA2(f)(g.apply),
-});
+export const applicative =
+    <F>(f: Applicative<F>) =>
+    <G>(
+        g: Applicative<G>,
+    ): Applicative<Apply2Only<Apply3Only<ComposeHkt, F>, G>> => ({
+        pure: (t) => f.pure(g.pure(t)),
+        map: map(f, g),
+        apply: liftA2(f)(g.apply),
+    });
 
 /**
  * Composes the two composing operators into a new one.
@@ -76,13 +77,14 @@ export const applicative = <F>(f: Applicative<F>) =>
  * @param g - The `Foldable` instance for `G`.
  * @returns The composed folding operator.
  */
-export const foldable = <F>(f: Foldable<F>) =>
-<G>(
-    g: Foldable<G>,
-): Foldable<Apply2Only<Apply3Only<ComposeHkt, F>, G>> => ({
-    foldR: <A, B>(folder: (next: A) => (acc: B) => B) =>
-        f.foldR((ga: Get1<G, A>) => (acc: B) => g.foldR(folder)(acc)(ga)),
-});
+export const foldable =
+    <F>(f: Foldable<F>) =>
+    <G>(
+        g: Foldable<G>,
+    ): Foldable<Apply2Only<Apply3Only<ComposeHkt, F>, G>> => ({
+        foldR: <A, B>(folder: (next: A) => (acc: B) => B) =>
+            f.foldR((ga: Get1<G, A>) => (acc: B) => g.foldR(folder)(acc)(ga)),
+    });
 
 /**
  * Composes the two traversable functors into a new one.
@@ -91,15 +93,17 @@ export const foldable = <F>(f: Foldable<F>) =>
  * @param g - The `Traversable` instance for `G`.
  * @returns The composed traversable functor.
  */
-export const traversable = <F>(f: Traversable<F>) =>
-<G>(
-    g: Traversable<G>,
-): Traversable<Apply2Only<Apply3Only<ComposeHkt, F>, G>> => ({
-    map: map(f, g),
-    foldR: <A, B>(folder: (next: A) => (acc: B) => B) =>
-        f.foldR((ga: Get1<G, A>) => (acc: B) => g.foldR(folder)(acc)(ga)),
-    traverse: (app) => (visitor) => f.traverse(app)(g.traverse(app)(visitor)),
-});
+export const traversable =
+    <F>(f: Traversable<F>) =>
+    <G>(
+        g: Traversable<G>,
+    ): Traversable<Apply2Only<Apply3Only<ComposeHkt, F>, G>> => ({
+        map: map(f, g),
+        foldR: <A, B>(folder: (next: A) => (acc: B) => B) =>
+            f.foldR((ga: Get1<G, A>) => (acc: B) => g.foldR(folder)(acc)(ga)),
+        traverse: (app) => (visitor) =>
+            f.traverse(app)(g.traverse(app)(visitor)),
+    });
 
 export const distributive = <F, G>(
     distributiveF: Distributive<F>,

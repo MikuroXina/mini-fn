@@ -1,15 +1,16 @@
-import { assertEquals } from "../deps.ts";
-import { cat } from "./cat.ts";
-import { composeT, liftEther } from "./ether.ts";
+import { expect, test } from "vitest";
+import { cat } from "./cat.js";
 import {
     compose,
+    composeT,
+    liftEther,
     newEther,
     newEtherSymbol,
     newEtherT,
     runEther,
     runEtherT,
-} from "./ether.ts";
-import { monad, type PromiseHkt } from "./promise.ts";
+} from "./ether.js";
+import { monad, type PromiseHkt } from "./promise.js";
 
 type Article = {
     createdAt: string;
@@ -31,36 +32,34 @@ type Req = {
 const serviceSymbol = newEtherSymbol<(req: Req) => Promise<void>>();
 const service = newEther(
     serviceSymbol,
-    ({ repo }) => async ({ id, timestamp, body }: Req) => {
-        if (!await repo.has(id)) {
+    ({ repo }) =>
+        async ({ id, timestamp, body }: Req) => {
+            if (!(await repo.has(id))) {
+                return;
+            }
+            await repo.insert(id, { updatedAt: timestamp, body });
             return;
-        }
-        await repo.insert(id, { updatedAt: timestamp, body });
-        return;
-    },
+        },
     {
         repo: repoSymbol,
     },
 );
 
-Deno.test("runs an Ether", async () => {
-    const mockRepository = newEther(
-        repoSymbol,
-        () => ({
-            has: (id) => {
-                assertEquals(id, "foo");
-                return Promise.resolve(true);
-            },
-            insert: (id, article) => {
-                assertEquals(id, "foo");
-                assertEquals(article, {
-                    updatedAt: "2020-01-01T13:17:00Z",
-                    body: "Hello, World!",
-                });
-                return Promise.resolve();
-            },
-        }),
-    );
+test("runs an Ether", async () => {
+    const mockRepository = newEther(repoSymbol, () => ({
+        has: (id) => {
+            expect(id).toStrictEqual("foo");
+            return Promise.resolve(true);
+        },
+        insert: (id, article) => {
+            expect(id).toStrictEqual("foo");
+            expect(article).toStrictEqual({
+                updatedAt: "2020-01-01T13:17:00Z",
+                body: "Hello, World!",
+            });
+            return Promise.resolve();
+        },
+    }));
     const injecting = compose(mockRepository);
     const ether = injecting(service);
     await runEther(ether)({
@@ -70,17 +69,15 @@ Deno.test("runs an Ether", async () => {
     });
 });
 
-Deno.test("deps on Promise", async () => {
+test("deps on Promise", async () => {
     type TokenVerifier = {
         verify: (token: string) => Promise<boolean>;
     };
     const tokenVerifierSymbol = newEtherSymbol<TokenVerifier>();
-    const tokenVerifier = newEtherT<PromiseHkt>()(
-        tokenVerifierSymbol,
-        () =>
-            Promise.resolve({
-                verify: (token) => Promise.resolve(token.length === 3),
-            }),
+    const tokenVerifier = newEtherT<PromiseHkt>()(tokenVerifierSymbol, () =>
+        Promise.resolve({
+            verify: (token) => Promise.resolve(token.length === 3),
+        }),
     );
 
     type PrivateRepository = {
@@ -118,5 +115,7 @@ Deno.test("deps on Promise", async () => {
         .feed(composePromise(liftPromise(privateRepository)))
         .feed(runEtherT).value;
 
-    assertEquals(await composed.fetch("foo"), { flag: "YOU_ARE_AN_IDIOT" });
+    expect(await composed.fetch("foo")).toStrictEqual({
+        flag: "YOU_ARE_AN_IDIOT",
+    });
 });

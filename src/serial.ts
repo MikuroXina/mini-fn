@@ -37,8 +37,8 @@
  * Also you can compose and customize encoders by `CodeM`'s monad to create your own encoder like this:
  *
  * ```ts
- * import { type Encoder, encU32Be, encUtf8, monadForCodeM, runCode } from "./serial.ts";
- * import { doT } from "./cat.ts";
+ * import { type Encoder, encU32Be, encUtf8, monadForCodeM, runCode } from "./serial.js";
+ * import { doT } from "./cat.js";
  *
  * type MyType = {
  *   name: string;
@@ -78,8 +78,8 @@
  * Also you can compose and customize decoders by `Decoder`'s monad to create your own decoder like this:
  *
  * ```ts
- * import { type Decoder, decU32Be, decUtf8, failDecoder, monadForDecoder, runDecoder } from "./serial.ts";
- * import { doT } from "./cat.ts";
+ * import { type Decoder, decU32Be, decUtf8, failDecoder, monadForDecoder, runDecoder } from "./serial.js";
+ * import { doT } from "./cat.js";
  *
  * type MyType = {
  *   name: string;
@@ -106,9 +106,9 @@
  * @module
  */
 
-import { doT } from "./cat.ts";
-import { compose } from "./func.ts";
-import type { Get1, Hkt1 } from "./hkt.ts";
+import { doT } from "./cat.js";
+import { compose } from "./func.js";
+import type { Get1, Hkt1 } from "./hkt.js";
 import {
     andThen,
     isNone,
@@ -118,14 +118,14 @@ import {
     some,
     unwrapOr,
     unwrapOrElse,
-} from "./option.ts";
-import { err, isErr, ok, type Result } from "./result.ts";
-import { type Foldable, length, mapMIgnore } from "./type-class/foldable.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Monad } from "./type-class/monad.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import type { Pure } from "./type-class/pure.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
+} from "./option.js";
+import { err, isErr, ok, type Result } from "./result.js";
+import { type Foldable, length, mapMIgnore } from "./type-class/foldable.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
+import type { Monoid } from "./type-class/monoid.js";
+import type { Pure } from "./type-class/pure.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 /**
  * A step of building a serial of binaries. It produces a signal to write data on `range` of bytes.
@@ -145,46 +145,46 @@ export const insertChunkNominal = Symbol("BuildSignalInsertChunk");
  */
 export type BuildSignal<T> = Readonly<
     | {
-        type: typeof buildDoneNominal;
-        /**
-         * A position where another one can write into next time.
-         */
-        nextFreeIndex: number;
-        /**
-         * A result state of computation.
-         */
-        computed: T;
-    }
+          type: typeof buildDoneNominal;
+          /**
+           * A position where another one can write into next time.
+           */
+          nextFreeIndex: number;
+          /**
+           * A result state of computation.
+           */
+          computed: T;
+      }
     | {
-        type: typeof bufferFullNominal;
-        /**
-         * A minimal buffer size needed to write.
-         */
-        neededMinimalSize: number;
-        /**
-         * A position where another one can write into next time.
-         */
-        currentFreeIndex: number;
-        /**
-         * A next step that an interpreter should run.
-         */
-        nextToRun: BuildStep<T>;
-    }
+          type: typeof bufferFullNominal;
+          /**
+           * A minimal buffer size needed to write.
+           */
+          neededMinimalSize: number;
+          /**
+           * A position where another one can write into next time.
+           */
+          currentFreeIndex: number;
+          /**
+           * A next step that an interpreter should run.
+           */
+          nextToRun: BuildStep<T>;
+      }
     | {
-        type: typeof insertChunkNominal;
-        /**
-         * A position where another one can write into next time.
-         */
-        currentFreeIndex: number;
-        /**
-         * A produced binaries that should be inserted.
-         */
-        toInsert: DataView;
-        /**
-         * A next step that an interpreter should run.
-         */
-        nextToRun: BuildStep<T>;
-    }
+          type: typeof insertChunkNominal;
+          /**
+           * A position where another one can write into next time.
+           */
+          currentFreeIndex: number;
+          /**
+           * A produced binaries that should be inserted.
+           */
+          toInsert: DataView;
+          /**
+           * A next step that an interpreter should run.
+           */
+          nextToRun: BuildStep<T>;
+      }
 >;
 
 /**
@@ -203,9 +203,7 @@ export const fillWithBuildStep =
     (
         onBufferFull: (
             nextMinimalSize: number,
-        ) => (
-            currentFreeIndex: number,
-        ) => (nextToRun: BuildStep<T>) => U,
+        ) => (currentFreeIndex: number) => (nextToRun: BuildStep<T>) => U,
     ) =>
     (
         onInsertChunk: (
@@ -266,18 +264,22 @@ export const empty: Builder = (step) => step;
  * @returns The concatenated builder.
  */
 export const concat =
-    (second: Builder) => (first: Builder): Builder => (step) =>
+    (second: Builder) =>
+    (first: Builder): Builder =>
+    (step) =>
         second(first(step));
 
 /**
  * Flushes empty data to force to output before going on.
  */
-export const flush: Builder = (step) => ([start]) => ({
-    type: insertChunkNominal,
-    currentFreeIndex: start,
-    toInsert: new DataView(new ArrayBuffer(0)),
-    nextToRun: step,
-});
+export const flush: Builder =
+    (step) =>
+    ([start]) => ({
+        type: insertChunkNominal,
+        currentFreeIndex: start,
+        toInsert: new DataView(new ArrayBuffer(0)),
+        nextToRun: step,
+    });
 
 /**
  * Writes binaries of bytes from a `DataView`.
@@ -286,20 +288,22 @@ export const flush: Builder = (step) => ([start]) => ({
  * @returns The builder that writes binary sequences.
  */
 export const bytesBuilder =
-    (bytes: DataView): Builder => (step) => ([start, length]) =>
+    (bytes: DataView): Builder =>
+    (step) =>
+    ([start, length]) =>
         length < bytes.byteLength
             ? {
-                type: bufferFullNominal,
-                neededMinimalSize: bytes.byteLength,
-                currentFreeIndex: start,
-                nextToRun: step,
-            }
+                  type: bufferFullNominal,
+                  neededMinimalSize: bytes.byteLength,
+                  currentFreeIndex: start,
+                  nextToRun: step,
+              }
             : {
-                type: insertChunkNominal,
-                currentFreeIndex: start + bytes.byteLength,
-                toInsert: bytes,
-                nextToRun: step,
-            };
+                  type: insertChunkNominal,
+                  currentFreeIndex: start + bytes.byteLength,
+                  toInsert: bytes,
+                  nextToRun: step,
+              };
 
 /**
  * Writes a number as a signed 8-bit integer.
@@ -542,17 +546,19 @@ export type AllocationStrategy = {
     shouldBeTrimmed: (used: number) => (len: number) => boolean;
 };
 
-const resize = (targetLen: number) => (buf: ArrayBuffer): ArrayBuffer => {
-    const oldArray = new Uint8Array(buf);
-    let newLen = buf.byteLength;
-    while (newLen < targetLen) {
-        newLen *= 2;
-    }
-    const newBuf = new ArrayBuffer(newLen);
-    const newArray = new Uint8Array(newBuf);
-    newArray.set(oldArray);
-    return newBuf;
-};
+const resize =
+    (targetLen: number) =>
+    (buf: ArrayBuffer): ArrayBuffer => {
+        const oldArray = new Uint8Array(buf);
+        let newLen = buf.byteLength;
+        while (newLen < targetLen) {
+            newLen *= 2;
+        }
+        const newBuf = new ArrayBuffer(newLen);
+        const newArray = new Uint8Array(newBuf);
+        newArray.set(oldArray);
+        return newBuf;
+    };
 
 /**
  * A simple strategy but doesn't decide that it should be trimmed.
@@ -590,15 +596,13 @@ export const safeStrategy = (firstLen: number): AllocationStrategy => ({
  * Builds bytes into an `ArrayBuffer` with a `Builder` by custom strategy.
  */
 export const intoBytesWith =
-    (strategy: AllocationStrategy) => (builder: Builder): ArrayBuffer => {
+    (strategy: AllocationStrategy) =>
+    (builder: Builder): ArrayBuffer => {
         let buf = strategy.allocator(none());
         let currentIndex = 0;
         let step = runBuilder(builder);
         while (true) {
-            const signal = step([
-                currentIndex,
-                buf.byteLength - currentIndex,
-            ]);
+            const signal = step([currentIndex, buf.byteLength - currentIndex]);
             switch (signal.type) {
                 case buildDoneNominal:
                     currentIndex = signal.nextFreeIndex;
@@ -702,10 +706,7 @@ export const runCode = ([, b]: Code): ArrayBuffer => intoBytes(b);
  */
 export const runCodeM = <T>(
     put: CodeM<T>,
-): readonly [result: T, ArrayBuffer] => [
-    put[0],
-    intoBytes(put[1]),
-];
+): readonly [result: T, ArrayBuffer] => [put[0], intoBytes(put[1])];
 
 /**
  * Maps the result of computation over `CodeM`.
@@ -714,13 +715,9 @@ export const runCodeM = <T>(
  * @param code - An encode result to be mapped.
  * @returns The mapped encode result.
  */
-export const mapCodeM = <T, U>(f: (t: T) => U) =>
-(
-    [result, builder]: CodeM<T>,
-): CodeM<U> => [
-    f(result),
-    builder,
-];
+export const mapCodeM =
+    <T, U>(f: (t: T) => U) =>
+    ([result, builder]: CodeM<T>): CodeM<U> => [f(result), builder];
 
 /**
  * Wraps a value of `T` as a computation result with the builder that does nothing.
@@ -728,13 +725,12 @@ export const mapCodeM = <T, U>(f: (t: T) => U) =>
 export const pureCodeM = <T>(t: T): CodeM<T> => [t, empty];
 
 export const applyCodeM =
-    <T, U>(f: CodeM<(t: T) => U>) => (t: CodeM<T>): CodeM<U> => [
-        f[0](t[0]),
-        concat(f[1])(t[1]),
-    ];
+    <T, U>(f: CodeM<(t: T) => U>) =>
+    (t: CodeM<T>): CodeM<U> => [f[0](t[0]), concat(f[1])(t[1])];
 
 export const flatMapCodeM =
-    <T, U>(f: (t: T) => CodeM<U>) => (t: CodeM<T>): CodeM<U> => {
+    <T, U>(f: (t: T) => CodeM<U>) =>
+    (t: CodeM<T>): CodeM<U> => {
         const [a, w] = t;
         const [b, wNew] = f(a);
         return [b, concat(w)(wNew)];
@@ -866,11 +862,8 @@ export const encFoldable =
     (data: Get1<S, T>): Code =>
         doT(monadForCodeM)
             .run(encU32Be(length(foldable)(data)))
-            .finishM(
-                () =>
-                    mapMIgnore<S, CodeMHkt>(foldable, monadForCodeM)(
-                        encT,
-                    )(data),
+            .finishM(() =>
+                mapMIgnore<S, CodeMHkt>(foldable, monadForCodeM)(encT)(data),
             );
 
 /**
@@ -881,31 +874,32 @@ export const encFoldable =
  * @param variantEncoders - Encoders for each variant of the sum type.
  * @returns The encoder for the sum type.
  */
-export const encSum = <
-    O extends object,
-    K extends PropertyKey = keyof O,
-    T = Encoding<O[keyof O]>,
->(
-    variantEncoders: O,
-) =>
-(keyExtractor: (value: T) => K) =>
-(keyEncoder: Encoder<K>): Encoder<T> =>
-(value) => {
-    const key = keyExtractor(value);
-    if (!Object.hasOwn(variantEncoders, key)) {
-        throw new Error(
-            `entry of key was not owned by the variantEncoders`,
-        );
-    }
-    return doT(monadForCodeM)
-        .run(keyEncoder(key))
-        .run(
-            (variantEncoders[key as unknown as keyof O] as Encoder<T>)(
-                value,
-            ),
-        )
-        .finish(() => []);
-};
+export const encSum =
+    <
+        O extends object,
+        K extends PropertyKey = keyof O,
+        T = Encoding<O[keyof O]>,
+    >(
+        variantEncoders: O,
+    ) =>
+    (keyExtractor: (value: T) => K) =>
+    (keyEncoder: Encoder<K>): Encoder<T> =>
+    (value) => {
+        const key = keyExtractor(value);
+        if (!Object.hasOwn(variantEncoders, key)) {
+            throw new Error(
+                `entry of key was not owned by the variantEncoders`,
+            );
+        }
+        return doT(monadForCodeM)
+            .run(keyEncoder(key))
+            .run(
+                (variantEncoders[key as unknown as keyof O] as Encoder<T>)(
+                    value,
+                ),
+            )
+            .finish(() => []);
+    };
 
 /**
  * A result that reports how many bytes has the data read.
@@ -937,10 +931,7 @@ export const emptyBuffer = (): Buffer => some(new DataView(new ArrayBuffer(0)));
  * @returns The concatenated data.
  */
 export const concatViews = (views: readonly DataView[]): DataView => {
-    const newLen = views.reduce(
-        (prev, curr) => prev + curr.byteLength,
-        0,
-    );
+    const newLen = views.reduce((prev, curr) => prev + curr.byteLength, 0);
     const newBuf = new ArrayBuffer(newLen);
     const newArray = new Uint8Array(newBuf);
     views.reduce((offset, curr) => {
@@ -957,14 +948,18 @@ export const concatViews = (views: readonly DataView[]): DataView => {
  * @param base - A buffer the base of data.
  * @returns The concatenated buffer.
  */
-export const extendBuffer = (appending: DataView) => (base: Buffer): Buffer =>
-    map((base: DataView): DataView => {
-        const newBuf = new ArrayBuffer(base.byteLength + appending.byteLength);
-        const newArray = new Uint8Array(newBuf);
-        newArray.set(new Uint8Array(base.buffer));
-        newArray.set(new Uint8Array(appending.buffer), base.byteLength);
-        return new DataView(newBuf);
-    })(base);
+export const extendBuffer =
+    (appending: DataView) =>
+    (base: Buffer): Buffer =>
+        map((base: DataView): DataView => {
+            const newBuf = new ArrayBuffer(
+                base.byteLength + appending.byteLength,
+            );
+            const newArray = new Uint8Array(newBuf);
+            newArray.set(new Uint8Array(base.buffer));
+            newArray.set(new Uint8Array(appending.buffer), base.byteLength);
+            return new DataView(newBuf);
+        })(base);
 
 /**
  * Appends a `Buffer` after a `Buffer`. Note that the order of parameters looks inverted.
@@ -973,8 +968,12 @@ export const extendBuffer = (appending: DataView) => (base: Buffer): Buffer =>
  * @param base - A buffer the base of data.
  * @returns The concatenated buffer.
  */
-export const appendBuffer = (appending: Buffer) => (base: Buffer): Buffer =>
-    andThen((appending: DataView) => extendBuffer(appending)(base))(appending);
+export const appendBuffer =
+    (appending: Buffer) =>
+    (base: Buffer): Buffer =>
+        andThen((appending: DataView) => extendBuffer(appending)(base))(
+            appending,
+        );
 
 /**
  * Extracts a sequence of data bytes from a `Buffer`.
@@ -1015,37 +1014,37 @@ export const parseDoneNominal = Symbol("ParseResultParseDone");
  */
 export type ParseResult<S> = Readonly<
     | {
-        type: typeof failureNominal;
-        /**
-         * An error message.
-         */
-        message: string;
-        /**
-         * An input data that occurs a failure.
-         */
-        input: DataView;
-    }
+          type: typeof failureNominal;
+          /**
+           * An error message.
+           */
+          message: string;
+          /**
+           * An input data that occurs a failure.
+           */
+          input: DataView;
+      }
     | {
-        type: typeof partialNominal;
-        /**
-         * A function for to continue to parse.
-         *
-         * @param buf - The buffer having the rest of data.
-         * @returns The new result of parsing.
-         */
-        resume: (buf: ArrayBufferLike) => ParseResult<S>;
-    }
+          type: typeof partialNominal;
+          /**
+           * A function for to continue to parse.
+           *
+           * @param buf - The buffer having the rest of data.
+           * @returns The new result of parsing.
+           */
+          resume: (buf: ArrayBufferLike) => ParseResult<S>;
+      }
     | {
-        type: typeof parseDoneNominal;
-        /**
-         * A computation result state.
-         */
-        state: S;
-        /**
-         * An unused byte sequence on parsing.
-         */
-        rest: DataView;
-    }
+          type: typeof parseDoneNominal;
+          /**
+           * A computation result state.
+           */
+          state: S;
+          /**
+           * An unused byte sequence on parsing.
+           */
+          rest: DataView;
+      }
 >;
 
 /**
@@ -1102,7 +1101,8 @@ export const putRaw =
     (offset: number): Decoder<never[]> =>
     (ctx) =>
     () =>
-    (onS) => onS({ ...ctx, input: data, offset })([]);
+    (onS) =>
+        onS({ ...ctx, input: data, offset })([]);
 
 /**
  * Labels the stack trace with `note`. It is used for reporting an error on failure.
@@ -1116,9 +1116,7 @@ export const label =
     (ctx1) =>
     <S>(onF: FailureHandler<S>) =>
     (onS: SuccessHandler<T, S>) =>
-        d<S>(ctx1)((ctx2) => (trace) => onF(ctx2)([...trace, note]))(
-            onS,
-        );
+        d<S>(ctx1)((ctx2) => (trace) => onF(ctx2)([...trace, note]))(onS);
 
 export const mapDecoder =
     <T, U>(f: (t: T) => U) =>
@@ -1128,8 +1126,12 @@ export const mapDecoder =
     (onS: SuccessHandler<U, S>) =>
         d<S>(ctx)(onF)((ctx) => (res) => onS(ctx)(f(res)));
 
-export const pureDecoder = <T>(item: T): Decoder<T> => (ctx) => () => (onS) =>
-    onS(ctx)(item);
+export const pureDecoder =
+    <T>(item: T): Decoder<T> =>
+    (ctx) =>
+    () =>
+    (onS) =>
+        onS(ctx)(item);
 
 export const applyDecoder =
     <T, U>(f: Decoder<(t: T) => U>) =>
@@ -1137,8 +1139,9 @@ export const applyDecoder =
     (ctx1) =>
     <S>(onF: FailureHandler<S>) =>
     (onS: SuccessHandler<U, S>) =>
-        f<S>(ctx1)(onF)((ctx2) => (fn) =>
-            d<S>(ctx2)(onF)((ctx3) => (t) => onS(ctx3)(fn(t)))
+        f<S>(ctx1)(onF)(
+            (ctx2) => (fn) =>
+                d<S>(ctx2)(onF)((ctx3) => (t) => onS(ctx3)(fn(t))),
         );
 
 export const flatMapDecoder =
@@ -1156,8 +1159,11 @@ export const flatMapDecoder =
  * @returns The failing decoder.
  */
 export const failDecoder =
-    (message: string): Decoder<never[]> => (ctx) => (onF) => () =>
-        onF(ctx)([])("read failure: " + message);
+    (message: string): Decoder<never[]> =>
+    (ctx) =>
+    (onF) =>
+    () =>
+        onF(ctx)([])(`read failure: ${message}`);
 
 export interface DecoderHkt extends Hkt1 {
     readonly type: Decoder<this["arg1"]>;
@@ -1185,11 +1191,14 @@ export const monadForDecoder: Monad<DecoderHkt> = {
  * The default failure handler. It tells a `failure` with an error message about the stack trace.
  */
 export const onFailureIdentity =
-    <S>(): FailureHandler<S> => (ctx) => (trace) => (msg) => ({
+    <S>(): FailureHandler<S> =>
+    (ctx) =>
+    (trace) =>
+    (msg) => ({
         type: failureNominal,
-        message: `${msg}\n${
-            trace.map((entry, i) => `${i + 1}: ${entry}`).join("\n")
-        }`,
+        message: `${msg}\n${trace
+            .map((entry, i) => `${i + 1}: ${entry}`)
+            .join("\n")}`,
         input: ctx.input,
     });
 
@@ -1197,7 +1206,9 @@ export const onFailureIdentity =
  * The default success handler. It tells a `done` with the computation result.
  */
 export const onSuccessIdentity =
-    <T>(): SuccessHandler<T, T> => (ctx) => (result) => ({
+    <T>(): SuccessHandler<T, T> =>
+    (ctx) =>
+    (result) => ({
         type: parseDoneNominal,
         state: result,
         rest: new DataView(ctx.input.buffer.slice(ctx.offset)),
@@ -1211,15 +1222,14 @@ export const onSuccessIdentity =
  * @returns The parsing result on success, or error messages of string on failure.
  */
 export const runDecoder =
-    <T>(decoder: Decoder<T>) => (data: ArrayBufferLike): Result<string, T> => {
+    <T>(decoder: Decoder<T>) =>
+    (data: ArrayBufferLike): Result<string, T> => {
         const res = decoder<T>({
             input: new DataView(data),
             buffer: none(),
             more: ["completed"],
             offset: 0,
-        })(onFailureIdentity())(
-            onSuccessIdentity(),
-        );
+        })(onFailureIdentity())(onSuccessIdentity());
         switch (res.type) {
             case failureNominal:
                 return err(res.message);
@@ -1256,7 +1266,7 @@ export const runDecoderChunk =
  */
 export const runDecoderPartial = <T>(
     decoder: Decoder<T>,
-): (input: DataView) => ParseResult<T> => runDecoderChunk(decoder)(none());
+): ((input: DataView) => ParseResult<T>) => runDecoderChunk(decoder)(none());
 
 /**
  * Executes a `Decoder` with a whole source data and returns the unused rest.
@@ -1321,15 +1331,16 @@ export const ensure =
             return onSuccess(ctx)(ctx.input);
         }
         const finalInput =
-            (input: DataView) => (acc: readonly DataView[]): DataView =>
+            (input: DataView) =>
+            (acc: readonly DataView[]): DataView =>
                 concatViews([input, ...acc].toReversed());
         const finalBuffer =
             (base: Buffer) =>
             (input: DataView) =>
             (acc: readonly DataView[]): Buffer =>
-                extendBuffer(concatViews(
-                    [input, ...acc].toReversed().slice(1),
-                ))(base);
+                extendBuffer(
+                    concatViews([input, ...acc].toReversed().slice(1)),
+                )(base);
         const getMore =
             (ctx: DecContext) =>
             (acc: readonly DataView[]) =>
@@ -1352,8 +1363,8 @@ export const ensure =
                         if (b.byteLength === 0) {
                             return tooFewBytes();
                         }
-                        const moreReading = map((len: number) =>
-                            len - b.byteLength
+                        const moreReading = map(
+                            (len: number) => len - b.byteLength,
                         )(moreRequired);
                         return checkIfEnough({
                             ...ctx,
@@ -1381,17 +1392,18 @@ export const ensure =
         return getMore(ctx)([])(onFailure)(onSuccess);
     };
 
-const splitAt = (firstLen: number) =>
-(
-    data: DataView,
-): [left: DataView, right: DataView] => {
-    const src = new Uint8Array(data.buffer);
-    const leftBuf = new ArrayBuffer(Math.min(firstLen, data.byteLength));
-    const rightBuf = new ArrayBuffer(Math.max(data.byteLength - firstLen, 0));
-    new Uint8Array(leftBuf).set(src.slice(0, firstLen));
-    new Uint8Array(rightBuf).set(src.slice(firstLen));
-    return [new DataView(leftBuf), new DataView(rightBuf)];
-};
+const splitAt =
+    (firstLen: number) =>
+    (data: DataView): [left: DataView, right: DataView] => {
+        const src = new Uint8Array(data.buffer);
+        const leftBuf = new ArrayBuffer(Math.min(firstLen, data.byteLength));
+        const rightBuf = new ArrayBuffer(
+            Math.max(data.byteLength - firstLen, 0),
+        );
+        new Uint8Array(leftBuf).set(src.slice(0, firstLen));
+        new Uint8Array(rightBuf).set(src.slice(firstLen));
+        return [new DataView(leftBuf), new DataView(rightBuf)];
+    };
 
 /**
  * Isolates the input data such that `decoder` can read only `blockLen` bytes of data. The rest is hidden and used only successors.
@@ -1403,7 +1415,8 @@ const splitAt = (firstLen: number) =>
  * @returns The isolated decoder.
  */
 export const isolate =
-    (blockLen: number) => <T>(decoder: Decoder<T>): Decoder<T> =>
+    (blockLen: number) =>
+    <T>(decoder: Decoder<T>): Decoder<T> =>
         doT(monadForDecoder)
             .when(
                 () => blockLen < 0,
@@ -1420,7 +1433,7 @@ export const isolate =
                 () => failDecoder("not all bytes parsed"),
             )
             .runWith(({ splitted, curr }) =>
-                putRaw(splitted[1])(curr + blockLen)
+                putRaw(splitted[1])(curr + blockLen),
             )
             .finish(({ value }) => value);
 
@@ -1437,9 +1450,7 @@ export const skip = (count: number): Decoder<never[]> =>
         .finishM(({ bytes, curr }) =>
             putRaw(
                 new DataView(new Uint8Array(bytes.buffer).slice(count).buffer),
-            )(
-                curr + count,
-            )
+            )(curr + count),
         );
 
 /**
@@ -1458,13 +1469,13 @@ export const lookAhead =
                 ...ctxF,
                 input: ctx.input,
                 buffer: appendBuffer(ctxF.buffer)(ctx.buffer),
-            })
+            }),
         )((ctxS) =>
             onS({
                 ...ctxS,
                 input: concatViews([ctx.input, bufferBytes(ctxS.buffer)]),
                 buffer: appendBuffer(ctxS.buffer)(ctx.buffer),
-            })
+            }),
         );
 
 /**

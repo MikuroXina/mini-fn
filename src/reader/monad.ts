@@ -1,5 +1,5 @@
-import type { Get1 } from "../hkt.ts";
-import type { Monad } from "../type-class/monad.ts";
+import type { Get1 } from "../hkt.js";
+import type { Monad } from "../type-class/monad.js";
 
 export type MonadReader<R, M> = Monad<M> & {
     readonly ask: () => Get1<M, R>;
@@ -10,4 +10,5 @@ export type MonadReader<R, M> = Monad<M> & {
 
 export const reader =
     <R, M>(mr: MonadReader<R, M>) =>
-    <A>(selector: (record: R) => A): Get1<M, A> => mr.map(selector)(mr.ask());
+    <A>(selector: (record: R) => A): Get1<M, A> =>
+        mr.map(selector)(mr.ask());

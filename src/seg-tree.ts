@@ -5,8 +5,8 @@
  * @module
  */
 
-import { modifyMutRef, type Mut, type MutRef, newMutRef } from "./mut.ts";
-import type { Monoid } from "./type-class/monoid.ts";
+import { type Mut, type MutRef, modifyMutRef, newMutRef } from "./mut.js";
+import type { Monoid } from "./type-class/monoid.js";
 
 export type SegTreeInner<T> = {
     /**
@@ -69,15 +69,17 @@ const nextPowerOfTwo = (x: number): number => {
  * @param len - The length limit on inserting items after.
  * @returns The new segment tree.
  */
-export const withLen = <T>(monoid: Monoid<T>) => (len: number): SegTree<T> => {
-    const size = nextPowerOfTwo(len);
-    return {
-        items: [...new Array(size * 2 - 1)].map(() => monoid.identity),
-        srcLen: len,
-        actualLen: size,
-        monoid,
+export const withLen =
+    <T>(monoid: Monoid<T>) =>
+    (len: number): SegTree<T> => {
+        const size = nextPowerOfTwo(len);
+        return {
+            items: [...new Array(size * 2 - 1)].map(() => monoid.identity),
+            srcLen: len,
+            actualLen: size,
+            monoid,
+        };
     };
-};
 
 /**
  * Creates a new segment tree with the monoid instance for `T` and existing items.
@@ -87,17 +89,15 @@ export const withLen = <T>(monoid: Monoid<T>) => (len: number): SegTree<T> => {
  * @returns The new segment tree.
  */
 export const withItems =
-    <T>(monoid: Monoid<T>) => (items: readonly T[]): SegTree<T> => {
+    <T>(monoid: Monoid<T>) =>
+    (items: readonly T[]): SegTree<T> => {
         if (MAX_LEN < items.length) {
             throw new Error("too much items");
         }
         const size = nextPowerOfTwo(items.length);
-        const caches = [...new Array(size * 2 - 1)].map(() => monoid.identity)
-            .toSpliced(
-                size - 1,
-                items.length,
-                ...items,
-            );
+        const caches = [...new Array(size * 2 - 1)]
+            .map(() => monoid.identity)
+            .toSpliced(size - 1, items.length, ...items);
         const go = (visiting: number) => {
             if (size - 1 <= visiting) {
                 return;
@@ -126,7 +126,9 @@ export const withItems =
  * @returns The monoid sum of items for the querying range.
  */
 export const query =
-    (start: number) => (end: number) => <T>(tree: SegTree<T>): T => {
+    (start: number) =>
+    (end: number) =>
+    <T>(tree: SegTree<T>): T => {
         const go = (
             visiting: number,
             lookingStart: number,
@@ -140,8 +142,8 @@ export const query =
                 // looking completely contains querying range
                 return tree.items[visiting]!;
             }
-            const mid = lookingStart +
-                Math.floor((lookingEnd - lookingStart) / 2);
+            const mid =
+                lookingStart + Math.floor((lookingEnd - lookingStart) / 2);
             const left = go(firstChildOf(visiting), lookingStart, mid);
             const right = go(secondChildOf(visiting), mid, lookingEnd);
             return tree.monoid.combine(left, right);
@@ -156,7 +158,7 @@ export const query =
  * @param tree - To be queried.
  * @returns The stored item, or the identity of monoid if not found.
  */
-export const get = (index: number): <T>(tree: SegTree<T>) => T =>
+export const get = (index: number): (<T>(tree: SegTree<T>) => T) =>
     query(index)(index + 1);
 
 /**

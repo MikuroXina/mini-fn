@@ -1,87 +1,92 @@
+import { expect, test } from "vitest";
+import { Option, Ordering } from "../../mod.js";
 import {
+    type Apply,
     ap,
     apFirst,
-    type Apply,
     apSecond,
     apSelective,
     makeSemiGroup,
     map2,
-} from "./apply.ts";
-import { Option, Ordering } from "../../mod.ts";
-import { assertEquals } from "../../deps.ts";
+} from "./apply.js";
 
 const apply = Option.applicative as Apply<Option.OptionHkt>;
 
-Deno.test("ap", () => {
-    assertEquals(
+test("ap", () => {
+    expect(
         ap(apply, apply)(Option.some(Option.some(3)))(
             Option.some(Option.some((x: number) => x * 2)),
         ),
-        Option.some(Option.some(6)),
-    );
+    ).toStrictEqual(Option.some(Option.some(6)));
 });
-Deno.test("apFirst", () => {
-    assertEquals(
-        apFirst(apply)(Option.some(3))(Option.some(4)),
+test("apFirst", () => {
+    expect(apFirst(apply)(Option.some(3))(Option.some(4))).toStrictEqual(
         Option.some(3),
     );
-    assertEquals(apFirst(apply)(Option.some(3))(Option.none()), Option.none());
-    assertEquals(apFirst(apply)(Option.none())(Option.some(4)), Option.none());
-    assertEquals(apFirst(apply)(Option.none())(Option.none()), Option.none());
+    expect(apFirst(apply)(Option.some(3))(Option.none())).toStrictEqual(
+        Option.none(),
+    );
+    expect(apFirst(apply)(Option.none())(Option.some(4))).toStrictEqual(
+        Option.none(),
+    );
+    expect(apFirst(apply)(Option.none())(Option.none())).toStrictEqual(
+        Option.none(),
+    );
 });
-Deno.test("apSecond", () => {
-    assertEquals(
-        apSecond(apply)(Option.some(3))(Option.some(4)),
+test("apSecond", () => {
+    expect(apSecond(apply)(Option.some(3))(Option.some(4))).toStrictEqual(
         Option.some(4),
     );
-    assertEquals(apSecond(apply)(Option.some(3))(Option.none()), Option.none());
-    assertEquals(apSecond(apply)(Option.none())(Option.some(4)), Option.none());
-    assertEquals(apSecond(apply)(Option.none())(Option.none()), Option.none());
+    expect(apSecond(apply)(Option.some(3))(Option.none())).toStrictEqual(
+        Option.none(),
+    );
+    expect(apSecond(apply)(Option.none())(Option.some(4))).toStrictEqual(
+        Option.none(),
+    );
+    expect(apSecond(apply)(Option.none())(Option.none())).toStrictEqual(
+        Option.none(),
+    );
 });
-Deno.test("apSelective", () => {
-    assertEquals(
+test("apSelective", () => {
+    expect(
         apSelective(apply)("key")(Option.some({ x: 5 }))(Option.some("foo")),
-        Option.some({ x: 5, key: "foo" }),
-    );
-    assertEquals(
+    ).toStrictEqual(Option.some({ x: 5, key: "foo" }));
+    expect(
         apSelective(apply)("key")(Option.some({ x: 5 }))(Option.none()),
-        Option.none(),
-    );
-    assertEquals(
+    ).toStrictEqual(Option.none());
+    expect(
         apSelective(apply)("key")(Option.none())(Option.some("foo")),
-        Option.none(),
-    );
-    assertEquals(
+    ).toStrictEqual(Option.none());
+    expect(
         apSelective(apply)("key")(Option.none())(Option.none()),
-        Option.none(),
-    );
+    ).toStrictEqual(Option.none());
 });
-Deno.test("map2", () => {
+test("map2", () => {
     const lifted = map2(apply)((x: string) => (y: string) => y + x);
 
-    assertEquals(
-        lifted(Option.some("foo"))(Option.some("bar")),
+    expect(lifted(Option.some("foo"))(Option.some("bar"))).toStrictEqual(
         Option.some("barfoo"),
     );
-    assertEquals(lifted(Option.none())(Option.some("bar")), Option.none());
-    assertEquals(lifted(Option.some("foo"))(Option.none()), Option.none());
-    assertEquals(lifted(Option.none())(Option.none()), Option.none());
+    expect(lifted(Option.none())(Option.some("bar"))).toStrictEqual(
+        Option.none(),
+    );
+    expect(lifted(Option.some("foo"))(Option.none())).toStrictEqual(
+        Option.none(),
+    );
+    expect(lifted(Option.none())(Option.none())).toStrictEqual(Option.none());
 });
-Deno.test("makeSemiGroup", () => {
+test("makeSemiGroup", () => {
     const m = makeSemiGroup(apply)(Ordering.monoid);
 
     for (const x of [Ordering.less, Ordering.equal, Ordering.greater]) {
-        assertEquals(
+        expect(
             m.combine(Option.some(Ordering.equal), Option.some(x)),
-            Option.some(x),
-        );
-        assertEquals(
+        ).toStrictEqual(Option.some(x));
+        expect(
             m.combine(Option.some(Ordering.less), Option.some(x)),
-            Option.some(Ordering.less),
-        );
-        assertEquals(
+        ).toStrictEqual(Option.some(Ordering.less));
+        expect(
             m.combine(Option.some(Ordering.greater), Option.some(x)),
-            Option.some(Ordering.greater),
-        );
+        ).toStrictEqual(Option.some(Ordering.greater));
     }
 });

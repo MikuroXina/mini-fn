@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "es2022",
-        "lib": ["dom", "deno.ns"],
+        "lib": ["ESNext", "DOM"],
         "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
@@ -27,6 +27,5 @@
         "outDir": "./dist",
         "declarationDir": "./dist",
         "baseUrl": "."
-    },
-    "exclude": ["npm"]
+    }
 }

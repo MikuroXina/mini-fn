@@ -12,10 +12,10 @@
  * ```
  */
 
-import { absurd } from "../func.ts";
-import type { Optic } from "../optical.ts";
-import { none, okOr, type Option, some } from "../option.ts";
-import { either, err, type Result } from "../result.ts";
+import { absurd } from "../func.js";
+import type { Optic } from "../optical.js";
+import { none, type Option, okOr, some } from "../option.js";
+import { either, err, type Result } from "../result.js";
 
 /**
  * Creates a new `Prism` optic from the two functions.
@@ -59,9 +59,9 @@ export const unreachable = <S, A>(): Optic<S, S, A, never> =>
  * @returns The computation to filter the data.
  */
 export const only = <A>(target: A): Optic<A, A, A, A> =>
-    newPrismSimple<A, A>((newValue) => newValue)((
-        x,
-    ) => (x === target ? some(x) : none()));
+    newPrismSimple<A, A>((newValue) => newValue)((x) =>
+        x === target ? some(x) : none(),
+    );
 
 /**
  * Filters the value only if satisfies `pred`.
@@ -70,6 +70,6 @@ export const only = <A>(target: A): Optic<A, A, A, A> =>
  * @returns The computation to filter the data.
  */
 export const filter = <A>(pred: (a: A) => boolean): Optic<A, A, A, A> =>
-    newPrismSimple<A, A>((newValue) => newValue)((
-        x,
-    ) => (pred(x) ? some(x) : none()));
+    newPrismSimple<A, A>((newValue) => newValue)((x) =>
+        pred(x) ? some(x) : none(),
+    );

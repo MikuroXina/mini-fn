@@ -1,6 +1,6 @@
-import { assertEquals, assertThrows } from "../deps.ts";
-import { Array, Compose, Identity, Option, Result } from "../mod.ts";
-import { equal, greater, less, type Ordering } from "./ordering.ts";
+import { expect, test } from "vitest";
+import { Array, Compose, Identity, Option, Result } from "../mod.js";
+import { equal, greater, less, type Ordering } from "./ordering.js";
 import {
     decU32Be,
     decUtf8,
@@ -8,72 +8,56 @@ import {
     encUtf8,
     runCode,
     runDecoder,
-} from "./serial.ts";
-import { stringOrd } from "./type-class/ord.ts";
+} from "./serial.js";
+import { stringOrd } from "./type-class/ord.js";
 
-Deno.test("partial order", () => {
+test("partial order", () => {
     const resultStrCmp = Result.partialCmp({
         orderE: stringOrd,
         orderT: stringOrd,
     });
-    assertEquals(
-        resultStrCmp(Result.err(""), Result.err("")),
+    expect(resultStrCmp(Result.err(""), Result.err(""))).toStrictEqual(
         Option.some<Ordering>(equal),
     );
-    assertEquals(
-        resultStrCmp(Result.err(""), Result.ok("abc")),
+    expect(resultStrCmp(Result.err(""), Result.ok("abc"))).toStrictEqual(
         Option.some<Ordering>(greater),
     );
-    assertEquals(
-        resultStrCmp(Result.ok("abc"), Result.err("")),
+    expect(resultStrCmp(Result.ok("abc"), Result.err(""))).toStrictEqual(
         Option.some<Ordering>(less),
     );
-    assertEquals(
-        resultStrCmp(Result.ok("abc"), Result.ok("xyz")),
+    expect(resultStrCmp(Result.ok("abc"), Result.ok("xyz"))).toStrictEqual(
         Option.some<Ordering>(less),
     );
-    assertEquals(
-        resultStrCmp(Result.ok("xyz"), Result.ok("abc")),
+    expect(resultStrCmp(Result.ok("xyz"), Result.ok("abc"))).toStrictEqual(
         Option.some<Ordering>(greater),
     );
-    assertEquals(
-        resultStrCmp(Result.ok("xyz"), Result.ok("xyz")),
+    expect(resultStrCmp(Result.ok("xyz"), Result.ok("xyz"))).toStrictEqual(
         Option.some<Ordering>(equal),
     );
 });
 
-Deno.test("total order", () => {
+test("total order", () => {
     const resultStrCmp = Result.cmp({
         orderE: stringOrd,
         orderT: stringOrd,
     });
-    assertEquals(
-        resultStrCmp(Result.err(""), Result.err("")),
-        equal,
-    );
-    assertEquals(
-        resultStrCmp(Result.err(""), Result.ok("abc")),
+    expect(resultStrCmp(Result.err(""), Result.err(""))).toStrictEqual(equal);
+    expect(resultStrCmp(Result.err(""), Result.ok("abc"))).toStrictEqual(
         greater,
     );
-    assertEquals(
-        resultStrCmp(Result.ok("abc"), Result.err("")),
+    expect(resultStrCmp(Result.ok("abc"), Result.err(""))).toStrictEqual(less);
+    expect(resultStrCmp(Result.ok("abc"), Result.ok("xyz"))).toStrictEqual(
         less,
     );
-    assertEquals(
-        resultStrCmp(Result.ok("abc"), Result.ok("xyz")),
-        less,
-    );
-    assertEquals(
-        resultStrCmp(Result.ok("xyz"), Result.ok("abc")),
+    expect(resultStrCmp(Result.ok("xyz"), Result.ok("abc"))).toStrictEqual(
         greater,
     );
-    assertEquals(
-        resultStrCmp(Result.ok("xyz"), Result.ok("xyz")),
+    expect(resultStrCmp(Result.ok("xyz"), Result.ok("xyz"))).toStrictEqual(
         equal,
     );
 });
 
-Deno.test("wrapThrowable", () => {
+test("wrapThrowable", () => {
     const safeSqrt = Result.wrapThrowable((err) => err as Error)(
         (x: number) => {
             if (!(x >= 0)) {
@@ -82,15 +66,14 @@ Deno.test("wrapThrowable", () => {
             return Math.sqrt(x);
         },
     );
-    assertEquals(safeSqrt(4), Result.ok(2));
-    assertEquals(safeSqrt(0), Result.ok(0));
-    assertEquals(
-        safeSqrt(-1),
+    expect(safeSqrt(4)).toStrictEqual(Result.ok(2));
+    expect(safeSqrt(0)).toStrictEqual(Result.ok(0));
+    expect(safeSqrt(-1)).toStrictEqual(
         Result.err(new RangeError("x must be positive or a zero")),
     );
 });
 
-Deno.test("wrapAsyncThrowable", async () => {
+test("wrapAsyncThrowable", async () => {
     const safeSqrt = Result.wrapAsyncThrowable((err) => err as Error)(
         (x: number) => {
             if (!(x >= 0)) {
@@ -101,59 +84,59 @@ Deno.test("wrapAsyncThrowable", async () => {
             return Promise.resolve(Math.sqrt(x));
         },
     );
-    assertEquals(await safeSqrt(4), Result.ok(2));
-    assertEquals(await safeSqrt(0), Result.ok(0));
-    assertEquals(
-        await safeSqrt(-1),
+    expect(await safeSqrt(4)).toStrictEqual(Result.ok(2));
+    expect(await safeSqrt(0)).toStrictEqual(Result.ok(0));
+    expect(await safeSqrt(-1)).toStrictEqual(
         Result.err(new RangeError("x must be positive or a zero")),
     );
 });
 
-Deno.test("flatten", () => {
-    assertEquals(
-        Result.flatten(Result.ok(Result.ok("hello"))),
+test("flatten", () => {
+    expect(Result.flatten(Result.ok(Result.ok("hello")))).toStrictEqual(
         Result.ok("hello"),
     );
-    assertEquals(
-        Result.flatten(Result.err(Result.ok("hello"))),
+    expect(Result.flatten(Result.err(Result.ok("hello")))).toStrictEqual(
         Result.err(Result.ok("hello")),
     );
-    assertEquals(Result.flatten(Result.ok(Result.err(6))), Result.err(6));
-    assertEquals(
-        Result.flatten(Result.err(Result.err(6))),
+    expect(Result.flatten(Result.ok(Result.err(6)))).toStrictEqual(
+        Result.err(6),
+    );
+    expect(Result.flatten(Result.err(Result.err(6)))).toStrictEqual(
         Result.err(Result.err(6)),
     );
 });
 
-Deno.test("mergeOkErr", () => {
-    assertEquals(Result.mergeOkErr(Result.ok(3)), 3);
-    assertEquals(Result.mergeOkErr(Result.err(4)), 4);
+test("mergeOkErr", () => {
+    expect(Result.mergeOkErr(Result.ok(3))).toStrictEqual(3);
+    expect(Result.mergeOkErr(Result.err(4))).toStrictEqual(4);
 });
 
-Deno.test("unwrap", () => {
-    assertEquals(Result.unwrap(Result.ok(3)), 3);
-    assertThrows(() => Result.unwrap(Result.err(4)), "unwrapped Err");
+test("unwrap", () => {
+    expect(Result.unwrap(Result.ok(3))).toStrictEqual(3);
+    expect(() => Result.unwrap(Result.err(4))).toThrowError("unwrapped Err");
 });
 
-Deno.test("unwrapErr", () => {
-    assertThrows(() => Result.unwrapErr(Result.ok(3)), "unwrapped Ok");
-    assertEquals(Result.unwrapErr(Result.err(4)), 4);
+test("unwrapErr", () => {
+    expect(() => Result.unwrapErr(Result.ok(3))).toThrowError("unwrapped Ok");
+    expect(Result.unwrapErr(Result.err(4))).toStrictEqual(4);
 });
 
-Deno.test("and", () => {
+test("and", () => {
     const success = Result.ok<number>(2);
     const failure = Result.err("not a 2");
     const lateError = Result.err("late error");
     const earlyError = Result.err("early error");
     const anotherSuccess = Result.ok("different result");
 
-    assertEquals(Result.and(lateError)(success), lateError);
-    assertEquals(Result.and<number, string>(success)(earlyError), earlyError);
-    assertEquals(Result.and(lateError)(failure), failure);
-    assertEquals(Result.and(anotherSuccess)(success), anotherSuccess);
+    expect(Result.and(lateError)(success)).toStrictEqual(lateError);
+    expect(Result.and<number, string>(success)(earlyError)).toStrictEqual(
+        earlyError,
+    );
+    expect(Result.and(lateError)(failure)).toStrictEqual(failure);
+    expect(Result.and(anotherSuccess)(success)).toStrictEqual(anotherSuccess);
 });
 
-Deno.test("andThen", () => {
+test("andThen", () => {
     const sqrtThenToString = Result.andThen(
         (num: number): Result.Result<string, string> =>
             num < 0
@@ -161,18 +144,16 @@ Deno.test("andThen", () => {
                 : Result.ok(Math.sqrt(num).toString()),
     );
 
-    assertEquals(sqrtThenToString(Result.ok(4)), Result.ok("2"));
-    assertEquals(
-        sqrtThenToString(Result.ok(-1)),
+    expect(sqrtThenToString(Result.ok(4))).toStrictEqual(Result.ok("2"));
+    expect(sqrtThenToString(Result.ok(-1))).toStrictEqual(
         Result.err("num must not be negative"),
     );
-    assertEquals(
-        sqrtThenToString(Result.err("not a number")),
+    expect(sqrtThenToString(Result.err("not a number"))).toStrictEqual(
         Result.err("not a number"),
     );
 });
 
-Deno.test("asyncAndThen", async () => {
+test("asyncAndThen", async () => {
     const sqrtThenToString = Result.asyncAndThen(
         (num: number): Promise<Result.Result<string, string>> =>
             Promise.resolve(
@@ -182,185 +163,177 @@ Deno.test("asyncAndThen", async () => {
             ),
     );
 
-    assertEquals(await sqrtThenToString(Result.ok(4)), Result.ok("2"));
-    assertEquals(
-        await sqrtThenToString(Result.ok(-1)),
+    expect(await sqrtThenToString(Result.ok(4))).toStrictEqual(Result.ok("2"));
+    expect(await sqrtThenToString(Result.ok(-1))).toStrictEqual(
         Result.err("num must not be negative"),
     );
-    assertEquals(
-        await sqrtThenToString(Result.err("not a number")),
+    expect(await sqrtThenToString(Result.err("not a number"))).toStrictEqual(
         Result.err("not a number"),
     );
 });
 
-Deno.test("or", () => {
+test("or", () => {
     const success = Result.ok<number>(2);
     const failure = Result.err<string>("not a 2");
     const lateError = Result.err<string>("late error");
     const earlyError = Result.err<string>("early error");
     const anotherSuccess = Result.ok<number>(100);
 
-    assertEquals(Result.or<string, number>(lateError)(success), success);
-    assertEquals(Result.or<string, number>(success)(earlyError), success);
-    assertEquals(Result.or(lateError)(failure), lateError);
-    assertEquals(Result.or(anotherSuccess)(success), success);
+    expect(Result.or<string, number>(lateError)(success)).toStrictEqual(
+        success,
+    );
+    expect(Result.or<string, number>(success)(earlyError)).toStrictEqual(
+        success,
+    );
+    expect(Result.or(lateError)(failure)).toStrictEqual(lateError);
+    expect(Result.or(anotherSuccess)(success)).toStrictEqual(success);
 });
 
-Deno.test("orElse", () => {
+test("orElse", () => {
     const sq = Result.orElse((x: number) => Result.ok<number>(x * x));
     const residual = Result.orElse((x: number) => Result.err<number>(x));
 
-    assertEquals(sq(sq(Result.ok(2))), Result.ok(2));
-    assertEquals(sq(residual(Result.ok(2))), Result.ok(2));
-    assertEquals(residual(sq(Result.err(3))), Result.ok(9));
-    assertEquals(residual(residual(Result.err(3))), Result.err(3));
+    expect(sq(sq(Result.ok(2)))).toStrictEqual(Result.ok(2));
+    expect(sq(residual(Result.ok(2)))).toStrictEqual(Result.ok(2));
+    expect(residual(sq(Result.err(3)))).toStrictEqual(Result.ok(9));
+    expect(residual(residual(Result.err(3)))).toStrictEqual(Result.err(3));
 });
 
-Deno.test("optionOk", () => {
-    assertEquals(Result.optionOk(Result.ok(2)), Option.some(2));
-    assertEquals(Result.optionOk(Result.err("nothing left")), Option.none());
+test("optionOk", () => {
+    expect(Result.optionOk(Result.ok(2))).toStrictEqual(Option.some(2));
+    expect(Result.optionOk(Result.err("nothing left"))).toStrictEqual(
+        Option.none(),
+    );
 });
 
-Deno.test("optionErr", () => {
-    assertEquals(Result.optionErr(Result.ok(2)), Option.none());
-    assertEquals(
-        Result.optionErr(Result.err("nothing left")),
+test("optionErr", () => {
+    expect(Result.optionErr(Result.ok(2))).toStrictEqual(Option.none());
+    expect(Result.optionErr(Result.err("nothing left"))).toStrictEqual(
         Option.some("nothing left"),
     );
 });
 
-Deno.test("toString", () => {
-    assertEquals(Result.toString(Result.ok(24)), "ok(24)");
-    assertEquals(Result.toString(Result.err("hoge")), "err(hoge)");
+test("toString", () => {
+    expect(Result.toString(Result.ok(24))).toStrictEqual("ok(24)");
+    expect(Result.toString(Result.err("hoge"))).toStrictEqual("err(hoge)");
 });
 
-Deno.test("toArray", () => {
-    assertEquals(Result.toArray(Result.ok(24)), [24]);
-    assertEquals(Result.toArray(Result.err("hoge")), []);
+test("toArray", () => {
+    expect(Result.toArray(Result.ok(24))).toStrictEqual([24]);
+    expect(Result.toArray(Result.err("hoge"))).toStrictEqual([]);
 });
 
-Deno.test("mapOr", () => {
+test("mapOr", () => {
     const lenOrAnswer = Result.mapOr(42)((x: string) => x.length);
 
-    assertEquals(lenOrAnswer(Result.ok("foo")), 3);
-    assertEquals(lenOrAnswer(Result.err("bar")), 42);
+    expect(lenOrAnswer(Result.ok("foo"))).toStrictEqual(3);
+    expect(lenOrAnswer(Result.err("bar"))).toStrictEqual(42);
 });
 
-Deno.test("mapOrElse", () => {
+test("mapOrElse", () => {
     const k = 21;
     const lenOrAnswer = Result.mapOrElse(() => k * 2)((x: string) => x.length);
 
-    assertEquals(lenOrAnswer(Result.ok("foo")), 3);
-    assertEquals(lenOrAnswer(Result.err("bar")), 42);
+    expect(lenOrAnswer(Result.ok("foo"))).toStrictEqual(3);
+    expect(lenOrAnswer(Result.err("bar"))).toStrictEqual(42);
 });
 
-Deno.test("mapErr", () => {
-    const prefix = Result.mapErr((msg: string) => "LOG: " + msg);
+test("mapErr", () => {
+    const prefix = Result.mapErr((msg: string) => `LOG: ${msg}`);
 
-    assertEquals(prefix(Result.ok(2)), Result.ok(2));
-    assertEquals(prefix(Result.err("failure")), Result.err("LOG: failure"));
+    expect(prefix(Result.ok(2))).toStrictEqual(Result.ok(2));
+    expect(prefix(Result.err("failure"))).toStrictEqual(
+        Result.err("LOG: failure"),
+    );
 });
 
-Deno.test("asyncMap", async () => {
+test("asyncMap", async () => {
     const len = Result.asyncMap((text: string) => Promise.resolve(text.length));
 
-    assertEquals(await len(Result.ok("")), Result.ok(0));
-    assertEquals(await len(Result.ok("foo")), Result.ok(3));
-    assertEquals(await len(Result.err("fail")), Result.err("fail"));
-    assertEquals(await len(Result.err(-1)), Result.err(-1));
+    expect(await len(Result.ok(""))).toStrictEqual(Result.ok(0));
+    expect(await len(Result.ok("foo"))).toStrictEqual(Result.ok(3));
+    expect(await len(Result.err("fail"))).toStrictEqual(Result.err("fail"));
+    expect(await len(Result.err(-1))).toStrictEqual(Result.err(-1));
 });
 
-Deno.test("product", () => {
-    assertEquals(
-        Result.product(Result.ok("foo"))(Result.ok("bar")),
+test("product", () => {
+    expect(Result.product(Result.ok("foo"))(Result.ok("bar"))).toStrictEqual(
         Result.ok(["foo", "bar"] as [string, string]),
     );
-    assertEquals(
-        Result.product(Result.ok("foo"))(Result.err("err")),
+    expect(Result.product(Result.ok("foo"))(Result.err("err"))).toStrictEqual(
         Result.err("err"),
     );
-    assertEquals(
-        Result.product(Result.err("err"))(Result.ok("bar")),
+    expect(Result.product(Result.err("err"))(Result.ok("bar"))).toStrictEqual(
         Result.err("err"),
     );
-    assertEquals(
-        Result.product(Result.err("err"))(Result.err("fool")),
+    expect(Result.product(Result.err("err"))(Result.err("fool"))).toStrictEqual(
         Result.err("err"),
     );
 });
 
-Deno.test("unwrapOr", () => {
+test("unwrapOr", () => {
     const applied = Result.unwrapOr(42);
 
-    assertEquals(applied(Result.ok(9)), 9);
-    assertEquals(applied(Result.err("error")), 42);
+    expect(applied(Result.ok(9))).toStrictEqual(9);
+    expect(applied(Result.err("error"))).toStrictEqual(42);
 });
 
-Deno.test("unwrapOrElse", () => {
+test("unwrapOrElse", () => {
     const applied = Result.unwrapOrElse((x: string) => x.length);
 
-    assertEquals(applied(Result.ok(2)), 2);
-    assertEquals(applied(Result.err("foo")), 3);
+    expect(applied(Result.ok(2))).toStrictEqual(2);
+    expect(applied(Result.err("foo"))).toStrictEqual(3);
 });
 
-Deno.test("biMap", () => {
-    const applied = Result.biMap((mes: string) => "ERROR: " + mes)((
-        num: number,
-    ) => num * 2);
+test("biMap", () => {
+    const applied = Result.biMap((mes: string) => `ERROR: ${mes}`)(
+        (num: number) => num * 2,
+    );
 
-    assertEquals(applied(Result.ok(21)), Result.ok(42));
-    assertEquals(applied(Result.err("wow")), Result.err("ERROR: wow"));
+    expect(applied(Result.ok(21))).toStrictEqual(Result.ok(42));
+    expect(applied(Result.err("wow"))).toStrictEqual(Result.err("ERROR: wow"));
 });
 
-Deno.test("transpose", () => {
-    assertEquals(
-        Result.resOptToOptRes(Result.ok(Option.some(5))),
+test("transpose", () => {
+    expect(Result.resOptToOptRes(Result.ok(Option.some(5)))).toStrictEqual(
         Option.some(Result.ok(5)),
     );
-    assertEquals(
-        Result.resOptToOptRes(Result.ok(Option.none())),
+    expect(Result.resOptToOptRes(Result.ok(Option.none()))).toStrictEqual(
         Option.none(),
     );
-    assertEquals(
-        Result.resOptToOptRes(Result.err(5)),
+    expect(Result.resOptToOptRes(Result.err(5))).toStrictEqual(
         Option.some(Result.err(5)),
     );
 });
 
-Deno.test("collect", () => {
-    assertEquals(Result.collect([]), Result.ok([]));
+test("collect", () => {
+    expect(Result.collect([])).toStrictEqual(Result.ok([]));
 
-    assertEquals(
-        Result.collect([
-            Result.ok(3),
-            Result.ok("1"),
-        ]),
+    expect(Result.collect([Result.ok(3), Result.ok("1")])).toStrictEqual(
         Result.ok([3, "1"] as [number, string]),
     );
 
-    assertEquals(
+    expect(
         Result.collect([
             Result.ok(3),
             Result.err("1"),
             Result.ok(4n),
             Result.err(new Error("wow")),
         ]),
-        Result.err("1"),
-    );
-    assertEquals(
+    ).toStrictEqual(Result.err("1"));
+    expect(
         Result.collect([
             Result.ok(3),
             Result.err(new Error("wow")),
             Result.ok(4n),
             Result.err("1"),
         ]),
-        Result.err(new Error("wow")),
-    );
+    ).toStrictEqual(Result.err(new Error("wow")));
 });
 
-Deno.test("inspect", () => {
+test("inspect", () => {
     Result.inspect((value: string) => {
-        assertEquals(value, "foo");
+        expect(value).toStrictEqual("foo");
     })(Result.ok("foo"));
 
     Result.inspect(() => {
@@ -368,12 +341,12 @@ Deno.test("inspect", () => {
     })(Result.err(42));
 });
 
-Deno.test("functor laws", () => {
+test("functor laws", () => {
     const f = Result.functor<string>();
     // identity
     for (let x = -100; x <= 100; ++x) {
         for (const v of [Result.ok(x), Result.err(`${x}`)]) {
-            assertEquals(f.map((x: number) => x)(v), v);
+            expect(f.map((x: number) => x)(v)).toStrictEqual(v);
         }
     }
 
@@ -382,20 +355,19 @@ Deno.test("functor laws", () => {
     const add3 = (x: number) => x + 3;
     for (let x = -100; x <= 100; ++x) {
         for (const v of [Result.ok(x), Result.err(`${x}`)]) {
-            assertEquals(
-                f.map((x: number) => add3(mul2(x)))(v),
+            expect(f.map((x: number) => add3(mul2(x)))(v)).toStrictEqual(
                 f.map(add3)(f.map(mul2)(v)),
             );
         }
     }
 });
 
-Deno.test("applicative functor laws", () => {
+test("applicative functor laws", () => {
     const app = Result.applicative<string>();
     // identity
     for (let x = -100; x <= 100; ++x) {
         for (const v of [Result.ok(x), Result.err(`${x}`)]) {
-            assertEquals(app.apply(app.pure((i: number) => i))(v), v);
+            expect(app.apply(app.pure((i: number) => i))(v)).toStrictEqual(v);
         }
     }
 
@@ -404,18 +376,20 @@ Deno.test("applicative functor laws", () => {
     const add3 = (x: number) => x + 3;
     for (let x = -100; x <= 100; ++x) {
         for (const v of [Result.ok(x), Result.err(`${x}`)]) {
-            assertEquals(
+            expect(
                 app.apply(
                     app.apply(
                         app.apply(
                             app.pure(
                                 (f: (x: number) => number) =>
-                                (g: (x: number) => number) =>
-                                (i: number) => f(g(i)),
+                                    (g: (x: number) => number) =>
+                                    (i: number) =>
+                                        f(g(i)),
                             ),
                         )(Result.ok(mul2)),
                     )(Result.ok(add3)),
                 )(v),
+            ).toStrictEqual(
                 app.apply(Result.ok(mul2))(app.apply(Result.ok(add3))(v)),
             );
         }
@@ -423,13 +397,14 @@ Deno.test("applicative functor laws", () => {
 
     // homomorphism
     for (let x = -100; x <= 100; ++x) {
-        assertEquals(app.apply(app.pure(mul2))(app.pure(x)), app.pure(mul2(x)));
+        expect(app.apply(app.pure(mul2))(app.pure(x))).toStrictEqual(
+            app.pure(mul2(x)),
+        );
     }
 
     // interchange
     for (let x = -100; x <= 100; ++x) {
-        assertEquals(
-            app.apply(Result.ok(mul2))(app.pure(x)),
+        expect(app.apply(Result.ok(mul2))(app.pure(x))).toStrictEqual(
             app.apply(app.pure((f: (x: number) => number) => f(x)))(
                 Result.ok(mul2),
             ),
@@ -437,7 +412,7 @@ Deno.test("applicative functor laws", () => {
     }
 });
 
-Deno.test("monad laws", () => {
+test("monad laws", () => {
     const m = Result.monad<string>();
     // left identity
     const sqrt = (x: number) =>
@@ -445,13 +420,13 @@ Deno.test("monad laws", () => {
             ? Result.ok(Math.sqrt(x))
             : Result.err("square root of negative is not a number");
     for (let x = -100; x <= 100; ++x) {
-        assertEquals(m.flatMap(sqrt)(m.pure(x)), sqrt(x));
+        expect(m.flatMap(sqrt)(m.pure(x))).toStrictEqual(sqrt(x));
     }
 
     // right identity
     for (let x = -100; x <= 100; ++x) {
         for (const v of [Result.ok(x), Result.err(`${x}`)]) {
-            assertEquals(m.flatMap(m.pure)(v), v);
+            expect(m.flatMap(m.pure)(v)).toStrictEqual(v);
         }
     }
 
@@ -462,24 +437,23 @@ Deno.test("monad laws", () => {
             : Result.err("natural logarithm of negative is not a number");
     for (let x = -100; x <= 100; ++x) {
         for (const v of [Result.ok(x), Result.err(`${x}`)]) {
-            m.flatMap(sqrt)(m.flatMap(log)(v)),
-                m.flatMap((x: number) => m.flatMap(sqrt)(log(x)))(v);
+            expect(m.flatMap(sqrt)(m.flatMap(log)(v))).toStrictEqual(
+                m.flatMap((x: number) => m.flatMap(sqrt)(log(x)))(v),
+            );
         }
     }
 });
 
-Deno.test("traversable functor laws", () => {
+test("traversable functor laws", () => {
     const tra = Result.traversable<string>();
     // naturality
-    const first = <T>(
-        x: readonly T[],
-    ): Option.Option<T> => 0 in x ? Option.some(x[0]) : Option.none();
-    const dup = (x: string): readonly string[] => [x + "0", x + "1"];
+    const first = <T>(x: readonly T[]): Option.Option<T> =>
+        0 in x ? Option.some(x[0]) : Option.none();
+    const dup = (x: string): readonly string[] => [`${x}0`, `${x}1`];
     for (const data of [Result.ok("foo"), Result.err("err")]) {
-        assertEquals(
-            first(tra.traverse(Array.applicative)(dup)(data)),
+        expect(first(tra.traverse(Array.applicative)(dup)(data))).toStrictEqual(
             tra.traverse(Option.applicative)((item: string) =>
-                first(dup(item))
+                first(dup(item)),
             )(data),
         );
     }
@@ -487,10 +461,9 @@ Deno.test("traversable functor laws", () => {
     // identity
     for (let x = -100; x <= 100; ++x) {
         for (const v of [Result.ok(`${x}`), Result.err(`${x}`)]) {
-            assertEquals(
+            expect(
                 tra.traverse(Identity.applicative)((a: string) => a)(v),
-                v,
-            );
+            ).toStrictEqual(v);
         }
     }
 
@@ -499,10 +472,11 @@ Deno.test("traversable functor laws", () => {
     const firstCh = (x: string): Option.Option<string> =>
         x.length > 0 ? Option.some(x.charAt(0)) : Option.none();
     for (const x of [Result.ok("nice"), Result.err("error")]) {
-        assertEquals(
+        expect(
             tra.traverse(app)((item: string) => Array.map(firstCh)(dup(item)))(
                 x,
             ),
+        ).toStrictEqual(
             Array.map(tra.traverse(Option.applicative)(firstCh))(
                 tra.traverse(Array.applicative)(dup)(x),
             ),
@@ -510,51 +484,49 @@ Deno.test("traversable functor laws", () => {
     }
 });
 
-Deno.test("bitraversable functor laws", () => {
+test("bitraversable functor laws", () => {
     const k = 21;
     const lenOrAnswer = Result.bitraversable.biMap((x: string) => x.length)(
         () => k * 2,
     );
-    assertEquals(lenOrAnswer(Result.ok("foo")), Result.ok(42));
-    assertEquals(lenOrAnswer(Result.err("bar")), Result.err(3));
+    expect(lenOrAnswer(Result.ok("foo"))).toStrictEqual(Result.ok(42));
+    expect(lenOrAnswer(Result.err("bar"))).toStrictEqual(Result.err(3));
 
-    assertEquals(
-        Result.bitraversable.bifoldR((msg: string) => (acc: string) =>
-            msg + ", " + acc
-        )((num: number) => (acc: string) => num.toString() + ", " + acc)("end")(
+    expect(
+        Result.bitraversable.bifoldR(
+            (msg: string) => (acc: string) => `${msg}, ${acc}`,
+        )((num: number) => (acc: string) => `${num}, ${acc}`)("end")(
             Result.ok(2),
         ),
-        "2, end",
-    );
-    assertEquals(
-        Result.bitraversable.bifoldR((msg: string) => (acc: string) =>
-            msg + ", " + acc
-        )((num: number) => (acc: string) => num.toString() + ", " + acc)("end")(
+    ).toStrictEqual("2, end");
+    expect(
+        Result.bitraversable.bifoldR(
+            (msg: string) => (acc: string) => `${msg}, ${acc}`,
+        )((num: number) => (acc: string) => `${num}, ${acc}`)("end")(
             Result.err("foo"),
         ),
-        "foo, end",
-    );
+    ).toStrictEqual("foo, end");
 
-    assertEquals(
-        Result.bitraversable.bitraverse(Array.applicative)((
-            x: string,
-        ) => ["ERROR", x])((x: number) => [x, x + 1])(Result.ok(2)),
-        [Result.ok(2), Result.ok(3)],
-    );
-    assertEquals(
-        Result.bitraversable.bitraverse(Array.applicative)((
-            x: string,
-        ) => ["ERROR", x])((x: number) => [x, x + 1])(Result.err("foo")),
-        [Result.err("ERROR"), Result.err("foo")],
-    );
+    expect(
+        Result.bitraversable.bitraverse(Array.applicative)((x: string) => [
+            "ERROR",
+            x,
+        ])((x: number) => [x, x + 1])(Result.ok(2)),
+    ).toStrictEqual([Result.ok(2), Result.ok(3)]);
+    expect(
+        Result.bitraversable.bitraverse(Array.applicative)((x: string) => [
+            "ERROR",
+            x,
+        ])((x: number) => [x, x + 1])(Result.err("foo")),
+    ).toStrictEqual([Result.err("ERROR"), Result.err("foo")]);
 });
 
-Deno.test("encode then decode", () => {
+test("encode then decode", () => {
     const encoder = Result.enc(encUtf8)(encU32Be);
     const decoder = Result.dec(decUtf8())(decU32Be());
     for (const v of [Result.ok(32), Result.err("failure")]) {
         const code = runCode(encoder(v));
         const decoded = Result.unwrap(runDecoder(decoder)(code));
-        assertEquals(decoded, v);
+        expect(decoded).toStrictEqual(v);
     }
 });

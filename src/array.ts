@@ -1,44 +1,44 @@
-import type { Get1, Hkt1 } from "./hkt.ts";
-import { andThen, map as mapOption, type Option, some } from "./option.ts";
-import { and, type Ordering } from "./ordering.ts";
+import type { Get1, Hkt1 } from "./hkt.js";
+import { andThen, map as mapOption, type Option, some } from "./option.js";
+import { and, type Ordering } from "./ordering.js";
 import {
     type Decoder,
     decU32Be,
-    encFoldable,
     type Encoder,
+    encFoldable,
     flatMapDecoder,
     pureDecoder,
-} from "./serial.ts";
-import { type Applicative, liftA2 } from "./type-class/applicative.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
-import type { Foldable } from "./type-class/foldable.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Monad } from "./type-class/monad.ts";
-import { fromCmp, type Ord } from "./type-class/ord.ts";
+} from "./serial.js";
+import { type Applicative, liftA2 } from "./type-class/applicative.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { Foldable } from "./type-class/foldable.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
 import {
     fromPartialEquality,
     type PartialEq,
     type PartialEqUnary,
-} from "./type-class/partial-eq.ts";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
-import type { Reduce } from "./type-class/reduce.ts";
-import type { Traversable } from "./type-class/traversable.ts";
+} from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
+import type { Reduce } from "./type-class/reduce.js";
+import type { Traversable } from "./type-class/traversable.js";
 
 export const partialEquality =
     <L, R = L>(equality: PartialEq<L, R>) =>
     (l: readonly L[], r: readonly R[]): boolean =>
-        l.length === r.length &&
-        l.every((left, i) => equality.eq(left, r[i]!));
+        l.length === r.length && l.every((left, i) => equality.eq(left, r[i]!));
 export const partialEq: <L, R>(
     equality: PartialEq<L, R>,
 ) => PartialEq<L[], R[]> = fromPartialEquality(partialEquality);
 export const partialCmp =
     <L, R = L>(order: PartialOrd<L, R>) =>
     (l: readonly L[], r: readonly R[]): Option<Ordering> =>
-        foldR((
-            next: Option<Ordering>,
-        ): (acc: Option<Ordering>) => Option<Ordering> =>
-            andThen((a: Ordering) => mapOption(and(a))(next))
+        foldR(
+            (
+                next: Option<Ordering>,
+            ): ((acc: Option<Ordering>) => Option<Ordering>) =>
+                andThen((a: Ordering) => mapOption(and(a))(next)),
         )(some(Math.sign(l.length - r.length) as Ordering))(
             l.map((left, i) => order.partialCmp(left, r[i]!)),
         );
@@ -47,13 +47,12 @@ export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<T[]> =
 export const equality =
     <L, R = L>(equality: Eq<L, R>) =>
     (l: readonly L[], r: readonly R[]): boolean =>
-        l.length === r.length &&
-        l.every((left, i) => equality.eq(left, r[i]!));
-export const eq: <L, R = L>(equality: Eq<L, R>) => Eq<L[], R[]> = fromEquality(
-    equality,
-);
+        l.length === r.length && l.every((left, i) => equality.eq(left, r[i]!));
+export const eq: <L, R = L>(equality: Eq<L, R>) => Eq<L[], R[]> =
+    fromEquality(equality);
 export const cmp =
-    <T>(order: Ord<T>) => (l: readonly T[], r: readonly T[]): Ordering =>
+    <T>(order: Ord<T>) =>
+    (l: readonly T[], r: readonly T[]): Ordering =>
         foldR(and)(Math.sign(l.length - r.length) as Ordering)(
             l.map((left, i) => order.cmp(left, r[i]!)),
         );
@@ -72,16 +71,20 @@ export interface ArrayHkt extends Hkt1 {
 }
 
 export const map =
-    <T, U>(fn: (t: T) => U) => (src: readonly T[]): readonly U[] => src.map(fn);
+    <T, U>(fn: (t: T) => U) =>
+    (src: readonly T[]): readonly U[] =>
+        src.map(fn);
 
 export const pure = <T>(item: T): readonly T[] => [item];
 
 export const apply =
-    <T, U>(fns: readonly ((t: T) => U)[]) => (ts: readonly T[]): readonly U[] =>
+    <T, U>(fns: readonly ((t: T) => U)[]) =>
+    (ts: readonly T[]): readonly U[] =>
         fns.flatMap((fn) => ts.map((t) => fn(t)));
 
 export const flatMap =
-    <T, U>(fn: (t: T) => readonly U[]) => (src: readonly T[]): readonly U[] =>
+    <T, U>(fn: (t: T) => readonly U[]) =>
+    (src: readonly T[]): readonly U[] =>
         src.flatMap(fn);
 
 export const foldR: <A, B>(
@@ -124,7 +127,8 @@ export const traversable: Traversable<ArrayHkt> = {
  * @returns The new array.
  */
 export const fromReduce =
-    <F>(reduce: Reduce<F>) => <A>(fa: Get1<F, A>): ReadonlyArray<A> =>
+    <F>(reduce: Reduce<F>) =>
+    <A>(fa: Get1<F, A>): ReadonlyArray<A> =>
         reduce.reduceL((arr: A[]) => (elem: A) => [...arr, elem])([])(fa);
 
 /**
@@ -163,15 +167,16 @@ export const reduce: Reduce<ArrayHkt> = {
     reduceL,
 };
 
-export const enc: <T>(encT: Encoder<T>) => Encoder<readonly T[]> = encFoldable(
-    foldable,
-);
+export const enc: <T>(encT: Encoder<T>) => Encoder<readonly T[]> =
+    encFoldable(foldable);
 export const dec = <A>(decA: Decoder<A>): Decoder<A[]> => {
-    const go = (l: A[]) => (lenToRead: number): Decoder<A[]> =>
-        lenToRead === 0
-            ? pureDecoder(l)
-            : flatMapDecoder((item: A) => go([...l, item])(lenToRead - 1))(
-                decA,
-            );
+    const go =
+        (l: A[]) =>
+        (lenToRead: number): Decoder<A[]> =>
+            lenToRead === 0
+                ? pureDecoder(l)
+                : flatMapDecoder((item: A) => go([...l, item])(lenToRead - 1))(
+                      decA,
+                  );
     return flatMapDecoder(go([]))(decU32Be());
 };

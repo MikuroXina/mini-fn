@@ -5,14 +5,8 @@
  * @module
  */
 
-import { none, type Option, some } from "./option.ts";
-import type { Apply2Only, Hkt2 } from "./hkt.ts";
-import type { Applicative } from "./type-class/applicative.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Get1 } from "./hkt.ts";
-import type { Monad } from "./type-class/monad.ts";
-import type { Traversable } from "./type-class/traversable.ts";
-import type { TraversableMonad } from "./type-class/traversable-monad.ts";
+import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
+import { none, type Option, some } from "./option.js";
 import {
     type Decoder,
     decSum,
@@ -21,10 +15,15 @@ import {
     encSum,
     encU8,
     mapDecoder,
-} from "./serial.ts";
-import type { Bifunctor } from "./type-class/bifunctor.ts";
-import type { PartialEq, PartialEqUnary } from "./type-class/partial-eq.ts";
-import { type Eq, eqSymbol } from "./type-class/eq.ts";
+} from "./serial.js";
+import type { Applicative } from "./type-class/applicative.js";
+import type { Bifunctor } from "./type-class/bifunctor.js";
+import { type Eq, eqSymbol } from "./type-class/eq.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
+import type { PartialEq, PartialEqUnary } from "./type-class/partial-eq.js";
+import type { Traversable } from "./type-class/traversable.js";
+import type { TraversableMonad } from "./type-class/traversable-monad.js";
 
 const continueSymbol = Symbol("ControlFlowContinue");
 /**
@@ -187,7 +186,7 @@ export const biMap =
  */
 export const flatten = <B, C>(
     cfCf: ControlFlow<B, ControlFlow<B, C>>,
-): ControlFlow<B, C> => isContinue(cfCf) ? cfCf[1] : cfCf;
+): ControlFlow<B, C> => (isContinue(cfCf) ? cfCf[1] : cfCf);
 
 /**
  * Applies the function in `ControlFlow` to the continue value of another `ControlFlow`.
@@ -200,7 +199,9 @@ export const apply =
     <B, C1, C2>(cfFn: ControlFlow<B, (c: C1) => C2>) =>
     (cf: ControlFlow<B, C1>): ControlFlow<B, C2> =>
         isContinue(cfFn)
-            ? (isContinue(cf) ? newContinue(cfFn[1](cf[1])) : cf)
+            ? isContinue(cf)
+                ? newContinue(cfFn[1](cf[1]))
+                : cf
             : cfFn;
 
 /**
@@ -237,16 +238,13 @@ export const foldR =
  * @param data - Source to traverse.
  * @returns The traversed value in the container `F`.
  */
-export const traverse = <F>(
-    app: Applicative<F>,
-) =>
-<C, X>(
-    visitor: (a: C) => Get1<F, X>,
-) =>
-<B>(data: ControlFlow<B, C>): Get1<F, ControlFlow<B, X>> =>
-    isContinue(data)
-        ? app.map(newContinue<X>)(visitor(data[1]))
-        : app.pure(data);
+export const traverse =
+    <F>(app: Applicative<F>) =>
+    <C, X>(visitor: (a: C) => Get1<F, X>) =>
+    <B>(data: ControlFlow<B, C>): Get1<F, ControlFlow<B, X>> =>
+        isContinue(data)
+            ? app.map(newContinue<X>)(visitor(data[1]))
+            : app.pure(data);
 
 export interface ControlFlowHkt extends Hkt2 {
     readonly type: ControlFlow<this["arg2"], this["arg1"]>;

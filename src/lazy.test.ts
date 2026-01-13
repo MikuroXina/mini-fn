@@ -1,6 +1,6 @@
-import { assertEquals, spy } from "../deps.ts";
-import { Array, Compose, Identity, Option } from "../mod.ts";
-import { id } from "./func.ts";
+import { expect, test, vi } from "vitest";
+import { Array, Compose, Identity, Option } from "../mod.js";
+import { id } from "./func.js";
 import {
     applicative,
     dec,
@@ -12,46 +12,47 @@ import {
     monad,
     partialEq,
     traversable,
-} from "./lazy.ts";
-import { unwrap } from "./result.ts";
-import { decU32Be, encU32Be, runCode, runDecoder } from "./serial.ts";
-import { strict } from "./type-class/partial-eq.ts";
+} from "./lazy.js";
+import { unwrap } from "./result.js";
+import { decU32Be, encU32Be, runCode, runDecoder } from "./serial.js";
+import { strict } from "./type-class/partial-eq.js";
 
-Deno.test("defer and force", () => {
-    const fn = spy(() => 21 * 2);
+test("defer and force", () => {
+    const fn = vi.fn(() => 21 * 2);
     const lazy = defer(fn);
 
-    assertEquals(force(lazy), 42);
-    assertEquals(force(lazy), 42);
+    expect(force(lazy)).toStrictEqual(42);
+    expect(force(lazy)).toStrictEqual(42);
 
-    assertEquals(fn.calls.length, 1);
+    expect(fn.mock.calls.length).toStrictEqual(1);
 });
 
 const numLazyEq = partialEq(strict<number>());
 
-Deno.test("functor laws", () => {
+test("functor laws", () => {
     const f = functor;
     // identity
     for (const x of [defer(() => 21 * 2), known(63)]) {
-        assertEquals(numLazyEq.eq(f.map(id)(x), id(x)), true);
+        expect(numLazyEq.eq(f.map(id)(x), id(x))).toStrictEqual(true);
     }
 
     // composition
     const add3 = (x: number) => x + 3;
     const mul2 = (x: number) => x * 2;
     for (const x of [defer(() => 21 * 2), known(63)]) {
-        f.map((x: number) => add3(mul2(x)))(x), f.map(add3)(f.map(mul2)(x));
+        expect(force(f.map((x: number) => add3(mul2(x)))(x))).toStrictEqual(
+            force(f.map(add3)(f.map(mul2)(x))),
+        );
     }
 });
 
-Deno.test("applicative functor laws", () => {
+test("applicative functor laws", () => {
     const app = applicative;
     // identity
     for (const x of [defer(() => 21 * 2), known(63)]) {
-        assertEquals(
+        expect(
             numLazyEq.eq(app.apply(app.pure((i: number) => i))(x), x),
-            true,
-        );
+        ).toStrictEqual(true);
     }
 
     // composition
@@ -60,53 +61,51 @@ Deno.test("applicative functor laws", () => {
     for (const x of [defer(() => add3), known(add3)]) {
         for (const y of [defer(() => mul2), known(mul2)]) {
             for (const z of [defer(() => 21 * 2), known(63)]) {
-                assertEquals(
+                expect(
                     numLazyEq.eq(
                         app.apply(
                             app.apply(
                                 app.apply(
                                     app.pure(
                                         (f: (x: number) => number) =>
-                                        (g: (x: number) => number) =>
-                                        (i: number) => f(g(i)),
+                                            (g: (x: number) => number) =>
+                                            (i: number) =>
+                                                f(g(i)),
                                     ),
                                 )(x),
                             )(y),
                         )(z),
                         app.apply(x)(app.apply(y)(z)),
                     ),
-                    true,
-                );
+                ).toStrictEqual(true);
             }
         }
     }
 
     // homomorphism
     for (let x = -100; x <= 100; ++x) {
-        assertEquals(
+        expect(
             numLazyEq.eq(
                 app.apply(app.pure(add3))(app.pure(x)),
                 app.pure(add3(x)),
             ),
-            true,
-        );
+        ).toStrictEqual(true);
     }
 
     // interchange
     for (const f of [defer(() => add3), known(add3)]) {
         for (let x = -100; x <= 100; ++x) {
-            assertEquals(
+            expect(
                 numLazyEq.eq(
                     app.apply(f)(app.pure(x)),
                     app.apply(app.pure((i: (x: number) => number) => i(x)))(f),
                 ),
-                true,
-            );
+            ).toStrictEqual(true);
         }
     }
 });
 
-Deno.test("monad laws", () => {
+test("monad laws", () => {
     const add3 = (x: number) => defer(() => x + 3);
     const mul2 = (x: number) => defer(() => x * 2);
 
@@ -114,41 +113,42 @@ Deno.test("monad laws", () => {
     // left identity
     for (const f of [add3, mul2]) {
         for (let x = -100; x <= 100; ++x) {
-            assertEquals(numLazyEq.eq(m.flatMap(f)(m.pure(x)), f(x)), true);
+            expect(numLazyEq.eq(m.flatMap(f)(m.pure(x)), f(x))).toStrictEqual(
+                true,
+            );
         }
     }
 
     // right identity
     for (const x of [defer(() => 21 * 2), known(63)]) {
-        assertEquals(numLazyEq.eq(m.flatMap(m.pure)(x), x), true);
+        expect(numLazyEq.eq(m.flatMap(m.pure)(x), x)).toStrictEqual(true);
     }
 
     // associativity
     for (const x of [defer(() => 21 * 2), known(63)]) {
-        assertEquals(
+        expect(
             numLazyEq.eq(
                 m.flatMap(add3)(m.flatMap(mul2)(x)),
                 m.flatMap((x: number) => m.flatMap(add3)(mul2(x)))(x),
             ),
-            true,
-        );
+        ).toStrictEqual(true);
     }
 });
 
-Deno.test("traversable functor laws", () => {
+test("traversable functor laws", () => {
     // naturality
-    const first = <T>(
-        x: readonly T[],
-    ): Option.Option<T> => 0 in x ? Option.some(x[0]) : Option.none();
-    const dup = (x: string): readonly string[] => [x + "0", x + "1"];
+    const first = <T>(x: readonly T[]): Option.Option<T> =>
+        0 in x ? Option.some(x[0]) : Option.none();
+    const dup = (x: string): readonly string[] => [`    ${x}}0`, `${x}1`];
     for (const x of [defer(() => "foo"), known("bar")]) {
-        assertEquals(
+        expect(
             Option.map(force)(
                 first(traversable.traverse(Array.applicative)(dup)(x)),
             ),
+        ).toStrictEqual(
             Option.map(force)(
                 traversable.traverse(Option.applicative)((item: string) =>
-                    first(dup(item))
+                    first(dup(item)),
                 )(x),
             ),
         );
@@ -156,14 +156,13 @@ Deno.test("traversable functor laws", () => {
 
     // identity
     for (const x of [defer(() => "foo"), known("bar")]) {
-        assertEquals(
+        expect(
             force(
                 traversable.traverse(Identity.applicative)(<T>(a: T): T => a)(
                     x,
                 ),
             ),
-            force(x),
-        );
+        ).toStrictEqual(force(x));
     }
 
     // composition
@@ -171,10 +170,13 @@ Deno.test("traversable functor laws", () => {
     const firstCh = (x: string): Option.Option<string> =>
         x.length > 0 ? Option.some(x.charAt(0)) : Option.none();
     for (const x of [defer(() => "foo"), known("bar")]) {
-        assertEquals(
-            traversable.traverse(app)((item: string) =>
-                Array.map(firstCh)(dup(item))
-            )(x).map(Option.map(force)),
+        expect(
+            traversable
+                .traverse(app)((item: string) => Array.map(firstCh)(dup(item)))(
+                    x,
+                )
+                .map(Option.map(force)),
+        ).toStrictEqual(
             Array.map(traversable.traverse(Option.applicative)(firstCh))(
                 traversable.traverse(Array.applicative)(dup)(x),
             ).map(Option.map(force)),
@@ -182,10 +184,10 @@ Deno.test("traversable functor laws", () => {
     }
 });
 
-Deno.test("encode then decode", () => {
+test("encode then decode", () => {
     for (const x of [defer(() => 21 * 2), known(42)]) {
         const code = runCode(enc(encU32Be)(x));
         const decoded = unwrap(runDecoder(dec(decU32Be()))(code));
-        assertEquals(force(decoded), force(x));
+        expect(force(decoded)).toStrictEqual(force(x));
     }
 });

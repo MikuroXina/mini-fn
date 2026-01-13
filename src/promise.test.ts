@@ -1,7 +1,7 @@
-import { assertEquals } from "../deps.ts";
-import { Cat, Promise, Result } from "../mod.ts";
+import { expect, test } from "vitest";
+import { Cat, Promise, Result } from "../mod.js";
 
-Deno.test("combine services", async () => {
+test("combine services", async () => {
     const serviceA = (): Promise<Result.Result<Error, string>> =>
         Promise.pure(Result.ok("foo"));
     const serviceB = (
@@ -13,5 +13,5 @@ Deno.test("combine services", async () => {
             .finish(({ x, y }) => `Hello, ${x} and ${y}!`);
 
     const res = await serviceB(serviceA);
-    assertEquals(res, Result.ok("Hello, foo and foo!"));
+    expect(res).toStrictEqual(Result.ok("Hello, foo and foo!"));
 });

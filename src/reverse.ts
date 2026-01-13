@@ -1,11 +1,11 @@
-import type { Hkt1 } from "./hkt.ts";
-import { map as optionMap } from "./option.ts";
-import { reverse } from "./ordering.ts";
-import { eqSymbol } from "./type-class/eq.ts";
-import type { Monad } from "./type-class/monad.ts";
-import type { Ord } from "./type-class/ord.ts";
-import type { PartialOrd } from "./type-class/partial-ord.ts";
-import type { Traversable } from "./type-class/traversable.ts";
+import type { Hkt1 } from "./hkt.js";
+import { map as optionMap } from "./option.js";
+import { reverse } from "./ordering.js";
+import { eqSymbol } from "./type-class/eq.js";
+import type { Monad } from "./type-class/monad.js";
+import type { Ord } from "./type-class/ord.js";
+import type { PartialOrd } from "./type-class/partial-ord.js";
+import type { Traversable } from "./type-class/traversable.js";
 
 const revSymbol = Symbol("ReverseItem");
 
@@ -31,16 +31,20 @@ export const ord = <T>(order: Ord<T>): Ord<Reverse<T>> => ({
 
 export const pure = <T>(item: T): Reverse<T> => ({ [revSymbol]: item });
 
-export const map = <T, U>(fn: (t: T) => U) => (r: Reverse<T>): Reverse<U> => ({
-    [revSymbol]: fn(r[revSymbol]),
-});
+export const map =
+    <T, U>(fn: (t: T) => U) =>
+    (r: Reverse<T>): Reverse<U> => ({
+        [revSymbol]: fn(r[revSymbol]),
+    });
 
 export const flatMap =
-    <T, U>(fn: (t: T) => Reverse<U>) => (r: Reverse<T>): Reverse<U> =>
+    <T, U>(fn: (t: T) => Reverse<U>) =>
+    (r: Reverse<T>): Reverse<U> =>
         fn(r[revSymbol]);
 
 export const apply =
-    <T, U>(fn: Reverse<(t: T) => U>) => (r: Reverse<T>): Reverse<U> => ({
+    <T, U>(fn: Reverse<(t: T) => U>) =>
+    (r: Reverse<T>): Reverse<U> => ({
         [revSymbol]: fn[revSymbol](r[revSymbol]),
     });
 

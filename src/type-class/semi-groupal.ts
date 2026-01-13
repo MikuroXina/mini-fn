@@ -1,6 +1,6 @@
-import type { Get1, Get2 } from "../hkt.ts";
-import type { Tuple } from "../tuple.ts";
-import type { Associative } from "./associative.ts";
+import type { Get1, Get2 } from "../hkt.js";
+import type { Tuple } from "../tuple.js";
+import type { Associative } from "./associative.js";
 
 export type SemiGroupal<F> = {
     readonly product: <A, B>(

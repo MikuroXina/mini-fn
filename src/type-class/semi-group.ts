@@ -1,4 +1,4 @@
-import type { Magma } from "./magma.ts";
+import type { Magma } from "./magma.js";
 
 export const semiGroupSymbol = Symbol("ImplSemiGroup");
 
@@ -12,5 +12,7 @@ export type SemiGroup<T> = Magma<T> & {
 };
 
 export const combineAll =
-    <T>(s: SemiGroup<T>) => (init: T) => (arr: readonly T[]): T =>
+    <T>(s: SemiGroup<T>) =>
+    (init: T) =>
+    (arr: readonly T[]): T =>
         arr.reduce((elem, acc) => s.combine(elem, acc), init);

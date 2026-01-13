@@ -1,7 +1,7 @@
-import type { Get1, Hkt1 } from "../hkt.ts";
-import type { Monoid } from "./monoid.ts";
-import { semiGroupSymbol } from "./semi-group.ts";
-import type { Contravariant } from "./variance.ts";
+import type { Get1, Hkt1 } from "../hkt.js";
+import type { Monoid } from "./monoid.js";
+import { semiGroupSymbol } from "./semi-group.js";
+import type { Contravariant } from "./variance.js";
 
 /**
  * All instances of `PartialEq` must satisfy the following conditions:
@@ -19,17 +19,19 @@ export interface PartialEqHkt extends Hkt1 {
 
 export const contravariant: Contravariant<PartialEqHkt> = {
     contraMap:
-        <T1, T2>(f: (arg: T1) => T2) => (p: PartialEq<T2>): PartialEq<T1> => ({
+        <T1, T2>(f: (arg: T1) => T2) =>
+        (p: PartialEq<T2>): PartialEq<T1> => ({
             eq: (l, r) => p.eq(f(l), f(r)),
         }),
 };
 
-export const fromPartialEquality = <Lhs, Rhs = Lhs, X = void>(
-    partialEquality: (x: X) => (l: Lhs, r: Rhs) => boolean,
-) =>
-(x: X): PartialEq<Lhs, Rhs> => ({
-    eq: partialEquality(x),
-});
+export const fromPartialEquality =
+    <Lhs, Rhs = Lhs, X = void>(
+        partialEquality: (x: X) => (l: Lhs, r: Rhs) => boolean,
+    ) =>
+    (x: X): PartialEq<Lhs, Rhs> => ({
+        eq: partialEquality(x),
+    });
 
 export const fromProjection =
     <F>(projection: <X>(structure: Get1<F, X>) => X) =>

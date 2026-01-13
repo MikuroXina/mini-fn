@@ -1,4 +1,4 @@
-import type { Bifunctor } from "./bifunctor.ts";
-import type { Profunctor } from "./profunctor.ts";
+import type { Bifunctor } from "./bifunctor.js";
+import type { Profunctor } from "./profunctor.js";
 
 export type Reviewable<P> = Profunctor<P> & Bifunctor<P>;

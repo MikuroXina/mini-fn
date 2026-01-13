@@ -1,7 +1,7 @@
-import { isLt } from "../ordering.ts";
-import type { Monoid } from "./monoid.ts";
-import type { Ord } from "./ord.ts";
-import { semiGroupSymbol } from "./semi-group.ts";
+import { isLt } from "../ordering.js";
+import type { Monoid } from "./monoid.js";
+import type { Ord } from "./ord.js";
+import { semiGroupSymbol } from "./semi-group.js";
 
 export type HasInf<A> = Ord<A> & {
     readonly infinity: A;

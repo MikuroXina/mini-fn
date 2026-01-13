@@ -4,10 +4,10 @@ import {
     type Encoder,
     encU8,
     mapDecoder,
-} from "./serial.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
+} from "./serial.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 /**
  * The instance of `Monoid` about logical AND operation.

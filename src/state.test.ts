@@ -1,13 +1,14 @@
-import { assertEquals } from "../deps.ts";
-import { cat } from "./cat.ts";
-import type { Apply2Only } from "./hkt.ts";
-import { get, monad, put, type State, type StateHkt } from "./state.ts";
-import { begin, bindT } from "./type-class/monad.ts";
+import { expect, test } from "vitest";
+import { cat } from "./cat.js";
+import type { Apply2Only } from "./hkt.js";
+import { get, monad, put, type State, type StateHkt } from "./state.js";
+import { begin, bindT } from "./type-class/monad.js";
 
-Deno.test("roll three dices", () => {
+test("roll three dices", () => {
     const seed = 1423523;
     const xorShiftRng =
-        (): State<number, number> => (state: number): [number, number] => {
+        (): State<number, number> =>
+        (state: number): [number, number] => {
             state ^= state << 13;
             state ^= state >> 17;
             state ^= state << 5;
@@ -20,14 +21,14 @@ Deno.test("roll three dices", () => {
         .feed(bound("result2"))
         .feed(bound("result3"))
         .value(seed)[0];
-    assertEquals(results, {
+    expect(results).toStrictEqual({
         result1: 1463707459,
         result2: -519004248,
         result3: -1370047078,
     });
 });
 
-Deno.test("twenty times", () => {
+test("twenty times", () => {
     const stateMonad = monad<number>();
 
     const twentyTimes = (x: number): number =>
@@ -39,11 +40,11 @@ Deno.test("twenty times", () => {
                 stateMonad.flatMap((x8: number) =>
                     stateMonad.map<number, number>((x2: number) => x8 + x2)(
                         get<number>(),
-                    )
+                    ),
                 ),
             )
             .feed(stateMonad.map((x10: number) => x10 + x10))
             .value(0)[0];
 
-    assertEquals(twentyTimes(10), 200);
+    expect(twentyTimes(10)).toStrictEqual(200);
 });

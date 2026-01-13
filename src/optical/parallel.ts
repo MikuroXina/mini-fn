@@ -19,8 +19,8 @@
  * ```
  */
 
-import { absurd } from "../func.ts";
-import type { Optic } from "../optical.ts";
+import { absurd } from "../func.js";
+import type { Optic } from "../optical.js";
 
 /**
  * Creates a new parallel combinator that merging two computations `C1` and `C2`.
@@ -47,14 +47,18 @@ export const newParallel =
     <R>(next: (sending: A) => (continuation: (returned: B) => R) => R) =>
     (received: S) =>
     (callback: (t: T) => R): R =>
-        computation1<R>((sending1) => (continuation1) =>
-            computation2<R>((sending2) => () =>
-                next(joinA(sending1)(sending2))(continuation1)
-            )(received)(absurd)
+        computation1<R>(
+            (sending1) => (continuation1) =>
+                computation2<R>(
+                    (sending2) => () =>
+                        next(joinA(sending1)(sending2))(continuation1),
+                )(received)(absurd),
         )(received)((t1) =>
-            computation2<R>((sending2) => (continuation2) =>
-                computation1<R>((sending1) => () =>
-                    next(joinA(sending1)(sending2))(continuation2)
-                )(received)(absurd)
-            )(received)((t2) => callback(joinT(t1)(t2)))
+            computation2<R>(
+                (sending2) => (continuation2) =>
+                    computation1<R>(
+                        (sending1) => () =>
+                            next(joinA(sending1)(sending2))(continuation2),
+                    )(received)(absurd),
+            )(received)((t2) => callback(joinT(t1)(t2))),
         );

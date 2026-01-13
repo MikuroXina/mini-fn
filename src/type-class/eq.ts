@@ -1,5 +1,5 @@
-import type { Get1 } from "../hkt.ts";
-import type { PartialEq } from "./partial-eq.ts";
+import type { Get1 } from "../hkt.js";
+import type { PartialEq } from "./partial-eq.js";
 
 export const eqSymbol = Symbol("ImplEq");
 
@@ -12,7 +12,7 @@ export const eqSymbol = Symbol("ImplEq");
  * For example, the comparator below cannot implement `Eq` because that does not satisfy reflexive due to `NaN === NaN` always be false.
  *
  * ```ts
- * import { PartialEq } from "./partial-eq.ts";
+ * import { PartialEq } from "./partial-eq.js";
  *
  * const numPartialEq: PartialEq<number, number> = {
  *     eq: (x, y) => x === y,

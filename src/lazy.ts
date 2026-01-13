@@ -1,30 +1,30 @@
-import type { Get1, Hkt1 } from "./hkt.ts";
-import { type Decoder, type Encoder, mapDecoder } from "./serial.ts";
-import type { Applicative } from "./type-class/applicative.ts";
+import type { Get1, Hkt1 } from "./hkt.js";
+import { type Decoder, type Encoder, mapDecoder } from "./serial.js";
+import type { Applicative } from "./type-class/applicative.js";
 import {
     type Eq,
     fromProjection as eqFromProjection,
-} from "./type-class/eq.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Monad } from "./type-class/monad.ts";
+} from "./type-class/eq.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
 import {
-    fromProjection as ordFromProjection,
     type Ord,
-} from "./type-class/ord.ts";
+    fromProjection as ordFromProjection,
+} from "./type-class/ord.js";
 import {
-    fromProjection as partialEqFromProjection,
     type PartialEq,
     type PartialEqUnary,
-} from "./type-class/partial-eq.ts";
+    fromProjection as partialEqFromProjection,
+} from "./type-class/partial-eq.js";
 import {
-    fromProjection as partialOrdFromProjection,
     type PartialOrd,
-} from "./type-class/partial-ord.ts";
-import type { Traversable } from "./type-class/traversable.ts";
+    fromProjection as partialOrdFromProjection,
+} from "./type-class/partial-ord.js";
+import type { Traversable } from "./type-class/traversable.js";
 import {
     sequence as traversableSequence,
     sequenceA as traversableSequenceA,
-} from "./type-class/traversable.ts";
+} from "./type-class/traversable.js";
 
 declare const lazyNominal: unique symbol;
 const deferNominal = Symbol("LazyDefer");
@@ -104,14 +104,14 @@ export const eq: <L, R>(equality: Eq<L, R>) => Eq<Lazy<L>, Lazy<R>> =
     eqFromProjection<LazyHkt>(force);
 export const partialOrd: <T>(equality: PartialOrd<T>) => PartialOrd<Lazy<T>> =
     partialOrdFromProjection<LazyHkt>(force);
-export const ord: <T>(equality: Ord<T>) => Ord<Lazy<T>> = ordFromProjection<
-    LazyHkt
->(force);
+export const ord: <T>(equality: Ord<T>) => Ord<Lazy<T>> =
+    ordFromProjection<LazyHkt>(force);
 
 export const partialEqUnary: PartialEqUnary<LazyHkt> = {
     liftEq:
         <L, R>(equality: (l: L, r: R) => boolean) =>
-        (l: Lazy<L>, r: Lazy<R>): boolean => equality(force(l), force(r)),
+        (l: Lazy<L>, r: Lazy<R>): boolean =>
+            equality(force(l), force(r)),
 };
 
 /**
@@ -127,8 +127,10 @@ export const pure = known;
  * @param fn - The function to be mapped.
  * @returns The function on `Lazy`.
  */
-export const map = <A, B>(fn: (a: A) => B) => (lazy: Lazy<A>): Lazy<B> =>
-    defer(() => fn(force(lazy)));
+export const map =
+    <A, B>(fn: (a: A) => B) =>
+    (lazy: Lazy<A>): Lazy<B> =>
+        defer(() => fn(force(lazy)));
 /**
  * Maps and flattens the function onto `Lazy`.
  *
@@ -136,7 +138,8 @@ export const map = <A, B>(fn: (a: A) => B) => (lazy: Lazy<A>): Lazy<B> =>
  * @returns The function on `Lazy`.
  */
 export const flatMap =
-    <A, B>(fn: (a: A) => Lazy<B>) => (lazy: Lazy<A>): Lazy<B> =>
+    <A, B>(fn: (a: A) => Lazy<B>) =>
+    (lazy: Lazy<A>): Lazy<B> =>
         defer(() => force(fn(force(lazy))));
 /**
  * Applies the function with `Lazy`.
@@ -146,7 +149,8 @@ export const flatMap =
  * @returns The applied `Lazy`.
  */
 export const apply =
-    <T1, U1>(fn: Lazy<(t: T1) => U1>) => (t: Lazy<T1>): Lazy<U1> =>
+    <T1, U1>(fn: Lazy<(t: T1) => U1>) =>
+    (t: Lazy<T1>): Lazy<U1> =>
         defer(() => force(fn)(force(t)));
 /**
  * Makes a product of two `Lazy`s.
@@ -155,8 +159,10 @@ export const apply =
  * @param fb - The right-side of product.
  * @returns The product of two `Lazy`s.
  */
-export const product = <A, B>(fa: Lazy<A>) => (fb: Lazy<B>): Lazy<[A, B]> =>
-    defer(() => [force(fa), force(fb)]);
+export const product =
+    <A, B>(fa: Lazy<A>) =>
+    (fb: Lazy<B>): Lazy<[A, B]> =>
+        defer(() => [force(fa), force(fb)]);
 
 /**
  * Decomposes a lazy product.
@@ -180,7 +186,7 @@ export const unzip = <A, B>(
  */
 export const sequenceA = <F>(
     applicative: Applicative<F>,
-): <T>(data: Lazy<Get1<F, T>>) => Get1<F, Lazy<T>> =>
+): (<T>(data: Lazy<Get1<F, T>>) => Get1<F, Lazy<T>>) =>
     traversableSequenceA(traversable, applicative);
 
 /**
@@ -192,7 +198,7 @@ export const sequenceA = <F>(
  */
 export const sequence = <F>(
     applicative: Monad<F>,
-): <T>(data: Lazy<Get1<F, T>>) => Get1<F, Lazy<T>> =>
+): (<T>(data: Lazy<Get1<F, T>>) => Get1<F, Lazy<T>>) =>
     traversableSequence(traversable, applicative);
 
 /**
@@ -204,7 +210,9 @@ export const sequence = <F>(
  * @returns The folded value.
  */
 export const foldR =
-    <A, B>(folder: (a: A) => (b: B) => B) => (init: B) => (data: Lazy<A>): B =>
+    <A, B>(folder: (a: A) => (b: B) => B) =>
+    (init: B) =>
+    (data: Lazy<A>): B =>
         folder(force(data))(init);
 /**
  * Traverses `Lazy` as the data structure.
@@ -217,7 +225,8 @@ export const foldR =
 export const traverse =
     <F>(app: Applicative<F>) =>
     <A, B>(visitor: (a: A) => Get1<F, B>) =>
-    (data: Lazy<A>): Get1<F, Lazy<B>> => app.map(pure)(visitor(force(data)));
+    (data: Lazy<A>): Get1<F, Lazy<B>> =>
+        app.map(pure)(visitor(force(data)));
 
 export interface LazyHkt extends Hkt1 {
     readonly type: Lazy<this["arg1"]>;
@@ -254,7 +263,9 @@ export const traversable: Traversable<LazyHkt> = {
     traverse,
 };
 
-export const enc = <T>(encT: Encoder<T>): Encoder<Lazy<T>> => (value) =>
-    encT(force(value));
+export const enc =
+    <T>(encT: Encoder<T>): Encoder<Lazy<T>> =>
+    (value) =>
+        encT(force(value));
 export const dec = <T>(decT: Decoder<T>): Decoder<Lazy<T>> =>
     mapDecoder((v: T) => defer(() => v))(decT);

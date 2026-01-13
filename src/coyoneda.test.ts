@@ -1,9 +1,9 @@
-import { assertEquals } from "../deps.ts";
-import { Array, Compose, Func, Identity, Option, Zipper } from "../mod.ts";
+import { expect, test } from "vitest";
+import { Array, Compose, Func, Identity, Option, Zipper } from "../mod.js";
 import {
     applicative,
-    comonad,
     type Coyoneda,
+    comonad,
     coyoneda,
     distributive,
     foldRT,
@@ -15,103 +15,84 @@ import {
     partialEqUnary,
     traversable,
     unCoyoneda,
-} from "./coyoneda.ts";
-import type { Apply2Only } from "./hkt.ts";
-import { strict } from "./type-class/partial-eq.ts";
+} from "./coyoneda.js";
+import type { Apply2Only } from "./hkt.js";
+import { strict } from "./type-class/partial-eq.js";
 
-Deno.test("hoist", () => {
+test("hoist", () => {
     const getFirst = <A>(arr: readonly A[]): Option.Option<A> =>
         0 in arr ? Option.some(arr[0]) : Option.none();
     const arrCoy = coyoneda((x: number) => x.toString())<Array.ArrayHkt>([
-        2,
-        7,
-        1,
-        8,
-        2,
-        8,
+        2, 7, 1, 8, 2, 8,
     ]);
     const optCoy = hoist<Array.ArrayHkt, Option.OptionHkt>(getFirst)(arrCoy);
     const actual = unCoyoneda<Option.OptionHkt, string, Option.Option<string>>(
         (map) => (image) => Option.map(map)(image),
     )(optCoy);
-    assertEquals(actual, Option.some("2"));
+    expect(actual).toStrictEqual(Option.some("2"));
 });
 
 const getValue = unCoyoneda<Array.ArrayHkt, string, readonly string[]>(
     (map) => (image) => image.map(map),
 );
 
-Deno.test("functor laws", () => {
+test("functor laws", () => {
     const f = functor<Array.ArrayHkt>();
     const arrCoy = coyoneda((x: number) => x.toString())<Array.ArrayHkt>([
-        1,
-        4,
-        2,
-        3,
-        5,
-        2,
-        3,
+        1, 4, 2, 3, 5, 2, 3,
     ]);
 
     // identity
     const mapped = f.map((x: string) => x)(arrCoy);
-    assertEquals(getValue(mapped), getValue(arrCoy));
+    expect(getValue(mapped)).toStrictEqual(getValue(arrCoy));
 
     // composition
     const dup = (x: string) => x + x;
     const first = (x: string) => x.charAt(0);
-    assertEquals(
-        getValue(f.map((x: string) => dup(first(x)))(arrCoy)),
+    expect(getValue(f.map((x: string) => dup(first(x)))(arrCoy))).toStrictEqual(
         getValue(f.map(dup)(f.map(first)(arrCoy))),
     );
 });
 
-Deno.test("applicative functor laws", () => {
+test("applicative functor laws", () => {
     const a = applicative(Array.applicative);
     const arrCoy = coyoneda((x: number) => x.toString())<Array.ArrayHkt>([
-        1,
-        4,
-        2,
-        3,
-        5,
-        2,
-        3,
+        1, 4, 2, 3, 5, 2, 3,
     ]);
 
     // identity
-    assertEquals(
-        getValue(a.apply(a.pure((x: string) => x))(arrCoy)),
+    expect(getValue(a.apply(a.pure((x: string) => x))(arrCoy))).toStrictEqual(
         getValue(arrCoy),
     );
 
     // composition
-    const exclamation = a.pure((x: string) => x + "!");
-    const question = a.pure((x: string) => x + "?");
-    assertEquals(
+    const exclamation = a.pure((x: string) => `${x}!`);
+    const question = a.pure((x: string) => `${x}?`);
+    expect(
         getValue(
             a.apply(
                 a.apply(
-                    a.apply(a.pure(
-                        (f: (x: string) => string) =>
-                        (g: (x: string) => string) =>
-                        (i: string) => f(g(i)),
-                    ))(exclamation),
+                    a.apply(
+                        a.pure(
+                            (f: (x: string) => string) =>
+                                (g: (x: string) => string) =>
+                                (i: string) =>
+                                    f(g(i)),
+                        ),
+                    )(exclamation),
                 )(question),
             )(arrCoy),
         ),
-        getValue(a.apply(exclamation)(a.apply(question)(arrCoy))),
-    );
+    ).toStrictEqual(getValue(a.apply(exclamation)(a.apply(question)(arrCoy))));
 
     // homomorphism
-    const period = (x: string) => x + ".";
-    assertEquals(
-        getValue(a.apply(a.pure(period))(a.pure("Alice"))),
+    const period = (x: string) => `${x}.`;
+    expect(getValue(a.apply(a.pure(period))(a.pure("Alice")))).toStrictEqual(
         getValue(a.pure(period("Alice"))),
     );
 
     // interchange
-    assertEquals(
-        getValue(a.apply(exclamation)(a.pure("Bob"))),
+    expect(getValue(a.apply(exclamation)(a.pure("Bob")))).toStrictEqual(
         getValue(
             a.apply(a.pure((op: (x: string) => string) => op("Bob")))(
                 exclamation,
@@ -120,33 +101,33 @@ Deno.test("applicative functor laws", () => {
     );
 });
 
-Deno.test("monad laws", () => {
+test("monad laws", () => {
     const m = monad(Array.monad);
 
     // left identity
     const upperCase = (x: string) =>
         coyoneda((x: string) => x.toUpperCase())<Array.ArrayHkt>([x]);
-    assertEquals(
-        getValue(m.flatMap(upperCase)(m.pure("foo"))),
+    expect(getValue(m.flatMap(upperCase)(m.pure("foo")))).toStrictEqual(
         getValue(upperCase("foo")),
     );
 
     // right identity
     const data = upperCase("bar");
-    assertEquals(getValue(m.flatMap(m.pure)(data)), getValue(data));
+    expect(getValue(m.flatMap(m.pure)(data))).toStrictEqual(getValue(data));
 
     // associativity
     const shout = (x: string) =>
-        coyoneda((x: string) => x + " eh!")<Array.ArrayHkt>([x]);
-    assertEquals(
+        coyoneda((x: string) => `${x} eh!`)<Array.ArrayHkt>([x]);
+    expect(
         getValue(m.flatMap(shout)(m.flatMap(upperCase)(data))),
+    ).toStrictEqual(
         getValue(
             m.flatMap((x: string) => m.flatMap(shout)(upperCase(x)))(data),
         ),
     );
 });
 
-Deno.test("comonad laws", () => {
+test("comonad laws", () => {
     const w = comonad(Zipper.comonad);
     const lowerZipper = lower(Zipper.functor);
     const equality = Zipper.partialEquality(strict<number>());
@@ -155,22 +136,20 @@ Deno.test("comonad laws", () => {
     );
 
     // duplicate then extract
-    assertEquals(
+    expect(
         equality(
             lowerZipper(w.extract(w.duplicate(zipperCoy))),
             lowerZipper(zipperCoy),
         ),
-        true,
-    );
+    ).toStrictEqual(true);
 
     // extract as identity of map
-    assertEquals(
+    expect(
         equality(
             lowerZipper(w.map(w.extract)(w.duplicate(zipperCoy))),
             lowerZipper(zipperCoy),
         ),
-        true,
-    );
+    ).toStrictEqual(true);
 
     // duplicate as identity of map
     const coyEquality = Zipper.partialEqUnary.liftEq(
@@ -178,62 +157,56 @@ Deno.test("comonad laws", () => {
             partialEqUnary(Zipper.partialEqUnary).liftEq(strict<number>().eq),
         ),
     );
-    assertEquals(
+    expect(
         coyEquality(
             lowerZipper(w.duplicate(w.duplicate(zipperCoy))),
             lowerZipper(w.map(w.duplicate)(w.duplicate(zipperCoy))),
         ),
-        true,
-    );
+    ).toStrictEqual(true);
 });
 
-Deno.test("foldRT", () => {
-    const arrCoy = coyoneda((x: number) => x + 1)<Array.ArrayHkt>(
-        [42, 4, 3],
-    );
+test("foldRT", () => {
+    const arrCoy = coyoneda((x: number) => x + 1)<Array.ArrayHkt>([42, 4, 3]);
     const actual = foldRT(Array.foldable)(
         (next: number) => (acc: readonly number[]) => [next, ...acc],
     )([])(arrCoy);
-    assertEquals(actual, [43, 5, 4]);
+    expect(actual).toStrictEqual([43, 5, 4]);
 });
 
-Deno.test("traversable functor laws", () => {
+test("traversable functor laws", () => {
     const tra = traversable(Array.traversable);
-    const arrCoy = coyoneda((x: string) => x + "!")<Array.ArrayHkt>(["42"]);
+    const arrCoy = coyoneda((x: string) => `${x}!`)<Array.ArrayHkt>(["42"]);
 
     // naturality
-    const first = <T>(
-        x: readonly T[],
-    ): Option.Option<T> => 0 in x ? Option.some(x[0]) : Option.none();
-    const dup = (x: string): readonly string[] => [x + "0", x + "1"];
+    const first = <T>(x: readonly T[]): Option.Option<T> =>
+        0 in x ? Option.some(x[0]) : Option.none();
+    const dup = (x: string): readonly string[] => [`${x}0`, `${x}1`];
     const equality = partialEq({
         lifter: Array.partialEqUnary,
         equality: (l: string, r: string) => l === r,
     });
     const equalityOnOption = Option.partialEq(equality);
-    assertEquals(
+    expect(
         equalityOnOption.eq(
             first(tra.traverse(Array.applicative)(dup)(arrCoy)),
             tra.traverse(Option.applicative)((item: string) =>
-                first(dup(item))
+                first(dup(item)),
             )(arrCoy),
         ),
-        true,
-    );
+    ).toStrictEqual(true);
 
     // identity
-    assertEquals(
+    expect(
         equality.eq(
             tra.traverse(Identity.applicative)((a: string) => a)(arrCoy),
             arrCoy,
         ),
-        true,
-    );
+    ).toStrictEqual(true);
 
     // composition
     const firstCh = (x: string): Option.Option<string> =>
         x.length > 0 ? Option.some(x.charAt(0)) : Option.none();
-    assertEquals(
+    expect(
         Array.partialEquality(equalityOnOption)(
             tra.traverse(
                 Compose.applicative(Array.applicative)(Option.applicative),
@@ -242,11 +215,10 @@ Deno.test("traversable functor laws", () => {
                 tra.traverse(Array.applicative)(dup)(arrCoy),
             ),
         ),
-        true,
-    );
+    ).toStrictEqual(true);
 });
 
-Deno.test("distributive functor laws", () => {
+test("distributive functor laws", () => {
     const g = distributive(Func.distributive<number>());
     const fnEquality = (
         l: (x: number) => readonly number[],
@@ -261,28 +233,28 @@ Deno.test("distributive functor laws", () => {
     };
     const lowerFn = lower(Func.functor<number>());
     const data = [
-        coyoneda((x: number) => x + 1)<Apply2Only<Func.FnHkt, number>>((x) =>
-            x * 2
+        coyoneda((x: number) => x + 1)<Apply2Only<Func.FnHkt, number>>(
+            (x) => x * 2,
         ),
-        coyoneda((x: number) => x + 2)<Apply2Only<Func.FnHkt, number>>((x) =>
-            x * 3
+        coyoneda((x: number) => x + 2)<Apply2Only<Func.FnHkt, number>>(
+            (x) => x * 3,
         ),
     ];
 
     // identity
-    assertEquals(
+    expect(
         fnEquality(
             lowerFn(g.distribute(Array.functor)(data)),
             lowerFn(
                 g.distribute(Array.functor)(
-                    Array.map((
-                        x: Coyoneda<Apply2Only<Func.FnHkt, number>, number>,
-                    ) => x)(data),
+                    Array.map(
+                        (x: Coyoneda<Apply2Only<Func.FnHkt, number>, number>) =>
+                            x,
+                    )(data),
                 ),
             ),
         ),
-        true,
-    );
+    ).toStrictEqual(true);
 
     // reversibility
     const funCoy: Coyoneda<
@@ -299,8 +271,7 @@ Deno.test("distributive functor laws", () => {
 
     for (let i = -100; i < 100; ++i) {
         for (let j = -100; j < 100; ++j) {
-            assertEquals(
-                lowerFn(reversed)(i)(j),
+            expect(lowerFn(reversed)(i)(j)).toStrictEqual(
                 lowerFn(funCoy)(i)(j),
             );
         }
