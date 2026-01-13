@@ -1,14 +1,14 @@
-import type { Apply2Only, Hkt2 } from "./hkt.ts";
-import type { Applicative } from "./type-class/applicative.ts";
-import type { Bifunctor } from "./type-class/bifunctor.ts";
-import { type Eq, eqSymbol } from "./type-class/eq.ts";
-import type { Foldable } from "./type-class/foldable.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import type { Ord } from "./type-class/ord.ts";
-import type { PartialEq, PartialEqUnary } from "./type-class/partial-eq.ts";
-import type { PartialOrd } from "./type-class/partial-ord.ts";
-import type { SemiGroupoid } from "./type-class/semi-groupoid.ts";
+import type { Apply2Only, Hkt2 } from "./hkt.js";
+import type { Applicative } from "./type-class/applicative.js";
+import type { Bifunctor } from "./type-class/bifunctor.js";
+import { type Eq, eqSymbol } from "./type-class/eq.js";
+import type { Foldable } from "./type-class/foldable.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monoid } from "./type-class/monoid.js";
+import type { Ord } from "./type-class/ord.js";
+import type { PartialEq, PartialEqUnary } from "./type-class/partial-eq.js";
+import type { PartialOrd } from "./type-class/partial-ord.js";
+import type { SemiGroupoid } from "./type-class/semi-groupoid.js";
 
 export type Const<A, _B> = {
     readonly getConst: A;
@@ -42,12 +42,16 @@ export const ord = <A, B>(order: Ord<A>): Ord<Const<A, B>> => ({
 export const partialEqUnary = <A>(
     equality: PartialEq<A>,
 ): PartialEqUnary<Apply2Only<ConstHkt, A>> => ({
-    liftEq: <L, R>() => (l: Const<A, L>, r: Const<A, R>): boolean =>
-        equality.eq(l.getConst, r.getConst),
+    liftEq:
+        <L, R>() =>
+        (l: Const<A, L>, r: Const<A, R>): boolean =>
+            equality.eq(l.getConst, r.getConst),
 });
 
 export const compose =
-    <B, C>(_left: Const<B, C>) => <A>(right: Const<A, B>): Const<A, C> => right;
+    <B, C>(_left: Const<B, C>) =>
+    <A>(right: Const<A, B>): Const<A, C> =>
+        right;
 
 export const biMap =
     <A, B>(first: (a: A) => B) =>
@@ -57,7 +61,8 @@ export const biMap =
 export const foldR =
     <A, B>(_folder: (next: A) => (acc: B) => B) =>
     (init: B) =>
-    (_data: Const<unknown, A>): B => init;
+    (_data: Const<unknown, A>): B =>
+        init;
 
 export interface ConstHkt extends Hkt2 {
     readonly type: Const<this["arg2"], this["arg1"]>;

@@ -23,19 +23,19 @@
  * ```
  */
 
+import { doT } from "../cat.js";
+import { type ContT, callCC, monad as contTMonad, lift } from "../cont.js";
 import {
     type ControlFlow,
     isBreak,
     newBreak,
     newContinue,
-} from "../control-flow.ts";
-import type { Optical } from "../optical.ts";
-import { isOk, type Result } from "../result.ts";
-import type { Monad } from "../type-class/monad.ts";
-import type { Get1 } from "../hkt.ts";
-import { doT } from "../cat.ts";
-import { callCC, type ContT, lift, monad as contTMonad } from "../cont.ts";
-import { monad as promiseMonad, type PromiseHkt } from "../promise.ts";
+} from "../control-flow.js";
+import type { Get1 } from "../hkt.js";
+import type { Optical } from "../optical.js";
+import { type PromiseHkt, monad as promiseMonad } from "../promise.js";
+import { isOk, type Result } from "../result.js";
+import type { Monad } from "../type-class/monad.js";
 
 /**
  * Creates a retriable optical which consists three functions:
@@ -77,27 +77,25 @@ export const newRetriable =
         const sub =
             (exit: (res: T) => ContT<R, M, ControlFlow<T, I>>) =>
             (state: I): ContT<R, M, T> =>
-                doT(contMonad).addM(
-                    "res",
-                    lift(monad)(triable(received)(state)),
-                )
+                doT(contMonad)
+                    .addM("res", lift(monad)(triable(received)(state)))
                     .addMWith(
                         "flow",
                         ({ res }): ContT<R, M, ControlFlow<T, I>> =>
                             isOk(res)
                                 ? contMonad.flatMap((b: B) =>
-                                    exit(set(received)(b))
-                                )(next(res[1]))
+                                      exit(set(received)(b)),
+                                  )(next(res[1]))
                                 : lift(monad)(strategy(res[1])(state)),
-                    ).addMWith("decision", ({ flow }) =>
+                    )
+                    .addMWith("decision", ({ flow }) =>
                         isBreak(flow)
                             ? contMonad.pure(flow[1])
-                            : sub(exit)(flow[1]))
-                    .finish(({ decision }) =>
-                        decision
-                    );
+                            : sub(exit)(flow[1]),
+                    )
+                    .finish(({ decision }) => decision);
         return callCC<R, M, T, ControlFlow<T, I>>((exit) =>
-            sub(exit)(initialState)
+            sub(exit)(initialState),
         );
     };
 
@@ -110,23 +108,24 @@ export const newRetriable =
  * @param set - A function to substitute the data `S`.
  * @returns The retriable optical.
  */
-export const exponentialBackoff = (
-    maxRetries: number,
-    waiter: (milliseconds: number) => Promise<void> = (ms) =>
-        new Promise((resolve) => setTimeout(resolve, ms)),
-) =>
-<E, T>(
-    fallback: (err: E) => T,
-): <S, A>(
-    triable: (data: S) => (state: number) => Promise<Result<E, A>>,
-) => <B>(
-    set: (data: S) => (modified: B) => T,
-) => Optical<PromiseHkt, S, T, A, B> =>
-    newRetriable(promiseMonad)(0)((err: E) => async (attempt) => {
-        if (attempt >= maxRetries) {
-            return newBreak(fallback(err));
-        }
-        const delay = 100 << Math.min(23, attempt);
-        await waiter(delay);
-        return newContinue(attempt + 1);
-    });
+export const exponentialBackoff =
+    (
+        maxRetries: number,
+        waiter: (milliseconds: number) => Promise<void> = (ms) =>
+            new Promise((resolve) => setTimeout(resolve, ms)),
+    ) =>
+    <E, T>(
+        fallback: (err: E) => T,
+    ): (<S, A>(
+        triable: (data: S) => (state: number) => Promise<Result<E, A>>,
+    ) => <B>(
+        set: (data: S) => (modified: B) => T,
+    ) => Optical<PromiseHkt, S, T, A, B>) =>
+        newRetriable(promiseMonad)(0)((err: E) => async (attempt) => {
+            if (attempt >= maxRetries) {
+                return newBreak(fallback(err));
+            }
+            const delay = 100 << Math.min(23, attempt);
+            await waiter(delay);
+            return newContinue(attempt + 1);
+        });

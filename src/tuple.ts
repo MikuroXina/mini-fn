@@ -1,73 +1,94 @@
-import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.ts";
-import { defer as lazyDefer, force, type Lazy } from "./lazy.ts";
-import { andThen, type Option } from "./option.ts";
-import { andThen as thenWith, type Ordering } from "./ordering.ts";
+import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
+import { force, type Lazy, defer as lazyDefer } from "./lazy.js";
+import { andThen, type Option } from "./option.js";
+import { type Ordering, andThen as thenWith } from "./ordering.js";
 import {
     type Decoder,
     type Encoder,
     flatMapCodeM,
     monadForDecoder,
-} from "./serial.ts";
-import { type Applicative, liftA2 } from "./type-class/applicative.ts";
-import { type Bifoldable, fromBifoldMap } from "./type-class/bifoldable.ts";
-import type { Bifunctor } from "./type-class/bifunctor.ts";
-import type { Bitraversable } from "./type-class/bitraversable.ts";
-import type { Comonad } from "./type-class/comonad.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
-import type { Functor } from "./type-class/functor.ts";
-import { liftM2, type Monad } from "./type-class/monad.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { fromCmp, type Ord } from "./type-class/ord.ts";
+} from "./serial.js";
+import { type Applicative, liftA2 } from "./type-class/applicative.js";
+import { type Bifoldable, fromBifoldMap } from "./type-class/bifoldable.js";
+import type { Bifunctor } from "./type-class/bifunctor.js";
+import type { Bitraversable } from "./type-class/bitraversable.js";
+import type { Comonad } from "./type-class/comonad.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { Functor } from "./type-class/functor.js";
+import { liftM2, type Monad } from "./type-class/monad.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
 import {
     fromPartialEquality,
     type PartialEq,
     type PartialEqUnary,
-} from "./type-class/partial-eq.ts";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
-import type { SemiGroup } from "./type-class/semi-group.ts";
-import type { SemiGroupal } from "./type-class/semi-groupal.ts";
+} from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
+import type { SemiGroup } from "./type-class/semi-group.js";
+import type { SemiGroupal } from "./type-class/semi-groupal.js";
 
 /**
  * The readonly tuple having `A` and `B`.
  */
 export type Tuple<A, B> = readonly [A, B];
 
-export const partialEquality = <A, L, R = L>(
-    { equalityA, equalityB }: {
+export const partialEquality =
+    <A, L, R = L>({
+        equalityA,
+        equalityB,
+    }: {
         equalityA: PartialEq<A>;
         equalityB: PartialEq<L, R>;
-    },
-) =>
-(l: Tuple<A, L>, r: Tuple<A, R>): boolean =>
-    equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
-export const partialEq: <A, L, R = L>(
-    { equalityA, equalityB }: {
-        equalityA: PartialEq<A>;
-        equalityB: PartialEq<L, R>;
-    },
-) => PartialEq<Tuple<A, L>, Tuple<A, R>> = fromPartialEquality(partialEquality);
-export const equality = <A, L, R = L>(
-    { equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<L, R> },
-) =>
-(l: Tuple<A, L>, r: Tuple<A, R>): boolean =>
-    equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
-export const eq: <A, L, R = L>(
-    { equalityA, equalityB }: { equalityA: Eq<A>; equalityB: Eq<L, R> },
-) => Eq<Tuple<A, L>, Tuple<A, R>> = fromEquality(equality);
+    }) =>
+    (l: Tuple<A, L>, r: Tuple<A, R>): boolean =>
+        equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
+export const partialEq: <A, L, R = L>({
+    equalityA,
+    equalityB,
+}: {
+    equalityA: PartialEq<A>;
+    equalityB: PartialEq<L, R>;
+}) => PartialEq<Tuple<A, L>, Tuple<A, R>> =
+    fromPartialEquality(partialEquality);
+export const equality =
+    <A, L, R = L>({
+        equalityA,
+        equalityB,
+    }: {
+        equalityA: Eq<A>;
+        equalityB: Eq<L, R>;
+    }) =>
+    (l: Tuple<A, L>, r: Tuple<A, R>): boolean =>
+        equalityA.eq(l[0], r[0]) && equalityB.eq(l[1], r[1]);
+export const eq: <A, L, R = L>({
+    equalityA,
+    equalityB,
+}: {
+    equalityA: Eq<A>;
+    equalityB: Eq<L, R>;
+}) => Eq<Tuple<A, L>, Tuple<A, R>> = fromEquality(equality);
 export const partialCmp =
     <A, B>({ ordA, ordB }: { ordA: PartialOrd<A>; ordB: PartialOrd<B> }) =>
     ([a1, b1]: Tuple<A, B>, [a2, b2]: Tuple<A, B>): Option<Ordering> =>
         andThen(() => ordB.partialCmp(b1, b2))(ordA.partialCmp(a1, a2));
-export const partialOrd: <A, B>(
-    { ordA, ordB }: { ordA: PartialOrd<A>; ordB: PartialOrd<B> },
-) => PartialOrd<Tuple<A, B>> = fromPartialCmp(partialCmp);
+export const partialOrd: <A, B>({
+    ordA,
+    ordB,
+}: {
+    ordA: PartialOrd<A>;
+    ordB: PartialOrd<B>;
+}) => PartialOrd<Tuple<A, B>> = fromPartialCmp(partialCmp);
 export const cmp =
     <A, B>({ ordA, ordB }: { ordA: Ord<A>; ordB: Ord<B> }) =>
     ([a1, b1]: Tuple<A, B>, [a2, b2]: Tuple<A, B>): Ordering =>
         thenWith(() => ordB.cmp(b1, b2))(ordA.cmp(a1, a2));
-export const ord: <A, B>(
-    { ordA, ordB }: { ordA: Ord<A>; ordB: Ord<B> },
-) => Ord<Tuple<A, B>> = fromCmp(cmp);
+export const ord: <A, B>({
+    ordA,
+    ordB,
+}: {
+    ordA: Ord<A>;
+    ordB: Ord<B>;
+}) => Ord<Tuple<A, B>> = fromCmp(cmp);
 
 export const partialEqUnary = <A>(
     equalityA: PartialEq<A>,
@@ -83,7 +104,9 @@ export const partialEqUnary = <A>(
  * @param b - The second element of a tuple.
  * @returns The new tuple.
  */
-export const make = <A>(a: A) => <B>(b: B): Tuple<A, B> => [a, b];
+export const make =
+    <A>(a: A) =>
+    <B>(b: B): Tuple<A, B> => [a, b];
 
 /**
  * Gets the first element of the tuple.
@@ -106,9 +129,10 @@ export const second = <A, B>([, b]: Tuple<A, B>): B => b;
  * @param tuple - The nested tuple `[a, [b, c]]`.
  * @returns The left-associated tuple `[[a, b], c]`.
  */
-export const assocL = <A, B, C>(
-    [a, [b, c]]: Tuple<A, Tuple<B, C>>,
-): Tuple<Tuple<A, B>, C> => [[a, b], c];
+export const assocL = <A, B, C>([a, [b, c]]: Tuple<A, Tuple<B, C>>): Tuple<
+    Tuple<A, B>,
+    C
+> => [[a, b], c];
 
 /**
  * Associates a tuple of three elements to the right.
@@ -116,9 +140,10 @@ export const assocL = <A, B, C>(
  * @param tuple - The nested tuple `[[a, b], c]`.
  * @returns The right-associated tuple `[a, [b, c]]`.
  */
-export const assocR = <A, B, C>(
-    [[a, b], c]: Tuple<Tuple<A, B>, C>,
-): Tuple<A, Tuple<B, C>> => [a, [b, c]];
+export const assocR = <A, B, C>([[a, b], c]: Tuple<Tuple<A, B>, C>): Tuple<
+    A,
+    Tuple<B, C>
+> => [a, [b, c]];
 
 /**
  * Curries the function `f` which takes a tuple.
@@ -127,7 +152,10 @@ export const assocR = <A, B, C>(
  * @returns The curried function which takes two parameters.
  */
 export const curry =
-    <A, B, C>(f: (tuple: Tuple<A, B>) => C) => (a: A) => (b: B): C => f([a, b]);
+    <A, B, C>(f: (tuple: Tuple<A, B>) => C) =>
+    (a: A) =>
+    (b: B): C =>
+        f([a, b]);
 
 /**
  * Uncurries the function `f` which takes two parameters.
@@ -136,7 +164,9 @@ export const curry =
  * @returns The uncurried function which takes a tuple.
  */
 export const uncurry =
-    <A, B, C>(f: (a: A) => (b: B) => C) => ([a, b]: Tuple<A, B>): C => f(a)(b);
+    <A, B, C>(f: (a: A) => (b: B) => C) =>
+    ([a, b]: Tuple<A, B>): C =>
+        f(a)(b);
 
 /**
  * Swaps elements of the tuple.
@@ -154,10 +184,8 @@ export const swap = <A, B>([a, b]: Tuple<A, B>): Tuple<B, A> => [b, a];
  * @returns The mapped tuple.
  */
 export const map =
-    <A, B>(f: (a: A) => B) => <C>([c, a]: Tuple<C, A>): Tuple<C, B> => [
-        c,
-        f(a),
-    ];
+    <A, B>(f: (a: A) => B) =>
+    <C>([c, a]: Tuple<C, A>): Tuple<C, B> => [c, f(a)];
 /**
  * Applies the function in the tuple to another tuple.
  *
@@ -178,7 +206,8 @@ export const apply =
  * @returns The new tuple.
  */
 export const pure =
-    <A>(monoid: Monoid<A>) => <B>(b: B): Tuple<A, B> => [monoid.identity, b];
+    <A>(monoid: Monoid<A>) =>
+    <B>(b: B): Tuple<A, B> => [monoid.identity, b];
 /**
  * Binds the tuple to the function which returns a tuple.
  *
@@ -206,7 +235,8 @@ export const bind =
 export const flatMap =
     <A>(sg: SemiGroup<A>) =>
     <B, C>(f: (b: B) => Tuple<A, C>) =>
-    (tuple: Tuple<A, B>): Tuple<A, C> => bind(sg)(tuple)(f);
+    (tuple: Tuple<A, B>): Tuple<A, C> =>
+        bind(sg)(tuple)(f);
 
 export const extend =
     <A>(f: <B>(tuple: Tuple<A, B>) => B) =>
@@ -222,9 +252,10 @@ export const extract = second;
  * @param t - The tuple to be duplicated.
  * @returns The nested tuple.
  */
-export const duplicate = <A, B>(
-    t: Tuple<A, B>,
-): Tuple<A, Tuple<A, B>> => [t[0], t];
+export const duplicate = <A, B>(t: Tuple<A, B>): Tuple<A, Tuple<A, B>> => [
+    t[0],
+    t,
+];
 
 /**
  * Distributes `Tuple` in `Lazy`.
@@ -275,10 +306,8 @@ export const traverse =
  * @returns The mapped tuple.
  */
 export const mapD =
-    <A, B>(f: (a: A) => B) => ([a1, a2]: Tuple<A, A>): Tuple<B, B> => [
-        f(a1),
-        f(a2),
-    ];
+    <A, B>(f: (a: A) => B) =>
+    ([a1, a2]: Tuple<A, A>): Tuple<B, B> => [f(a1), f(a2)];
 
 /**
  * Maps both elements by two each mapper function.
@@ -291,7 +320,9 @@ export const mapD =
 export const biMap: <A, B>(
     first: (a: A) => B,
 ) => <C, D>(second: (c: C) => D) => (curr: Tuple<A, C>) => Tuple<B, D> =
-    (f) => (g) => ([a, c]) => [f(a), g(c)];
+    (f) =>
+    (g) =>
+    ([a, c]) => [f(a), g(c)];
 
 /**
  * Traverses both elements with an applicative functor.
@@ -309,7 +340,11 @@ export const bitraverse: <F>(
 ) => <B, D>(
     g: (b: B) => Get1<F, D>,
 ) => (data: Tuple<A, B>) => Get1<F, Tuple<C, D>> =
-    (app) => (f) => (g) => ([a, b]) => liftA2(app)(make)(f(a))(g(b));
+    (app) =>
+    (f) =>
+    (g) =>
+    ([a, b]) =>
+        liftA2(app)(make)(f(a))(g(b));
 
 /**
  * Folds the tuple data into a `Monoid` value with mapping functions `aMap` and `bMap`.
@@ -324,7 +359,8 @@ export const bifoldMap =
     <M>(m: Monoid<M>) =>
     <A>(aMap: (a: A) => M) =>
     <B>(bMap: (b: B) => M) =>
-    ([a, b]: Tuple<A, B>): M => m.combine(aMap(a), bMap(b));
+    ([a, b]: Tuple<A, B>): M =>
+        m.combine(aMap(a), bMap(b));
 
 export interface TupleHkt extends Hkt2 {
     readonly type: Tuple<this["arg2"], this["arg1"]>;
@@ -377,9 +413,8 @@ export const bifunctor: Bifunctor<TupleHkt> = { biMap };
 /**
  * The instance of `Bitraversal` for `Tuple<_, _>`.
  */
-export const bifoldable: Bifoldable<TupleHkt> = fromBifoldMap<TupleHkt>(
-    bifoldMap,
-);
+export const bifoldable: Bifoldable<TupleHkt> =
+    fromBifoldMap<TupleHkt>(bifoldMap);
 
 /**
  * The instance of `Bitraversable` for `Tuple<_, _>`.
@@ -402,9 +437,11 @@ export const comonad = <A>(): Comonad<Apply2Only<TupleHkt, A>> => ({
 export const enc =
     <A>(encA: Encoder<A>) =>
     <B>(encB: Encoder<B>): Encoder<Tuple<A, B>> =>
-    (value) => flatMapCodeM(() => encB(value[1]))(encA(value[0]));
+    (value) =>
+        flatMapCodeM(() => encB(value[1]))(encA(value[0]));
 export const dec =
-    <A>(decA: Decoder<A>) => <B>(decB: Decoder<B>): Decoder<Tuple<A, B>> =>
+    <A>(decA: Decoder<A>) =>
+    <B>(decB: Decoder<B>): Decoder<Tuple<A, B>> =>
         liftM2(monadForDecoder)((a: A) => (b: B) => [a, b] as const)(decA)(
             decB,
         );

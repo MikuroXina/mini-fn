@@ -1,3 +1,4 @@
+import { expect, test } from "vitest";
 import {
     adjsFrom,
     bounds,
@@ -21,13 +22,12 @@ import {
     toUndirected,
     type Vertex,
     vertices,
-} from "./graph.ts";
-import { nonNanOrd } from "./type-class/ord.ts";
-import { assertEquals } from "../deps.ts";
-import { unwrap } from "./option.ts";
-import { addMonoid } from "./type-class/monoid.ts";
-import { fromIterable, toArray } from "./list.ts";
-import { err, ok } from "./result.ts";
+} from "./graph.js";
+import { fromIterable, toArray } from "./list.js";
+import { unwrap } from "./option.js";
+import { err, ok } from "./result.js";
+import { addMonoid } from "./type-class/monoid.js";
+import { nonNanOrd } from "./type-class/ord.js";
 
 /*
     0 --> 1
@@ -36,14 +36,16 @@ import { err, ok } from "./result.ts";
     V   \ |
     2 --> 3
 */
-const simpleGraph = build([0 as Vertex, 3 as Vertex])(fromIterable([
-    [0 as Vertex, 1 as Vertex],
-    [0 as Vertex, 3 as Vertex],
-    [0 as Vertex, 2 as Vertex],
-    [2 as Vertex, 3 as Vertex],
-    [3 as Vertex, 0 as Vertex],
-    [3 as Vertex, 1 as Vertex],
-]));
+const simpleGraph = build([0 as Vertex, 3 as Vertex])(
+    fromIterable([
+        [0 as Vertex, 1 as Vertex],
+        [0 as Vertex, 3 as Vertex],
+        [0 as Vertex, 2 as Vertex],
+        [2 as Vertex, 3 as Vertex],
+        [3 as Vertex, 0 as Vertex],
+        [3 as Vertex, 1 as Vertex],
+    ]),
+);
 
 /*
     downward arrows:
@@ -53,35 +55,38 @@ const simpleGraph = build([0 as Vertex, 3 as Vertex])(fromIterable([
      / \  |
     3   4 5
 */
-const tree = build([0 as Vertex, 5 as Vertex])(fromIterable([
-    [0 as Vertex, 1 as Vertex],
-    [0 as Vertex, 2 as Vertex],
-    [1 as Vertex, 3 as Vertex],
-    [1 as Vertex, 4 as Vertex],
-    [2 as Vertex, 5 as Vertex],
-]));
+const tree = build([0 as Vertex, 5 as Vertex])(
+    fromIterable([
+        [0 as Vertex, 1 as Vertex],
+        [0 as Vertex, 2 as Vertex],
+        [1 as Vertex, 3 as Vertex],
+        [1 as Vertex, 4 as Vertex],
+        [2 as Vertex, 5 as Vertex],
+    ]),
+);
 
-Deno.test("adjsFrom", () => {
-    assertEquals(toArray(adjsFrom(0 as Vertex)(simpleGraph)).toSorted(), [
-        1,
-        2,
-        3,
-    ]);
-    assertEquals(toArray(adjsFrom(1 as Vertex)(simpleGraph)).toSorted(), []);
-    assertEquals(toArray(adjsFrom(2 as Vertex)(simpleGraph)).toSorted(), [3]);
-    assertEquals(toArray(adjsFrom(3 as Vertex)(simpleGraph)).toSorted(), [
-        0,
-        1,
-    ]);
+test("adjsFrom", () => {
+    expect(
+        toArray(adjsFrom(0 as Vertex)(simpleGraph)).toSorted(),
+    ).toStrictEqual([1, 2, 3]);
+    expect(
+        toArray(adjsFrom(1 as Vertex)(simpleGraph)).toSorted(),
+    ).toStrictEqual([]);
+    expect(
+        toArray(adjsFrom(2 as Vertex)(simpleGraph)).toSorted(),
+    ).toStrictEqual([3]);
+    expect(
+        toArray(adjsFrom(3 as Vertex)(simpleGraph)).toSorted(),
+    ).toStrictEqual([0, 1]);
 });
 
-Deno.test("vertices", () => {
-    assertEquals(toArray(vertices(simpleGraph)), [0, 1, 2, 3]);
+test("vertices", () => {
+    expect(toArray(vertices(simpleGraph))).toStrictEqual([0, 1, 2, 3]);
 });
 
-Deno.test("edges", () => {
+test("edges", () => {
     const actual = edges(simpleGraph);
-    assertEquals(toArray(actual), [
+    expect(toArray(actual)).toStrictEqual([
         [0 as Vertex, 2 as Vertex],
         [0 as Vertex, 3 as Vertex],
         [0 as Vertex, 1 as Vertex],
@@ -91,21 +96,21 @@ Deno.test("edges", () => {
     ]);
 });
 
-Deno.test("bounds", () => {
-    assertEquals(bounds(simpleGraph), [0 as Vertex, 3 as Vertex]);
+test("bounds", () => {
+    expect(bounds(simpleGraph)).toStrictEqual([0 as Vertex, 3 as Vertex]);
 });
 
-Deno.test("outDegree", () => {
-    assertEquals(outDegree(simpleGraph), [3, 0, 1, 2]);
+test("outDegree", () => {
+    expect(outDegree(simpleGraph)).toStrictEqual([3, 0, 1, 2]);
 });
 
-Deno.test("inDegree", () => {
-    assertEquals(inDegree(simpleGraph), [1, 2, 1, 2]);
+test("inDegree", () => {
+    expect(inDegree(simpleGraph)).toStrictEqual([1, 2, 1, 2]);
 });
 
-Deno.test("reversedEdges", () => {
+test("reversedEdges", () => {
     const reversed = reversedEdges(tree);
-    assertEquals(toArray(reversed), [
+    expect(toArray(reversed)).toStrictEqual([
         [2 as Vertex, 0 as Vertex],
         [1 as Vertex, 0 as Vertex],
         [4 as Vertex, 1 as Vertex],
@@ -114,7 +119,7 @@ Deno.test("reversedEdges", () => {
     ]);
 });
 
-Deno.test("toReversed", () => {
+test("toReversed", () => {
     /*
         upward arrows:
             0
@@ -124,8 +129,8 @@ Deno.test("toReversed", () => {
         3   4 5
     */
     const reversed = toReversed(tree);
-    assertEquals(toArray(vertices(reversed)), [0, 1, 2, 3, 4, 5]);
-    assertEquals(toArray(edges(reversed)), [
+    expect(toArray(vertices(reversed))).toStrictEqual([0, 1, 2, 3, 4, 5]);
+    expect(toArray(edges(reversed))).toStrictEqual([
         [1 as Vertex, 0 as Vertex],
         [2 as Vertex, 0 as Vertex],
         [3 as Vertex, 1 as Vertex],
@@ -134,7 +139,7 @@ Deno.test("toReversed", () => {
     ]);
 });
 
-Deno.test("preOrder", () => {
+test("preOrder", () => {
     /*
             0
            / \
@@ -142,9 +147,9 @@ Deno.test("preOrder", () => {
          / \  |
         3   4 5
     */
-    assertEquals(preOrder(0 as Vertex)(tree), [0, 1, 3, 4, 2, 5]);
+    expect(preOrder(0 as Vertex)(tree)).toStrictEqual([0, 1, 3, 4, 2, 5]);
 });
-Deno.test("postOrder", () => {
+test("postOrder", () => {
     /*
            0
           / \
@@ -152,10 +157,10 @@ Deno.test("postOrder", () => {
          |  / \
          5 4   3
     */
-    assertEquals(postOrder(0 as Vertex)(tree), [5, 2, 4, 3, 1, 0]);
+    expect(postOrder(0 as Vertex)(tree)).toStrictEqual([5, 2, 4, 3, 1, 0]);
 });
 
-Deno.test("resolve dependencies", () => {
+test("resolve dependencies", () => {
     {
         /*
             0 --------> 3
@@ -172,8 +177,7 @@ Deno.test("resolve dependencies", () => {
             ["4", 4, []],
         ]);
         const actual = topologicalSort(graph);
-        assertEquals(
-            actual,
+        expect(actual).toStrictEqual(
             ok([
                 0 as Vertex,
                 3 as Vertex,
@@ -199,15 +203,14 @@ Deno.test("resolve dependencies", () => {
             ["4", 4, [3]],
         ]);
         const actual = topologicalSort(graph);
-        assertEquals(
-            actual,
+        expect(actual).toStrictEqual(
             err({ at: [3 as Vertex, 0 as Vertex] as Edge }),
         );
     }
 });
 
-Deno.test("isCyclic", () => {
-    assertEquals(isCyclic(simpleGraph), true);
+test("isCyclic", () => {
+    expect(isCyclic(simpleGraph)).toStrictEqual(true);
     {
         /*
             0 --------> 3
@@ -223,7 +226,7 @@ Deno.test("isCyclic", () => {
             ["3", 3, [4]],
             ["4", 4, []],
         ]);
-        assertEquals(isCyclic(graph), false);
+        expect(isCyclic(graph)).toStrictEqual(false);
     }
     {
         /*
@@ -240,11 +243,11 @@ Deno.test("isCyclic", () => {
             ["3", 3, [0]],
             ["4", 4, [3]],
         ]);
-        assertEquals(isCyclic(graph), true);
+        expect(isCyclic(graph)).toStrictEqual(true);
     }
 });
 
-Deno.test("toUndirected", () => {
+test("toUndirected", () => {
     /*
         Expected:
         0 --- 1
@@ -254,7 +257,7 @@ Deno.test("toUndirected", () => {
         2 --- 3
      */
     const undirected = toUndirected(simpleGraph);
-    assertEquals(toArray(edges(undirected)), [
+    expect(toArray(edges(undirected))).toStrictEqual([
         [0 as Vertex, 1 as Vertex],
         [0 as Vertex, 3 as Vertex],
         [0 as Vertex, 2 as Vertex],
@@ -268,17 +271,14 @@ Deno.test("toUndirected", () => {
     ]);
 });
 
-Deno.test("weakly connected components", () => {
+test("weakly connected components", () => {
     const cc = connectedComponents(simpleGraph);
-    assertEquals(cc.map((component) => [...component].toSorted()), [[
-        0,
-        1,
-        2,
-        3,
-    ]]);
+    expect(cc.map((component) => [...component].toSorted())).toStrictEqual([
+        [0, 1, 2, 3],
+    ]);
 });
 
-Deno.test("strongly connected components", () => {
+test("strongly connected components", () => {
     /*
         0 --------> 3
         | ^         ^
@@ -294,48 +294,53 @@ Deno.test("strongly connected components", () => {
         ["4", 4, [3]],
     ]);
     const scc = stronglyConnectedComponents(graph);
-    assertEquals(scc.map((component) => [...component].toSorted()), [
+    expect(scc.map((component) => [...component].toSorted())).toStrictEqual([
         [
             unwrap(indexVertex(0)),
             unwrap(indexVertex(1)),
             unwrap(indexVertex(2)),
         ],
-        [
-            unwrap(indexVertex(3)),
-            unwrap(indexVertex(4)),
-        ],
+        [unwrap(indexVertex(3)), unwrap(indexVertex(4))],
     ]);
 });
 
-Deno.test("reachableVertices", () => {
-    assertEquals([...reachableVertices(0 as Vertex)(tree)], [0, 1, 3, 4, 2, 5]);
-    assertEquals([...reachableVertices(1 as Vertex)(tree)], [1, 3, 4]);
-    assertEquals([...reachableVertices(2 as Vertex)(tree)], [2, 5]);
-    assertEquals([...reachableVertices(3 as Vertex)(tree)], [3]);
-    assertEquals([...reachableVertices(4 as Vertex)(tree)], [4]);
-    assertEquals([...reachableVertices(5 as Vertex)(tree)], [5]);
+test("reachableVertices", () => {
+    expect([...reachableVertices(0 as Vertex)(tree)]).toStrictEqual([
+        0, 1, 3, 4, 2, 5,
+    ]);
+    expect([...reachableVertices(1 as Vertex)(tree)]).toStrictEqual([1, 3, 4]);
+    expect([...reachableVertices(2 as Vertex)(tree)]).toStrictEqual([2, 5]);
+    expect([...reachableVertices(3 as Vertex)(tree)]).toStrictEqual([3]);
+    expect([...reachableVertices(4 as Vertex)(tree)]).toStrictEqual([4]);
+    expect([...reachableVertices(5 as Vertex)(tree)]).toStrictEqual([5]);
 });
 
-Deno.test("canReach", () => {
-    assertEquals(canReach(0 as Vertex)(0 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(0 as Vertex)(1 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(0 as Vertex)(2 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(0 as Vertex)(3 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(1 as Vertex)(0 as Vertex)(simpleGraph), false);
-    assertEquals(canReach(1 as Vertex)(1 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(1 as Vertex)(2 as Vertex)(simpleGraph), false);
-    assertEquals(canReach(1 as Vertex)(3 as Vertex)(simpleGraph), false);
-    assertEquals(canReach(2 as Vertex)(0 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(2 as Vertex)(1 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(2 as Vertex)(2 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(2 as Vertex)(3 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(3 as Vertex)(0 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(3 as Vertex)(1 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(3 as Vertex)(2 as Vertex)(simpleGraph), true);
-    assertEquals(canReach(3 as Vertex)(3 as Vertex)(simpleGraph), true);
+test("canReach", () => {
+    expect(canReach(0 as Vertex)(0 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(0 as Vertex)(1 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(0 as Vertex)(2 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(0 as Vertex)(3 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(1 as Vertex)(0 as Vertex)(simpleGraph)).toStrictEqual(
+        false,
+    );
+    expect(canReach(1 as Vertex)(1 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(1 as Vertex)(2 as Vertex)(simpleGraph)).toStrictEqual(
+        false,
+    );
+    expect(canReach(1 as Vertex)(3 as Vertex)(simpleGraph)).toStrictEqual(
+        false,
+    );
+    expect(canReach(2 as Vertex)(0 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(2 as Vertex)(1 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(2 as Vertex)(2 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(2 as Vertex)(3 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(3 as Vertex)(0 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(3 as Vertex)(1 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(3 as Vertex)(2 as Vertex)(simpleGraph)).toStrictEqual(true);
+    expect(canReach(3 as Vertex)(3 as Vertex)(simpleGraph)).toStrictEqual(true);
 });
 
-Deno.test("dijkstra", () => {
+test("dijkstra", () => {
     /*
         0 <-------> 3
         ^ ^         ^
@@ -357,8 +362,9 @@ Deno.test("dijkstra", () => {
         [3, Infinity, Infinity, Infinity, 1],
         [Infinity, Infinity, Infinity, Infinity, 1],
     ];
-    const distancesFromStart = dijkstra(addMonoid, nonNanOrd)((
-        [from, to],
-    ) => distanceMat[from]![to]!)(unwrap(indexVertex(0)))(graph);
-    assertEquals(distancesFromStart, [0, 5, 1, 3, 4]);
+    const distancesFromStart = dijkstra(
+        addMonoid,
+        nonNanOrd,
+    )(([from, to]) => distanceMat[from]![to]!)(unwrap(indexVertex(0)))(graph);
+    expect(distancesFromStart).toStrictEqual([0, 5, 1, 3, 4]);
 });

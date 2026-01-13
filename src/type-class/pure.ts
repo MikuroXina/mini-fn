@@ -1,4 +1,4 @@
-import type { Get1 } from "../hkt.ts";
+import type { Get1 } from "../hkt.js";
 
 export type Pure<S> = {
     readonly pure: <T>(t: T) => Get1<S, T>;
@@ -7,9 +7,11 @@ export type Pure<S> = {
 export const when =
     <S>(app: Pure<S>) =>
     (cond: boolean) =>
-    (op: Get1<S, never[]>): Get1<S, never[]> => cond ? op : app.pure([]);
+    (op: Get1<S, never[]>): Get1<S, never[]> =>
+        cond ? op : app.pure([]);
 
 export const unless =
     <S>(app: Pure<S>) =>
     (cond: boolean) =>
-    (op: Get1<S, never[]>): Get1<S, never[]> => cond ? app.pure([]) : op;
+    (op: Get1<S, never[]>): Get1<S, never[]> =>
+        cond ? app.pure([]) : op;

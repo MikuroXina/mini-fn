@@ -9,7 +9,7 @@
  * ```
  */
 
-import type { Optic } from "../optical.ts";
+import type { Optic } from "../optical.js";
 
 /**
  * Creates a new `Lens` optic from the two functions.
@@ -23,7 +23,8 @@ export const newLens =
     <B, T>(set: (s: S) => (b: B) => T): Optic<S, T, A, B> =>
     (next) =>
     (received) =>
-    (callback) => next(get(received))((b) => callback(set(received)(b)));
+    (callback) =>
+        next(get(received))((b) => callback(set(received)(b)));
 
 /**
  * Focuses to the given index of array.
@@ -66,9 +67,11 @@ export const key = <
     }));
 
 export type Entries<O, K> = K extends readonly [infer H, ...infer R]
-    ? H extends keyof O ? [R] extends [[]] ? [[H, O[H]]]
-        : [[H, O[H]], ...Entries<O, R>]
-    : never
+    ? H extends keyof O
+        ? [R] extends [[]]
+            ? [[H, O[H]]]
+            : [[H, O[H]], ...Entries<O, R>]
+        : never
     : [PropertyKey, unknown][];
 
 /**

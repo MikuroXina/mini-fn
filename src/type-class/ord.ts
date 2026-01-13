@@ -1,11 +1,11 @@
-import type { Get1, Hkt1 } from "../hkt.ts";
-import { type Option, some } from "../option.ts";
-import { isEq, type Ordering } from "../ordering.ts";
-import type { HasNegInf } from "./has-neg-inf.ts";
-import { type Eq, eqSymbol, stringEq } from "./eq.ts";
-import type { HasInf } from "./has-inf.ts";
-import type { PartialOrd } from "./partial-ord.ts";
-import type { Contravariant } from "./variance.ts";
+import type { Get1, Hkt1 } from "../hkt.js";
+import { type Option, some } from "../option.js";
+import { isEq, type Ordering } from "../ordering.js";
+import { type Eq, eqSymbol, stringEq } from "./eq.js";
+import type { HasInf } from "./has-inf.js";
+import type { HasNegInf } from "./has-neg-inf.js";
+import type { PartialOrd } from "./partial-ord.js";
+import type { Contravariant } from "./variance.js";
 
 /**
  * All instances of `Ord` must satisfy following conditions:
@@ -13,13 +13,14 @@ import type { Contravariant } from "./variance.ts";
  * - Duality: If `f` is `Ord`, for all `a` and `b`; `f(a, b) == -f(b, a)`.
  * - Strict: Ordering for all values is well-defined (so the return value is not an `Option`).
  */
-export type Ord<Lhs, Rhs = Lhs> = PartialOrd<Lhs, Rhs> & Eq<Lhs, Rhs> & {
-    readonly cmp: (lhs: Lhs, rhs: Rhs) => Ordering;
-};
+export type Ord<Lhs, Rhs = Lhs> = PartialOrd<Lhs, Rhs> &
+    Eq<Lhs, Rhs> & {
+        readonly cmp: (lhs: Lhs, rhs: Rhs) => Ordering;
+    };
 
 export const stringOrd: Ord<string> = {
     ...stringEq,
-    cmp: (l, r) => l < r ? -1 : l === r ? 0 : 1,
+    cmp: (l, r) => (l < r ? -1 : l === r ? 0 : 1),
     partialCmp: (l, r) => some(l < r ? -1 : l === r ? 0 : 1),
 };
 
@@ -62,16 +63,13 @@ export const contra: Contravariant<OrdHkt> = {
     }),
 };
 
-export const nonNanOrd:
-    & Ord<number>
-    & HasInf<number>
-    & HasNegInf<number> = {
-        ...fromCmp(() => (l: number, r: number) => {
-            if (Number.isNaN(l) || Number.isNaN(r)) {
-                throw new Error("NaN detected");
-            }
-            return Math.sign(l - r) as Ordering;
-        })(),
-        infinity: Number.POSITIVE_INFINITY,
-        negativeInfinity: Number.NEGATIVE_INFINITY,
-    };
+export const nonNanOrd: Ord<number> & HasInf<number> & HasNegInf<number> = {
+    ...fromCmp(() => (l: number, r: number) => {
+        if (Number.isNaN(l) || Number.isNaN(r)) {
+            throw new Error("NaN detected");
+        }
+        return Math.sign(l - r) as Ordering;
+    })(),
+    infinity: Number.POSITIVE_INFINITY,
+    negativeInfinity: Number.NEGATIVE_INFINITY,
+};

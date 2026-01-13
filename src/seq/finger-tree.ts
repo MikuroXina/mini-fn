@@ -1,7 +1,7 @@
-import { reduce as reduceArray } from "../array.ts";
-import { flip, id } from "../func.ts";
-import type { Get1, Hkt1 } from "../hkt.ts";
-import type { Reduce } from "../type-class/reduce.ts";
+import * as Array from "../array.js";
+import { flip, id } from "../func.js";
+import type { Get1, Hkt1 } from "../hkt.js";
+import type { Reduce } from "../type-class/reduce.js";
 
 const emptyNominal = Symbol("FingerTreeEmpty");
 /**
@@ -66,7 +66,7 @@ export interface DigitHkt extends Hkt1 {
 /**
  * The instance of `Reduce` for `Digit`.
  */
-export const reduceDigit: Reduce<DigitHkt> = reduceArray;
+export const reduceDigit: Reduce<DigitHkt> = Array.reduce;
 
 /**
  * A leaf of subtree.
@@ -135,17 +135,15 @@ export const deep =
  *
  * # Examples
  *
- * ```ts
- * import { empty, fromArray, size } from "./finger-tree.ts";
- * import { assertEquals } from "../../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const emptiness = empty;
  * const single = fromArray([3]);
  * const many = fromArray([2, 1, 8, 1, 8]);
 
- * assertEquals(size(emptiness), 0);
- * assertEquals(size(single), 1);
- * assertEquals(size(many), 5);
+ * expect(size(emptiness)).toStrictEqual(0);
+ * expect(size(single)).toStrictEqual(1);
+ * expect(size(many)).toStrictEqual(5);
  * ```
  */
 export const size = <A>(tree: FingerTree<A>): number => {
@@ -173,7 +171,7 @@ export interface FingerTreeHkt extends Hkt1 {
 export const reduceTree: Reduce<FingerTreeHkt> = {
     reduceR:
         <A, B>(reducer: (a: A) => (b: B) => B) =>
-        (tree: FingerTree<A>): (b: B) => B => {
+        (tree: FingerTree<A>): ((b: B) => B) => {
             if (isEmpty(tree)) {
                 return id;
             }
@@ -181,7 +179,7 @@ export const reduceTree: Reduce<FingerTreeHkt> = {
                 return reducer(tree.data);
             }
             const { left, nextTree, right } = tree;
-            const arrayReducer = reduceArray.reduceR(reducer);
+            const arrayReducer = Array.reduce.reduceR(reducer);
             const treeArrayReducer = reduceTree.reduceR(arrayReducer);
             return (b: B) =>
                 arrayReducer(left)(
@@ -199,7 +197,7 @@ export const reduceTree: Reduce<FingerTreeHkt> = {
                 return reducer(b)(tree.data);
             }
             const { left, nextTree, right } = tree;
-            const arrayReducer = reduceArray.reduceL(reducer);
+            const arrayReducer = Array.reduce.reduceL(reducer);
             const treeArrayReducer = reduceTree.reduceL(arrayReducer);
             return arrayReducer(
                 treeArrayReducer(arrayReducer(b)(left))(nextTree),
@@ -215,7 +213,8 @@ export const reduceTree: Reduce<FingerTreeHkt> = {
  * @returns The mutated tree.
  */
 export const appendToHead =
-    <A>(elem: A) => (tree: FingerTree<A>): FingerTree<A> => {
+    <A>(elem: A) =>
+    (tree: FingerTree<A>): FingerTree<A> => {
         if (isEmpty(tree)) {
             return single(elem);
         }
@@ -257,7 +256,7 @@ export const pushToHead: <A>(
  */
 export const appendManyToHead = <F>(
     reduce: Reduce<F>,
-): <A>(fa: Get1<F, A>) => (tree: FingerTree<A>) => FingerTree<A> =>
+): (<A>(fa: Get1<F, A>) => (tree: FingerTree<A>) => FingerTree<A>) =>
     reduce.reduceR(appendToHead);
 
 /**
@@ -268,7 +267,8 @@ export const appendManyToHead = <F>(
  * @returns The mutated tree.
  */
 export const appendToTail =
-    <A>(elem: A) => (tree: FingerTree<A>): FingerTree<A> => {
+    <A>(elem: A) =>
+    (tree: FingerTree<A>): FingerTree<A> => {
         if (isEmpty(tree)) {
             return single(elem);
         }
@@ -310,7 +310,7 @@ export const pushToTail: <A>(
  */
 export const appendManyToTail = <F>(
     reduce: Reduce<F>,
-): <A>(tree: FingerTree<A>) => (fa: Get1<F, A>) => FingerTree<A> =>
+): (<A>(tree: FingerTree<A>) => (fa: Get1<F, A>) => FingerTree<A>) =>
     reduce.reduceL(pushToTail);
 
 /**
@@ -321,7 +321,8 @@ export const appendManyToTail = <F>(
  * @returns The new tree.
  */
 export const fromReduce =
-    <F>(reduce: Reduce<F>) => <A>(fa: Get1<F, A>): FingerTree<A> =>
+    <F>(reduce: Reduce<F>) =>
+    <A>(fa: Get1<F, A>): FingerTree<A> =>
         appendManyToTail(reduce)(empty as FingerTree<A>)(fa);
 /**
  * Creates a new tree from the elements in `Array`.
@@ -330,7 +331,7 @@ export const fromReduce =
  * @returns The new tree.
  */
 export const fromArray: <A>(fa: readonly A[]) => FingerTree<A> = fromReduce(
-    reduceArray,
+    Array.reduce,
 );
 
 const nodes = <A>(middle: readonly A[]): Node<A>[] => {
@@ -368,27 +369,25 @@ export const appendBetween =
     (middle: readonly A[]) =>
     (right: FingerTree<A>): FingerTree<A> => {
         if (isEmpty(left)) {
-            return appendManyToHead(reduceArray)(middle)(right);
+            return appendManyToHead(Array.reduce)(middle)(right);
         }
         if (isEmpty(right)) {
-            return appendManyToTail(reduceArray)(left)(middle);
+            return appendManyToTail(Array.reduce)(left)(middle);
         }
         if (isSingle(left)) {
             return appendToHead(left.data)(
-                appendManyToHead(reduceArray)(middle)(right),
+                appendManyToHead(Array.reduce)(middle)(right),
             );
         }
         if (isSingle(right)) {
             return appendToTail(right.data)(
-                appendManyToTail(reduceArray)(left)(middle),
+                appendManyToTail(Array.reduce)(left)(middle),
             );
         }
         return deep(left.left)(
             appendBetween(left.nextTree)(
                 nodes([...left.right, ...middle, ...right.left]),
-            )(
-                right.nextTree,
-            ),
+            )(right.nextTree),
         )(right.right);
     };
 
@@ -401,31 +400,28 @@ export const appendBetween =
  *
  * # Examples
  *
- * ```ts
- * import { concat, empty, fromArray, reduceTree } from "./finger-tree.ts";
- * import * as Array from "../array.ts";
- * import { assertEquals } from "../../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const toArray = Array.fromReduce(reduceTree);
  *
  * const emptiness = empty;
  * const single = fromArray([3]);
  * const many = fromArray([2, 1, 8, 2, 8]);
  *
- * assertEquals(toArray(concat(emptiness)(emptiness)), []);
+ * expect(toArray(concat(emptiness)(emptiness))).toStrictEqual([]);
  *
- * assertEquals(toArray(concat(emptiness)(single)), [3]);
- * assertEquals(toArray(concat(single)(emptiness)), [3]);
+ * expect(toArray(concat(emptiness)(single))).toStrictEqual([3]);
+ * expect(toArray(concat(single)(emptiness))).toStrictEqual([3]);
  *
- * assertEquals(toArray(concat(single)(single)), [3, 3]);
+ * expect(toArray(concat(single)(single))).toStrictEqual([3, 3]);
  *
- * assertEquals(toArray(concat(emptiness)(many)), [2, 1, 8, 2, 8]);
- * assertEquals(toArray(concat(many)(emptiness)), [2, 1, 8, 2, 8]);
+ * expect(toArray(concat(emptiness)(many))).toStrictEqual([2, 1, 8, 2, 8]);
+ * expect(toArray(concat(many)(emptiness))).toStrictEqual([2, 1, 8, 2, 8]);
  *
- * assertEquals(toArray(concat(single)(many)), [3, 2, 1, 8, 2, 8]);
- * assertEquals(toArray(concat(many)(single)), [2, 1, 8, 2, 8, 3]);
+ * expect(toArray(concat(single)(many))).toStrictEqual([3, 2, 1, 8, 2, 8]);
+ * expect(toArray(concat(many)(single))).toStrictEqual([2, 1, 8, 2, 8, 3]);
  *
- * assertEquals(toArray(concat(many)(many)), [
+ * expect(toArray(concat(many)(many))).toStrictEqual([
  *     2,
  *     1,
  *     8,
@@ -440,7 +436,8 @@ export const appendBetween =
  * ```
  */
 export const concat =
-    <A>(left: FingerTree<A>) => (right: FingerTree<A>): FingerTree<A> => {
+    <A>(left: FingerTree<A>) =>
+    (right: FingerTree<A>): FingerTree<A> => {
         if (isEmpty(left)) {
             return right;
         }

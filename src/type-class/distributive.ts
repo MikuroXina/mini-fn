@@ -1,6 +1,6 @@
-import type { Get1 } from "../hkt.ts";
-import type { Functor } from "./functor.ts";
-import type { Monad } from "./monad.ts";
+import type { Get1 } from "../hkt.js";
+import type { Functor } from "./functor.js";
+import type { Monad } from "./monad.js";
 
 /**
  * The dual of traversable functor, allows zipping a nested structure efficiently.

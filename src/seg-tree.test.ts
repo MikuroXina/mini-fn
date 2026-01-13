@@ -1,5 +1,5 @@
-import { assertEquals } from "../deps.ts";
-import { doMut, readMutRef } from "./mut.ts";
+import { expect, test } from "vitest";
+import { doMut, readMutRef } from "./mut.js";
 import {
     clear,
     get,
@@ -8,64 +8,66 @@ import {
     intoMut,
     query,
     withItems,
-} from "./seg-tree.ts";
-import { addMonoid } from "./type-class/monoid.ts";
+} from "./seg-tree.js";
+import { addMonoid } from "./type-class/monoid.js";
 
-Deno.test("query", () => {
+test("query", () => {
     const src = [1, 4, 2, 3, 5, 2, 3];
     const seq = withItems(addMonoid)(src);
     for (let from = -1; from <= 7; ++from) {
         for (let to = 0; to <= 8; ++to) {
             let expected = 0;
             for (let i = from; i < to; ++i) {
-                expected += i in src ? src[i]! : 0;
+                expected += src[i] ?? 0;
             }
-            assertEquals(query(from)(to)(seq), expected);
+            expect(query(from)(to)(seq)).toStrictEqual(expected);
         }
     }
 });
 
-Deno.test("get", () => {
+test("get", () => {
     const src = [1, 4, 2, 3, 5, 2, 3];
     const seq = withItems(addMonoid)(src);
     for (let i = 0; i < src.length; ++i) {
-        assertEquals(get(i)(seq), src[i]);
+        expect(get(i)(seq)).toStrictEqual(src[i]);
     }
 });
 
-Deno.test("intoItems", () => {
+test("intoItems", () => {
     const src = [1, 4, 2, 3, 5, 2, 3];
     const seq = withItems(addMonoid)(src);
     const actual = intoItems(seq);
-    assertEquals(actual.length, src.length);
+    expect(actual.length).toStrictEqual(src.length);
     for (let i = 0; i < src.length; ++i) {
-        assertEquals(actual[i], src[i]);
+        expect(actual[i]).toStrictEqual(src[i]);
     }
 });
 
-Deno.test("clear", () => {
+test("clear", () => {
     const src = [1, 4, 2, 3, 5, 2, 3];
     const seq = withItems(addMonoid)(src);
     const cleared = doMut((cat) =>
-        cat.addM("ref", intoMut(seq))
+        cat
+            .addM("ref", intoMut(seq))
             .runWith(({ ref }) => clear(ref))
-            .finishM(({ ref }) => readMutRef(ref))
+            .finishM(({ ref }) => readMutRef(ref)),
     );
     const actual = intoItems(cleared);
-    assertEquals(actual.length, src.length);
+    expect(actual.length).toStrictEqual(src.length);
     for (let i = 0; i < src.length; ++i) {
-        assertEquals(actual[i], 0);
+        expect(actual[i]).toStrictEqual(0);
     }
 });
 
-Deno.test("insert", () => {
+test("insert", () => {
     const src = [1, 4, 2, 3, 5, 2, 3];
     const seq = withItems(addMonoid)(src);
-    assertEquals(query(1)(3)(seq), 6);
+    expect(query(1)(3)(seq)).toStrictEqual(6);
     const inserted = doMut((cat) =>
-        cat.addM("ref", intoMut(seq))
+        cat
+            .addM("ref", intoMut(seq))
             .runWith(({ ref }) => insert(ref)(1)(7))
-            .finishM(({ ref }) => readMutRef(ref))
+            .finishM(({ ref }) => readMutRef(ref)),
     );
-    assertEquals(query(1)(3)(inserted), 9);
+    expect(query(1)(3)(inserted)).toStrictEqual(9);
 });

@@ -1,6 +1,6 @@
-import { id } from "../func.ts";
-import type { Get2 } from "../hkt.ts";
-import type { Category } from "./category.ts";
+import { id } from "../func.js";
+import type { Get2 } from "../hkt.js";
+import type { Category } from "./category.js";
 
 /**
  * A structure which lifts both type parameters on `P`.
@@ -18,12 +18,12 @@ export type Bifunctor<P> = {
 
 export const first =
     <P>(bi: Bifunctor<P>) =>
-    <A, B>(fn: (a: A) => B): <C>(curr: Get2<P, A, C>) => Get2<P, B, C> =>
+    <A, B>(fn: (a: A) => B): (<C>(curr: Get2<P, A, C>) => Get2<P, B, C>) =>
         bi.biMap(fn)(id);
 
 export const second = <P>(
     bi: Bifunctor<P>,
-): <B, C>(fn: (a: B) => C) => <A>(curr: Get2<P, A, B>) => Get2<P, A, C> =>
+): (<B, C>(fn: (a: B) => C) => <A>(curr: Get2<P, A, B>) => Get2<P, A, C>) =>
     bi.biMap(id);
 
 export type GenericBifunctor<C1, C2, C3, T> = {
@@ -44,5 +44,5 @@ export const genericLeftMap =
         gb.genericBiMap(f)(gb.cat2.identity());
 export const genericRightMap = <C1, C2, C3, T>(
     gb: GenericBifunctor<C1, C2, C3, T>,
-): <C, D, A>(f: Get2<C2, C, D>) => Get2<C3, Get2<T, A, C>, Get2<T, A, D>> =>
+): (<C, D, A>(f: Get2<C2, C, D>) => Get2<C3, Get2<T, A, C>, Get2<T, A, D>>) =>
     gb.genericBiMap(gb.cat1.identity());

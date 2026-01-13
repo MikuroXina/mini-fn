@@ -1,28 +1,30 @@
-import { assertEquals, assertThrows } from "../deps.ts";
-import { none, type Option, some } from "./option.ts";
-import { fromNumber, fromNumberChecked, semiRing } from "./tropical.ts";
+import { expect, test } from "vitest";
+import { none, type Option, some } from "./option.js";
+import { fromNumber, fromNumberChecked, semiRing } from "./tropical.js";
 
-Deno.test("fromNumber", () => {
-    assertEquals(fromNumber(-42), -42);
-    assertEquals(fromNumber(-0), -0);
-    assertEquals(fromNumber(0), 0);
-    assertEquals(fromNumber(42), 42);
-    assertEquals(fromNumber(Infinity), Infinity);
-    assertThrows(() => fromNumber(-Infinity));
-    assertThrows(() => fromNumber(NaN));
+test("fromNumber", () => {
+    expect(fromNumber(-42)).toStrictEqual(-42);
+    expect(fromNumber(-0)).toStrictEqual(-0);
+    expect(fromNumber(0)).toStrictEqual(0);
+    expect(fromNumber(42)).toStrictEqual(42);
+    expect(fromNumber(Infinity)).toStrictEqual(Infinity);
+    expect(() => fromNumber(-Infinity)).toThrow();
+    expect(() => fromNumber(NaN)).toThrow();
 });
 
-Deno.test("fromNumberChecked", () => {
-    assertEquals(fromNumberChecked(-42) as Option<number>, some(-42));
-    assertEquals(fromNumberChecked(-0) as Option<number>, some(-0));
-    assertEquals(fromNumberChecked(0) as Option<number>, some(0));
-    assertEquals(fromNumberChecked(42) as Option<number>, some(42));
-    assertEquals(fromNumberChecked(Infinity) as Option<number>, some(Infinity));
-    assertEquals(fromNumberChecked(-Infinity), none());
-    assertEquals(fromNumberChecked(NaN), none());
+test("fromNumberChecked", () => {
+    expect(fromNumberChecked(-42) as Option<number>).toStrictEqual(some(-42));
+    expect(fromNumberChecked(-0) as Option<number>).toStrictEqual(some(-0));
+    expect(fromNumberChecked(0) as Option<number>).toStrictEqual(some(0));
+    expect(fromNumberChecked(42) as Option<number>).toStrictEqual(some(42));
+    expect(fromNumberChecked(Infinity) as Option<number>).toStrictEqual(
+        some(Infinity),
+    );
+    expect(fromNumberChecked(-Infinity)).toStrictEqual(none());
+    expect(fromNumberChecked(NaN)).toStrictEqual(none());
 });
 
-Deno.test("semi ring laws", () => {
+test("semi ring laws", () => {
     const { additive, multiplication } = semiRing;
 
     const x = fromNumber(-42);
@@ -30,37 +32,37 @@ Deno.test("semi ring laws", () => {
     const z = fromNumber(42);
 
     // additive associative
-    assertEquals(
-        additive.combine(x, additive.combine(y, z)),
+    expect(additive.combine(x, additive.combine(y, z))).toStrictEqual(
         additive.combine(additive.combine(x, y), z),
     );
 
     // additive identity
     for (const v of [x, y, z]) {
-        assertEquals(additive.combine(v, additive.identity), v);
-        assertEquals(additive.combine(additive.identity, v), v);
+        expect(additive.combine(v, additive.identity)).toStrictEqual(v);
+        expect(additive.combine(additive.identity, v)).toStrictEqual(v);
     }
 
     // multiplication associative
-    assertEquals(
+    expect(
         multiplication.combine(x, multiplication.combine(y, z)),
-        multiplication.combine(multiplication.combine(x, y), z),
-    );
+    ).toStrictEqual(multiplication.combine(multiplication.combine(x, y), z));
 
     // multiplication identity
     for (const v of [x, y, z]) {
-        assertEquals(multiplication.combine(v, multiplication.identity), v);
-        assertEquals(multiplication.combine(multiplication.identity, v), v);
+        expect(
+            multiplication.combine(v, multiplication.identity),
+        ).toStrictEqual(v);
+        expect(
+            multiplication.combine(multiplication.identity, v),
+        ).toStrictEqual(v);
     }
 
     // zero * x = x * zero = zero
     for (const v of [x, y, z]) {
-        assertEquals(
-            multiplication.combine(additive.identity, v),
+        expect(multiplication.combine(additive.identity, v)).toStrictEqual(
             additive.identity,
         );
-        assertEquals(
-            multiplication.combine(v, additive.identity),
+        expect(multiplication.combine(v, additive.identity)).toStrictEqual(
             additive.identity,
         );
     }

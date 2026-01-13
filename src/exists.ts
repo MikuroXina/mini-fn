@@ -5,7 +5,7 @@
  * @module
  */
 
-import type { Get1 } from "./hkt.ts";
+import type { Get1 } from "./hkt.js";
 
 declare const existsNominal: unique symbol;
 /**
@@ -31,4 +31,4 @@ export const newExists = <F, A>(item: Get1<F, A>): Exists<F> =>
  */
 export const runExists = <F, R>(
     runner: <A>(item: Get1<F, A>) => R,
-): (exists: Exists<F>) => R => runner as (exists: Exists<F>) => R;
+): ((exists: Exists<F>) => R) => runner as (exists: Exists<F>) => R;

@@ -5,8 +5,8 @@
  * @module
  */
 
-import { type List, toIterator } from "./list.ts";
-import type { Group } from "./type-class/group.ts";
+import { type List, toIterator } from "./list.js";
+import type { Group } from "./type-class/group.js";
 
 /**
  * A helper data structure that can find the group sum for a range in constant time.
@@ -30,7 +30,8 @@ export type RangeQ<T> = Readonly<{
  * @returns The new `RangeQ`.
  */
 export const fromIterable =
-    <T>(group: Group<T>) => (iterable: Iterable<T>): RangeQ<T> => ({
+    <T>(group: Group<T>) =>
+    (iterable: Iterable<T>): RangeQ<T> => ({
         acc: [...iterable].reduce<[T[], T]>(
             (prev, curr) => {
                 const next = group.combine(prev[1], curr);
@@ -48,8 +49,10 @@ export const fromIterable =
  * @param list - Source lazy list of `T`.
  * @returns The new `RangeQ`.
  */
-export const fromList = <T>(group: Group<T>) => (list: List<T>): RangeQ<T> =>
-    fromIterable(group)(toIterator(list));
+export const fromList =
+    <T>(group: Group<T>) =>
+    (list: List<T>): RangeQ<T> =>
+        fromIterable(group)(toIterator(list));
 
 /**
  * Gets the length of items from the `RangeQ`.
@@ -74,12 +77,14 @@ export const isEmpty = <T>(range: RangeQ<T>): boolean => range.acc.length === 0;
  * @param range - To be queried.
  * @returns The group sum for the range.
  */
-export const sumFromStartTo = (end: number) => <T>(range: RangeQ<T>): T =>
-    (end <= 0 || range.acc.length === 0)
-        ? range.group.identity
-        : end >= range.acc.length
-        ? range.acc[range.acc.length - 1]!
-        : range.acc[end - 1]!;
+export const sumFromStartTo =
+    (end: number) =>
+    <T>(range: RangeQ<T>): T =>
+        end <= 0 || range.acc.length === 0
+            ? range.group.identity
+            : end >= range.acc.length
+              ? range.acc[range.acc.length - 1]!
+              : range.acc[end - 1]!;
 
 /**
  * Sums up the elements for a range between `start` (inclusive) and `end` (exclusive). It takes only constant time (`O(1)`).
@@ -90,8 +95,12 @@ export const sumFromStartTo = (end: number) => <T>(range: RangeQ<T>): T =>
  * @returns The group sum for the range.
  */
 export const sum =
-    (start: number) => (end: number) => <T>(range: RangeQ<T>): T =>
-        start >= end ? range.group.identity : range.group.combine(
-            range.group.invert(sumFromStartTo(start)(range)),
-            sumFromStartTo(end)(range),
-        );
+    (start: number) =>
+    (end: number) =>
+    <T>(range: RangeQ<T>): T =>
+        start >= end
+            ? range.group.identity
+            : range.group.combine(
+                  range.group.invert(sumFromStartTo(start)(range)),
+                  sumFromStartTo(end)(range),
+              );

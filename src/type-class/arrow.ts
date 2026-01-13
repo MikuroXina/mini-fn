@@ -1,6 +1,6 @@
-import type { Get2 } from "../hkt.ts";
-import type { Tuple } from "../tuple.ts";
-import { type Category, pipe } from "./category.ts";
+import type { Get2 } from "../hkt.js";
+import type { Tuple } from "../tuple.js";
+import { type Category, pipe } from "./category.js";
 
 /**
  * A 2-arity kind which can split computation. It useful for receiving any composable computation.

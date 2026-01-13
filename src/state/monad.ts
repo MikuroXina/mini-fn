@@ -1,5 +1,5 @@
-import type { Get1 } from "../hkt.ts";
-import type { Monad } from "../type-class/monad.ts";
+import type { Get1 } from "../hkt.js";
+import type { Monad } from "../type-class/monad.js";
 
 export type MonadState<S, M> = Monad<M> & {
     readonly state: <A>(modifier: (state: S) => [A, S]) => Get1<M, A>;
@@ -8,7 +8,8 @@ export type MonadState<S, M> = Monad<M> & {
 export const get = <S, M>(s: MonadState<S, M>): Get1<M, S> =>
     s.state((state) => [state, state]);
 export const set =
-    <S, M>(s: MonadState<S, M>) => (state: S): Get1<M, never[]> =>
+    <S, M>(s: MonadState<S, M>) =>
+    (state: S): Get1<M, never[]> =>
         s.state(() => [[], state]);
 
 export const modify =
@@ -16,5 +17,6 @@ export const modify =
     (modifier: (state: S) => S): Get1<M, never[]> =>
         s.state((state) => [[], modifier(state)]);
 export const gets =
-    <S, M>(s: MonadState<S, M>) => <A>(f: (state: S) => A): Get1<M, A> =>
+    <S, M>(s: MonadState<S, M>) =>
+    <A>(f: (state: S) => A): Get1<M, A> =>
         s.map(f)(get(s));

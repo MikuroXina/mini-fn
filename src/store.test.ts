@@ -1,19 +1,19 @@
-import { assertEquals } from "../deps.ts";
-import { constant } from "./func.ts";
+import { expect, test } from "vitest";
+import { constant } from "./func.js";
 import {
     filter,
     fromArray,
-    functor as listFunctor,
-    length,
     type List,
+    length,
+    functor as listFunctor,
     range,
     toArray,
     toIterator,
     zip,
-} from "./list.ts";
-import { experiment, extend, extract, type Store } from "./store.ts";
+} from "./list.js";
+import { experiment, extend, extract, type Store } from "./store.js";
 
-Deno.test("store with life game", () => {
+test("store with life game", () => {
     type Coord = readonly [number, number];
     type CellPlane<T> = Store<Coord, T>;
     type Conway = "Dead" | "Alive";
@@ -48,20 +48,19 @@ Deno.test("store with life game", () => {
         accessor: ([x, y]) => record?.[y]?.[x] ?? "Dead",
     });
     const fromCellPlane =
-        (plane: CellPlane<Conway>) => ({ width, height }: Area): Conway[][] => {
+        (plane: CellPlane<Conway>) =>
+        ({ width, height }: Area): Conway[][] => {
             const xs = toArray(range(0, width));
             const ys = toArray(range(0, height));
             const coords = fromArray(
                 ys.flatMap((y) => xs.map((x): Coord => [x, y])),
             );
             const array: Conway[][] = [];
-            for (
-                const [[x, y], cell] of toIterator(
-                    zip(coords)(
-                        experiment(listFunctor)<Coord>(constant(coords))(plane),
-                    ),
-                )
-            ) {
+            for (const [[x, y], cell] of toIterator(
+                zip(coords)(
+                    experiment(listFunctor)<Coord>(constant(coords))(plane),
+                ),
+            )) {
                 if (!array[y]) {
                     array[y] = [];
                 }
@@ -91,7 +90,7 @@ Deno.test("store with life game", () => {
     | O  |
     */
     const nextPlane = fromCellPlane(evolved)({ width: 4, height: 4 });
-    assertEquals(nextPlane, [
+    expect(nextPlane).toStrictEqual([
         ["Dead", "Dead", "Dead", "Dead"],
         ["Alive", "Dead", "Alive", "Dead"],
         ["Dead", "Alive", "Alive", "Dead"],

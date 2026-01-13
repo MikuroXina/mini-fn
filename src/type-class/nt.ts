@@ -1,8 +1,8 @@
-import { id } from "../func.ts";
-import type { Get1, Hkt2 } from "../hkt.ts";
-import type { Category } from "./category.ts";
-import type { Monoid } from "./monoid.ts";
-import { type SemiGroup, semiGroupSymbol } from "./semi-group.ts";
+import { id } from "../func.js";
+import type { Get1, Hkt2 } from "../hkt.js";
+import type { Category } from "./category.js";
+import type { Monoid } from "./monoid.js";
+import { type SemiGroup, semiGroupSymbol } from "./semi-group.js";
 
 export type NaturalTransformation<F, G> = <T>(f: Get1<F, T>) => Get1<G, T>;
 

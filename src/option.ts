@@ -12,11 +12,11 @@
  * @packageDocumentation
  * @module
  */
-import type { Get1, Hkt1 } from "./hkt.ts";
-import type { Optic, OpticSimple } from "./optical.ts";
-import { newPrism, newPrismSimple } from "./optical/prism.ts";
-import { equal, greater, less, type Ordering } from "./ordering.ts";
-import { err, isOk, ok, type Result } from "./result.ts";
+import type { Get1, Hkt1 } from "./hkt.js";
+import { newPrism, newPrismSimple } from "./optical/prism.js";
+import type { Optic, OpticSimple } from "./optical.js";
+import { equal, greater, less, type Ordering } from "./ordering.js";
+import { err, isOk, ok, type Result } from "./result.js";
 import {
     type Decoder,
     decSum,
@@ -27,23 +27,23 @@ import {
     encUnit,
     mapDecoder,
     pureDecoder,
-} from "./serial.ts";
-import type { Applicative } from "./type-class/applicative.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
-import type { ErrorMonad } from "./type-class/error-monad.ts";
-import type { Functor } from "./type-class/functor.ts";
-import type { Monad } from "./type-class/monad.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { fromCmp, type Ord } from "./type-class/ord.ts";
+} from "./serial.js";
+import type { Applicative } from "./type-class/applicative.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { ErrorMonad } from "./type-class/error-monad.js";
+import type { Functor } from "./type-class/functor.js";
+import type { Monad } from "./type-class/monad.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
 import {
     fromPartialEquality,
     type PartialEq,
     type PartialEqUnary,
-} from "./type-class/partial-eq.ts";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import type { TraversableMonad } from "./type-class/traversable-monad.ts";
-import type { Traversable } from "./type-class/traversable.ts";
+} from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
+import type { Traversable } from "./type-class/traversable.js";
+import type { TraversableMonad } from "./type-class/traversable-monad.js";
 
 const someSymbol = Symbol("OptionSome");
 /**
@@ -85,7 +85,8 @@ export type Option<T> = None | Some<T>;
  * @returns The new optional.
  */
 export const fromPredicate =
-    <T>(predicate: (t: T) => boolean) => (t: T): Option<T> => {
+    <T>(predicate: (t: T) => boolean) =>
+    (t: T): Option<T> => {
         if (predicate(t)) {
             return some(t);
         }
@@ -100,12 +101,10 @@ export const fromPredicate =
  *
  * # Examples
  *
- * ```ts
- * import { some, none, isSome } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
- * assertEquals(isSome(some(2)), true);
- * assertEquals(isSome(none()), false);
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(isSome(some(2))).toStrictEqual(true);
+ * expect(isSome(none())).toStrictEqual(false);
  * ```
  */
 export const isSome = <T>(opt: Option<T>): opt is Some<T> =>
@@ -119,12 +118,10 @@ export const isSome = <T>(opt: Option<T>): opt is Some<T> =>
  *
  * # Examples
  *
- * ```ts
- * import { some, none, isNone } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
- * assertEquals(isNone(some(2)), false);
- * assertEquals(isNone(none()), true);
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(isNone(some(2))).toStrictEqual(false);
+ * expect(isNone(none())).toStrictEqual(true);
  * ```
  */
 export const isNone = <T>(opt: Option<T>): opt is None => opt[0] === noneSymbol;
@@ -137,17 +134,14 @@ export const isNone = <T>(opt: Option<T>): opt is None => opt[0] === noneSymbol;
  *
  * # Examples
  *
- * ```ts
- * import { some, none, toString } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
- * assertEquals(toString(some(2)), "some(2)");
- * assertEquals(toString(none()), "none");
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(toString(some(2))).toStrictEqual("some(2)");
+ * expect(toString(none())).toStrictEqual("none");
  * ```
  */
-export const toString = <T>(
-    opt: Option<T>,
-): string => (isSome(opt) ? `some(${opt[1]})` : "none");
+export const toString = <T>(opt: Option<T>): string =>
+    isSome(opt) ? `some(${opt[1]})` : "none";
 
 /**
  * Converts into an array.
@@ -157,12 +151,10 @@ export const toString = <T>(
  *
  * # Examples
  *
- * ```ts
- * import { some, none, toArray } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
- * assertEquals(toArray(some(2)), [2]);
- * assertEquals(toArray(none()), []);
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(toArray(some(2))).toStrictEqual([2]);
+ * expect(toArray(none())).toStrictEqual([]);
  * ```
  */
 export const toArray = <T>(opt: Option<T>): T[] => {
@@ -185,9 +177,7 @@ export const equality =
         (isNone(optA) && isNone(optB)) ||
         (isSome(optA) && isSome(optB) && equalityT.eq(optA[1], optB[1]));
 export const eq: <L, R = L>(equalityT: Eq<L, R>) => Eq<Option<L>, Option<R>> =
-    fromEquality(
-        equality,
-    );
+    fromEquality(equality);
 export const partialCmp =
     <T>(order: PartialOrd<T>) =>
     (l: Option<T>, r: Option<T>): Option<Ordering> => {
@@ -206,7 +196,8 @@ export const partialCmp =
 export const partialOrd: <T>(order: PartialOrd<T>) => PartialOrd<Option<T>> =
     fromPartialCmp(partialCmp);
 export const cmp =
-    <T>(order: Ord<T>) => (l: Option<T>, r: Option<T>): Ordering => {
+    <T>(order: Ord<T>) =>
+    (l: Option<T>, r: Option<T>): Ordering => {
         // considered that None is lesser than Some
         if (isNone(l)) {
             if (isNone(r)) {
@@ -236,13 +227,11 @@ export const partialEqUnary: PartialEqUnary<OptionHkt> = {
  *
  * # Examples
  *
- * ```ts
- * import { flatten, some, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
- * assertEquals(flatten(some(some(6))), some(6));
- * assertEquals(flatten(some(none())), none());
- * assertEquals(flatten(none()), none());
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(flatten(some(some(6)))).toStrictEqual(some(6));
+ * expect(flatten(some(none()))).toStrictEqual(none());
+ * expect(flatten(none())).toStrictEqual(none());
  * ```
  */
 export const flatten = <T>(opt: Option<Option<T>>): Option<T> => {
@@ -274,22 +263,22 @@ export const unwrap = <T>(opt: Option<T>): T => {
  *
  * # Examples
  *
- * ```ts
- * import { and, some, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
- * assertEquals(and(none())(none()), none());
- * assertEquals(and(none())(some(2)), none());
- * assertEquals(and(some("foo"))(none()), none());
- * assertEquals(and(some("foo"))(some(2)), some("foo"));
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(and(none())(none())).toStrictEqual(none());
+ * expect(and(none())(some(2))).toStrictEqual(none());
+ * expect(and(some("foo"))(none())).toStrictEqual(none());
+ * expect(and(some("foo"))(some(2))).toStrictEqual(some("foo"));
  * ```
  */
-export const and = <U>(optB: Option<U>) => <T>(optA: Option<T>): Option<U> => {
-    if (isSome(optA)) {
-        return optB;
-    }
-    return optA;
-};
+export const and =
+    <U>(optB: Option<U>) =>
+    <T>(optA: Option<T>): Option<U> => {
+        if (isSome(optA)) {
+            return optB;
+        }
+        return optA;
+    };
 
 /**
  * Returns `None` if `optA` is `None`, otherwise calls `optB` and return the result. This is an implementation of `FlatMap`. The order of arguments is reversed because of that it is useful for partial applying.
@@ -300,21 +289,20 @@ export const and = <U>(optB: Option<U>) => <T>(optA: Option<T>): Option<U> => {
  *
  * # Examples
  *
- * ```ts
- * import { andThen, Option, some, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const sqrtThenToString = (num: number): Option<string> =>
  *     0 <= num ? some(Math.sqrt(num).toString()) : none();
  *
  * const applied = andThen(sqrtThenToString);
- * assertEquals(applied(some(4)), some("2"));
- * assertEquals(applied(some(-1)), none());
- * assertEquals(applied(none()), none());
+ * expect(applied(some(4))).toStrictEqual(some("2"));
+ * expect(applied(some(-1))).toStrictEqual(none());
+ * expect(applied(none())).toStrictEqual(none());
  * ```
  */
 export const andThen =
-    <T, U>(optB: (t: T) => Option<U>) => (optA: Option<T>): Option<U> => {
+    <T, U>(optB: (t: T) => Option<U>) =>
+    (optA: Option<T>): Option<U> => {
         if (isSome(optA)) {
             return optB(optA[1]);
         }
@@ -330,22 +318,22 @@ export const andThen =
  *
  * # Examples
  *
- * ```ts
- * import { or, some, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
- * assertEquals(or(none())(none()), none());
- * assertEquals(or(none())(some(2)), some(2));
- * assertEquals(or(some(100))(none()), some(100));
- * assertEquals(or(some(100))(some(2)), some(2));
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(or(none())(none())).toStrictEqual(none());
+ * expect(or(none())(some(2))).toStrictEqual(some(2));
+ * expect(or(some(100))(none())).toStrictEqual(some(100));
+ * expect(or(some(100))(some(2))).toStrictEqual(some(2));
  * ```
  */
-export const or = <T>(optB: Option<T>) => (optA: Option<T>): Option<T> => {
-    if (isSome(optA)) {
-        return optA;
-    }
-    return optB;
-};
+export const or =
+    <T>(optB: Option<T>) =>
+    (optA: Option<T>): Option<T> => {
+        if (isSome(optA)) {
+            return optA;
+        }
+        return optB;
+    };
 
 /**
  * Returns the optional `optA` if it contains a value, otherwise calls `optB` and returns the result. The order of arguments is reversed because of that it is useful for partial applying.
@@ -356,20 +344,19 @@ export const or = <T>(optB: Option<T>) => (optA: Option<T>): Option<T> => {
  *
  * # Examples
  *
- * ```ts
- * import { orElse, Option, some, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const nobody = orElse((): Option<string> => none());
  * const vikings = orElse((): Option<string> => some("vikings"));
  *
- * assertEquals(vikings(some("barbarians")), some("barbarians"));
- * assertEquals(vikings(none()), some("vikings"));
- * assertEquals(nobody(none()), none());
+ * expect(vikings(some("barbarians"))).toStrictEqual(some("barbarians"));
+ * expect(vikings(none())).toStrictEqual(some("vikings"));
+ * expect(nobody(none())).toStrictEqual(none());
  * ```
  */
 export const orElse =
-    <T>(optB: () => Option<T>) => (optA: Option<T>): Option<T> => {
+    <T>(optB: () => Option<T>) =>
+    (optA: Option<T>): Option<T> => {
         if (isSome(optA)) {
             return optA;
         }
@@ -385,25 +372,25 @@ export const orElse =
  *
  * # Examples
  *
- * ```ts
- * import { some, none, xor } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
- * assertEquals(xor(none())(none()), none());
- * assertEquals(xor(none())(some(2)), some(2));
- * assertEquals(xor(some(100))(none()), some(100));
- * assertEquals(xor(some(100))(some(2)), none());
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(xor(none())(none())).toStrictEqual(none());
+ * expect(xor(none())(some(2))).toStrictEqual(some(2));
+ * expect(xor(some(100))(none())).toStrictEqual(some(100));
+ * expect(xor(some(100))(some(2))).toStrictEqual(none());
  * ```
  */
-export const xor = <T>(optB: Option<T>) => (optA: Option<T>): Option<T> => {
-    if (isSome(optA) && isNone(optB)) {
-        return optA;
-    }
-    if (isNone(optA) && isSome(optB)) {
-        return optB;
-    }
-    return none();
-};
+export const xor =
+    <T>(optB: Option<T>) =>
+    (optA: Option<T>): Option<T> => {
+        if (isSome(optA) && isNone(optB)) {
+            return optA;
+        }
+        if (isNone(optA) && isSome(optB)) {
+            return optB;
+        }
+        return none();
+    };
 
 /**
  * Checks an {@link Option.Option | `Option`} is a `Some` and satisfies the predicate `pred`.
@@ -414,7 +401,8 @@ export const xor = <T>(optB: Option<T>) => (optA: Option<T>): Option<T> => {
  * @returns Whether the condition is satisfied.
  */
 export const isSomeAnd =
-    <T>(pred: (item: T) => boolean) => (opt: Option<T>): boolean =>
+    <T>(pred: (item: T) => boolean) =>
+    (opt: Option<T>): boolean =>
         isSome(opt) && pred(opt[1]);
 
 /**
@@ -426,7 +414,8 @@ export const isSomeAnd =
  * @returns Whether the condition is satisfied.
  */
 export const isNoneOr =
-    <T>(pred: (item: T) => boolean) => (opt: Option<T>): boolean =>
+    <T>(pred: (item: T) => boolean) =>
+    (opt: Option<T>): boolean =>
         isNone(opt) || pred(opt[1]);
 
 /**
@@ -437,19 +426,18 @@ export const isNoneOr =
  *
  * # Examples
  *
- * ```ts
- * import { filter, some, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const isEven = filter((x: number) => x % 2 == 0);
  *
- * assertEquals(isEven(none()), none());
- * assertEquals(isEven(some(3)), none());
- * assertEquals(isEven(some(4)), some(4));
+ * expect(isEven(none())).toStrictEqual(none());
+ * expect(isEven(some(3))).toStrictEqual(none());
+ * expect(isEven(some(4))).toStrictEqual(some(4));
  * ```
  */
 export const filter =
-    <T>(predicate: (t: T) => boolean) => (opt: Option<T>): Option<T> => {
+    <T>(predicate: (t: T) => boolean) =>
+    (opt: Option<T>): Option<T> => {
         if (isSome(opt)) {
             if (predicate(opt[1])) {
                 return opt;
@@ -467,18 +455,17 @@ export const filter =
  *
  * # Examples
  *
- * ```ts
- * import { some, none, zip } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
- * assertEquals(zip(some(1))(some("hi")), some([1, "hi"] as [number, string]));
- * assertEquals(zip(some(1))(none()), none());
- * assertEquals(zip(none())(some(1)), none());
- * assertEquals(zip(none())(none()), none());
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(zip(some(1))(some("hi"))).toStrictEqual(some([1, "hi"] as [number, string]));
+ * expect(zip(some(1))(none())).toStrictEqual(none());
+ * expect(zip(none())(some(1))).toStrictEqual(none());
+ * expect(zip(none())(none())).toStrictEqual(none());
  * ```
  */
 export const zip =
-    <T>(optA: Option<T>) => <U>(optB: Option<U>): Option<[T, U]> => {
+    <T>(optA: Option<T>) =>
+    <U>(optB: Option<U>): Option<[T, U]> => {
         if (isSome(optA) && isSome(optB)) {
             return some([optA[1], optB[1]]);
         }
@@ -493,15 +480,13 @@ export const zip =
  *
  * # Examples
  *
- * ```ts
- * import { some, none, unzip } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
- * assertEquals(unzip(some([1, "hi"])), [
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(unzip(some([1, "hi"]))).toStrictEqual([
  *     some(1),
  *     some("hi"),
  * ]);
- * assertEquals(unzip(none()), [
+ * expect(unzip(none())).toStrictEqual([
  *     none(),
  *     none(),
  * ]);
@@ -524,10 +509,8 @@ export const unzip = <T, U>(opt: Option<[T, U]>): [Option<T>, Option<U>] => {
  *
  * # Examples
  *
- * ```ts
- * import { some, none, zipWith } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * interface Point {
  *     x: number;
  *     y: number;
@@ -538,8 +521,8 @@ export const unzip = <T, U>(opt: Option<[T, U]>): [Option<T>, Option<U>] => {
  *     y,
  * }));
  *
- * assertEquals(newPoint(some(17.5))(some(42.7)), some({ x: 17.5, y: 42.7 }));
- * assertEquals(newPoint(none())(none()), none());
+ * expect(newPoint(some(17.5))(some(42.7))).toStrictEqual(some({ x: 17.5, y: 42.7 }));
+ * expect(newPoint(none())(none())).toStrictEqual(none());
  * ```
  */
 export const zipWith =
@@ -561,22 +544,22 @@ export const zipWith =
  *
  * # Examples
  *
- * ```ts
- * import { some, none, unwrapOr } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const unwrapOrBike = unwrapOr("bike");
  *
- * assertEquals(unwrapOrBike(some("car")), "car");
- * assertEquals(unwrapOrBike(none()), "bike");
+ * expect(unwrapOrBike(some("car"))).toStrictEqual("car");
+ * expect(unwrapOrBike(none())).toStrictEqual("bike");
  * ```
  */
-export const unwrapOr = <T>(init: T) => (opt: Option<T>): T => {
-    if (isSome(opt)) {
-        return opt[1];
-    }
-    return init;
-};
+export const unwrapOr =
+    <T>(init: T) =>
+    (opt: Option<T>): T => {
+        if (isSome(opt)) {
+            return opt[1];
+        }
+        return init;
+    };
 /**
  * Extracts the contained `Some` value or `fn()`.
  *
@@ -586,22 +569,22 @@ export const unwrapOr = <T>(init: T) => (opt: Option<T>): T => {
  *
  * # Examples
  *
- * ```ts
- * import { some, none, unwrapOrElse } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const unwrapOrCalc = unwrapOrElse(() => 6 ** 4);
  *
- * assertEquals(unwrapOrCalc(some(4)), 4);
- * assertEquals(unwrapOrCalc(none()), 1296);
+ * expect(unwrapOrCalc(some(4))).toStrictEqual(4);
+ * expect(unwrapOrCalc(none())).toStrictEqual(1296);
  * ```
  */
-export const unwrapOrElse = <T>(fn: () => T) => (opt: Option<T>): T => {
-    if (isSome(opt)) {
-        return opt[1];
-    }
-    return fn();
-};
+export const unwrapOrElse =
+    <T>(fn: () => T) =>
+    (opt: Option<T>): T => {
+        if (isSome(opt)) {
+            return opt[1];
+        }
+        return fn();
+    };
 
 /**
  * Maps the function onto `Option`.
@@ -611,22 +594,22 @@ export const unwrapOrElse = <T>(fn: () => T) => (opt: Option<T>): T => {
  *
  * # Examples
  *
- * ```ts
- * import { some, map, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const strLen = map((str: string) => str.length);
  *
- * assertEquals(strLen(some("Hello, World!")), some(13));
- * assertEquals(strLen(none()), none());
+ * expect(strLen(some("Hello, World!"))).toStrictEqual(some(13));
+ * expect(strLen(none())).toStrictEqual(none());
  * ```
  */
-export const map = <T, U>(f: (t: T) => U) => (opt: Option<T>): Option<U> => {
-    if (opt[0] === someSymbol) {
-        return some(f(opt[1]));
-    }
-    return opt;
-};
+export const map =
+    <T, U>(f: (t: T) => U) =>
+    (opt: Option<T>): Option<U> => {
+        if (opt[0] === someSymbol) {
+            return some(f(opt[1]));
+        }
+        return opt;
+    };
 
 /**
  * Maps the optional value with a default value `init`.
@@ -638,18 +621,18 @@ export const map = <T, U>(f: (t: T) => U) => (opt: Option<T>): Option<U> => {
  *
  * # Examples
  *
- * ```ts
- * import { some, mapOr, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const strLenOrAnswer = mapOr(42)((str: string) => str.length);
  *
- * assertEquals(strLenOrAnswer(some("Hello, World!")), 13);
- * assertEquals(strLenOrAnswer(none()), 42);
+ * expect(strLenOrAnswer(some("Hello, World!"))).toStrictEqual(13);
+ * expect(strLenOrAnswer(none())).toStrictEqual(42);
  * ```
  */
 export const mapOr =
-    <U>(init: U) => <T>(f: (t: T) => U) => (opt: Option<T>): U => {
+    <U>(init: U) =>
+    <T>(f: (t: T) => U) =>
+    (opt: Option<T>): U => {
         if (opt[0] === someSymbol) {
             return f(opt[1]);
         }
@@ -666,18 +649,18 @@ export const mapOr =
  *
  * # Examples
  *
- * ```ts
- * import { some, mapOrElse, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const strLenOrCalc = mapOrElse(() => 6 ** 4)((str: string) => str.length);
  *
- * assertEquals(strLenOrCalc(some("Hello, World!")), 13);
- * assertEquals(strLenOrCalc(none()), 1296);
+ * expect(strLenOrCalc(some("Hello, World!"))).toStrictEqual(13);
+ * expect(strLenOrCalc(none())).toStrictEqual(1296);
  * ```
  */
 export const mapOrElse =
-    <U>(fn: () => U) => <T>(f: (t: T) => U) => (opt: Option<T>): U => {
+    <U>(fn: () => U) =>
+    <T>(f: (t: T) => U) =>
+    (opt: Option<T>): U => {
         if (opt[0] === someSymbol) {
             return f(opt[1]);
         }
@@ -693,19 +676,19 @@ export const mapOrElse =
  *
  * # Examples
  *
- * ```ts
- * import { contains, some, none } from "./option.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const hasTwo = contains(2);
  *
- * assertEquals(hasTwo(some(2)), true);
- * assertEquals(hasTwo(some(3)), false);
- * assertEquals(hasTwo(none()), false);
+ * expect(hasTwo(some(2))).toStrictEqual(true);
+ * expect(hasTwo(some(3))).toStrictEqual(false);
+ * expect(hasTwo(none())).toStrictEqual(false);
  * ```
  */
-export const contains = <T>(x: T) => (opt: Option<T>): boolean =>
-    mapOr(false)((t) => t === x)(opt);
+export const contains =
+    <T>(x: T) =>
+    (opt: Option<T>): boolean =>
+        mapOr(false)((t) => t === x)(opt);
 
 /**
  * Transforms `Option<Result<E, T>>` into `Result<E, Option<T>>` as:
@@ -719,14 +702,11 @@ export const contains = <T>(x: T) => (opt: Option<T>): boolean =>
  *
  * # Examples
  *
- * ```ts
- * import { optResToResOpt, some, none } from "./option.ts";
- * import { err, ok } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
- *
- * assertEquals(optResToResOpt(some(ok(5))), ok(some(5)));
- * assertEquals(optResToResOpt(none()), ok(none()));
- * assertEquals(optResToResOpt(some(err(5))), err(5));
+ * @example
+ * ```ts @import.meta.vitest
+ * expect(optResToResOpt(some(ok(5)))).toStrictEqual(ok(some(5)));
+ * expect(optResToResOpt(none())).toStrictEqual(ok(none()));
+ * expect(optResToResOpt(some(err(5)))).toStrictEqual(err(5));
  * ```
  */
 export const optResToResOpt = <E, T>(
@@ -750,19 +730,18 @@ export const optResToResOpt = <E, T>(
  *
  * # Examples
  *
- * ```ts
- * import { okOr, some, none } from "./option.ts";
- * import { err, ok } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const orZero = okOr(0);
  *
- * assertEquals(orZero(some("foo")), ok("foo"));
- * assertEquals(orZero(none()), err(0));
+ * expect(orZero(some("foo"))).toStrictEqual(ok("foo"));
+ * expect(orZero(none())).toStrictEqual(err(0));
  * ```
  */
-export const okOr = <E>(e: E) => <T>(opt: Option<T>): Result<E, T> =>
-    mapOrElse<Result<E, T>>(() => err<E>(e))((t: T) => ok(t))(opt);
+export const okOr =
+    <E>(e: E) =>
+    <T>(opt: Option<T>): Result<E, T> =>
+        mapOrElse<Result<E, T>>(() => err<E>(e))((t: T) => ok(t))(opt);
 
 /**
  * Transforms the optional value into `Result` with the error `e()`.
@@ -773,19 +752,18 @@ export const okOr = <E>(e: E) => <T>(opt: Option<T>): Result<E, T> =>
  *
  * # Examples
  *
- * ```ts
- * import { okOrElse, some, none } from "./option.ts";
- * import { err, ok } from "./result.ts";
- * import { assertEquals } from "../deps.ts";
- *
+ * @example
+ * ```ts @import.meta.vitest
  * const orZero = okOrElse(() => 0);
  *
- * assertEquals(orZero(some("foo")), ok("foo"));
- * assertEquals(orZero(none()), err(0));
+ * expect(orZero(some("foo"))).toStrictEqual(ok("foo"));
+ * expect(orZero(none())).toStrictEqual(err(0));
  * ```
  */
-export const okOrElse = <E>(e: () => E) => <T>(opt: Option<T>): Result<E, T> =>
-    mapOrElse<Result<E, T>>(() => err<E>(e()))((t: T) => ok(t))(opt);
+export const okOrElse =
+    <E>(e: () => E) =>
+    <T>(opt: Option<T>): Result<E, T> =>
+        mapOrElse<Result<E, T>>(() => err<E>(e()))((t: T) => ok(t))(opt);
 
 /**
  * The alias of `andThen`.
@@ -793,7 +771,8 @@ export const okOrElse = <E>(e: () => E) => <T>(opt: Option<T>): Result<E, T> =>
 export const flatMap = andThen;
 
 export const apply =
-    <T1, U1>(fnOpt: Option<(t: T1) => U1>) => (tOpt: Option<T1>): Option<U1> =>
+    <T1, U1>(fnOpt: Option<(t: T1) => U1>) =>
+    (tOpt: Option<T1>): Option<U1> =>
         flatMap((fn: (t: T1) => U1) => map(fn)(tOpt))(fnOpt);
 
 export const foldR =
@@ -884,8 +863,8 @@ export const errorMonad: ErrorMonad<OptionHkt> = {
     context: (context) =>
         okOr(new Error(`Error: ${context}\n\nCaused by:\n    unwrapped None`)),
     withContext: (fn) =>
-        okOrElse(() =>
-            new Error(`Error: ${fn()}\n\nCaused by:\n    unwrapped None`)
+        okOrElse(
+            () => new Error(`Error: ${fn()}\n\nCaused by:\n    unwrapped None`),
         ),
 };
 

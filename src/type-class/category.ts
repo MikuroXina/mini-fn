@@ -1,5 +1,5 @@
-import type { Get2 } from "../hkt.ts";
-import type { SemiGroupoid } from "./semi-groupoid.ts";
+import type { Get2 } from "../hkt.js";
+import type { SemiGroupoid } from "./semi-groupoid.js";
 
 /**
  * A 2-arity kind which consists of objects and arrows between them.
@@ -16,10 +16,11 @@ export type Category<S> = SemiGroupoid<S> & {
 
 export const compose = <S>(
     cat: Category<S>,
-): <B, C>(bc: Get2<S, B, C>) => <A>(ab: Get2<S, A, B>) => Get2<S, A, C> =>
+): (<B, C>(bc: Get2<S, B, C>) => <A>(ab: Get2<S, A, B>) => Get2<S, A, C>) =>
     cat.compose;
 
 export const pipe =
     <S>(cat: Category<S>) =>
     <A, B>(bc: Get2<S, A, B>) =>
-    <C>(ab: Get2<S, B, C>): Get2<S, A, C> => cat.compose(ab)(bc);
+    <C>(ab: Get2<S, B, C>): Get2<S, A, C> =>
+        cat.compose(ab)(bc);

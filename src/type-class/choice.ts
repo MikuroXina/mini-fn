@@ -1,6 +1,6 @@
-import type { Get2 } from "../hkt.ts";
-import type { Result } from "../result.ts";
-import type { Profunctor } from "./profunctor.ts";
+import type { Get2 } from "../hkt.js";
+import type { Result } from "../result.js";
+import type { Profunctor } from "./profunctor.js";
 
 export type Choice<P> = Profunctor<P> & {
     readonly left: <A, B, C>(

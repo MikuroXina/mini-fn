@@ -1,7 +1,7 @@
-import { assertEquals } from "../deps.ts";
-import { cat, doVoidT } from "./cat.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
+import { expect, test } from "vitest";
+import { cat, doVoidT } from "./cat.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 import {
     censor,
     evaluateWriter,
@@ -13,7 +13,7 @@ import {
     pure,
     tell,
     type Writer,
-} from "./writer.ts";
+} from "./writer.js";
 
 const monoidArray = <T>(): Monoid<T[]> => ({
     identity: [],
@@ -21,7 +21,7 @@ const monoidArray = <T>(): Monoid<T[]> => ({
     [semiGroupSymbol]: true,
 });
 
-Deno.test("tell with tower of hanoi", () => {
+test("tell with tower of hanoi", () => {
     const monoid = monoidArray<[string, string]>();
 
     const hanoi = (
@@ -43,7 +43,7 @@ Deno.test("tell with tower of hanoi", () => {
     };
 
     const res = hanoi(3, "A", "B", "C");
-    assertEquals(executeWriter(res), [
+    expect(executeWriter(res)).toStrictEqual([
         ["A", "B"],
         ["A", "C"],
         ["B", "C"],
@@ -54,7 +54,7 @@ Deno.test("tell with tower of hanoi", () => {
     ]);
 });
 
-Deno.test("listen with collatz sequence", () => {
+test("listen with collatz sequence", () => {
     const monoid = monoidArray<number>();
 
     const collatz = (n: number) => {
@@ -85,22 +85,20 @@ Deno.test("listen with collatz sequence", () => {
     };
 
     const res = collatzSeq(13);
-    assertEquals(executeWriter(res), [13, 40, 20, 10, 5, 16, 8, 4, 2]);
-    assertEquals(evaluateWriter(res), 9);
+    expect(executeWriter(res)).toStrictEqual([13, 40, 20, 10, 5, 16, 8, 4, 2]);
+    expect(evaluateWriter(res)).toStrictEqual(9);
 });
 
-Deno.test("censor with log decoration", () => {
+test("censor with log decoration", () => {
     const m = makeMonad(monoidArray<string>());
 
     const hello = doVoidT(m)
         .run(tell(["Hello!"]))
         .run(tell(["What do you do?"])).ctx;
     const log = censor((messages: string[]) =>
-        messages.map((message) => `[LOG] ${message}`)
-    )(
-        hello,
-    );
-    assertEquals(executeWriter(log), [
+        messages.map((message) => `[LOG] ${message}`),
+    )(hello);
+    expect(executeWriter(log)).toStrictEqual([
         "[LOG] Hello!",
         "[LOG] What do you do?",
     ]);

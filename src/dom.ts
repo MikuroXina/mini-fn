@@ -5,10 +5,10 @@
  * @module
  */
 
-import { type Exists, newExists, runExists } from "./exists.ts";
-import type { Apply2Only, Hkt2 } from "./hkt.ts";
-import * as Option from "./option.ts";
-import { type Decoder, mapDecoder } from "./serial.ts";
+import { type Exists, newExists, runExists } from "./exists.js";
+import type { Apply2Only, Hkt2 } from "./hkt.js";
+import * as Option from "./option.js";
+import { type Decoder, mapDecoder } from "./serial.js";
 
 const textSymbol = Symbol("DomText");
 /**
@@ -83,7 +83,8 @@ export const tag =
         facts: organizeFacts(facts),
         children,
         namespace,
-        descendantsCount: children.length +
+        descendantsCount:
+            children.length +
             children.reduce((acc, curr) => acc + descendantsCount(curr), 0),
     });
 
@@ -122,13 +123,15 @@ export const isMap = <T>(dom: Dom<T>): dom is Map<T> =>
  * @param dom - A source object that emits messages of type `A`.
  * @returns The new mapping object.
  */
-export const map = <A, T>(mapper: (msg: A) => T) => (dom: Dom<A>): Map<T> =>
-    newExists<Apply2Only<MapTHkt, T>, A>({
-        type: mapSymbol,
-        mapper,
-        dom,
-        descendantsCount: descendantsCount(dom) + 1,
-    }) as unknown as Map<T>;
+export const map =
+    <A, T>(mapper: (msg: A) => T) =>
+    (dom: Dom<A>): Map<T> =>
+        newExists<Apply2Only<MapTHkt, T>, A>({
+            type: mapSymbol,
+            mapper,
+            dom,
+            descendantsCount: descendantsCount(dom) + 1,
+        }) as unknown as Map<T>;
 /**
  * Extracts the internal record from a map object.
  *
@@ -138,7 +141,7 @@ export const map = <A, T>(mapper: (msg: A) => T) => (dom: Dom<A>): Map<T> =>
  */
 export const runMap = <T, R>(
     runner: <A>(msg: MapT<T, A>) => R,
-): (map: Map<T>) => R => runExists(runner);
+): ((map: Map<T>) => R) => runExists(runner);
 
 const lazySymbol = Symbol("DomLazy");
 /**
@@ -190,12 +193,12 @@ export type Dom<T> = Text | Tag<T> | Map<T> | Lazy<T>;
  */
 export const descendantsCount = <T>(dom: Dom<T>): number =>
     isMap(dom)
-        ? runExists<Apply2Only<MapTHkt, T>, number>((map) =>
-            map.descendantsCount
-        )(dom)
+        ? runExists<Apply2Only<MapTHkt, T>, number>(
+              (map) => map.descendantsCount,
+          )(dom)
         : dom.type === tagSymbol
-        ? dom.descendantsCount
-        : 0;
+          ? dom.descendantsCount
+          : 0;
 
 /**
  * A payload of `Handler`, the decoded event message of event handlers.
@@ -223,11 +226,14 @@ export type Handler<T> = Decoder<HandlerPayload<T>>;
  * The `Functor` implementation for `Handler<_>`.
  */
 export const mapHandler =
-    <T, U>(mapper: (msg: T) => U) => (handler: Handler<T>): Handler<U> =>
-        mapDecoder((payload: HandlerPayload<T>): HandlerPayload<U> => ({
-            ...payload,
-            message: mapper(payload.message),
-        }))(handler);
+    <T, U>(mapper: (msg: T) => U) =>
+    (handler: Handler<T>): Handler<U> =>
+        mapDecoder(
+            (payload: HandlerPayload<T>): HandlerPayload<U> => ({
+                ...payload,
+                message: mapper(payload.message),
+            }),
+        )(handler);
 
 const eventSymbol = Symbol("FactEvent");
 /**
@@ -251,11 +257,13 @@ export type Event<T> = {
  * @param handler - An event handler that decodes values of type `T`.
  * @returns The new fact.
  */
-export const on = (key: string) => <T>(handler: Handler<T>): Event<T> => ({
-    type: eventSymbol,
-    key,
-    value: handler,
-});
+export const on =
+    (key: string) =>
+    <T>(handler: Handler<T>): Event<T> => ({
+        type: eventSymbol,
+        key,
+        value: handler,
+    });
 
 const styleSymbol = Symbol("FactStyle");
 /**
@@ -279,11 +287,13 @@ export type Style = {
  * @param value - A value of the CSS property.
  * @returns The new fact.
  */
-export const style = (key: string) => (value: string): Style => ({
-    type: styleSymbol,
-    key,
-    value,
-});
+export const style =
+    (key: string) =>
+    (value: string): Style => ({
+        type: styleSymbol,
+        key,
+        value,
+    });
 
 const propSymbol = Symbol("FactProp");
 /**
@@ -307,11 +317,13 @@ export type Prop = {
  * @param value - A property value of the element.
  * @returns The new fact.
  */
-export const property = (key: string) => (value: string): Prop => ({
-    type: propSymbol,
-    key: noInnerHtmlOrFormAction(key),
-    value: noJavaScriptOrHtmlUri(value),
-});
+export const property =
+    (key: string) =>
+    (value: string): Prop => ({
+        type: propSymbol,
+        key: noInnerHtmlOrFormAction(key),
+        value: noJavaScriptOrHtmlUri(value),
+    });
 
 const attributeSymbol = Symbol("FactAttribute");
 /**
@@ -341,7 +353,8 @@ export type Attribute = {
  * @returns The new fact.
  */
 export const attribute =
-    (key: string, namespace = "") => (value: string): Attribute => ({
+    (key: string, namespace = "") =>
+    (value: string): Attribute => ({
         type: attributeSymbol,
         namespace,
         key: noOnOrFormAction(key),
@@ -379,7 +392,8 @@ export type FactsOrganization<T> = {
  * The `Functor` implementation for a `Fact<_>`.
  */
 export const mapFact =
-    <T, U>(mapper: (msg: T) => U) => (attr: Fact<T>): Fact<U> =>
+    <T, U>(mapper: (msg: T) => U) =>
+    (attr: Fact<T>): Fact<U> =>
         attr.type === eventSymbol
             ? on(attr.key)(mapHandler(mapper)(attr.value))
             : attr;
@@ -421,10 +435,7 @@ export const organizeFacts = <T>(
             appendClass(ret.attributes, attr.key, attr.value);
             continue;
         }
-        const keyByType: Record<
-            Fact<T>["type"],
-            keyof FactsOrganization<T>
-        > = {
+        const keyByType: Record<Fact<T>["type"], keyof FactsOrganization<T>> = {
             [eventSymbol]: "events",
             [styleSymbol]: "styles",
             [propSymbol]: "props",
@@ -464,17 +475,19 @@ export const noOnOrFormAction = (key: string): string => {
  */
 export const noInnerHtmlOrFormAction = (key: string): string =>
     key === "innerHTML" || key === "formAction" ? `data-${key}` : key;
-const matchesSubstring = (value: string) => (target: string): boolean => {
-    const matchedLenByPos = new Array(value.length);
-    matchedLenByPos[0] = 0;
-    for (let i = 1; i < value.length; ++i) {
-        matchedLenByPos[i] = matchedLenByPos[i - 1];
-        if (value[matchedLenByPos[i]] === target[matchedLenByPos[i]]) {
-            matchedLenByPos[i] += 1;
+const matchesSubstring =
+    (value: string) =>
+    (target: string): boolean => {
+        const matchedLenByPos = new Array(value.length);
+        matchedLenByPos[0] = 0;
+        for (let i = 1; i < value.length; ++i) {
+            matchedLenByPos[i] = matchedLenByPos[i - 1];
+            if (value[matchedLenByPos[i]] === target[matchedLenByPos[i]]) {
+                matchedLenByPos[i] += 1;
+            }
         }
-    }
-    return matchedLenByPos[value.length - 1] === value.length - 1;
-};
+        return matchedLenByPos[value.length - 1] === value.length - 1;
+    };
 /**
  * Prohibits a value of attribute or property if it contains a substring of JavaScript/HTML noted URI.
  *
@@ -483,7 +496,7 @@ const matchesSubstring = (value: string) => (target: string): boolean => {
  */
 export const noJavaScriptOrHtmlUri = (value: string): string =>
     ["javascript:", "data:text/html;", "data:text/html,"].some(
-            matchesSubstring(value),
-        )
+        matchesSubstring(value),
+    )
         ? ""
         : value;

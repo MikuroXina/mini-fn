@@ -1,6 +1,6 @@
-import { assertEquals } from "../../deps.ts";
-import { String } from "../../mod.ts";
-import { fromIterable } from "../list.ts";
+import { expect, test } from "vitest";
+import { String } from "../../mod.js";
+import { fromIterable } from "../list.js";
 import {
     addMonoid,
     append,
@@ -10,52 +10,51 @@ import {
     minMonoid,
     mulMonoid,
     trivialMonoid,
-} from "./monoid.ts";
+} from "./monoid.js";
 
-Deno.test("append", () => {
-    assertEquals(append(addMonoid)(2)(3), 5);
+test("append", () => {
+    expect(append(addMonoid)(2)(3)).toStrictEqual(5);
 });
-Deno.test("concat", () => {
-    assertEquals(concat(String.monoid)(fromIterable([])), "");
-    assertEquals(concat(String.monoid)(fromIterable(["go"])), "go");
-    assertEquals(concat(String.monoid)(fromIterable(["go", "to"])), "goto");
+test("concat", () => {
+    expect(concat(String.monoid)(fromIterable([]))).toStrictEqual("");
+    expect(concat(String.monoid)(fromIterable(["go"]))).toStrictEqual("go");
+    expect(concat(String.monoid)(fromIterable(["go", "to"]))).toStrictEqual(
+        "goto",
+    );
 });
 
-Deno.test("trivial monoid", () => {
+test("trivial monoid", () => {
     const m = trivialMonoid;
     // associative
-    assertEquals(
-        m.combine(m.combine([], []), []),
+    expect(m.combine(m.combine([], []), [])).toStrictEqual(
         m.combine([], m.combine([], [])),
     );
 
     // identity
-    assertEquals(m.combine([], m.identity), []);
-    assertEquals(m.combine(m.identity, []), []);
+    expect(m.combine([], m.identity)).toStrictEqual([]);
+    expect(m.combine(m.identity, [])).toStrictEqual([]);
 });
-Deno.test("flipped monoid", () => {
+test("flipped monoid", () => {
     const m = flippedMonoid(String.monoid);
 
     // associative
-    assertEquals(
-        m.combine(m.combine("a", "b"), "c"),
+    expect(m.combine(m.combine("a", "b"), "c")).toStrictEqual(
         m.combine("a", m.combine("b", "c")),
     );
 
     // identity
     for (const x of ["", "a", "bar"]) {
-        assertEquals(m.combine(x, m.identity), x);
-        assertEquals(m.combine(m.identity, x), x);
+        expect(m.combine(x, m.identity)).toStrictEqual(x);
+        expect(m.combine(m.identity, x)).toStrictEqual(x);
     }
 });
-Deno.test("addition monoid", () => {
+test("addition monoid", () => {
     const m = addMonoid;
 
     for (let x = -20; x <= 20; ++x) {
         for (let y = -20; y <= 20; ++y) {
             for (let z = -20; z <= 20; ++z) {
-                assertEquals(
-                    m.combine(m.combine(x, y), z),
+                expect(m.combine(m.combine(x, y), z)).toStrictEqual(
                     m.combine(x, m.combine(y, z)),
                 );
             }
@@ -63,18 +62,17 @@ Deno.test("addition monoid", () => {
     }
 
     for (let x = -100; x <= 100; ++x) {
-        assertEquals(m.combine(x, m.identity), x);
-        assertEquals(m.combine(m.identity, x), x);
+        expect(m.combine(x, m.identity)).toStrictEqual(x);
+        expect(m.combine(m.identity, x)).toStrictEqual(x);
     }
 });
-Deno.test("multiplication monoid", () => {
+test("multiplication monoid", () => {
     const m = mulMonoid;
 
     for (let x = -20; x <= 20; ++x) {
         for (let y = -20; y <= 20; ++y) {
             for (let z = -20; z <= 20; ++z) {
-                assertEquals(
-                    m.combine(m.combine(x, y), z),
+                expect(m.combine(m.combine(x, y), z)).toStrictEqual(
                     m.combine(x, m.combine(y, z)),
                 );
             }
@@ -82,18 +80,17 @@ Deno.test("multiplication monoid", () => {
     }
 
     for (let x = -100; x <= 100; ++x) {
-        assertEquals(m.combine(x, m.identity), x);
-        assertEquals(m.combine(m.identity, x), x);
+        expect(m.combine(x, m.identity)).toStrictEqual(x);
+        expect(m.combine(m.identity, x)).toStrictEqual(x);
     }
 });
-Deno.test("minimum monoid", () => {
+test("minimum monoid", () => {
     const m = minMonoid(8001);
 
     for (let x = -20; x <= 20; ++x) {
         for (let y = -20; y <= 20; ++y) {
             for (let z = -20; z <= 20; ++z) {
-                assertEquals(
-                    m.combine(m.combine(x, y), z),
+                expect(m.combine(m.combine(x, y), z)).toStrictEqual(
                     m.combine(x, m.combine(y, z)),
                 );
             }
@@ -101,18 +98,17 @@ Deno.test("minimum monoid", () => {
     }
 
     for (let x = -100; x <= 100; ++x) {
-        assertEquals(m.combine(x, m.identity), x);
-        assertEquals(m.combine(m.identity, x), x);
+        expect(m.combine(x, m.identity)).toStrictEqual(x);
+        expect(m.combine(m.identity, x)).toStrictEqual(x);
     }
 });
-Deno.test("maximum monoid", () => {
+test("maximum monoid", () => {
     const m = maxMonoid(-8001);
 
     for (let x = -20; x <= 20; ++x) {
         for (let y = -20; y <= 20; ++y) {
             for (let z = -20; z <= 20; ++z) {
-                assertEquals(
-                    m.combine(m.combine(x, y), z),
+                expect(m.combine(m.combine(x, y), z)).toStrictEqual(
                     m.combine(x, m.combine(y, z)),
                 );
             }
@@ -120,7 +116,7 @@ Deno.test("maximum monoid", () => {
     }
 
     for (let x = -100; x <= 100; ++x) {
-        assertEquals(m.combine(x, m.identity), x);
-        assertEquals(m.combine(m.identity, x), x);
+        expect(m.combine(x, m.identity)).toStrictEqual(x);
+        expect(m.combine(m.identity, x)).toStrictEqual(x);
     }
 });

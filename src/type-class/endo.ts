@@ -1,6 +1,6 @@
-import { compose } from "../func.ts";
-import type { Monoid } from "./monoid.ts";
-import { semiGroupSymbol } from "./semi-group.ts";
+import { compose } from "../func.js";
+import type { Monoid } from "./monoid.js";
+import { semiGroupSymbol } from "./semi-group.js";
 
 export type Endo<T> = (t: T) => T;
 

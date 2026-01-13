@@ -12,12 +12,12 @@
  * @module
  */
 
-import { none, type Option, some } from "./option.ts";
-import { abelSymbol } from "./type-class/abelian-group.ts";
-import type { AbelianMonoid } from "./type-class/abelian-monoid.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
-import type { SemiRing } from "./type-class/semi-ring.ts";
+import { none, type Option, some } from "./option.js";
+import { abelSymbol } from "./type-class/abelian-group.js";
+import type { AbelianMonoid } from "./type-class/abelian-monoid.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
+import type { SemiRing } from "./type-class/semi-ring.js";
 
 declare const tropicalNominal: unique symbol;
 /**

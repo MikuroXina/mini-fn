@@ -1,14 +1,14 @@
-import { none, type Option, some } from "./option.ts";
-import { equal, greater, less, type Ordering } from "./ordering.ts";
+import { none, type Option, some } from "./option.js";
+import { equal, greater, less, type Ordering } from "./ordering.js";
 import {
     type AbelianGroup,
     type AbelianGroupExceptZero,
     abelSymbol,
-} from "./type-class/abelian-group.ts";
-import type { Field } from "./type-class/field.ts";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
-import type { Ring } from "./type-class/ring.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
+} from "./type-class/abelian-group.js";
+import type { Field } from "./type-class/field.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
+import type { Ring } from "./type-class/ring.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
     if (Number.isNaN(lhs) || Number.isNaN(rhs)) {
@@ -22,8 +22,8 @@ export const partialCmp = (lhs: number, rhs: number): Option<Ordering> => {
     }
     return some(greater);
 };
-export const partialOrd: PartialOrd<number> = fromPartialCmp(() =>
-    partialCmp
+export const partialOrd: PartialOrd<number> = fromPartialCmp(
+    () => partialCmp,
 )();
 
 export const addAbelianGroup: AbelianGroup<number> = {

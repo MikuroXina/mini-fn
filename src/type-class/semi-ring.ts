@@ -1,5 +1,5 @@
-import type { AbelianMonoid } from "./abelian-monoid.ts";
-import type { Monoid } from "./monoid.ts";
+import type { AbelianMonoid } from "./abelian-monoid.js";
+import type { Monoid } from "./monoid.js";
 
 /**
  * A `SemiRing` instance for `T` must satisfy these laws:

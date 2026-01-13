@@ -1,4 +1,4 @@
-import { assertEquals } from "../deps.ts";
+import { expect, test } from "vitest";
 import {
     contains,
     count,
@@ -7,58 +7,62 @@ import {
     intoMut,
     len,
     remove,
-} from "./multi-set.ts";
-import { doMut, readMutRef } from "./mut.ts";
+} from "./multi-set.js";
+import { doMut, readMutRef } from "./mut.js";
 
-Deno.test("len", () => {
-    assertEquals(len(empty()), 0);
+test("len", () => {
+    expect(len(empty())).toStrictEqual(0);
 
     const one = doMut((cat) =>
-        cat.addM("set", intoMut(empty<number>()))
+        cat
+            .addM("set", intoMut(empty<number>()))
             .runWith(({ set }) => insert(1)(set))
-            .finishM(({ set }) => readMutRef(set))
+            .finishM(({ set }) => readMutRef(set)),
     );
-    assertEquals(len(one), 1);
+    expect(len(one)).toStrictEqual(1);
 });
 
-Deno.test("contains", () => {
-    assertEquals(contains(0)(empty()), false);
-    assertEquals(contains(1)(empty()), false);
+test("contains", () => {
+    expect(contains(0)(empty())).toStrictEqual(false);
+    expect(contains(1)(empty())).toStrictEqual(false);
 
     const one = doMut((cat) =>
-        cat.addM("set", intoMut(empty<number>()))
+        cat
+            .addM("set", intoMut(empty<number>()))
             .runWith(({ set }) => insert(1)(set))
-            .finishM(({ set }) => readMutRef(set))
+            .finishM(({ set }) => readMutRef(set)),
     );
-    assertEquals(contains(0)(one), false);
-    assertEquals(contains(1)(one), true);
-    assertEquals(contains(2)(one), false);
+    expect(contains(0)(one)).toStrictEqual(false);
+    expect(contains(1)(one)).toStrictEqual(true);
+    expect(contains(2)(one)).toStrictEqual(false);
 });
 
-Deno.test("count", () => {
-    assertEquals(count(0)(empty()), 0);
-    assertEquals(count(1)(empty()), 0);
+test("count", () => {
+    expect(count(0)(empty())).toStrictEqual(0);
+    expect(count(1)(empty())).toStrictEqual(0);
 
     const one = doMut((cat) =>
-        cat.addM("set", intoMut(empty<number>()))
+        cat
+            .addM("set", intoMut(empty<number>()))
             .runWith(({ set }) => insert(1)(set))
-            .finishM(({ set }) => readMutRef(set))
+            .finishM(({ set }) => readMutRef(set)),
     );
-    assertEquals(count(0)(one), 0);
-    assertEquals(count(1)(one), 1);
-    assertEquals(count(2)(one), 0);
+    expect(count(0)(one)).toStrictEqual(0);
+    expect(count(1)(one)).toStrictEqual(1);
+    expect(count(2)(one)).toStrictEqual(0);
 
     const oneTwoTwo = doMut((cat) =>
-        cat.addM("set", intoMut(empty<number>()))
+        cat
+            .addM("set", intoMut(empty<number>()))
             .runWith(({ set }) => insert(1)(set))
             .runWith(({ set }) => insert(2)(set))
             .runWith(({ set }) => insert(2)(set))
             .addMWith("_", ({ set }) => remove(2)(set))
             .runWith(({ set }) => insert(2)(set))
-            .finishM(({ set }) => readMutRef(set))
+            .finishM(({ set }) => readMutRef(set)),
     );
-    assertEquals(count(0)(oneTwoTwo), 0);
-    assertEquals(count(1)(oneTwoTwo), 1);
-    assertEquals(count(2)(oneTwoTwo), 2);
-    assertEquals(count(3)(oneTwoTwo), 0);
+    expect(count(0)(oneTwoTwo)).toStrictEqual(0);
+    expect(count(1)(oneTwoTwo)).toStrictEqual(1);
+    expect(count(2)(oneTwoTwo)).toStrictEqual(2);
+    expect(count(3)(oneTwoTwo)).toStrictEqual(0);
 });

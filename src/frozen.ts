@@ -1,27 +1,28 @@
-import { id } from "./func.ts";
-import type { Hkt1 } from "./hkt.ts";
-import { andThen, none, type Option, some } from "./option.ts";
-import { and as then, isEq, type Ordering } from "./ordering.ts";
-import { type Eq, fromEquality } from "./type-class/eq.ts";
-import type { Monad } from "./type-class/monad.ts";
-import { fromCmp, type Ord } from "./type-class/ord.ts";
+import { id } from "./func.js";
+import type { Hkt1 } from "./hkt.js";
+import { andThen, none, type Option, some } from "./option.js";
+import { isEq, type Ordering, and as then } from "./ordering.js";
+import { type Eq, fromEquality } from "./type-class/eq.js";
+import type { Monad } from "./type-class/monad.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
 import {
     fromPartialEquality,
     type PartialEq,
-} from "./type-class/partial-eq.ts";
-import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.ts";
+} from "./type-class/partial-eq.js";
+import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
 
 /**
  * The frozen type makes `T` type `readonly` recursively.
  */
-export type Frozen<T> =
-    & T
-    & {
-        readonly [K in keyof T]: T[K] extends Frozen<infer I> ? I
-            : T[K] extends () => unknown ? T[K]
-            : T[K] extends object ? Frozen<T[K]>
+export type Frozen<T> = T & {
+    readonly [K in keyof T]: T[K] extends Frozen<infer I>
+        ? I
+        : T[K] extends () => unknown
+          ? T[K]
+          : T[K] extends object
+            ? Frozen<T[K]>
             : T[K];
-    };
+};
 
 export const partialEquality =
     <S>(equalityDict: { readonly [K in keyof S]: PartialEq<S[K]> }) =>
@@ -64,9 +65,9 @@ export const partialCmp =
                 return none();
             })
             .reduce((prev, curr) =>
-                andThen((
-                    previous: Ordering,
-                ) => (isEq(previous) ? curr : some(previous)))(prev)
+                andThen((previous: Ordering) =>
+                    isEq(previous) ? curr : some(previous),
+                )(prev),
             );
 export const partialOrd: <S>(
     orderDict: { readonly [K in keyof S]: PartialOrd<S[K]> },
@@ -96,11 +97,14 @@ export const ord: <S>(
 export const freeze = <T>(x: T): Frozen<T> => x as Frozen<T>;
 
 export const product =
-    <A, B>(fa: Frozen<A>) => (fb: Frozen<B>): Frozen<[A, B]> =>
+    <A, B>(fa: Frozen<A>) =>
+    (fb: Frozen<B>): Frozen<[A, B]> =>
         freeze([fa, fb]);
 export const pure = freeze;
-export const map = <T, U>(fn: (t: T) => U) => (ft: Frozen<T>): Frozen<U> =>
-    freeze(fn(ft));
+export const map =
+    <T, U>(fn: (t: T) => U) =>
+    (ft: Frozen<T>): Frozen<U> =>
+        freeze(fn(ft));
 export const flatMap = id;
 export const apply = map;
 

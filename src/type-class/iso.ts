@@ -1,4 +1,4 @@
-import type { Get2 } from "../hkt.ts";
+import type { Get2 } from "../hkt.js";
 
 /**
  * All instance of `Iso` must satisfy:

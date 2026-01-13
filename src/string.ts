@@ -1,7 +1,7 @@
-import { equal, greater, less, type Ordering } from "./ordering.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { fromCmp, type Ord } from "./type-class/ord.ts";
-import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.ts";
+import { equal, greater, less, type Ordering } from "./ordering.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { fromCmp, type Ord } from "./type-class/ord.js";
+import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.js";
 
 export const cmp = (lhs: string, rhs: string): Ordering => {
     if (lhs === rhs) {

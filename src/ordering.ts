@@ -1,13 +1,13 @@
-import { doT } from "./cat.ts";
+import { doT } from "./cat.js";
 import {
-    decI8,
     type Decoder,
-    encI8,
+    decI8,
     type Encoder,
+    encI8,
     monadForDecoder,
-} from "./serial.ts";
-import type { Monoid } from "./type-class/monoid.ts";
-import { semiGroupSymbol } from "./type-class/semi-group.ts";
+} from "./serial.js";
+import type { Monoid } from "./type-class/monoid.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 /**
  * Means that the left term is less than the right term.
@@ -39,10 +39,13 @@ export const isNe = (ord: Ordering): ord is Less | Greater => ord !== equal;
 /**
  * The reversed type of `O` extends `Ordering`.
  */
-export type Reversed<O extends Ordering> = O extends Less ? Greater
-    : O extends Greater ? Less
-    : O extends Equal ? Equal
-    : Ordering;
+export type Reversed<O extends Ordering> = O extends Less
+    ? Greater
+    : O extends Greater
+      ? Less
+      : O extends Equal
+        ? Equal
+        : Ordering;
 /**
  * Reverses the order.
  *
@@ -59,10 +62,8 @@ export const reverse = <O extends Ordering>(order: O): Reversed<O> =>
  * @param first - The first order.
  * @returns The transited order.
  */
-export const and = (second: Ordering) =>
-(
-    first: Ordering,
-) => (first === equal ? second : first);
+export const and = (second: Ordering) => (first: Ordering) =>
+    first === equal ? second : first;
 /**
  * Transits two `Ordering`s. Returns `secondFn()` if `first` is `equal`, otherwise returns `first`. It is useful to implement `PartialOrd` for some object type. The order of arguments is reversed because of that it is useful for partial applying.
  *
@@ -71,7 +72,8 @@ export const and = (second: Ordering) =>
  * @returns The transited order.
  */
 export const andThen =
-    (secondFn: () => Ordering) => (first: Ordering): Ordering =>
+    (secondFn: () => Ordering) =>
+    (first: Ordering): Ordering =>
         first === equal ? secondFn() : first;
 
 /**
