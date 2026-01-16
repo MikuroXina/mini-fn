@@ -116,7 +116,9 @@ import {
     type PartialEqUnary,
 } from "./type-class/partial-eq.js";
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
+import type { Pure } from "./type-class/pure.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
+import type { SemiGroupal } from "./type-class/semi-groupal.js";
 import type { Traversable } from "./type-class/traversable.js";
 import type { TraversableMonad } from "./type-class/traversable-monad.js";
 
@@ -855,6 +857,18 @@ export const bitraverse =
 export interface ResultHkt extends Hkt2 {
     readonly type: Result<this["arg2"], this["arg1"]>;
 }
+
+/**
+ * The `SemiGroupal` instance for `Result<E, _>`.
+ */
+export const semiGroupal = <E>(): SemiGroupal<Apply2Only<ResultHkt, E>> => ({
+    product,
+});
+
+/**
+ * The `Pure` instance for `Result<E, _>`.
+ */
+export const pure = <E>(): Pure<Apply2Only<ResultHkt, E>> => ({ pure: ok });
 
 /**
  * Creates the instance of `Monoid` from the default error.

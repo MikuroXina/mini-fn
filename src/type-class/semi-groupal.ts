@@ -2,10 +2,20 @@ import type { Get1, Get2 } from "../hkt.js";
 import type { Tuple } from "../tuple.js";
 import type { Associative } from "./associative.js";
 
+/**
+ * A type class that can make two values into a pair-value of two, over `F`.
+ */
 export type SemiGroupal<F> = {
-    readonly product: <A, B>(
+    /**
+     * Makes a pair-value of two on `F`.
+     *
+     * @param fa - The left-hand side value on `F`.
+     * @param fb - The right-hand side value on `F`.
+     * @returns A new pair-value of `fa` and `fb`.
+     */
+    readonly product: <A>(
         fa: Get1<F, A>,
-    ) => (fb: Get1<F, B>) => Get1<F, Tuple<A, B>>;
+    ) => <B>(fb: Get1<F, B>) => Get1<F, Tuple<A, B>>;
 };
 
 /**

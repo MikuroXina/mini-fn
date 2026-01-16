@@ -23,6 +23,7 @@ import {
 import { fromPartialCmp, type PartialOrd } from "./type-class/partial-ord.js";
 import type { Reduce } from "./type-class/reduce.js";
 import type { Traversable } from "./type-class/traversable.js";
+import type { TraversableMonad } from "./type-class/traversable-monad.js";
 
 export const partialEquality =
     <L, R = L>(equality: PartialEq<L, R>) =>
@@ -117,6 +118,11 @@ export const traversable: Traversable<ArrayHkt> = {
     ...functor,
     foldR,
     traverse,
+};
+
+export const traversableMonad: TraversableMonad<ArrayHkt> = {
+    ...traversable,
+    ...monad,
 };
 
 /**

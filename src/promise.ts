@@ -1,17 +1,16 @@
 import type { MonadCont } from "./cont/monad.js";
 import { type ControlFlow, isContinue, newContinue } from "./control-flow.js";
-import { absurd, id } from "./func.js";
+import { id } from "./func.js";
 import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
 import type { MonadPromise } from "./promise/monad.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Apply } from "./type-class/apply.js";
 import { type FlatMap, flatten } from "./type-class/flat-map.js";
+import type { Foldable } from "./type-class/foldable.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
 import type { MonadRec } from "./type-class/monad-rec.js";
-import type { Monoid } from "./type-class/monoid.js";
 import type { Pure } from "./type-class/pure.js";
-import { semiGroupSymbol } from "./type-class/semi-group.js";
 import type { SemiGroupal } from "./type-class/semi-groupal.js";
 import type { Traversable } from "./type-class/traversable.js";
 import type { TraversableMonad } from "./type-class/traversable-monad.js";
@@ -84,24 +83,54 @@ export const applyT =
     (t: PromiseT<M, T>): PromiseT<M, U> =>
         t.then((mt) => fn.then((mfn) => m.apply(mfn)(mt)));
 
+/**
+ * Folds the computation result over `F`.
+ *
+ * @param f - The `Foldable` instance for `F`.
+ * @param folder - The function folding from right.
+ * @param init - The initial data of folding.
+ * @param data - To be folded.
+ * @returns The folded result on `Promise`.
+ */
+export const foldRT =
+    <F>(f: Foldable<F>) =>
+    <A, B>(folder: (next: A) => (acc: B) => B) =>
+    (init: B) =>
+    (data: PromiseT<F, A>): Promise<B> =>
+        data.then(f.foldR(folder)(init));
+
+/**
+ * Traverses the result of computation `M` over `F`.
+ *
+ * @param m - The `Traversable` instance for `M`.
+ * @param f - The `Applicative` instance for `F`.
+ * @param visitor - The mapping function.
+ * @param data - To be traversed.
+ * @returns The collected result over `F` in computation `M`.
+ */
+export const traverseT =
+    <M, F>(m: Traversable<M>, f: Applicative<F>) =>
+    <A, B>(visitor: (a: A) => Get1<F, B>) =>
+    (data: PromiseT<M, A>): PromiseT<F, Get1<M, B>> =>
+        data.then(m.traverse(f)(visitor));
+
+/**
+ * Collects the result of computation `M` over `F`.
+ *
+ * @param m - The `Traversable` instance for `M`.
+ * @param f - The `Applicative` instance for `F`.
+ * @param data - To be traversed.
+ * @returns The collected result over `F` in computation `M`.
+ */
+export const sequenceT = <M, F>(
+    m: Traversable<M>,
+    f: Applicative<F>,
+): (<A>(data: PromiseT<M, Get1<F, A>>) => PromiseT<F, Get1<M, A>>) =>
+    traverseT(m, f)((x) => x);
+
 export interface PromiseTHkt extends Hkt2 {
     readonly type: PromiseT<this["arg2"], this["arg1"]>;
 }
-
-/**
- * Returns the instance of `Monoid` about concatenating the promise computations.
- *
- * @param m - The instance of `Traversable` and `Monad` for `M`.
- * @param identity - The identity of `T` that used as a default value.
- * @returns The instance of `Monoid` for `PromiseT<M, T>`.
- */
-export const monoidT =
-    <M>(m: Traversable<M> & Monad<M>) =>
-    <T>(identity: T): Monoid<PromiseT<M, T>> => ({
-        identity: Promise.resolve(m.pure(identity)),
-        combine: (l, r) => flatMapT(m)((mr: T) => mapT(m)(() => mr)(l))(r),
-        [semiGroupSymbol]: true,
-    });
 
 /**
  * @param m - The instance of `Functor` for `M`.
@@ -114,7 +143,7 @@ export const functorT = <M>(
 });
 
 /**
- * @param m - The instance of `Functor` and `Apply` for `M`.
+ * @param m - The instance of `Functor`, `Apply` and `Pure` for `M`.
  * @returns The instance of `Applicative` for `PromiseT<M, _>`.
  */
 export const applicativeT = <M>(
@@ -195,18 +224,31 @@ export const apply: <T, U>(
  * @param computation - The computation about `Promise`.
  * @returns The transformed promise.
  */
-export const callCC = <A, B>(
+export const callCC = async <A, B>(
     computation: (continuation: (a: A) => Promise<B>) => Promise<A>,
-): Promise<A> =>
-    new Promise((resolve, reject) => {
-        resolve(
-            computation((err) => {
-                reject(err);
-                return absurd();
-            }),
-        );
-    });
+): Promise<A> => {
+    class ContinuationBail {
+        constructor(public readonly value: A) {}
+    }
+    try {
+        return await computation((err) => {
+            throw new ContinuationBail(err);
+        });
+    } catch (err) {
+        if (err instanceof ContinuationBail) {
+            return err.value;
+        }
+        throw err;
+    }
+};
 
+/**
+ * Repeats the `stepper` until it returns `Break` over `Promise`.
+ *
+ * @param stepper - To be repeated with the state. It returns the next state of `Continue` or the return value of `Break`.
+ * @param state - The initial state for `stepper`.
+ * @returns The computation which results value of `Break`.
+ */
 export const tailRecM =
     <X, A>(stepper: (state: A) => Promise<ControlFlow<X, A>>) =>
     async (state: A): Promise<X> => {
@@ -217,21 +259,16 @@ export const tailRecM =
         return flow[1];
     };
 
+/**
+ * Re-exports `Promise.all` from the standard API.
+ */
+export const all = <T>(
+    iterable: Iterable<T | PromiseLike<T>>,
+): Promise<Awaited<T>[]> => Promise.all(iterable);
+
 export interface PromiseHkt extends Hkt1 {
     readonly type: Promise<this["arg1"]>;
 }
-
-/**
- * Returns the instance of `Monoid` about concatenating the promise computations.
- *
- * @param identity - The identity of `T` that used as a default value.
- * @returns The instance of `Monoid` for `Promise<T>`.
- */
-export const monoid = <T>(identity: T): Monoid<Promise<T>> => ({
-    combine: (l, r) => l.then(() => r),
-    identity: Promise.resolve(identity),
-    [semiGroupSymbol]: true,
-});
 
 /**
  * The instance of `Functor` for `Promise`.
