@@ -1,5 +1,15 @@
 # Changelog
 
+## [7.0.1](https://github.com/MikuroXina/mini-fn/compare/v7.0.0...v7.0.1) (2026-01-17)
+
+
+### Bug Fixes
+
+* Append readonly to tuple types ([#283](https://github.com/MikuroXina/mini-fn/issues/283)) ([d0750d6](https://github.com/MikuroXina/mini-fn/commit/d0750d62964e746a4471ed9cfd622b480c3275a7))
+* Fix nonNanHash ([#290](https://github.com/MikuroXina/mini-fn/issues/290)) ([904d845](https://github.com/MikuroXina/mini-fn/commit/904d845487e82a60eb4a66d6735f2c671c8f1a19))
+* Fix type errors ([#288](https://github.com/MikuroXina/mini-fn/issues/288)) ([45e1930](https://github.com/MikuroXina/mini-fn/commit/45e1930fcdb5666aafdefcd21ae9677569b5d453))
+* Verify Promise module ([#293](https://github.com/MikuroXina/mini-fn/issues/293)) ([545fb74](https://github.com/MikuroXina/mini-fn/commit/545fb748aedbdae61daec8d053fde259e451714d))
+
 ## [7.0.0](https://github.com/MikuroXina/mini-fn/compare/v6.8.0...v7.0.0) (2025-03-04)
 
 
