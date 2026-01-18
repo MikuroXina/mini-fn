@@ -37,6 +37,7 @@ import { type IdentityHkt, monad as identityMonad } from "./identity.js";
 // biome-ignore lint/correctness/noUnusedImports: for test
 import * as Option from "./option.js";
 import type { Tuple } from "./tuple.js";
+import type { Applicative } from "./type-class/applicative.js";
 import type { Functor } from "./type-class/functor.js";
 import { liftM, type Monad } from "./type-class/monad.js";
 import type { Profunctor } from "./type-class/profunctor.js";
@@ -202,10 +203,7 @@ export const product =
  * @param reader - The computation to be contained.
  * @returns The new reader.
  */
-export const withReader = <R, A>(reader: (a: R) => A): Reader<R, A> => {
-    const askApplied = ask<R>();
-    return (req: R) => reader(askApplied(req));
-};
+export const withReader = <R, A>(reader: (a: R) => A): Reader<R, A> => reader;
 
 /**
  * Maps the function `f` onto `Reader<R, _>`.
@@ -368,6 +366,14 @@ export interface ReaderHkt extends Hkt2 {
  */
 export const functor = <R>(): Functor<Apply2Only<ReaderHkt, R>> => ({ map });
 /**
+ * The instance of `Applicative` for `Reader<R, _>`.
+ */
+export const applicative = <R>(): Applicative<Apply2Only<ReaderHkt, R>> => ({
+    map,
+    apply,
+    pure,
+});
+/**
  * The instance of `Monad` for `Reader<R, _>`.
  */
 export const monad = <R>(): Monad<Apply2Only<ReaderHkt, R>> => ({
@@ -388,6 +394,16 @@ export const functorT = <R, M>(
     monad: Monad<M>,
 ): Functor<Apply3Only<ReaderTHkt, R> & Apply2Only<ReaderTHkt, M>> => ({
     map: mapT(monad),
+});
+/**
+ * The instance of `Applicative` for `ReaderT<R, M, _>`.
+ */
+export const applicativeT = <R, M>(
+    monad: Monad<M>,
+): Applicative<Apply3Only<ReaderTHkt, R> & Apply2Only<ReaderTHkt, M>> => ({
+    map: mapT(monad),
+    apply: applyT(monad),
+    pure: pureT(monad),
 });
 /**
  * The instance of `Monad` for `ReaderT<R, M, _>`.
