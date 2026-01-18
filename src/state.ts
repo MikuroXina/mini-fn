@@ -221,8 +221,8 @@ export const mapState =
  * @returns The modified computation.
  */
 export const withState =
-    <S, A>(fn: (state: S) => S) =>
-    (s: State<S, A>): State<S, A> =>
+    <S>(fn: (state: S) => S) =>
+    <A>(s: State<S, A>): State<S, A> =>
     (state: S) =>
         s(fn(state));
 
@@ -267,8 +267,8 @@ export const product =
  * @returns The mapped computation.
  */
 export const map =
-    <S, A, B>(fn: (a: A) => B) =>
-    (s: State<S, A>): State<S, B> =>
+    <A, B>(fn: (a: A) => B) =>
+    <S>(s: State<S, A>): State<S, B> =>
     (state) => {
         const [answer, nextState] = s(state);
         return [fn(answer), nextState];
