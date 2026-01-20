@@ -24,12 +24,16 @@
  * @module
  */
 
-import type { Apply2Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
+import { doT } from "./cat.js";
+import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
 import type { IdentityHkt } from "./identity.js";
 import type { Tuple } from "./tuple.js";
+import type { Applicative } from "./type-class/applicative.js";
+import type { Apply } from "./type-class/apply.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
 import type { Monoid } from "./type-class/monoid.js";
+import type { Pure } from "./type-class/pure.js";
 import type { SemiGroup } from "./type-class/semi-group.js";
 
 /**
@@ -310,21 +314,131 @@ export interface WriterHkt extends Hkt2 {
 }
 
 /**
- * The instance of `Functor` for `Writer`.
+ * The instance of `Functor` for `Writer<W, _>`.
  */
-export const functor = <M>(): Functor<Apply2Only<WriterHkt, M>> => ({ map });
-
+export const functor = <W>(): Functor<Apply2Only<WriterHkt, W>> => ({ map });
 /**
- * Creates a monad instance from monoid `W`.
- *
- * @param monoid - The instance of `Monoid` for `W`.
- * @returns The instance of `Monad` for `Writer<W, _>`.
+ * The instance of `Applicative` for `Writer<W, _>` from monoid `W`.
  */
-export const makeMonad = <W>(
+export const applicative = <W>(
+    monoid: Monoid<W>,
+): Applicative<Apply2Only<WriterHkt, W>> => ({
+    pure: pure(monoid),
+    map,
+    apply: apply(monoid),
+});
+/**
+ * The instance of `Monad` for `Writer<W, _> from monoid `W`.
+ */
+export const monad = <W>(
     monoid: Monoid<W>,
 ): Monad<Apply2Only<WriterHkt, W>> => ({
     pure: pure(monoid),
     map,
     flatMap: flatMap(monoid),
     apply: apply(monoid),
+});
+
+/**
+ * Maps the `WriterT<W, M, T>` into `WriterT<W, M, U>` over functor `M`.
+ *
+ * @param functor - The `Functor` instance for `M`.
+ * @param fn - Function to map items.
+ * @param t - Writer to be mapped.
+ * @returns The mapped one.
+ */
+export const mapT =
+    <W, M>(functor: Functor<M>) =>
+    <T, U>(fn: (t: T) => U) =>
+    (t: WriterT<W, M, T>): WriterT<W, M, U> =>
+    (): Get1<M, [U, W]> =>
+        functor.map(([t, w]: [T, W]): [U, W] => [fn(t), w])(t());
+
+/**
+ * Wraps the item of `T` as a `WriterT<W, M, T>` over monoid `W`.
+ *
+ * @param monoid - The `Monoid` instance for `W`.
+ * @param pure - The `Pure` instance for `M`.
+ * @param t - To be wrapped.
+ * @returns The wrapped one.
+ */
+export const pureT =
+    <W, M>(monoid: Monoid<W>, pure: Pure<M>) =>
+    <T>(t: T): WriterT<W, M, T> =>
+    (): Get1<M, [T, W]> =>
+        pure.pure([t, monoid.identity]);
+
+/**
+ * Applies the function on `Writer<W, M, _>` over monoid `W` and applicative functor `M`.
+ *
+ * @param monoid - The `Monoid` instance for `W`.
+ * @param app - The `Apply` instance for `M`.
+ * @param fn - Function to apply.
+ * @param t - To be applied.
+ * @returns The applied one.
+ */
+export const applyT =
+    <W, M>(monoid: Monoid<W>, app: Apply<M>) =>
+    <T, U>(fn: WriterT<W, M, (t: T) => U>) =>
+    (t: WriterT<W, M, T>): WriterT<W, M, U> =>
+    (): Get1<M, [U, W]> =>
+        app.apply<[T, W], [U, W]>(
+            app.map(
+                ([tu, w]: [(t: T) => U, W]) =>
+                    ([t, w2]: [T, W]): [U, W] => [tu(t), monoid.combine(w, w2)],
+            )(fn()),
+        )(t());
+
+/**
+ * Maps and flattens the `Writer<W, M, T>` with the computation over monoid `W` and monad `M`.
+ *
+ * @param monoid - The `Monoid` instance for `W`.
+ * @param monad - The `Monad` instance for `M`.
+ * @param fn - Computation using `T` and returning `Writer<W, M, U>`.
+ * @param t - To be mapped.
+ * @returns The computed one.
+ */
+export const flatMapT =
+    <W, M>(monoid: Monoid<W>, monad: Monad<M>) =>
+    <T, U>(fn: (t: T) => WriterT<W, M, U>) =>
+    (t: WriterT<W, M, T>): WriterT<W, M, U> =>
+    (): Get1<M, [U, W]> =>
+        doT(monad)
+            .addM("tw", t())
+            .addMWith("uw", ({ tw: [t] }) => fn(t)())
+            .finish(({ uw: [u, w], tw: [, w2] }): [U, W] => [
+                u,
+                monoid.combine(w, w2),
+            ]);
+
+/**
+ * The instance of `Functor` of `WriterT<W, M, _>` for any functor `M`.
+ */
+export const functorT = <W, M>(
+    functor: Functor<M>,
+): Functor<Apply3Only<WriterTHkt, W> & Apply2Only<WriterTHkt, M>> => ({
+    map: mapT(functor),
+});
+/**
+ * The instance of `Applicative` of `WriterT<W, M, _>` for any monoid `W` and applicative functor `M`.
+ */
+export const applicativeT = <W, M>(
+    monoid: Monoid<W>,
+    app: Applicative<M>,
+): Applicative<Apply3Only<WriterTHkt, W> & Apply2Only<WriterTHkt, M>> => ({
+    map: mapT(app),
+    pure: pureT(monoid, app),
+    apply: applyT(monoid, app),
+});
+/**
+ * The instance fo `Monad` of `WriterT<W, M, _>` for any monoid `W` and monad `M`.
+ */
+export const monadT = <W, M>(
+    monoid: Monoid<W>,
+    monad: Monad<M>,
+): Monad<Apply3Only<WriterTHkt, W> & Apply2Only<WriterTHkt, M>> => ({
+    map: mapT(monad),
+    pure: pureT(monoid, monad),
+    apply: applyT(monoid, monad),
+    flatMap: flatMapT(monoid, monad),
 });
