@@ -221,8 +221,8 @@ export const mapState =
  * @returns The modified computation.
  */
 export const withState =
-    <S, A>(fn: (state: S) => S) =>
-    (s: State<S, A>): State<S, A> =>
+    <S>(fn: (state: S) => S) =>
+    <A>(s: State<S, A>): State<S, A> =>
     (state: S) =>
         s(fn(state));
 
@@ -267,8 +267,8 @@ export const product =
  * @returns The mapped computation.
  */
 export const map =
-    <S, A, B>(fn: (a: A) => B) =>
-    (s: State<S, A>): State<S, B> =>
+    <A, B>(fn: (a: A) => B) =>
+    <S>(s: State<S, A>): State<S, B> =>
     (state) => {
         const [answer, nextState] = s(state);
         return [fn(answer), nextState];
@@ -372,7 +372,7 @@ export const monadRec = <S>(): MonadRec<Apply2Only<StateHkt, S>> => ({
 });
 
 /**
- * The instance of `Functor` for `StateT<S, M, _>`.
+ * The instance of `Functor` for `StateT<S, M, _>` for any functor `M`.
  */
 export const functorT = <S, M>(
     functor: Functor<M>,
@@ -380,7 +380,17 @@ export const functorT = <S, M>(
     map: mapT(functor),
 });
 /**
- * The instance of `Monad` for `StateT<S, M, _>`.
+ * The instance of `Applicative` for `StateT<S, M, _>` for any monad `M`.
+ */
+export const applicativeT = <S, M>(
+    monad: Monad<M>,
+): Applicative<Apply3Only<StateTHkt, S> & Apply2Only<StateTHkt, M>> => ({
+    map: mapT(monad),
+    pure: pureT(monad),
+    apply: applyT(monad),
+});
+/**
+ * The instance of `Monad` for `StateT<S, M, _>` for any monad `M`.
  */
 export const monadT = <S, M>(
     monad: Monad<M>,
