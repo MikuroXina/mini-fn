@@ -372,7 +372,7 @@ export const monadRec = <S>(): MonadRec<Apply2Only<StateHkt, S>> => ({
 });
 
 /**
- * The instance of `Functor` for `StateT<S, M, _>`.
+ * The instance of `Functor` for `StateT<S, M, _>` for any functor `M`.
  */
 export const functorT = <S, M>(
     functor: Functor<M>,
@@ -380,7 +380,17 @@ export const functorT = <S, M>(
     map: mapT(functor),
 });
 /**
- * The instance of `Monad` for `StateT<S, M, _>`.
+ * The instance of `Applicative` for `StateT<S, M, _>` for any monad `M`.
+ */
+export const applicativeT = <S, M>(
+    monad: Monad<M>,
+): Applicative<Apply3Only<StateTHkt, S> & Apply2Only<StateTHkt, M>> => ({
+    map: mapT(monad),
+    pure: pureT(monad),
+    apply: applyT(monad),
+});
+/**
+ * The instance of `Monad` for `StateT<S, M, _>` for any monad `M`.
  */
 export const monadT = <S, M>(
     monad: Monad<M>,
