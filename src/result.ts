@@ -859,6 +859,11 @@ export interface ResultHkt extends Hkt2 {
 }
 
 /**
+ * A special type of `Result` that using `Error` as the error type. It is equivalent to `Result<Error, _>` or `Err<Error> | Ok<_>`.
+ */
+export type ResultErrorHkt = Apply2Only<ResultHkt, Error>;
+
+/**
  * The `SemiGroupal` instance for `Result<E, _>`.
  */
 export const semiGroupal = <E>(): SemiGroupal<Apply2Only<ResultHkt, E>> => ({
