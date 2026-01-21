@@ -26,7 +26,12 @@
 
 import { doT } from "./cat.js";
 import type { Apply2Only, Apply3Only, Get1, Hkt2, Hkt3 } from "./hkt.js";
-import type { IdentityHkt } from "./identity.js";
+import {
+    type IdentityHkt,
+    applicative as identityApplicative,
+    functor as identityFunctor,
+    monad as identityMonad,
+} from "./identity.js";
 import type { Tuple } from "./tuple.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Apply } from "./type-class/apply.js";
@@ -208,12 +213,8 @@ export const listens =
  * @param writer - The computation which returns a function to pass.
  * @returns The computation with a passed state.
  */
-export const pass =
-    <W, A>(writer: Writer<W, [A, (w: W) => W]>): Writer<W, A> =>
-    () => {
-        const [[a, f], w] = writer();
-        return [a, f(w)];
-    };
+export const pass: <W, A>(writer: Writer<W, [A, (w: W) => W]>) => Writer<W, A> =
+    passM(identityMonad);
 
 /**
  * Creates an action which censors the computation `writer` with `cense`.
@@ -222,13 +223,9 @@ export const pass =
  * @param writer - The computation to be censored.
  * @returns The censored computation.
  */
-export const censor =
-    <W>(cense: (w: W) => W) =>
-    <A>(writer: Writer<W, A>): Writer<W, A> =>
-    () => {
-        const [a, w] = writer();
-        return [a, cense(w)];
-    };
+export const censor: <W>(
+    cense: (w: W) => W,
+) => <A>(writer: Writer<W, A>) => Writer<W, A> = censorM(identityMonad);
 
 /**
  * Makes two computations into one with monoid `W`.
@@ -314,32 +311,6 @@ export interface WriterHkt extends Hkt2 {
 }
 
 /**
- * The instance of `Functor` for `Writer<W, _>`.
- */
-export const functor = <W>(): Functor<Apply2Only<WriterHkt, W>> => ({ map });
-/**
- * The instance of `Applicative` for `Writer<W, _>` from monoid `W`.
- */
-export const applicative = <W>(
-    monoid: Monoid<W>,
-): Applicative<Apply2Only<WriterHkt, W>> => ({
-    pure: pure(monoid),
-    map,
-    apply: apply(monoid),
-});
-/**
- * The instance of `Monad` for `Writer<W, _> from monoid `W`.
- */
-export const monad = <W>(
-    monoid: Monoid<W>,
-): Monad<Apply2Only<WriterHkt, W>> => ({
-    pure: pure(monoid),
-    map,
-    flatMap: flatMap(monoid),
-    apply: apply(monoid),
-});
-
-/**
  * Maps the `WriterT<W, M, T>` into `WriterT<W, M, U>` over functor `M`.
  *
  * @param functor - The `Functor` instance for `M`.
@@ -384,8 +355,8 @@ export const applyT =
     (): Get1<M, [U, W]> =>
         app.apply<[T, W], [U, W]>(
             app.map(
-                ([tu, w]: [(t: T) => U, W]) =>
-                    ([t, w2]: [T, W]): [U, W] => [tu(t), monoid.combine(w, w2)],
+                ([tu, w2]: [(t: T) => U, W]) =>
+                    ([t, w]: [T, W]): [U, W] => [tu(t), monoid.combine(w, w2)],
             )(fn()),
         )(t());
 
@@ -406,7 +377,7 @@ export const flatMapT =
         doT(monad)
             .addM("tw", t())
             .addMWith("uw", ({ tw: [t] }) => fn(t)())
-            .finish(({ uw: [u, w], tw: [, w2] }): [U, W] => [
+            .finish(({ uw: [u, w2], tw: [, w] }): [U, W] => [
                 u,
                 monoid.combine(w, w2),
             ]);
@@ -442,3 +413,22 @@ export const monadT = <W, M>(
     apply: applyT(monoid, monad),
     flatMap: flatMapT(monoid, monad),
 });
+
+/**
+ * The instance of `Functor` for `Writer<W, _>`.
+ */
+export const functor = <W>(): Functor<
+    Apply3Only<WriterTHkt, W> & Apply2Only<WriterTHkt, IdentityHkt>
+> => functorT(identityFunctor);
+/**
+ * The instance of `Applicative` for `Writer<W, _>` from monoid `W`.
+ */
+export const applicative = <W>(
+    monoid: Monoid<W>,
+): Applicative<Apply2Only<WriterHkt, W>> =>
+    applicativeT(monoid, identityApplicative);
+/**
+ * The instance of `Monad` for `Writer<W, _> from monoid `W`.
+ */
+export const monad = <W>(monoid: Monoid<W>): Monad<Apply2Only<WriterHkt, W>> =>
+    monadT(monoid, identityMonad);
