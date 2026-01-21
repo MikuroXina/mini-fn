@@ -34,3 +34,14 @@ export const liftA2 =
         f: (a: A) => (b: B) => C,
     ): ((x: Get1<S, A>) => (y: Get1<S, B>) => Get1<S, C>) =>
         pipe(app.map(f))(app.apply);
+
+export const when =
+    <F>(app: Applicative<F>) =>
+    (cond: boolean) =>
+    (op: Get1<F, never[]>): Get1<F, never[]> =>
+        cond ? op : app.pure([]);
+export const unless =
+    <F>(app: Applicative<F>) =>
+    (cond: boolean) =>
+    (op: Get1<F, never[]>): Get1<F, never[]> =>
+        cond ? app.pure([]) : op;
