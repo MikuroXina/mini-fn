@@ -348,12 +348,6 @@ export const resolve: <T>(value: T | PromiseLike<T>) => Promise<Awaited<T>> =
     Promise.resolve.bind(Promise);
 
 /**
- * Re-exports `Promise.withResolvers` from the standard API.
- */
-export const withResolvers: <T>() => PromiseWithResolvers<T> =
-    Promise.withResolvers.bind(Promise);
-
-/**
  * Picks the first successful computation. It will try `first` at first, but if `first` throws an error, it discards the error and uses `second`.
  *
  * @param first - The first attempt.
