@@ -326,6 +326,48 @@ test("monoid", () => {
     }
 });
 
+test("alternative functor laws", () => {
+    const a = Option.alternative;
+    // associativity
+    for (const f of [Option.some("foo"), Option.none()]) {
+        for (const g of [Option.some("bar"), Option.none()]) {
+            for (const h of [Option.some("baz"), Option.none()]) {
+                expect(a.alt(a.alt(f)(g))(h)).toStrictEqual(
+                    a.alt(f)(a.alt(g)(h)),
+                );
+            }
+        }
+    }
+
+    // distributivity
+    for (const f of [Option.some((x: number) => x + 3), Option.none()]) {
+        for (const g of [Option.some((x: number) => x * 2), Option.none()]) {
+            for (const x of [Option.some(3), Option.none()]) {
+                expect(a.apply(a.alt(f)(g))(x)).toStrictEqual(
+                    a.alt(a.apply(f)(x))(a.apply(g)(x)),
+                );
+            }
+        }
+    }
+
+    // left identity
+    for (const f of [Option.some("foo"), Option.none()]) {
+        expect(a.alt(a.empty())(f)).toStrictEqual(f);
+    }
+
+    // right identity
+    for (const f of [Option.some("foo"), Option.none()]) {
+        expect(a.alt(f)(a.empty())).toStrictEqual(f);
+    }
+
+    // annihilation
+    for (const f of [Option.some("foo"), Option.none()]) {
+        expect(a.apply(a.empty<(x: string) => string>())(f)).toStrictEqual(
+            a.empty(),
+        );
+    }
+});
+
 test("encode then decode", () => {
     for (const data of [Option.some(4), Option.none()]) {
         const code = runCode(Option.enc(encU32Be)(data));
