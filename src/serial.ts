@@ -511,10 +511,12 @@ export const f64LeBuilder = (num: number): Builder => {
  * @param num - An integer to be written.
  * @returns The new builder.
  */
-export const utf8Builder = (text: string): Builder =>
-    concat(u32BeBuilder(text.length))(
-        bytesBuilder(new DataView(new TextEncoder().encode(text).buffer)),
+export const utf8Builder = (text: string): Builder => {
+    const encoded = new TextEncoder().encode(text);
+    return concat(u32BeBuilder(encoded.length))(
+        bytesBuilder(new DataView(encoded.buffer)),
     );
+};
 
 /**
  * A `Monoid` instance of `Builder`.
