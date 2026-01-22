@@ -797,10 +797,10 @@ export const inspect =
  * @param tRes - The result to be applied.
  * @returns The applied result.
  */
-export const apply =
-    <E, T, U>(fnRes: Result<E, (t: T) => U>) =>
-    (tRes: Result<E, T>): Result<E, U> =>
-        andThen((fn: (t: T) => U) => map(fn)(tRes))(fnRes);
+export const apply = <E, T, U>(
+    fnRes: Result<E, (t: T) => U>,
+): ((tRes: Result<E, T>) => Result<E, U>) =>
+    andThen((t: T) => map((fn: (t: T) => U) => fn(t))(fnRes));
 
 /**
  * Fold the success data contained by `Result` from right side.

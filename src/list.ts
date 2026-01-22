@@ -137,12 +137,14 @@ import {
     pureDecoder,
 } from "./serial.js";
 import type { Tuple } from "./tuple.js";
+import type { Alternative } from "./type-class/alternative.js";
 import { type Applicative, liftA2 } from "./type-class/applicative.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Foldable } from "./type-class/foldable.js";
 import type { Functor } from "./type-class/functor.js";
 import * as Hash from "./type-class/hash.js";
 import type { Monad } from "./type-class/monad.js";
+import type { MonadPlus } from "./type-class/monad-plus.js";
 import type { Monoid } from "./type-class/monoid.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
 import * as PartialEq from "./type-class/partial-eq.js";
@@ -2258,6 +2260,23 @@ export const traversable: Traversable<ListHkt> = {
 export const reduce: Reduce<ListHkt> = {
     reduceL: foldL,
     reduceR: (reducer) => (fa) => (b) => foldR(reducer)(b)(fa),
+};
+
+/**
+ * The `Alternative` instance for `List`.
+ */
+export const alternative: Alternative<ListHkt> = {
+    ...applicative,
+    empty,
+    alt: plus,
+};
+
+/**
+ * The `MonadPlus` instance for `List`.
+ */
+export const monadPlus: MonadPlus<ListHkt> = {
+    ...alternative,
+    ...monad,
 };
 
 export const enc = <T>(encT: Encoder<T>): Encoder<List<T>> =>

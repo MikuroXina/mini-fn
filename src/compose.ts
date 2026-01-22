@@ -6,6 +6,7 @@
  */
 
 import type { Apply2Only, Apply3Only, Get1, Hkt3 } from "./hkt.js";
+import type { Alternative } from "./type-class/alternative.js";
 import { type Applicative, liftA2 } from "./type-class/applicative.js";
 import { collect, type Distributive } from "./type-class/distributive.js";
 import type { Foldable } from "./type-class/foldable.js";
@@ -18,10 +19,16 @@ import type { Traversable } from "./type-class/traversable.js";
  */
 export type Compose<F, G, T> = Get1<F, Get1<G, T>>;
 
+/**
+ * A higher kind type emulation for `Compose`. It can be used as a type parameter of interfaces in `TypeClass` module.
+ */
 export interface ComposeHkt extends Hkt3 {
     readonly type: Compose<this["arg3"], this["arg2"], this["arg1"]>;
 }
 
+/**
+ * The `PartialEqUnary` instance `for `Compose<F, G, _>`.
+ */
 export const partialEqUnary = <F, G>(
     eqUnaryF: PartialEqUnary<F>,
     eqUnaryG: PartialEqUnary<G>,
@@ -29,12 +36,28 @@ export const partialEqUnary = <F, G>(
     liftEq: (equality) => eqUnaryF.liftEq(eqUnaryG.liftEq(equality)),
 });
 
+/**
+ * A convenient constructor. It's equivalent to the identity function.
+ */
 export const newCompose = <F, G, T>(
     fgt: Get1<F, Get1<G, T>>,
 ): Compose<F, G, T> => fgt;
+
+/**
+ * A convenient eliminator. It's equivalent to the identity function.
+ */
 export const getCompose = <F, G, T>(c: Compose<F, G, T>): Get1<F, Get1<G, T>> =>
     c;
 
+/**
+ * Maps the items of `Compose` by function `fn`.
+ *
+ * @param f - The `Functor` instance for `F`.
+ * @param g - The `Functor` instance for `G`.
+ * @param fn - Function to map an item.
+ * @param t - To be mapped.
+ * @returns A new mapped one.
+ */
 export const map =
     <F, G>(f: Functor<F>, g: Functor<G>) =>
     <T, U>(fn: (t: T) => U): ((t: Compose<F, G, T>) => Compose<F, G, U>) =>
@@ -105,6 +128,9 @@ export const traversable =
             f.traverse(app)(g.traverse(app)(visitor)),
     });
 
+/**
+ * The `Distributive` instance for `Compose<F, G, _>`.
+ */
 export const distributive = <F, G>(
     distributiveF: Distributive<F>,
     distributiveG: Distributive<G>,
@@ -116,4 +142,16 @@ export const distributive = <F, G>(
             distributiveF.map(distributiveG.distribute(functor))(
                 collect(distributiveF)(functor)(getCompose<F, G, T>)(fga),
             ),
+});
+
+/**
+ * The `Alternative` instance for `Compose<F, G, _>`. It's ok that `G` implements only `Applicative`.
+ */
+export const alternative = <F, G>(
+    f: Alternative<F>,
+    g: Applicative<G>,
+): Alternative<Apply3Only<ComposeHkt, F> & Apply2Only<ComposeHkt, G>> => ({
+    ...applicative(f)(g),
+    empty: f.empty,
+    alt: f.alt,
 });

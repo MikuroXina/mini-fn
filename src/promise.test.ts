@@ -227,3 +227,77 @@ test("monad laws for Promise", async () => {
         ),
     );
 });
+
+test("alternative functor laws", async () => {
+    const a = Promise.alternative;
+    // associativity
+    const runAssociativityTest = async (
+        f: Promise<string>,
+        g: Promise<string>,
+        h: Promise<string>,
+    ): Promise<void> => {
+        const [left, right] = await Promise.allSettled([
+            a.alt(a.alt(f)(g))(h),
+            a.alt(f)(a.alt(g)(h)),
+        ]);
+        expect(left).toStrictEqual(right);
+    };
+    await runAssociativityTest(
+        Promise.resolve("foo"),
+        Promise.resolve("bar"),
+        Promise.resolve("baz"),
+    );
+    await runAssociativityTest(
+        Promise.reject("foo"),
+        Promise.resolve("bar"),
+        Promise.resolve("baz"),
+    );
+    await runAssociativityTest(
+        Promise.reject("foo"),
+        Promise.reject("bar"),
+        Promise.resolve("baz"),
+    );
+    await runAssociativityTest(
+        Promise.reject("foo"),
+        Promise.reject("bar"),
+        Promise.reject("baz"),
+    );
+
+    // distributivity
+    const runDistributivityTest = async (
+        f: Promise<(x: number) => number>,
+        g: Promise<(x: number) => number>,
+    ): Promise<void> => {
+        const x = Promise.resolve(42);
+        const [l, r] = await Promise.allSettled([
+            a.apply(a.alt(f)(g))(x),
+            a.alt(a.apply(f)(x))(a.apply(g)(x)),
+        ]);
+        expect(l).toStrictEqual(r);
+    };
+    await runDistributivityTest(
+        Promise.resolve((x: number) => x + 3),
+        Promise.resolve((x: number) => x * 2),
+    );
+    await runDistributivityTest(
+        Promise.reject(3),
+        Promise.resolve((x: number) => x * 2),
+    );
+    await runDistributivityTest(Promise.reject(3), Promise.reject(2));
+
+    // left identity
+    expect(await a.alt(a.empty<number>())(Promise.resolve(2))).toStrictEqual(2);
+    await expect(a.alt(a.empty<number>())(Promise.reject("2"))).rejects.toThrow(
+        "2",
+    );
+
+    // right identity
+    await expect(
+        a.alt<number>(Promise.reject("2"))(a.empty<number>()),
+    ).rejects.toThrow();
+
+    // annihilation
+    await expect(
+        a.apply(a.empty<(x: number) => number>())(Promise.resolve(42)),
+    ).rejects.toThrow();
+});

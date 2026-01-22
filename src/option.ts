@@ -28,11 +28,13 @@ import {
     mapDecoder,
     pureDecoder,
 } from "./serial.js";
+import type { Alternative } from "./type-class/alternative.js";
 import type { Applicative } from "./type-class/applicative.js";
 import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { ErrorMonad } from "./type-class/error-monad.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
+import type { MonadPlus } from "./type-class/monad-plus.js";
 import type { Monoid } from "./type-class/monoid.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
 import {
@@ -866,6 +868,23 @@ export const errorMonad: ErrorMonad<OptionHkt> = {
         okOrElse(
             () => new Error(`Error: ${fn()}\n\nCaused by:\n    unwrapped None`),
         ),
+};
+
+/**
+ * The `Alternative` instance for `Option`.
+ */
+export const alternative: Alternative<OptionHkt> = {
+    ...applicative,
+    empty: none,
+    alt: or,
+};
+
+/**
+ * The `MonadPlus` instance for `Option`.
+ */
+export const monadPlus: MonadPlus<OptionHkt> = {
+    ...alternative,
+    ...monad,
 };
 
 export const ifSome = <T, U>(): Optic<Option<T>, Option<U>, T, U> =>
