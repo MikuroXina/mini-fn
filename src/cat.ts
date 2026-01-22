@@ -122,6 +122,19 @@ export type CatT<M, CTX> = {
     ) => CatT<M, CTX>;
 
     /**
+     * Runs a looping computation while it returns `Continue<S>`.
+     *
+     * @param initState - An initial state.
+     * @param body - A computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly addWithLoop: <const K extends PropertyKey, S, A>(
+        key: K,
+        initState: S,
+        body: (state: S, ctx: CTX) => Get1<M, ControlFlow<A, S>>,
+    ) => CatT<M, Record<K, A> & CTX>;
+
+    /**
      * Runs a looping computation while `cond` returns `true`.
      *
      * @param cond - A function to decide to continue the loop.
@@ -221,6 +234,24 @@ export const catT =
                     monad.flatMap(
                         (flow: ControlFlow<never[], S>): Get1<M, CTX> =>
                             isBreak(flow) ? monad.pure(c) : go(flow[1]),
+                    )(body(state, c)),
+                )(ctx);
+            return catT(monad)(go(initialState));
+        },
+        addWithLoop: <const K extends PropertyKey, S, A>(
+            key: K,
+            initialState: S,
+            body: (state: S, ctx: CTX) => Get1<M, ControlFlow<A, S>>,
+        ): CatT<M, Record<K, A> & CTX> => {
+            const go = (state: S): Get1<M, Record<K, A> & CTX> =>
+                monad.flatMap((c: CTX) =>
+                    monad.flatMap(
+                        (
+                            flow: ControlFlow<A, S>,
+                        ): Get1<M, Record<K, A> & CTX> =>
+                            isBreak(flow)
+                                ? monad.pure({ ...c, [key]: flow[1] })
+                                : go(flow[1]),
                     )(body(state, c)),
                 )(ctx);
             return catT(monad)(go(initialState));
