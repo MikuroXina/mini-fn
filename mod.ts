@@ -28,6 +28,7 @@ export * as Lazy from "./src/lazy.js";
 export * as List from "./src/list.js";
 export * as Map from "./src/map.js";
 export * as Matrix from "./src/matrix.js";
+export * as Model from "./src/model.js";
 export * as MultiSet from "./src/multi-set.js";
 export * as Mut from "./src/mut.js";
 export * as Number from "./src/number.js";
