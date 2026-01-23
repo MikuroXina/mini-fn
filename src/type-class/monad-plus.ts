@@ -141,3 +141,18 @@ export const unfoldRM =
                 );
         return go;
     };
+
+/**
+ * Executes the stateful `builder` repeatedly until it returns a `None`.
+ */
+export const unfoldRMVoid =
+    <M>(monad: Monad<M>) =>
+    <A>(
+        builder: (state: A) => Get1<M, Option<A>>,
+    ): ((initialState: A) => Get1<M, never[]>) => {
+        const go = (state: A): Get1<M, never[]> =>
+            doT(monad)
+                .addM("res", builder(state))
+                .finishM(({ res }) => mapOrElse(() => monad.pure([]))(go)(res));
+        return go;
+    };
