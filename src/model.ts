@@ -34,7 +34,7 @@ export const bool: Model<boolean> = {
 };
 
 /**
- * A `Model` for `number`.
+ * A `Model` for 64 bit floating point number.
  */
 export const num: Model<number> = {
     clone: (value) => value,
@@ -44,7 +44,7 @@ export const num: Model<number> = {
 };
 
 /**
- * A `Model` for `bigint`.
+ * A `Model` for 64 bit signed integer.
  */
 export const int: Model<bigint> = {
     clone: (value) => value,
@@ -490,7 +490,7 @@ export const never: Model<never> = {
     clone: () => {
         throw new Error("never cannot clone");
     },
-    validate: (value): value is never => false,
+    validate: (_value): _value is never => false,
     encoder: () => {
         throw new Error("never cannot encoder");
     },
