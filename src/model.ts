@@ -2,6 +2,7 @@ import {
     dec as arrayDecoder,
     enc as arrayEncoder,
     foldR as foldRArray,
+    monadPlus as monadPlusArray,
 } from "./array.js";
 import { doT } from "./cat.js";
 import { newBreak, newContinue } from "./control-flow.js";
@@ -9,6 +10,7 @@ import * as Option from "./option.js";
 import { dec as recordDecoder } from "./record.js";
 import type { Decoder, Encoder } from "./serial.js";
 import * as Serial from "./serial.js";
+import { unfoldRM, unfoldRMVoid } from "./type-class/monad-plus.js";
 import type { PartialEq } from "./type-class/partial-eq.js";
 
 /**
@@ -251,20 +253,20 @@ export const tuple = <const V extends Model<any>[]>(
             )
             .finish(() => []),
     decoder: doT(Serial.monadForDecoder)
-        .addWithLoop(
+        .addM(
             "values",
-            [0, []] as [number, unknown[]],
-            ([idx, values]) =>
+            unfoldRM(
+                Serial.monadForDecoder,
+                monadPlusArray,
+            )((idx: number) =>
                 idx === models.length
-                    ? Serial.monadForDecoder.pure(newBreak(values))
+                    ? Serial.monadForDecoder.pure(Option.none())
                     : doT(Serial.monadForDecoder)
                           .addM("value", models[idx]!.decoder)
                           .finish(({ value }) =>
-                              newContinue<[number, unknown[]]>([
-                                  idx + 1,
-                                  [...values, value],
-                              ]),
+                              Option.some<[unknown, number]>([value, idx + 1]),
                           ),
+            )(0),
         )
         .finish(({ values }) => values as Tuple<V>),
 });
@@ -315,67 +317,66 @@ export const flags = <const K extends string[]>(
                     typeof (flags as { [key]: unknown })[key] === "boolean",
             ),
         encoder: (flags) =>
-            doT(Serial.monadForCodeM)
-                .loop(0, (byteIndex) =>
-                    byteIndex === Math.ceil(keys.length / 8)
-                        ? Serial.monadForCodeM.pure(newBreak([]))
-                        : doT(Serial.monadForCodeM)
-                              .addWithLoop(
-                                  "octet",
-                                  [0, 0] as [number, number],
-                                  ([bitIndex, octet]) =>
-                                      bitIndex === 8 ||
-                                      byteIndex * 8 + bitIndex === keys.length
-                                          ? Serial.monadForCodeM.pure(
-                                                newBreak(octet),
-                                            )
-                                          : Serial.monadForCodeM.pure(
-                                                newContinue<[number, number]>([
-                                                    bitIndex + 1,
-                                                    octet |
-                                                        (flags[
-                                                            keys[
-                                                                byteIndex * 8 +
-                                                                    bitIndex
-                                                            ]!
-                                                        ]
-                                                            ? 1 << bitIndex
-                                                            : 0),
-                                                ]),
-                                            ),
-                              )
-                              .runWith(({ octet }) => Serial.encU8(octet))
-                              .finish(() => newContinue(byteIndex + 1)),
-                )
-                .finish(() => []),
+            unfoldRMVoid(Serial.monadForCodeM)((byteIndex: number) => {
+                if (byteIndex === Math.ceil(keys.length / 8)) {
+                    return Serial.monadForCodeM.pure(Option.none());
+                }
+                return doT(Serial.monadForCodeM)
+                    .addM(
+                        "octets",
+                        unfoldRM(
+                            Serial.monadForCodeM,
+                            monadPlusArray,
+                        )((bitIndex: number) =>
+                            Serial.monadForCodeM.pure(
+                                bitIndex === 8 ||
+                                    byteIndex * 8 + bitIndex === keys.length
+                                    ? Option.none()
+                                    : Option.some<[number, number]>([
+                                          flags[keys[byteIndex * 8 + bitIndex]!]
+                                              ? 1 << bitIndex
+                                              : 0,
+                                          bitIndex + 1,
+                                      ]),
+                            ),
+                        )(0),
+                    )
+                    .runWith(({ octets }) =>
+                        Serial.encU8(
+                            octets.reduce((prev, curr) => prev | curr, 0),
+                        ),
+                    )
+                    .finish(() => Option.some(byteIndex + 1));
+            })(0),
         decoder: doT(Serial.monadForDecoder)
-            .addWithLoop(
+            .addM(
                 "flags",
-                [0, {}] as [number, Record<string, boolean>],
-                ([byteIndex, flags]) =>
+                unfoldRM(
+                    Serial.monadForDecoder,
+                    monadPlusArray,
+                )((byteIndex: number) =>
                     byteIndex === Math.ceil(keys.length / 8)
-                        ? Serial.monadForDecoder.pure(newBreak(flags))
+                        ? Serial.monadForDecoder.pure(Option.none())
                         : doT(Serial.monadForDecoder)
                               .addM("octet", Serial.decU8())
-                              .addWithLoop(
-                                  "partialFlags",
-                                  [0, {}] as [number, Record<string, boolean>],
-                                  ([bitIndex, partialFlags], { octet }) =>
+                              .addMWith("partialFlags", ({ octet }) =>
+                                  unfoldRM(
+                                      Serial.monadForDecoder,
+                                      monadPlusArray,
+                                  )((bitIndex: number) =>
                                       bitIndex === 8 ||
                                       byteIndex * 8 + bitIndex === keys.length
                                           ? Serial.monadForDecoder.pure(
-                                                newBreak(partialFlags),
+                                                Option.none(),
                                             )
                                           : Serial.monadForDecoder.pure(
-                                                newContinue<
+                                                Option.some<
                                                     [
-                                                        number,
                                                         Record<string, boolean>,
+                                                        number,
                                                     ]
                                                 >([
-                                                    bitIndex + 1,
                                                     {
-                                                        ...partialFlags,
                                                         [keys[
                                                             byteIndex * 8 +
                                                                 bitIndex
@@ -385,19 +386,25 @@ export const flags = <const K extends string[]>(
                                                                     bitIndex)) !==
                                                             0,
                                                     },
+                                                    bitIndex + 1,
                                                 ]),
                                             ),
+                                  )(0),
                               )
                               .finish(({ partialFlags }) =>
-                                  newContinue<
-                                      [number, Record<string, boolean>]
-                                  >([
-                                      byteIndex + 1,
-                                      { ...flags, ...partialFlags },
-                                  ]),
+                                  Option.some([partialFlags, byteIndex + 1]),
                               ),
+                )(0),
             )
-            .finish(({ flags }) => flags as Flags<K>),
+            .finish(
+                ({ flags }) =>
+                    flags
+                        .flat()
+                        .reduce(
+                            (prev, curr) => Object.assign(prev, curr),
+                            {},
+                        ) as Flags<K>,
+            ),
     };
 };
 
@@ -516,5 +523,5 @@ export type DateUtc = string & { [dateUtcNominal]: never };
  * A `Model` for UTC date string of ISO 8601 format `YYYY-MM-DDTHH:mm:ss.sssZ`.
  */
 export const dateUtc: Model<DateUtc> = regExpChecked(
-    /^±?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/gu,
+    /^±?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u,
 );
