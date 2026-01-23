@@ -238,6 +238,7 @@ export const tuple = <const V extends Model<any>[]>(
         tuple.map((value, index) => models[index]!.clone(value)) as Tuple<V>,
     validate: (tuple): tuple is Tuple<V> =>
         Array.isArray(tuple) &&
+        tuple.length === models.length &&
         tuple.every((value, index) => models[index]!.validate(value)),
     encoder: (tuple) =>
         doT(Serial.monadForCodeM)
