@@ -1,4 +1,5 @@
 import { expect, test } from "vitest";
+import { Option, Result, Serial } from "../mod.js";
 import * as Model from "./model.js";
 import { strict } from "./type-class/partial-eq.js";
 
@@ -130,4 +131,236 @@ test("mahjong", () => {
             log: [],
         }),
     ).toStrictEqual(true);
+});
+
+test("bool", () => {
+    // clone
+    for (const b of [false, true]) {
+        const c = Model.bool.clone(b);
+        expect(b).toStrictEqual(c);
+    }
+
+    // validate
+    expect(Model.bool.validate(false)).toStrictEqual(true);
+    expect(Model.bool.validate(true)).toStrictEqual(true);
+    expect(Model.bool.validate(42)).toStrictEqual(false);
+    expect(Model.bool.validate({})).toStrictEqual(false);
+
+    // encode and decode
+    for (const b of [false, true]) {
+        const code = Serial.runCode(Model.bool.encoder(b));
+        const decoded = Result.unwrap(
+            Serial.runDecoder(Model.bool.decoder)(code),
+        );
+        expect(b).toStrictEqual(decoded);
+        const code2 = Serial.runCode(Model.bool.encoder(decoded));
+        expect(code).toStrictEqual(code2);
+    }
+});
+
+test("int", () => {
+    // clone
+    for (let x = -10n; x <= 10n; ++x) {
+        const y = Model.int.clone(x);
+        expect(x).toStrictEqual(y);
+    }
+
+    // validate
+    expect(Model.int.validate(3n)).toStrictEqual(true);
+    expect(Model.int.validate(0n)).toStrictEqual(true);
+    expect(Model.int.validate(-8n)).toStrictEqual(true);
+    expect(Model.int.validate(42)).toStrictEqual(false);
+    expect(Model.int.validate({})).toStrictEqual(false);
+
+    // encode and decode
+    for (let x = -10n; x <= 10n; ++x) {
+        const code = Serial.runCode(Model.int.encoder(x));
+        const decoded = Result.unwrap(
+            Serial.runDecoder(Model.int.decoder)(code),
+        );
+        expect(x).toStrictEqual(decoded);
+        const code2 = Serial.runCode(Model.int.encoder(decoded));
+        expect(code).toStrictEqual(code2);
+    }
+});
+
+test("str", () => {
+    // clone
+    for (const x of ["", "foo", "quuuux"]) {
+        const y = Model.str.clone(x);
+        expect(x).toStrictEqual(y);
+    }
+
+    // validate
+    expect(Model.str.validate("x")).toStrictEqual(true);
+    expect(Model.str.validate("foo")).toStrictEqual(true);
+    expect(Model.str.validate("")).toStrictEqual(true);
+    expect(Model.str.validate(42)).toStrictEqual(false);
+    expect(Model.str.validate({})).toStrictEqual(false);
+
+    // encode and decode
+    for (const x of ["", "foo", "quuuux"]) {
+        const code = Serial.runCode(Model.str.encoder(x));
+        const decoded = Result.unwrap(
+            Serial.runDecoder(Model.str.decoder)(code),
+        );
+        expect(x).toStrictEqual(decoded);
+        const code2 = Serial.runCode(Model.str.encoder(decoded));
+        expect(code).toStrictEqual(code2);
+    }
+});
+
+test("lit", () => {
+    const m = Model.lit(42);
+    // validate
+    expect(m.validate(42)).toStrictEqual(true);
+    expect(m.validate(41)).toStrictEqual(false);
+    expect(m.validate(43)).toStrictEqual(false);
+    expect(m.validate("42")).toStrictEqual(false);
+    expect(m.validate({})).toStrictEqual(false);
+});
+
+test("array", () => {
+    const m = Model.array(Model.num);
+    // clone
+    const x = [1, 4, 2];
+    const y = m.clone(x);
+    x.push(3);
+    expect(y).toStrictEqual([1, 4, 2]);
+
+    // validate
+    expect(m.validate([2, 1, 8])).toStrictEqual(true);
+    expect(m.validate([])).toStrictEqual(true);
+    expect(m.validate(1)).toStrictEqual(false);
+    expect(m.validate({})).toStrictEqual(false);
+
+    // encode and decode
+    const code = Serial.runCode(m.encoder(x));
+    const decoded = Result.unwrap(Serial.runDecoder(m.decoder)(code));
+    expect(x).toStrictEqual(decoded);
+    const code2 = Serial.runCode(m.encoder(decoded));
+    expect(code).toStrictEqual(code2);
+});
+
+test("enums", () => {
+    const m = Model.enums({
+        cancel: Model.unit,
+        move: Model.rec({ x: Model.num, y: Model.num }),
+        setColor: Model.tuple(Model.num, Model.num, Model.num),
+    });
+
+    // clone
+    const x = { type: "move" as const, value: { x: 4, y: -3 } };
+    const y = m.clone(x);
+    x.value.x += 4;
+    expect(y).toStrictEqual({ type: "move", value: { x: 4, y: -3 } });
+
+    // validate
+    expect(m.validate({ type: "cancel", value: [] })).toStrictEqual(true);
+    expect(m.validate({ type: "move", value: { x: -10, y: 0 } })).toStrictEqual(
+        true,
+    );
+    expect(m.validate({ type: "setColor", value: [10, 11, 13] })).toStrictEqual(
+        true,
+    );
+    expect(m.validate({ type: "cancel", value: [8] })).toStrictEqual(false);
+    expect(
+        m.validate({ type: "move", value: { x: -10n, y: 6 } }),
+    ).toStrictEqual(false);
+    expect(m.validate({ type: "setColor", value: [11, 13] })).toStrictEqual(
+        false,
+    );
+    expect(m.validate({ type: "moev", value: { x: 10, y: -3 } })).toStrictEqual(
+        false,
+    );
+
+    // encode and decode
+    const code = Serial.runCode(m.encoder(x));
+    const decoded = Result.unwrap(Serial.runDecoder(m.decoder)(code));
+    expect(x).toStrictEqual(decoded);
+    const code2 = Serial.runCode(m.encoder(decoded));
+    expect(code).toStrictEqual(code2);
+});
+
+test("flags", () => {
+    const m = Model.flags("x", "y", "z");
+    // clone
+    const x = { x: false, y: true, z: false };
+    const y = m.clone(x);
+    x.z = true;
+    expect(y).toStrictEqual({ x: false, y: true, z: false });
+
+    // validate
+    expect(m.validate({ x: false, y: false, z: false })).toStrictEqual(true);
+    expect(m.validate({ x: 0, y: false, z: 1n })).toStrictEqual(false);
+
+    // encode and decode
+    const code = Serial.runCode(m.encoder(x));
+    const decoded = Result.unwrap(Serial.runDecoder(m.decoder)(code));
+    expect(x).toStrictEqual(decoded);
+    const code2 = Serial.runCode(m.encoder(decoded));
+    expect(code).toStrictEqual(code2);
+});
+
+test("option", () => {
+    const m = Model.option(Model.rec({ x: Model.num }));
+    // clone
+    const x = Option.some({ x: 2 });
+    const y = m.clone(x);
+    expect(x).toStrictEqual(y);
+
+    // validate
+    expect(m.validate(Option.some({ x: 42 }))).toStrictEqual(true);
+    expect(m.validate(Option.some({ x: -800 }))).toStrictEqual(true);
+    expect(m.validate(Option.some({ x: "sss" }))).toStrictEqual(false);
+    expect(m.validate([[], { x: 3 }])).toStrictEqual(false);
+    expect(m.validate({ x: 3 })).toStrictEqual(false);
+
+    // encode and decode
+    const code = Serial.runCode(m.encoder(x));
+    const decoded = Result.unwrap(Serial.runDecoder(m.decoder)(code));
+    expect(x).toStrictEqual(decoded);
+    const code2 = Serial.runCode(m.encoder(decoded));
+    expect(code).toStrictEqual(code2);
+});
+
+test("unit", () => {
+    // clone
+    const x: never[] = [];
+    const y = Model.unit.clone(x);
+    expect(x).toStrictEqual(y);
+
+    // validate
+    expect(Model.unit.validate([])).toStrictEqual(true);
+    expect(Model.unit.validate(1)).toStrictEqual(false);
+    expect(Model.unit.validate({})).toStrictEqual(false);
+
+    // encode and decode
+    const code = Serial.runCode(Model.unit.encoder(x));
+    const decoded = Result.unwrap(Serial.runDecoder(Model.unit.decoder)(code));
+    expect(x).toStrictEqual(decoded);
+    const code2 = Serial.runCode(Model.unit.encoder(decoded));
+    expect(code).toStrictEqual(code2);
+});
+
+test("dateUtc", () => {
+    // clone
+    const x = new Date().toISOString() as Model.DateUtc;
+    const y = Model.dateUtc.clone(x);
+    expect(x).toStrictEqual(y);
+
+    // validate
+    expect(Model.dateUtc.validate(x)).toStrictEqual(true);
+    expect(Model.dateUtc.validate(x)).toStrictEqual(true); // validate twice to check whether stateless
+    expect(Model.dateUtc.validate(2020)).toStrictEqual(false);
+    expect(Model.dateUtc.validate({})).toStrictEqual(false);
+
+    // encode and decode
+    const code = Serial.runCode(Model.dateUtc.encoder(x));
+    const decoded = Result.unwrap(
+        Serial.runDecoder(Model.dateUtc.decoder)(code),
+    );
+    expect(x).toStrictEqual(decoded);
+    const code2 = Serial.runCode(Model.dateUtc.encoder(decoded));
+    expect(code).toStrictEqual(code2);
 });
