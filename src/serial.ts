@@ -728,7 +728,7 @@ export const pureCodeM = <T>(t: T): CodeM<T> => [t, empty];
 
 export const applyCodeM =
     <T, U>(f: CodeM<(t: T) => U>) =>
-    (t: CodeM<T>): CodeM<U> => [f[0](t[0]), concat(f[1])(t[1])];
+    (t: CodeM<T>): CodeM<U> => [f[0](t[0]), concat(t[1])(f[1])];
 
 export const flatMapCodeM =
     <T, U>(f: (t: T) => CodeM<U>) =>
