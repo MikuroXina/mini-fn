@@ -296,13 +296,12 @@ export const checked =
 export type Flags<K> = K extends string[] ? Record<K[number], boolean> : never;
 
 /**
- * A `Model` for `Flags`, boolean record by the keys `K`.
+ * A `Model` for `Flags`, boolean record by the keys `K`. `keys` must not include duplicated elements.
  */
 export const flags = <const K extends string[]>(
     ...keys: K
 ): Model<Flags<K>> => {
-    const revMap = new Map(keys.map((v, i) => [v, i]));
-    if (revMap.size !== keys.length) {
+    if (new Set(keys).size !== keys.length) {
         throw new Error("`keys` must be unique");
     }
     return {
