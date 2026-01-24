@@ -35,9 +35,9 @@ jobs:
     publish:
         runs-on: ubuntu-latest
         needs: release-please
-        if: ${{ needs.release-please.outputs.release_created || github.event.inputs.force }}
+        if: ${{ github.event.inputs.force || needs.release-please.outputs.release_created }}
         env:
-            VERSION: ${{ needs.release-please.outputs.tag_name || inputs.release_version }}
+            VERSION: ${{ inputs.release_version || needs.release-please.outputs.tag_name }}
         steps:
             - uses: actions/checkout@v6
               with:
