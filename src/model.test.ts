@@ -95,11 +95,22 @@ test("mahjong", () => {
         log: Model.array(gameLog),
     });
 
+    const user001 = Model.newEntity(user)({
+        name: "john",
+        email: "john@example.com",
+        passwordHash: "deadbeef",
+        passwordSalt: "with-salt",
+        rank: 1,
+        rankProgress: 100,
+        penalty: 0,
+    })("001")(Model.newModel(Model.dateUtc)("2020-01-01T09:00:00.000Z"));
+    expect(user.validate(user001)).toStrictEqual(true);
+
     expect(
         game.validate({
             players: [
                 {
-                    user: "001",
+                    user: Model.newRef(user001),
                     points: 25000n,
                     exposed: [],
                     hands: [],
@@ -309,6 +320,8 @@ test("enums", () => {
 });
 
 test("flags", () => {
+    expect(() => Model.flags("x", "y", "x")).toThrow();
+
     const m = Model.flags("x", "y", "z");
     // clone
     const x = { x: false, y: true, z: false };

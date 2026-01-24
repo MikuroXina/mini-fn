@@ -23,6 +23,27 @@ export interface Model<T> {
     readonly decoder: Decoder<T>;
 }
 
+/**
+ * Validates `data` with the schema `model`.
+ *
+ * @param model - Schema.
+ * @param data - To be validated.
+ * @returns `data` with type information.
+ */
+export const newModel =
+    <T>(model: Model<T>) =>
+    (data: unknown): T => {
+        if (!model.validate(data)) {
+            throw new Error("validation failed");
+        }
+        return data;
+    };
+
+/**
+ * Infers a data type `T` from the `Model<T>`.
+ */
+export type Infer<M> = M extends Model<infer T> ? T : never;
+
 // Primitives
 
 /**
@@ -424,7 +445,7 @@ export type Entity<S> =
               readonly primaryKey: EntityPrimaryKey<Struct<S>>;
               readonly createdAt: DateUtc;
               readonly updatedAt: DateUtc;
-              readonly deletedAt: DateUtc;
+              readonly deletedAt: Option.Option<DateUtc>;
           }
         : never;
 
@@ -445,8 +466,31 @@ export const entity = <const S extends Record<string, Model<any>>>(
         primaryKey: str as unknown as Model<EntityPrimaryKey<Struct<S>>>,
         createdAt: dateUtc,
         updatedAt: dateUtc,
-        deletedAt: dateUtc,
+        deletedAt: option(dateUtc),
     }) as unknown as Model<Entity<S>>;
+
+/**
+ * Creates a new entity object of `model` from data `body` and timestamp `createdAt`. It will throw when the validation is failed.
+ *
+ * @param model - Schema of object to create.
+ * @param body - Main data about schema you defined.
+ * @param primaryKey - An identifier that's unique among entities.
+ * @param createdAt - Timestamp when created the entity.
+ * @returns A new entity object.
+ */
+export const newEntity =
+    // biome-ignore lint/suspicious/noExplicitAny: needed to express
+        <S extends Record<string, Model<any>>>(model: Model<Entity<S>>) =>
+        (body: Struct<S>) =>
+        (primaryKey: string) =>
+        (createdAt: DateUtc): Entity<S> =>
+            newModel(model)({
+                ...body,
+                primaryKey,
+                createdAt,
+                updatedAt: createdAt,
+                deletedAt: Option.none(),
+            });
 
 declare const entityRefNominal: unique symbol;
 /**
@@ -464,8 +508,9 @@ export const reference = <E>(_entityModel: Model<E>): Model<EntityRef<E>> =>
 /**
  * Creates a reference from the entity.
  */
-export const newRef = <S>(entity: Entity<S>): EntityRef<Entity<S>> =>
-    entity.primaryKey as unknown as EntityRef<Entity<S>>;
+export const newRef = <E extends { primaryKey: EntityPrimaryKey<R> }, R>(
+    entity: E,
+): EntityRef<R> => entity.primaryKey as unknown as EntityRef<R>;
 
 // Utilities
 
