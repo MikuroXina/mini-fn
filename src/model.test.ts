@@ -144,6 +144,11 @@ test("mahjong", () => {
     ).toStrictEqual(true);
 });
 
+test("newModel", () => {
+    expect(Model.newModel(Model.str)("52")).toStrictEqual("52");
+    expect(() => Model.newModel(Model.str)(52)).toThrow();
+});
+
 test("bool", () => {
     // clone
     for (const b of [false, true]) {

@@ -151,7 +151,18 @@ export const enums = <const S extends Record<string, Model<any>>>(
     schema: S,
 ): Model<EnumVariant<S>> =>
     Object.keys(schema).length === 0
-        ? (never as unknown as Model<EnumVariant<S>>)
+        ? ({
+              clone: () => {
+                  throw new Error("never cannot clone");
+              },
+              validate: (_value: unknown): _value is never => false,
+              encoder: () => {
+                  throw new Error("never cannot encoder");
+              },
+              decoder: () => {
+                  throw new Error("never cannot decode");
+              },
+          } as unknown as Model<EnumVariant<S>>)
         : {
               clone: (variant) =>
                   ({
@@ -538,18 +549,7 @@ export const unit: Model<never[]> = {
 /**
  * A `Model` for the inhabitant type `never`. Calling `clone`, `encoder` and `decoder` will throw an error.
  */
-export const never: Model<never> = {
-    clone: () => {
-        throw new Error("never cannot clone");
-    },
-    validate: (_value): _value is never => false,
-    encoder: () => {
-        throw new Error("never cannot encoder");
-    },
-    decoder: () => {
-        throw new Error("never cannot decode");
-    },
-};
+export const never: Model<never> = enums({});
 
 /**
  * A `Model` for the string restricted with the regular expression.
