@@ -1,5 +1,23 @@
 # Changelog
 
+## [7.1.0](https://github.com/MikuroXina/mini-fn/compare/v7.0.0...v7.1.0) (2026-01-24)
+
+
+### Features
+
+* Add Alternative and MonadPlus ([#299](https://github.com/MikuroXina/mini-fn/issues/299)) ([e02a0d2](https://github.com/MikuroXina/mini-fn/commit/e02a0d2aefa6678dbd25dfd7b871f3ec8d8ee937))
+* Add Model module ([#300](https://github.com/MikuroXina/mini-fn/issues/300)) ([ec1f0fb](https://github.com/MikuroXina/mini-fn/commit/ec1f0fbf1e9493f89c7c175121157dd37182a7fa))
+* Add ResultErrorHkt, State.applicativeT and tests for State ([#297](https://github.com/MikuroXina/mini-fn/issues/297)) ([81bc274](https://github.com/MikuroXina/mini-fn/commit/81bc274755aee1986260cdc90f32c0f9467f35f9))
+* Add WriterT monad transformer and tests ([#298](https://github.com/MikuroXina/mini-fn/issues/298)) ([e325552](https://github.com/MikuroXina/mini-fn/commit/e325552a904a1dd8ee222c839b9e8097bf14a33e))
+
+
+### Bug Fixes
+
+* Append readonly to tuple types ([#283](https://github.com/MikuroXina/mini-fn/issues/283)) ([d0750d6](https://github.com/MikuroXina/mini-fn/commit/d0750d62964e746a4471ed9cfd622b480c3275a7))
+* Fix nonNanHash ([#290](https://github.com/MikuroXina/mini-fn/issues/290)) ([904d845](https://github.com/MikuroXina/mini-fn/commit/904d845487e82a60eb4a66d6735f2c671c8f1a19))
+* Fix type errors ([#288](https://github.com/MikuroXina/mini-fn/issues/288)) ([45e1930](https://github.com/MikuroXina/mini-fn/commit/45e1930fcdb5666aafdefcd21ae9677569b5d453))
+* Verify Promise module ([#293](https://github.com/MikuroXina/mini-fn/issues/293)) ([545fb74](https://github.com/MikuroXina/mini-fn/commit/545fb748aedbdae61daec8d053fde259e451714d))
+
 ## [7.0.0](https://github.com/MikuroXina/mini-fn/compare/v6.8.0...v7.0.0) (2025-03-04)
 
 
