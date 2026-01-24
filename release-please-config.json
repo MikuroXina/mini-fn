@@ -2,15 +2,8 @@
     "$schema": "https://github.com/googleapis/release-please/raw/main/schemas/config.json",
     "packages": {
         ".": {
-            "release-type": "simple",
-            "changelog-path": "CHANGELOG.md",
-            "extra-files": [
-                {
-                    "type": "json",
-                    "path": "deno.json",
-                    "jsonpath": "$.version"
-                }
-            ]
+            "release-type": "node",
+            "changelog-path": "CHANGELOG.md"
         }
     }
 }
