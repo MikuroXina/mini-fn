@@ -80,6 +80,15 @@ export const none = (): None => [noneSymbol];
 export type Option<T> = None | Some<T>;
 
 /**
+ * Determines whether the unknown item is an `Option`.
+ *
+ * @param x - To be checked.
+ * @returns Whether `x` is an `Option`.
+ */
+export const isOption = (x: unknown): x is Option<unknown> =>
+    Array.isArray(x) && (x[0] === someSymbol || x[0] === noneSymbol);
+
+/**
  * Creates a new `Option` from `t`, but only it will be `Some` when `predicate(t)` returns `true`.
  *
  * @param predicate - The function to decide the value should be contained.

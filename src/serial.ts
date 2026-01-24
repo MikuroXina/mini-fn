@@ -511,10 +511,12 @@ export const f64LeBuilder = (num: number): Builder => {
  * @param num - An integer to be written.
  * @returns The new builder.
  */
-export const utf8Builder = (text: string): Builder =>
-    concat(u32BeBuilder(text.length))(
-        bytesBuilder(new DataView(new TextEncoder().encode(text).buffer)),
+export const utf8Builder = (text: string): Builder => {
+    const encoded = new TextEncoder().encode(text);
+    return concat(u32BeBuilder(encoded.length))(
+        bytesBuilder(new DataView(encoded.buffer)),
     );
+};
 
 /**
  * A `Monoid` instance of `Builder`.
@@ -726,7 +728,7 @@ export const pureCodeM = <T>(t: T): CodeM<T> => [t, empty];
 
 export const applyCodeM =
     <T, U>(f: CodeM<(t: T) => U>) =>
-    (t: CodeM<T>): CodeM<U> => [f[0](t[0]), concat(f[1])(t[1])];
+    (t: CodeM<T>): CodeM<U> => [f[0](t[0]), concat(t[1])(f[1])];
 
 export const flatMapCodeM =
     <T, U>(f: (t: T) => CodeM<U>) =>
