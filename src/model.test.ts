@@ -218,6 +218,8 @@ test("lit", () => {
     expect(m.validate(43)).toStrictEqual(false);
     expect(m.validate("42")).toStrictEqual(false);
     expect(m.validate({})).toStrictEqual(false);
+
+    expect(() => Model.lit(false as unknown as number)).toThrow();
 });
 
 test("array", () => {
@@ -233,6 +235,30 @@ test("array", () => {
     expect(m.validate([])).toStrictEqual(true);
     expect(m.validate(1)).toStrictEqual(false);
     expect(m.validate({})).toStrictEqual(false);
+
+    // encode and decode
+    const code = Serial.runCode(m.encoder(x));
+    const decoded = Result.unwrap(Serial.runDecoder(m.decoder)(code));
+    expect(x).toStrictEqual(decoded);
+    const code2 = Serial.runCode(m.encoder(decoded));
+    expect(code).toStrictEqual(code2);
+});
+
+test("tuple", () => {
+    const m = Model.tuple(Model.num, Model.int, Model.str);
+    // clone
+    const x: [number, bigint, string] = [8, -12n, "666"];
+    const y = m.clone(x);
+    x[1] = -23n;
+    expect(y).toStrictEqual([8, -12n, "666"]);
+
+    // validate
+    expect(m.validate(x)).toStrictEqual(true);
+    expect(m.validate(y)).toStrictEqual(true);
+    expect(m.validate([11, 3n, "999", 7])).toStrictEqual(false);
+    expect(m.validate([11, 3n])).toStrictEqual(false);
+    expect(m.validate([11])).toStrictEqual(false);
+    expect(m.validate([])).toStrictEqual(false);
 
     // encode and decode
     const code = Serial.runCode(m.encoder(x));
@@ -341,6 +367,25 @@ test("unit", () => {
     expect(x).toStrictEqual(decoded);
     const code2 = Serial.runCode(Model.unit.encoder(decoded));
     expect(code).toStrictEqual(code2);
+});
+
+test("never", () => {
+    const m = Model.never as unknown as Model.Model<unknown>;
+    // clone
+    expect(() => m.clone({})).toThrow();
+
+    // validate
+    expect(m.validate(2)).toStrictEqual(false);
+    expect(m.validate(4n)).toStrictEqual(false);
+    expect(m.validate("11")).toStrictEqual(false);
+    expect(m.validate(undefined)).toStrictEqual(false);
+    expect(m.validate(null)).toStrictEqual(false);
+    expect(m.validate([])).toStrictEqual(false);
+    expect(m.validate({})).toStrictEqual(false);
+
+    // encode and decode
+    expect(() => m.encoder({})).toThrow();
+    expect(() => Serial.runDecoder(m.decoder)(new ArrayBuffer())).toThrow();
 });
 
 test("dateUtc", () => {
