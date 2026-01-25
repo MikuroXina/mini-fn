@@ -10,6 +10,7 @@ import {
     id,
     liftBinary,
     monad,
+    recurse,
     split,
     until,
 } from "./func.js";
@@ -39,6 +40,19 @@ test("until", () => {
     expect(padLeft("131")).toStrictEqual("0131");
     expect(padLeft("1316")).toStrictEqual("1316");
     expect(padLeft("1316534")).toStrictEqual("1316534");
+});
+
+test("recurse", () => {
+    const factorial = recurse(
+        (self: (n: number) => number) => (n: number) =>
+            n <= 1 ? 1 : n * self(n - 1),
+    );
+
+    expect(factorial(0)).toStrictEqual(1);
+    expect(factorial(1)).toStrictEqual(1);
+    expect(factorial(2)).toStrictEqual(2);
+    expect(factorial(3)).toStrictEqual(6);
+    expect(factorial(4)).toStrictEqual(24);
 });
 
 test("liftBinary", () => {

@@ -153,6 +153,21 @@ export const until =
         return init;
     };
 
+type Paradoxical<A, R> = (f: Paradoxical<A, R>) => (a: A) => R;
+
+/**
+ * The Y fixed combinator. It's useful to create a recursive function in one-line. It's also known as anonymous recursion or nameless recursion.
+ *
+ * @param func - Which receives the function `self` and argument `A`, and returns `R`.
+ * @returns The function which takes argument `A` and returns `R`.
+ */
+export const recurse = <A, R>(
+    func: (self: (arg: A) => R) => (arg: A) => R,
+): ((arg: A) => R) =>
+    ((self: Paradoxical<A, R>) => func((arg) => self(self)(arg)))(
+        (self: Paradoxical<A, R>) => func((arg) => self(self)(arg)),
+    );
+
 /**
  * Maps the hom `X => A` with `f`.
  *
