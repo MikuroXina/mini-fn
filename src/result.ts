@@ -80,7 +80,8 @@
  * @module
  */
 
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
+import type { Generic, Recurse0, Sum } from "./generic.js";
+import type { Apply2, Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import { newPrism } from "./optical/prism.js";
 import type { Optic } from "./optical.js";
 import {
@@ -856,6 +857,7 @@ export const bitraverse =
 
 export interface ResultHkt extends Hkt2 {
     readonly type: Result<this["arg2"], this["arg1"]>;
+    readonly repType: Sum<Recurse0<this["arg2"]>, Recurse0<this["arg1"]>>;
 }
 
 /**
@@ -988,3 +990,14 @@ export const dec =
             mapDecoder(err)(decE),
             mapDecoder(ok)(decT),
         ]);
+
+/**
+ * A `Generic` instance for `ControlFlow<B, C>`.
+ */
+export const generic = <B, C>(): Generic<Apply2<ResultHkt, C, B>> => ({
+    from: (data) =>
+        isErr(data)
+            ? { kind: "left", value: data[1] }
+            : { kind: "right", value: data[1] },
+    to: (meta) => (meta.kind === "left" ? err(meta.value) : ok(meta.value)),
+});

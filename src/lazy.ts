@@ -1,4 +1,5 @@
-import type { Get1, Hkt1 } from "./hkt.js";
+import type { Generic, Recurse0 } from "./generic.js";
+import type { Apply1, Get1, Hkt1 } from "./hkt.js";
 import { type Decoder, type Encoder, mapDecoder } from "./serial.js";
 import type { Applicative } from "./type-class/applicative.js";
 import {
@@ -230,6 +231,7 @@ export const traverse =
 
 export interface LazyHkt extends Hkt1 {
     readonly type: Lazy<this["arg1"]>;
+    readonly repType: Recurse0<this["arg1"]>;
 }
 
 /**
@@ -269,3 +271,11 @@ export const enc =
         encT(force(value));
 export const dec = <T>(decT: Decoder<T>): Decoder<Lazy<T>> =>
     mapDecoder((v: T) => defer(() => v))(decT);
+
+/**
+ * The `Generic` instance for `Lazy<T>`.
+ */
+export const generic = <T>(): Generic<Apply1<LazyHkt, T>> => ({
+    from: force,
+    to: known,
+});

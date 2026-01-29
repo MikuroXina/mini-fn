@@ -12,6 +12,8 @@
  * @packageDocumentation
  * @module
  */
+
+import type { Generic, GetRep, Parameter1, Sum, Unit } from "./generic.js";
 import type { Get1, Hkt1 } from "./hkt.js";
 import { newPrism, newPrismSimple } from "./optical/prism.js";
 import type { Optic, OpticSimple } from "./optical.js";
@@ -808,6 +810,7 @@ export const traverse =
 
 export interface OptionHkt extends Hkt1 {
     readonly type: Option<this["arg1"]>;
+    readonly repType: Sum<Unit, Parameter1>;
 }
 
 /**
@@ -912,3 +915,18 @@ export const enc = <T>(encT: Encoder<T>): Encoder<Option<T>> =>
     })(([key]) => key)((type) => encU8(type === noneSymbol ? 0 : 1));
 export const dec = <T>(decT: Decoder<T>): Decoder<Option<T>> =>
     decSum(decU8())<Option<T>>([pureDecoder(none()), mapDecoder(some)(decT)]);
+
+/**
+ * A `Generic` instance for `Option<T>`.
+ */
+export const generic: Generic<OptionHkt> = {
+    from: <P>(t: Option<P>) =>
+        mapOrElse<GetRep<OptionHkt, P>>(() => ({
+            kind: "left",
+            value: [],
+        }))((t: P) => ({
+            kind: "right",
+            value: t,
+        }))(t),
+    to: (rep) => (rep.kind === "left" ? none() : some(rep.value)),
+};

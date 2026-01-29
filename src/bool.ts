@@ -1,3 +1,4 @@
+import type { Generic, Sum, Unit } from "./generic.js";
 import {
     type Decoder,
     decU8,
@@ -31,3 +32,14 @@ export const eq: Eq<boolean> = fromEquality(() => equality)();
 
 export const enc = (): Encoder<boolean> => (value) => encU8(value ? 1 : 0);
 export const dec = (): Decoder<boolean> => mapDecoder((v) => v !== 0)(decU8());
+
+/**
+ * A `Generic` instance for `boolean`.
+ */
+export const generic: Generic<{
+    readonly type: boolean;
+    readonly repType: Sum<Unit, Unit>;
+}> = {
+    from: (data) => ({ kind: data ? "right" : "left", value: [] }),
+    to: (rep) => rep.kind === "right",
+};
