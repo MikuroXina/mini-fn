@@ -1,3 +1,4 @@
+import type { Generic, GenericRepHkt, Recurse0 } from "./generic.js";
 import { none, type Option, some } from "./option.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
 import {
@@ -50,4 +51,20 @@ export const ring: Ring<number> = {
 export const field: Field<number> = {
     additive: addAbelianGroup,
     multiplication: mulAbelianGroup,
+};
+
+/**
+ * A higher kind of `number`.
+ */
+export interface NumberHkt extends GenericRepHkt {
+    readonly type: number;
+    readonly repType: Recurse0<number>;
+}
+
+/**
+ * A `Generic` instance for `number`.
+ */
+export const generic: Generic<NumberHkt> = {
+    from: (data) => data,
+    to: (meta) => meta,
 };

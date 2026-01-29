@@ -125,7 +125,8 @@
  */
 
 import { cat } from "./cat.js";
-import type { Get1, Hkt1 } from "./hkt.js";
+import type { Generic, GetRep, Prod, Recurse0, Sum, Unit } from "./generic.js";
+import type { Apply1, Get1, Hkt1 } from "./hkt.js";
 import * as Option from "./option.js";
 import { equal, type Ordering } from "./ordering.js";
 import {
@@ -2195,6 +2196,10 @@ export const choices = <T>(listList: List<List<T>>): List<List<T>> =>
 
 export interface ListHkt extends Hkt1 {
     readonly type: List<this["arg1"]>;
+    readonly repType: Sum<
+        Unit,
+        Prod<Recurse0<this["arg1"]>, Recurse0<List<this["arg1"]>>>
+    >;
 }
 
 /**
@@ -2292,3 +2297,25 @@ export const dec = <A>(decA: Decoder<A>): Decoder<List<A>> => {
                   )(decA);
     return flatMapDecoder(go(empty<A>()))(decU32Be());
 };
+
+/**
+ * The `Generic` instance for `List`.
+ */
+export const generic = <T>(): Generic<Apply1<ListHkt, T>> => ({
+    from: <P>(data: List<T>) =>
+        Option.mapOrElse(
+            (): GetRep<Apply1<ListHkt, T>, P> => ({ kind: "left", value: [] }),
+        )(
+            (head: T): GetRep<Apply1<ListHkt, T>, P> => ({
+                kind: "right",
+                value: [head, data.rest()],
+            }),
+        )(data.current()),
+    to: (meta) =>
+        meta.kind === "left"
+            ? empty()
+            : {
+                  current: () => Option.some(meta.value[0]),
+                  rest: () => meta.value[1],
+              },
+});

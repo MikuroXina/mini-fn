@@ -1,4 +1,6 @@
 import { doT } from "./cat.js";
+import type { Generic, GenericRepHkt, Meta, Recurse0 } from "./generic.js";
+import type { Apply1, Hkt1 } from "./hkt.js";
 import {
     type Code,
     type Decoder,
@@ -71,3 +73,25 @@ export const decodeFor =
             )
             .addM("payload", decodeT)
             .finish(({ payload }) => pack(namespace)(payload));
+
+/**
+ * A higher kind for `Envelope<_>`.
+ */
+export interface EnvelopeHkt extends Hkt1, GenericRepHkt {
+    readonly type: Envelope<this["arg1"]>;
+    readonly repType: Meta<string, Recurse0<this["arg1"]>>;
+}
+
+/**
+ * A `Generic` instance for `Envelope<T>`.
+ */
+export const generic = <T>(): Generic<Apply1<EnvelopeHkt, T>> => ({
+    from: (data: Envelope<T>) => ({
+        key: data.namespace,
+        value: data.payload,
+    }),
+    to: (meta): Envelope<T> => ({
+        namespace: meta.key,
+        payload: meta.value,
+    }),
+});

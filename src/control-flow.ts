@@ -5,7 +5,8 @@
  * @module
  */
 
-import type { Apply2Only, Get1, Hkt2 } from "./hkt.js";
+import type { Generic, Recurse0, Sum } from "./generic.js";
+import type { Apply2, Apply2Only, Get1, Hkt2 } from "./hkt.js";
 import { none, type Option, some } from "./option.js";
 import {
     type Decoder,
@@ -246,8 +247,12 @@ export const traverse =
             ? app.map(newContinue<X>)(visitor(data[1]))
             : app.pure(data);
 
+/**
+ * A higher kind for `ControlFlow<_, _>`.
+ */
 export interface ControlFlowHkt extends Hkt2 {
     readonly type: ControlFlow<this["arg2"], this["arg1"]>;
+    readonly repType: Sum<Recurse0<this["arg2"]>, Recurse0<this["arg1"]>>;
 }
 
 /**
@@ -332,3 +337,15 @@ export const dec =
             mapDecoder(newBreak)(decB),
             mapDecoder(newContinue)(decC),
         ]);
+
+/**
+ * A `Generic` instance for `ControlFlow<B, C>`.
+ */
+export const generic = <B, C>(): Generic<Apply2<ControlFlowHkt, C, B>> => ({
+    from: (data) =>
+        isBreak(data)
+            ? { kind: "left", value: data[1] }
+            : { kind: "right", value: data[1] },
+    to: (meta) =>
+        meta.kind === "left" ? newBreak(meta.value) : newContinue(meta.value),
+});

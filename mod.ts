@@ -20,6 +20,7 @@ export * as MonadFree from "./src/free/monad.js";
 export * as Free from "./src/free.js";
 export * as Frozen from "./src/frozen.js";
 export * as Func from "./src/func.js";
+export * as Generic from "./src/generic.js";
 export * as Graph from "./src/graph.js";
 export * as Hkt from "./src/hkt.js";
 export * as Identity from "./src/identity.js";
