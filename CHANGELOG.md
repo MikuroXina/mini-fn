@@ -1,5 +1,18 @@
 # Changelog
 
+## [7.2.0](https://github.com/MikuroXina/mini-fn/compare/mini-fn-v7.1.0...mini-fn-v7.2.0) (2026-01-31)
+
+
+### Features
+
+* Add Generic ([#309](https://github.com/MikuroXina/mini-fn/issues/309)) ([5b9aae3](https://github.com/MikuroXina/mini-fn/commit/5b9aae31d048b579f22223caee2b0861eb86c9e1))
+* Add recurse ([#307](https://github.com/MikuroXina/mini-fn/issues/307)) ([4e6f9bb](https://github.com/MikuroXina/mini-fn/commit/4e6f9bb114b6784b89797cd64b454586b3ff4db1))
+
+
+### Bug Fixes
+
+* Recover build step ([#313](https://github.com/MikuroXina/mini-fn/issues/313)) ([8924786](https://github.com/MikuroXina/mini-fn/commit/892478622e82b0dc72ff0c1b85553d5fbc4d8aaf))
+
 ## [7.1.0](https://github.com/MikuroXina/mini-fn/compare/v7.0.0...v7.1.0) (2026-01-24)
 
 
