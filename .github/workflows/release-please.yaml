@@ -73,9 +73,9 @@ jobs:
               run: |
                   set -e
                   echo "Creating tarball"
-                  tar cvzf raw.tar.gz --directory=npm/ .
+                  tar cvzf raw.tar.gz --directory=dist/ .
                   echo "Creating zip"
-                  pushd npm
+                  pushd dist
                   zip -r "$GITHUB_WORKSPACE/raw.zip" ./*
                   popd
                   echo "Uploading release assets"
