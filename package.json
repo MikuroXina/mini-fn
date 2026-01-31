@@ -20,7 +20,10 @@
         "check": "biome check",
         "format": "biome check --write"
     },
-    "files": ["dist", "LICENSE"],
+    "files": [
+        "dist",
+        "LICENSE"
+    ],
     "exports": {
         ".": "./dist/mod.js"
     },
