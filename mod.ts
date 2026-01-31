@@ -1,6 +1,7 @@
 export * as Array from "./src/array.js";
 export * as BinaryHeap from "./src/binary-heap.js";
 export * as Bool from "./src/bool.js";
+export * as BTree from "./src/btree.js";
 export * as Cat from "./src/cat.js";
 export * as ComonadCofree from "./src/cofree/comonad.js";
 export * as Cofree from "./src/cofree.js";
