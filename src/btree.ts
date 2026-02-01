@@ -24,129 +24,122 @@ const B = 6;
 /** entries max */
 const CAPACITY = (2 * B - 1) as 11;
 
-interface Node<T> {
+interface Node<K, V> {
     /**
-     * Inserted comparable entries padded to the left. It has at most `CAPACITY` items.
+     * Inserted comparable keys padded to the left. It has at most `CAPACITY` items.
      */
-    entries: T[];
+    keys: K[];
+    /**
+     * Inserted values associated to `keys`. It has at most `CAPACITY` items.
+     */
+    values: V[];
     /**
      * Children nodes padded to the left. It has `entries.length + 1` items.
      */
-    edges: Tree<T>[];
+    edges: Tree<K, V>[];
 }
 
-type Tree<T> = Option.Option<Node<T>>;
+type Tree<K, V> = Option.Option<Node<K, V>>;
 
-const empty: <T>() => Tree<T> = Option.none;
-const branch: <T>(node: Node<T>) => Tree<T> = Option.some;
-const splitFull = <T>(
-    node: Node<T>,
-): [left: Node<T>, center: T, right: Node<T>] => {
-    if (node.entries.length < CAPACITY) {
+//
+// Core methods
+//
+
+const empty: <K, V>() => Tree<K, V> = Option.none;
+const branch: <K, V>(node: Node<K, V>) => Tree<K, V> = Option.some;
+const splitFull = <K, V>(
+    node: Node<K, V>,
+): [left: Node<K, V>, center: [K, V], right: Node<K, V>] => {
+    if (node.keys.length < CAPACITY) {
         throw new Error("expected node with full entries");
     }
 
-    const entriesLeft = node.entries.slice(0, B);
+    const keysLeft = node.keys.slice(0, B);
+    const valuesLeft = node.values.slice(0, B);
     const edgesLeft = node.edges.slice(0, 6);
 
-    const entriesCenter = node.entries[B]!;
+    const keyCenter = node.keys[B]!;
+    const valueCenter = node.values[B]!;
 
-    const entriesRight = node.entries.slice(B + 1);
+    const keysRight = node.keys.slice(B + 1);
+    const valuesRight = node.values.slice(B + 1);
     const edgesRight = node.edges.slice(6);
 
     return [
         {
-            entries: entriesLeft,
+            keys: keysLeft,
+            values: valuesLeft,
             edges: edgesLeft,
         },
-        entriesCenter,
+        [keyCenter, valueCenter],
         {
-            entries: entriesRight,
+            keys: keysRight,
+            values: valuesRight,
             edges: edgesRight,
         },
     ];
 };
 
-/**
- * Stores the unique values `T` which is expected to implement `Ord` type class.
- */
-export type BTreeSet<T> = Tree<T>;
+//
+// BTreeMap methods
+//
 
 /**
- * Creates a new `BTreeSet<T>`.
+ * Stores the values `V` associated to the keys `K` which is expected to implement `Ord` type class.
+ */
+export type BTreeMap<K, V> = Tree<K, V>;
+
+/**
+ * Creates a new `BTreeMap<K, V>`.
  *
  * @returns The new empty collection.
  */
-export const newMap: <T>() => BTreeSet<T> = empty;
+export const newMap: <K, V>() => BTreeMap<K, V> = empty;
 
-export function* toIterator<T>(tree: BTreeSet<T>): Iterator<T> {
-    if (Option.isNone(tree)) {
-        return;
-    }
-    function* nodeToIterator(node: Node<T>): Iterable<T> {
-        for (let i = 0; i < node.entries.length; ++i) {
-            const next = node.edges[i]!;
-            if (Option.isNone(next)) {
-                return;
-            }
-            yield* nodeToIterator(Option.unwrap(next));
-            yield node.entries[i]!;
-        }
-        const next = node.edges[node.entries.length]!;
-        if (Option.isNone(next)) {
-            return;
-        }
-        yield* nodeToIterator(Option.unwrap(next));
-    }
-    yield* nodeToIterator(Option.unwrap(tree));
-}
-
-export const has =
-    <T>(ord: Ord<T>) =>
-    (needle: T) =>
-    (tree: BTreeSet<T>): boolean => {
-        if (Option.isNone(tree)) {
-            return false;
-        }
-        const node = tree[1];
-        for (let i = 0; i < node.entries.length; ++i) {
-            switch (ord.cmp(needle, node.entries[i]!)) {
-                case less:
-                    return has(ord)(needle)(node.edges[i]!);
-                case equal:
-                    return true;
-                case greater:
-                    break;
-            }
-        }
-        return has(ord)(needle)(node.edges[node.entries.length]!);
-    };
-
+/**
+ * Inserts `item` to `map`. It takes `O(log N)`.
+ *
+ * @param ord - The `Ord` instance for `K`.
+ * @param key - Specifying the entry.
+ * @param value - To be inserted.
+ * @param map - Insertion target.
+ * @returns Tuple of inserted set and replaced old value if `key` was a duplicated entry.
+ */
 export const insert =
-    <T>(ord: Ord<T>) =>
-    (item: T) =>
-    (tree: BTreeSet<T>): [tree: BTreeSet<T>, old: Option.Option<T>] => {
-        if (Option.isNone(tree)) {
-            return [tree, Option.none()];
+    <K>(ord: Ord<K>) =>
+    (key: K) =>
+    <V>(value: V) =>
+    (map: BTreeMap<K, V>): [tree: BTreeMap<K, V>, old: Option.Option<V>] => {
+        if (Option.isNone(map)) {
+            return [map, Option.none()];
         }
 
         function insertInternal<X>(
-            target: Node<T>,
-            onOverflow: (left: Node<T>, center: T, right: Node<T>) => X,
-            onFit: (node: Node<T>, old: Option.Option<T>) => X,
+            target: Node<K, V>,
+            onOverflow: (
+                left: Node<K, V>,
+                center: [K, V],
+                right: Node<K, V>,
+            ) => X,
+            onFit: (node: Node<K, V>, old: Option.Option<V>) => X,
         ): X {
-            for (let i = 0; i < target.entries.length; ++i) {
-                switch (ord.cmp(item, target.entries[i]!)) {
+            for (let i = 0; i < target.keys.length; ++i) {
+                switch (ord.cmp(key, target.keys[i]!)) {
                     case less:
                         if (Option.isSome(target.edges[i]!)) {
                             return insertInternal(
                                 Option.unwrap(target.edges[i]!),
-                                (left, center, right) => {
+                                (left, [centerK, centerV], right) => {
                                     const newNode = {
-                                        entries: target.entries.toSpliced(
+                                        keys: target.keys.toSpliced(
                                             i,
                                             0,
-                                            center,
+                                            centerK,
+                                        ),
+                                        values: target.values.toSpliced(
+                                            i,
+                                            0,
+                                            centerV,
                                         ),
                                         edges: target.edges.toSpliced(
                                             i,
@@ -155,7 +148,7 @@ export const insert =
                                             branch(right),
                                         ),
                                     };
-                                    if (newNode.entries.length >= CAPACITY) {
+                                    if (newNode.keys.length >= CAPACITY) {
                                         return onOverflow(
                                             ...splitFull(newNode),
                                         );
@@ -182,7 +175,8 @@ export const insert =
                                     i,
                                     1,
                                     branch({
-                                        entries: [item],
+                                        keys: [key],
+                                        values: [value],
                                         edges: [],
                                     }),
                                 ),
@@ -193,32 +187,38 @@ export const insert =
                         return onFit(
                             {
                                 ...target,
-                                entries: target.entries.toSpliced(i, 1, item),
+                                keys: target.keys.toSpliced(i, 1, key),
+                                values: target.values.toSpliced(i, 1, value),
                             },
-                            Option.some(target.entries[i]!),
+                            Option.some(target.values[i]!),
                         );
                     case greater:
                         break;
                 }
             }
-            if (Option.isSome(target.edges[target.entries.length]!)) {
+            if (Option.isSome(target.edges[target.keys.length]!)) {
                 return insertInternal(
-                    Option.unwrap(target.edges[target.entries.length]!),
-                    (left, center, right) => {
+                    Option.unwrap(target.edges[target.keys.length]!),
+                    (left, [centerK, centerV], right) => {
                         const newNode = {
-                            entries: target.entries.toSpliced(
-                                target.entries.length,
+                            keys: target.keys.toSpliced(
+                                target.keys.length,
                                 0,
-                                center,
+                                centerK,
+                            ),
+                            values: target.values.toSpliced(
+                                target.keys.length,
+                                0,
+                                centerV,
                             ),
                             edges: target.edges.toSpliced(
-                                target.entries.length + 1,
+                                target.keys.length + 1,
                                 1,
                                 branch(left),
                                 branch(right),
                             ),
                         };
-                        if (newNode.entries.length >= CAPACITY) {
+                        if (newNode.keys.length >= CAPACITY) {
                             return onOverflow(...splitFull(newNode));
                         }
                         return onFit(newNode, Option.none());
@@ -227,7 +227,7 @@ export const insert =
                         const newNode = {
                             ...target,
                             edges: target.edges.toSpliced(
-                                target.entries.length,
+                                target.keys.length,
                                 1,
                                 branch(node),
                             ),
@@ -240,10 +240,11 @@ export const insert =
                 {
                     ...target,
                     edges: target.edges.toSpliced(
-                        target.entries.length,
+                        target.keys.length,
                         1,
                         branch({
-                            entries: [item],
+                            keys: [key],
+                            values: [value],
                             edges: [],
                         }),
                     ),
@@ -252,14 +253,87 @@ export const insert =
             );
         }
         return insertInternal(
-            Option.unwrap(tree),
-            (left, center, right) => [
+            Option.unwrap(map),
+            (left, [centerK, centerV], right) => [
                 branch({
-                    entries: [center],
+                    keys: [centerK],
+                    values: [centerV],
                     edges: [branch(left), branch(right)],
                 }),
                 Option.none(),
             ],
             (node, old) => [branch(node), old],
         );
+    };
+
+//
+// BTreeSet methods
+//
+
+/**
+ * Stores the unique values `T` which is expected to implement `Ord` type class.
+ */
+export type BTreeSet<T> = Tree<T, never[]>;
+
+/**
+ * Creates a new `BTreeSet<T>`.
+ *
+ * @returns The new empty collection.
+ */
+export const newSet: <T>() => BTreeSet<T> = empty;
+
+/**
+ * Converts the set into an iterator traversing contained items.
+ *
+ * @param set - To be traversed.
+ * @returns The iterator of contained items.
+ */
+export function* setToIterator<T>(set: BTreeSet<T>): Iterator<T> {
+    if (Option.isNone(set)) {
+        return;
+    }
+    function* nodeToIterator(node: Node<T, never[]>): Iterable<T> {
+        for (let i = 0; i < node.keys.length; ++i) {
+            const next = node.edges[i]!;
+            if (Option.isNone(next)) {
+                return;
+            }
+            yield* nodeToIterator(Option.unwrap(next));
+            yield node.keys[i]!;
+        }
+        const next = node.edges[node.keys.length]!;
+        if (Option.isNone(next)) {
+            return;
+        }
+        yield* nodeToIterator(Option.unwrap(next));
+    }
+    yield* nodeToIterator(Option.unwrap(set));
+}
+
+/**
+ * Checks whether the `needle` is contained in the `set`.
+ *
+ * @param ord - The `Ord` instance for `T`.
+ * @param needle - Item to check.
+ * @returns Whether the `set` has `needle`.
+ */
+export const has =
+    <T>(ord: Ord<T>) =>
+    (needle: T) =>
+    (set: BTreeSet<T>): boolean => {
+        if (Option.isNone(set)) {
+            return false;
+        }
+        const node = set[1];
+        for (let i = 0; i < node.keys.length; ++i) {
+            switch (ord.cmp(needle, node.keys[i]!)) {
+                case less:
+                    return has(ord)(needle)(node.edges[i]!);
+                case equal:
+                    return true;
+                case greater:
+                    break;
+            }
+        }
+        return has(ord)(needle)(node.edges[node.keys.length]!);
     };
