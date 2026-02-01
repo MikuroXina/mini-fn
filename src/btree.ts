@@ -19,15 +19,12 @@ import { Option } from "../mod.js";
 import { equal, greater, less } from "./ordering.js";
 import type { Ord } from "./type-class/ord.js";
 
+/** node split anchor */
 const B = 6;
+/** entries max */
 const CAPACITY = (2 * B - 1) as 11;
-const EDGES = (2 * B) as 12;
 
 interface Node<T> {
-    /**
-     * Height from the root.
-     */
-    height: number;
     /**
      * Inserted comparable entries padded to the left. It has at most `CAPACITY` items.
      */
@@ -38,25 +35,37 @@ interface Node<T> {
     edges: Tree<T>[];
 }
 
-const leafNominal = Symbol("TreeLeaf");
-type Leaf = [typeof leafNominal];
-const branchNominal = Symbol("TreeBranch");
-type Branch<T> = [typeof branchNominal, Node<T>];
-type Tree<T> = Leaf | Branch<T>;
+type Tree<T> = Option.Option<Node<T>>;
 
-const isLeaf = <T>(tree: Tree<T>): tree is Leaf => tree[0] === leafNominal;
+const empty: <T>() => Tree<T> = Option.none;
+const branch: <T>(node: Node<T>) => Tree<T> = Option.some;
+const splitFull = <T>(
+    node: Node<T>,
+): [left: Node<T>, center: T, right: Node<T>] => {
+    if (node.entries.length < CAPACITY) {
+        throw new Error("expected node with full entries");
+    }
 
-const empty = <T>(): Tree<T> => [leafNominal];
-const branch = <T>(node: Node<T>): Tree<T> => [branchNominal, node];
+    const entriesLeft = node.entries.slice(0, B);
+    const edgesLeft = node.edges.slice(0, 6);
 
-const single = <T>(item: T): Tree<T> => [
-    branchNominal,
-    {
-        height: 0,
-        entries: [item],
-        edges: [empty(), empty()],
-    },
-];
+    const entriesCenter = node.entries[B]!;
+
+    const entriesRight = node.entries.slice(B + 1);
+    const edgesRight = node.edges.slice(6);
+
+    return [
+        {
+            entries: entriesLeft,
+            edges: edgesLeft,
+        },
+        entriesCenter,
+        {
+            entries: entriesRight,
+            edges: edgesRight,
+        },
+    ];
+};
 
 /**
  * Stores the unique values `T` which is expected to implement `Ord` type class.
@@ -71,32 +80,32 @@ export type BTreeSet<T> = Tree<T>;
 export const newMap: <T>() => BTreeSet<T> = empty;
 
 export function* toIterator<T>(tree: BTreeSet<T>): Iterator<T> {
-    if (isLeaf(tree)) {
+    if (Option.isNone(tree)) {
         return;
     }
-    function* branchToIterator([, node]: Branch<T>): Iterable<T> {
+    function* nodeToIterator(node: Node<T>): Iterable<T> {
         for (let i = 0; i < node.entries.length; ++i) {
-            const next = node.edges[i];
-            if (next == null || isLeaf(next)) {
+            const next = node.edges[i]!;
+            if (Option.isNone(next)) {
                 return;
             }
-            yield* branchToIterator(next);
+            yield* nodeToIterator(Option.unwrap(next));
             yield node.entries[i]!;
         }
-        const next = node.edges[node.entries.length];
-        if (next == null || isLeaf(next)) {
+        const next = node.edges[node.entries.length]!;
+        if (Option.isNone(next)) {
             return;
         }
-        yield* branchToIterator(next);
+        yield* nodeToIterator(Option.unwrap(next));
     }
-    yield* branchToIterator(tree);
+    yield* nodeToIterator(Option.unwrap(tree));
 }
 
 export const has =
     <T>(ord: Ord<T>) =>
     (needle: T) =>
     (tree: BTreeSet<T>): boolean => {
-        if (isLeaf(tree)) {
+        if (Option.isNone(tree)) {
             return false;
         }
         const node = tree[1];
@@ -117,51 +126,140 @@ export const insert =
     <T>(ord: Ord<T>) =>
     (item: T) =>
     (tree: BTreeSet<T>): [tree: BTreeSet<T>, old: Option.Option<T>] => {
-        if (isLeaf(tree)) {
-            return [single(item), Option.none()];
+        if (Option.isNone(tree)) {
+            return [tree, Option.none()];
         }
 
-        const node = tree[1];
-        if (node.entries.length < CAPACITY) {
-            for (let i = 0; i < node.entries.length; ++i) {
-                const entry = node.entries[i]!;
-                switch (ord.cmp(item, entry)) {
+        function insertInternal<X>(
+            target: Node<T>,
+            onOverflow: (left: Node<T>, center: T, right: Node<T>) => X,
+            onFit: (node: Node<T>, old: Option.Option<T>) => X,
+        ): X {
+            for (let i = 0; i < target.entries.length; ++i) {
+                switch (ord.cmp(item, target.entries[i]!)) {
                     case less:
-                        return [
-                            branch({
-                                ...node,
-                                entries: node.entries.toSpliced(i, 0, item),
-                                edges: node.edges.toSpliced(i + 1, 0, empty()),
-                            }),
-                            Option.some(entry),
-                        ];
+                        if (Option.isSome(target.edges[i]!)) {
+                            return insertInternal(
+                                Option.unwrap(target.edges[i]!),
+                                (left, center, right) => {
+                                    const newNode = {
+                                        entries: target.entries.toSpliced(
+                                            i,
+                                            0,
+                                            center,
+                                        ),
+                                        edges: target.edges.toSpliced(
+                                            i,
+                                            1,
+                                            branch(left),
+                                            branch(right),
+                                        ),
+                                    };
+                                    if (newNode.entries.length >= CAPACITY) {
+                                        return onOverflow(
+                                            ...splitFull(newNode),
+                                        );
+                                    }
+                                    return onFit(newNode, Option.none());
+                                },
+                                (node, old) => {
+                                    const newNode = {
+                                        ...target,
+                                        edges: target.edges.toSpliced(
+                                            i,
+                                            1,
+                                            branch(node),
+                                        ),
+                                    };
+                                    return onFit(newNode, old);
+                                },
+                            );
+                        }
+                        return onFit(
+                            {
+                                ...target,
+                                edges: target.edges.toSpliced(
+                                    i,
+                                    1,
+                                    branch({
+                                        entries: [item],
+                                        edges: [],
+                                    }),
+                                ),
+                            },
+                            Option.none(),
+                        );
                     case equal:
-                        return [
-                            branch({
-                                ...node,
-                                entries: node.entries.with(i, item),
-                            }),
-                            Option.some(entry),
-                        ];
+                        return onFit(
+                            {
+                                ...target,
+                                entries: target.entries.toSpliced(i, 1, item),
+                            },
+                            Option.some(target.entries[i]!),
+                        );
                     case greater:
                         break;
                 }
             }
-            return [
+            if (Option.isSome(target.edges[target.entries.length]!)) {
+                return insertInternal(
+                    Option.unwrap(target.edges[target.entries.length]!),
+                    (left, center, right) => {
+                        const newNode = {
+                            entries: target.entries.toSpliced(
+                                target.entries.length,
+                                0,
+                                center,
+                            ),
+                            edges: target.edges.toSpliced(
+                                target.entries.length + 1,
+                                1,
+                                branch(left),
+                                branch(right),
+                            ),
+                        };
+                        if (newNode.entries.length >= CAPACITY) {
+                            return onOverflow(...splitFull(newNode));
+                        }
+                        return onFit(newNode, Option.none());
+                    },
+                    (node, old) => {
+                        const newNode = {
+                            ...target,
+                            edges: target.edges.toSpliced(
+                                target.entries.length,
+                                1,
+                                branch(node),
+                            ),
+                        };
+                        return onFit(newNode, old);
+                    },
+                );
+            }
+            return onFit(
+                {
+                    ...target,
+                    edges: target.edges.toSpliced(
+                        target.entries.length,
+                        1,
+                        branch({
+                            entries: [item],
+                            edges: [],
+                        }),
+                    ),
+                },
+                Option.none(),
+            );
+        }
+        return insertInternal(
+            Option.unwrap(tree),
+            (left, center, right) => [
                 branch({
-                    ...node,
-                    entries: node.entries.toSpliced(
-                        node.entries.length,
-                        0,
-                        item,
-                    ),
-                    edges: node.edges.toSpliced(
-                        node.entries.length,
-                        0,
-                        empty(),
-                    ),
+                    entries: [center],
+                    edges: [branch(left), branch(right)],
                 }),
                 Option.none(),
-            ];
-        }
+            ],
+            (node, old) => [branch(node), old],
+        );
     };
