@@ -22,7 +22,9 @@
 
 import { Option, Result } from "../mod.js";
 import { equal, greater, less } from "./ordering.js";
+import { contains, type RangeBounds } from "./range.js";
 import type { Ord } from "./type-class/ord.js";
+import type { PartialOrd } from "./type-class/partial-ord.js";
 
 /** node split anchor */
 const B = 6;
@@ -906,6 +908,42 @@ export const firstKeyValue = <K, V>(
 export const lastKeyValue = <K, V>(
     map: BTreeMap<K, V>,
 ): Option.Option<[K, V]> => Option.map(findMax)(map);
+
+/**
+ * Queries the items of `map` in the `range`.
+ *
+ * @param ord - The `PartialOrd` instance for `K`.
+ * @param range - Querying bounds of keys.
+ * @param map - To be queries.
+ * @returns The iterator which generates `[K, V]` key-value entries which its key is contained in `range`.
+ */
+export const range =
+    <K>(ord: PartialOrd<K>) =>
+    (bounds: RangeBounds<K>) =>
+        function* rangeGenerator<V>(map: BTreeMap<K, V>): Generator<[K, V]> {
+            if (Option.isNone(map)) {
+                return;
+            }
+
+            const node = Option.unwrap(map);
+            // skip to start
+            let i = 0;
+            while (!contains(ord)(node.keys[i]!)(bounds)) {
+                ++i;
+                if (i >= node.keys.length) {
+                    return;
+                }
+            }
+            yield* range(ord)(bounds)(node.edges[i]!);
+            while (contains(ord)(node.keys[i]!)(bounds)) {
+                yield [node.keys[i]!, node.values[i]!];
+                ++i;
+                if (i >= node.keys.length) {
+                    return;
+                }
+                yield* range(ord)(bounds)(node.edges[i]!);
+            }
+        };
 
 //
 // BTreeSet methods

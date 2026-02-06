@@ -1,10 +1,13 @@
 import { expect, test } from "vitest";
 import { Option } from "../mod.js";
+import { ord as bigintOrd } from "./big-int.js";
 import * as BTree from "./btree.js";
 import { cat } from "./cat.js";
-import { ord } from "./string.js";
+import { fromToInclusive } from "./range.js";
+import { ord as stringOrd } from "./string.js";
 
 test("movie review example", () => {
+    const ord = stringOrd;
     const add = BTree.insert(ord);
     const [movieReviews] = cat(BTree.newMap<string, string>())
         .feed(add("Office Space")("Deals with real issues in the workplace."))
@@ -40,5 +43,22 @@ test("movie review example", () => {
         ["Office Space", "Deals with real issues in the workplace."],
         ["Pulp Fiction", "Masterpiece."],
         ["The Godfather", "Very enjoyable."],
+    ]);
+});
+
+test("range", () => {
+    const ord = bigintOrd;
+    const add = BTree.insert(ord);
+    const [map] = cat(BTree.newMap<bigint, string>())
+        .feed(add(3n)("a"))
+        .feed(([tree]) => add(5n)("b")(tree))
+        .feed(([tree]) => add(8n)("c")(tree))
+        .feed(([tree]) => add(9n)("d")(tree)).value;
+
+    const actual = [...BTree.range(ord)(fromToInclusive(4n, 8n))(map)];
+
+    expect(actual).toStrictEqual([
+        [5n, "b"],
+        [8n, "c"],
     ]);
 });
