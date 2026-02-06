@@ -53,11 +53,11 @@ type Tree<K, V> = Option.Option<Node<K, V>>;
 /**
  * Creates a new empty `Tree<K, V>`.
  */
-const empty: <K, V>() => Tree<K, V> = Option.none;
+const empty = <K, V>(): Tree<K, V> => Option.none();
 /**
  * Wraps a `Node<K, V>` into a `Tree<K, V>`.
  */
-const branch: <K, V>(node: Node<K, V>) => Tree<K, V> = Option.some;
+const branch = <K, V>(node: Node<K, V>): Tree<K, V> => Option.some(node);
 
 /**
  * Checks whether the node is a leaf, has no children.
@@ -154,7 +154,7 @@ const insertNotFull = <K, V>(
     key: K,
     value: V,
 ): [Node<K, V>, Option.Option<V>] => {
-    if (!isFull(node)) {
+    if (isFull(node)) {
         throw new Error("expected `node` is not full");
     }
 
@@ -271,9 +271,8 @@ const insertIntoChild = <K, V>(
  * @param tree - To check.
  * @returns Whether the tree is thin.
  */
-const isThin: <K, V>(tree: Tree<K, V>) => boolean = Option.mapOr(true)(
-    (node) => node.keys.length < B,
-);
+const isThin = <K, V>(tree: Tree<K, V>): boolean =>
+    Option.mapOr(true)((node: Node<K, V>) => node.keys.length < B)(tree);
 
 /**
  * Finds the position index of entry by `key` in `node`.
@@ -706,7 +705,14 @@ export const insert =
     <V>(value: V) =>
     (map: BTreeMap<K, V>): [tree: BTreeMap<K, V>, old: Option.Option<V>] => {
         if (Option.isNone(map)) {
-            return [map, Option.none()];
+            return [
+                branch({
+                    keys: [key],
+                    values: [value],
+                    edges: [empty(), empty()],
+                }),
+                Option.none(),
+            ];
         }
 
         const node = Option.unwrap(map);
@@ -803,16 +809,31 @@ export const get =
     };
 
 /**
+ * Checks whether the map contains the entry by `key`.
+ *
+ * @param ord - The `Ord` instance for `K`.
+ * @param key - Querying the entry.
+ * @param map - Query target.
+ * @returns Whether the map contains `key`.
+ */
+export const containsKey =
+    <K>(ord: Ord<K>) =>
+    (key: K) =>
+    <V>(map: BTreeMap<K, V>): boolean =>
+        Option.isSome(get(ord)(key)(map));
+
+/**
  * Counts the inserted items of `map`.
  *
  * @param map - To count.
  * @returns The size of the tree.
  */
-export const len: <K, V>(map: BTreeMap<K, V>) => number = Option.mapOr(0)(
-    (node) =>
-        node.keys.length +
-        node.edges.reduce((prev, edge) => prev + len(edge), 0),
-);
+export const len = <K, V>(map: BTreeMap<K, V>): number =>
+    Option.mapOr(0)(
+        (node: Node<K, V>) =>
+            node.keys.length +
+            node.edges.reduce((prev, edge) => prev + len(edge), 0),
+    )(map);
 
 //
 // BTreeSet methods
