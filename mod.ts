@@ -1,4 +1,5 @@
 export * as Array from "./src/array.js";
+export * as BigInt from "./src/big-int.js";
 export * as BinaryHeap from "./src/binary-heap.js";
 export * as Bool from "./src/bool.js";
 export * as BTree from "./src/btree.js";
