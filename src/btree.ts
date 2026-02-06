@@ -835,6 +835,19 @@ export const len = <K, V>(map: BTreeMap<K, V>): number =>
             node.edges.reduce((prev, edge) => prev + len(edge), 0),
     )(map);
 
+export function* toIterator<K, V>(map: BTreeMap<K, V>): Generator<[K, V]> {
+    if (Option.isNone(map)) {
+        return;
+    }
+
+    const node = Option.unwrap(map);
+    for (let i = 0; i < node.keys.length; ++i) {
+        yield* toIterator(node.edges[i]!);
+        yield [node.keys[i]!, node.values[i]!];
+    }
+    yield* toIterator(node.edges[node.keys.length]!);
+}
+
 //
 // BTreeSet methods
 //
@@ -857,26 +870,10 @@ export const newSet: <T>() => BTreeSet<T> = empty;
  * @param set - To be traversed.
  * @returns The iterator of contained items.
  */
-export function* setToIterator<T>(set: BTreeSet<T>): Iterator<T> {
-    if (Option.isNone(set)) {
-        return;
+export function* setToIterator<T>(set: BTreeSet<T>): Generator<T> {
+    for (const [key] of toIterator(set)) {
+        yield key;
     }
-    function* nodeToIterator(node: Node<T, never[]>): Iterable<T> {
-        for (let i = 0; i < node.keys.length; ++i) {
-            const next = node.edges[i]!;
-            if (Option.isNone(next)) {
-                return;
-            }
-            yield* nodeToIterator(Option.unwrap(next));
-            yield node.keys[i]!;
-        }
-        const next = node.edges[node.keys.length]!;
-        if (Option.isNone(next)) {
-            return;
-        }
-        yield* nodeToIterator(Option.unwrap(next));
-    }
-    yield* nodeToIterator(Option.unwrap(set));
 }
 
 /**
