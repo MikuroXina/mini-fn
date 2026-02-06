@@ -40,6 +40,7 @@ export * as Ordering from "./src/ordering.js";
 export * as Predicate from "./src/predicate.js";
 export * as MonadPromise from "./src/promise/monad.js";
 export * as Promise from "./src/promise.js";
+export * as Range from "./src/range.js";
 export * as RangeQ from "./src/range-q.js";
 export * as MonadReader from "./src/reader/monad.js";
 export * as Reader from "./src/reader.js";
