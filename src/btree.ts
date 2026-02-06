@@ -691,6 +691,15 @@ export type BTreeMap<K, V> = Tree<K, V>;
 export const newMap: <K, V>() => BTreeMap<K, V> = empty;
 
 /**
+ * Checks whether the tree `map` is empty.
+ *
+ * @param map - To check.
+ * @returns Whether `map` is empty.
+ */
+export const isEmpty = <K, V>(map: BTreeMap<K, V>): boolean =>
+    Option.isNone(map);
+
+/**
  * Inserts `item` to `map`. It takes `O(log N)`.
  *
  * @param ord - The `Ord` instance for `K`.
@@ -835,6 +844,12 @@ export const len = <K, V>(map: BTreeMap<K, V>): number =>
             node.edges.reduce((prev, edge) => prev + len(edge), 0),
     )(map);
 
+/**
+ * Converts the B-tree map into a `Generator` of `[K, V]` sorted by its order.
+ *
+ * @param map - To convert.
+ * @returns The iterator which generates `[K, V]` key-value entries.
+ */
 export function* toIterator<K, V>(map: BTreeMap<K, V>): Generator<[K, V]> {
     if (Option.isNone(map)) {
         return;
@@ -847,6 +862,50 @@ export function* toIterator<K, V>(map: BTreeMap<K, V>): Generator<[K, V]> {
     }
     yield* toIterator(node.edges[node.keys.length]!);
 }
+
+/**
+ * Converts the B-tree map into a `Generator` of `K` sorted by its order.
+ *
+ * @param map - To convert.
+ * @returns The iterator which generates `K` keys.
+ */
+export function* toKeys<K, V>(map: BTreeMap<K, V>): Generator<K> {
+    for (const [key] of toIterator(map)) {
+        yield key;
+    }
+}
+
+/**
+ * Converts the B-tree map into a `Generator` of `V` sorted by its `K`'s order.
+ *
+ * @param map - To convert.
+ * @returns The iterator which generates `V` values.
+ */
+export function* toValues<K, V>(map: BTreeMap<K, V>): Generator<V> {
+    for (const [, value] of toIterator(map)) {
+        yield value;
+    }
+}
+
+/**
+ * Gets the first minimum key-value entry in `map`.
+ *
+ * @param map - Query target.
+ * @returns The minimum key-value entry.
+ */
+export const firstKeyValue = <K, V>(
+    map: BTreeMap<K, V>,
+): Option.Option<[K, V]> => Option.map(findMin)(map);
+
+/**
+ * Gets the last maximum key-value entry in `map`.
+ *
+ * @param map - Query target.
+ * @returns The maximum key-value entry.
+ */
+export const lastKeyValue = <K, V>(
+    map: BTreeMap<K, V>,
+): Option.Option<[K, V]> => Option.map(findMax)(map);
 
 //
 // BTreeSet methods
@@ -865,7 +924,7 @@ export type BTreeSet<T> = Tree<T, never[]>;
 export const newSet: <T>() => BTreeSet<T> = empty;
 
 /**
- * Converts the set into an iterator traversing contained items.
+ * Converts the set into an iterator traversing contained items sorted by its order.
  *
  * @param set - To be traversed.
  * @returns The iterator of contained items.
