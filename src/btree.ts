@@ -30,6 +30,7 @@ import {
     insertNotFull,
     isFull,
     isLeaf,
+    mergeIterator,
     type Node,
     popMax,
     popMin,
@@ -37,10 +38,12 @@ import {
     splitChild,
     type Tree,
 } from "./btree/core.js";
-import { equal, greater, less } from "./ordering.js";
+import { equal, greater, less, type Ordering } from "./ordering.js";
 import { contains, type RangeBounds } from "./range.js";
+import type { Monoid } from "./type-class/monoid.js";
 import type { Ord } from "./type-class/ord.js";
 import type { PartialOrd } from "./type-class/partial-ord.js";
+import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 //
 // BTreeMap methods
@@ -364,6 +367,22 @@ export type BTreeSet<T> = Tree<T, never[]>;
 export const newSet: <T>() => BTreeSet<T> = empty;
 
 /**
+ * Creates a new `BTreeSet<T>` from the iterable object generating `T`.
+ *
+ * @param ord - The `Ord` instance for `T`.
+ * @param iterable - Values source.
+ * @returns The new collection with items from `iterable`.
+ */
+export const setFromIterable =
+    <T>(ord: Ord<T>) =>
+    (iterable: Iterable<T>): BTreeSet<T> => {
+        const items = [...iterable];
+        items.sort(ord.cmp);
+        // TODO: bulk build btree from sorted items
+        throw new Error("todo");
+    };
+
+/**
  * Converts the set into an iterator traversing contained items sorted by its order.
  *
  * @param set - To be traversed.
@@ -456,3 +475,314 @@ export const popLast =
         const [newSet, popped] = popLastKeyValue(ord)(set);
         return [newSet, Option.map(([item]: [T, never[]]) => item)(popped)];
     };
+
+/**
+ * Unions two sets into one. It will collect items in `lhs` or `rhs` either without duplicates in ascending order.
+ *
+ * @param ord - The `Ord` instance for `T`.
+ * @param rhs - The second item to union.
+ * @param lhs - The first item to union.
+ * @returns The iterator which generates intersection items `lhs ∪ rhs` without duplicates.
+ */
+export const union =
+    <T>(ord: Ord<T>) =>
+    (rhs: BTreeSet<T>) =>
+        function* unionIterator(lhs: BTreeSet<T>): Generator<T> {
+            for (const [l, r] of mergeIterator(
+                setToIterator(lhs),
+                setToIterator(rhs),
+                ord.cmp,
+            )) {
+                const item = Option.unwrap(Option.or(r)(l));
+                yield item;
+            }
+        };
+/**
+ * Subtracts two sets into one symmetrically. It will collect items in only one of `lhs` and `rhs` in ascending order.
+ *
+ * @param ord - The `Ord` instance for `T`.
+ * @param rhs - The second item to difference.
+ * @param lhs - The first item to difference.
+ * @returns The iterator which generates symmetric difference items.
+ */
+export const symmetricDifference =
+    <T>(ord: Ord<T>) =>
+    (rhs: BTreeSet<T>) =>
+        function* symmetricDifferenceIterator(lhs: BTreeSet<T>): Generator<T> {
+            for (const [l, r] of mergeIterator(
+                setToIterator(lhs),
+                setToIterator(rhs),
+                ord.cmp,
+            )) {
+                if (Option.isNone(Option.and(r)(l))) {
+                    const item = Option.unwrap(Option.or(r)(l));
+                    yield item;
+                }
+            }
+        };
+
+const SMALL_SET_RATIO_THRESHOLD = 16;
+
+/**
+ * Subtracts the `rhs` from `lhs`. It will collect items from `lhs` only if `rhs` contains them.
+ *
+ * @param ord - The `Ord` instance for `T`.
+ * @param rhs - The right hand term of subtraction.
+ * @param lhs - The left hand term of subtraction.
+ * @returns The iterator which generates difference items `lhs \ rhs`.
+ */
+export const difference =
+    <T>(ord: Ord<T>) =>
+    (rhs: BTreeSet<T>) =>
+        function* differenceIterator(lhs: BTreeSet<T>): Generator<T> {
+            if (isEmpty(lhs)) {
+                return;
+            }
+            if (isEmpty(rhs)) {
+                yield* setToIterator(lhs);
+                return;
+            }
+
+            const minL = Option.unwrap(first(lhs));
+            const maxL = Option.unwrap(last(lhs));
+            const minR = Option.unwrap(first(rhs));
+            const maxR = Option.unwrap(last(rhs));
+            const minLAndMaxR = ord.cmp(minL, maxR);
+            const maxLAndMinR = ord.cmp(maxL, minR);
+            if (minLAndMaxR === greater || maxLAndMinR === less) {
+                yield* setToIterator(lhs);
+                return;
+            }
+            if (minLAndMaxR === equal) {
+                yield* setToIterator(popFirst(ord)(lhs)[0]);
+                return;
+            }
+            if (maxLAndMinR === equal) {
+                yield* setToIterator(popLast(ord)(lhs)[0]);
+                return;
+            }
+            if (len(lhs) <= len(rhs) / SMALL_SET_RATIO_THRESHOLD) {
+                // for small `lhs`, filters out each item of `lhs` by `rhs`
+                for (const item of setToIterator(lhs)) {
+                    if (has(ord)(item)(rhs)) {
+                        yield item;
+                    }
+                }
+                return;
+            }
+
+            // peeking items in `rhs` and comparing to items in `lhs`
+            const genL = setToIterator(lhs);
+            const genR = setToIterator(rhs);
+            const genRFirst = genR.next();
+            let peekedOpt = genRFirst.done
+                ? Option.none()
+                : Option.some(genRFirst.value);
+            let next = genL.next();
+            while (true) {
+                if (next.done) {
+                    return;
+                }
+                switch (
+                    Option.mapOr<Ordering>(less)((peeked: T) =>
+                        ord.cmp(next.value, peeked),
+                    )(peekedOpt)
+                ) {
+                    case less:
+                        yield next.value;
+                        break;
+                    case equal:
+                        next = genL.next();
+                        peekedOpt = genRFirst.done
+                            ? Option.none()
+                            : Option.some(genRFirst.value);
+                        break;
+                    case greater:
+                        peekedOpt = genRFirst.done
+                            ? Option.none()
+                            : Option.some(genRFirst.value);
+                        break;
+                }
+            }
+        };
+/**
+ * Intersects two sets. It will collect items which are contained in both of `lhs` and `rhs`.
+ *
+ * @param ord - The `Ord` instance for `T`.
+ * @param rhs - The right hand term of intersection.
+ * @param lhs - The left hand term of intersection.
+ * @returns The iterator which generates intersection items `lhs ∩ rhs`.
+ */
+export const intersection =
+    <T>(ord: Ord<T>) =>
+    (rhs: BTreeSet<T>) =>
+        function* intersectionIterator(lhs: BTreeSet<T>): Generator<T> {
+            if (isEmpty(lhs) || isEmpty(rhs)) {
+                return;
+            }
+
+            const minL = Option.unwrap(first(lhs));
+            const maxL = Option.unwrap(last(lhs));
+            const minR = Option.unwrap(first(rhs));
+            const maxR = Option.unwrap(last(rhs));
+            const minLAndMaxR = ord.cmp(minL, maxR);
+            const maxLAndMinR = ord.cmp(maxL, minR);
+
+            if (minLAndMaxR === greater || maxLAndMinR === less) {
+                return;
+            }
+            if (minLAndMaxR === equal) {
+                yield minL;
+                return;
+            }
+            if (maxLAndMinR === equal) {
+                yield minR;
+            }
+            if (len(lhs) <= len(rhs) / SMALL_SET_RATIO_THRESHOLD) {
+                // for small `lhs`, filters out each item of `lhs` by `rhs`
+                for (const item of setToIterator(lhs)) {
+                    if (has(ord)(item)(rhs)) {
+                        yield item;
+                    }
+                }
+                return;
+            }
+            if (len(rhs) <= len(lhs) / SMALL_SET_RATIO_THRESHOLD) {
+                // for small `rhs`, filters out each item of `rhs` by `lhs`
+                for (const item of setToIterator(rhs)) {
+                    if (has(ord)(item)(lhs)) {
+                        yield item;
+                    }
+                }
+                return;
+            }
+
+            // peeking items in `lhs` and `rhs` and comparing each other
+            const genL = setToIterator(lhs);
+            const genR = setToIterator(rhs);
+            let nextL = genL.next();
+            let nextR = genR.next();
+            while (true) {
+                if (nextL.done || nextR.done) {
+                    return;
+                }
+                switch (ord.cmp(nextL.value, nextR.value)) {
+                    case less:
+                        nextL = genL.next();
+                        break;
+                    case equal:
+                        yield nextL.value;
+                        nextL = genL.next();
+                        nextR = genL.next();
+                        break;
+                    case greater:
+                        nextR = genL.next();
+                        break;
+                }
+            }
+        };
+
+/**
+ * Checks whether two sets `lhs` and `rhs` are disjoint to each other.
+ *
+ * @param ord - The `Ord` instance for `T`.
+ * @param rhs - The right hand term to check.
+ * @param lhs - The left hand term to check.
+ * @returns Whether `lhs` and `rhs` are disjoint (`lhs ∩ rhs = ∅`).
+ */
+export const isDisjoint =
+    <T>(ord: Ord<T>) =>
+    (rhs: BTreeSet<T>) =>
+    (lhs: BTreeSet<T>): boolean =>
+        intersection(ord)(rhs)(lhs).next().done ?? false;
+/**
+ * Checks whether the set `lhs` is a subset to the set `rhs`. Note that the order of arguments is reversed.
+ *
+ * @param ord - The `Ord` instance for `T`.
+ * @param rhs - The right hand term to check.
+ * @param lhs - The left hand term to check.
+ * @returns Whether `lhs` is a subset to `rhs` (`lhs ⊆ rhs`).
+ */
+export const isSubset =
+    <T>(ord: Ord<T>) =>
+    (rhs: BTreeSet<T>) =>
+    (lhs: BTreeSet<T>): boolean => {
+        const leftLen = len(lhs);
+        const rightLen = len(rhs);
+        if (leftLen > rightLen) {
+            // `lhs` has more elements than `rhs`
+            return false;
+        }
+        const leftMinMax = Option.zip(first(lhs))(last(lhs));
+        if (Option.isNone(leftMinMax)) {
+            // `lhs` is empty
+            return true;
+        }
+        const [leftMin, leftMax] = Option.unwrap(leftMinMax);
+
+        const rightMinMax = Option.zip(first(rhs))(last(rhs));
+        if (Option.isNone(rightMinMax)) {
+            // `rhs` is empty
+            return false;
+        }
+        const [rightMin, rightMax] = Option.unwrap(rightMinMax);
+
+        if (ord.cmp(leftMin, rightMin) === less) {
+            // `lhs`'s minimum is not in `rhs`
+            return false;
+        }
+        if (ord.cmp(leftMax, rightMax) === greater) {
+            // `lhs`'s maximum is not in `rhs`
+            return false;
+        }
+
+        if (leftLen <= rightLen / SMALL_SET_RATIO_THRESHOLD) {
+            // for small `lhs`, checks each item of `lhs` is in `rhs`
+            return setToIterator(lhs).every((item) => has(ord)(item)(rhs));
+        }
+
+        // peeking items in `rhs` and comparing to `lhs'`s items
+        const rightGen = setToIterator(rhs);
+        // biome-ignore lint/suspicious/useIterableCallbackReturn: incorrect lint error
+        return setToIterator(lhs).every((item) => {
+            while (true) {
+                const next = rightGen.next();
+                if (next.done) {
+                    return false;
+                }
+                switch (ord.cmp(next.value, item)) {
+                    case less:
+                        continue;
+                    case equal:
+                        return true;
+                    case greater:
+                        return false;
+                }
+            }
+        });
+    };
+/**
+ * Checks whether the set `lhs` is a superset to the set `rhs`. Note that the order of arguments is reversed.
+ *
+ * @param ord - The `Ord` instance for `T`.
+ * @param rhs - The right hand term to check.
+ * @param lhs - The left hand term to check.
+ * @returns Whether `lhs` is a superset to `rhs` (`lhs ⊇ rhs`).
+ */
+export const isSuperset =
+    <T>(ord: Ord<T>) =>
+    (rhs: BTreeSet<T>) =>
+    (lhs: BTreeSet<T>): boolean =>
+        isSubset(ord)(lhs)(rhs);
+
+/**
+ * The `Monoid` instance about `BTreeSet`s and union operation.
+ *
+ * @param ord - The `Ord` instance for `T`.
+ * @returns The `Monoid` of union operation to `BTreeSet`s.
+ */
+export const unionMonoid = <T>(ord: Ord<T>): Monoid<BTreeSet<T>> => ({
+    identity: empty(),
+    combine: (l, r) => setFromIterable(ord)(union(ord)(r)(l)),
+    [semiGroupSymbol]: true,
+});

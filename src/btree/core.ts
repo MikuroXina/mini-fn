@@ -1,5 +1,5 @@
 import { Option, Result } from "../../mod.js";
-import { equal, greater, less } from "../ordering.js";
+import { equal, greater, less, type Ordering } from "../ordering.js";
 import type { Ord } from "../type-class/ord.js";
 
 /** node split anchor */
@@ -651,3 +651,44 @@ export const removeNotThin = <K, V>(
     const pos = Result.unwrap(posRes);
     return removeInternalKey(node, pos, ord);
 };
+
+/**
+ * Creates a generator which merges two generators in ascending order. It's useful to implement union and symmetric difference of two sets.
+ *
+ * @param genA - Used to the left side of tuple.
+ * @param genB - Used to the right side of tuple.
+ * @param cmp - Function to compare two entries.
+ * @returns The generator which merges `genA` and `genB`.
+ */
+export function* mergeIterator<I>(
+    genA: Generator<I>,
+    genB: Generator<I>,
+    cmp: (lhs: I, rhs: I) => Ordering,
+): Generator<[Option.Option<I>, Option.Option<I>]> {
+    let peeked: [""] | ["a", I] | ["b", I] = [""];
+    while (true) {
+        const nextA: IteratorResult<I> =
+            peeked[0] === "a" ? { done: false, value: peeked[1] } : genA.next();
+        const nextB: IteratorResult<I> =
+            peeked[0] === "b" ? { done: false, value: peeked[1] } : genB.next();
+        if (!nextA.done && !nextB.done) {
+            switch (cmp(nextA.value, nextB.value)) {
+                case less:
+                    peeked = ["b", nextB.value];
+                    break;
+                case equal:
+                    break;
+                case greater:
+                    peeked = ["a", nextA.value];
+                    break;
+            }
+        }
+        yield [
+            nextA.done ? Option.none() : Option.some(nextA.value),
+            nextB.done ? Option.none() : Option.some(nextB.value),
+        ];
+        if (nextA.done && nextB.done) {
+            return;
+        }
+    }
+}
