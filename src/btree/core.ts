@@ -1,3 +1,14 @@
+/**
+ * A B-tree (this custom) must maintain the following invariants:
+ *
+ * 1. Leaf nodes are at the same depth.
+ * 2. Keys of each node are stored in the ascending order by `Ord` instance for `K`.
+ * 3. Intermediate nodes have at least 6 children.
+ * 4. Every nodes except root have at least 5 keys.
+ * 5. Root node has no children or at least 2 children.
+ * 6. A non-leaf node with `k` keys contains `k + 1` children.
+ */
+
 import { Option, Result } from "../../mod.js";
 import { equal, greater, less, type Ordering } from "../ordering.js";
 import type { Ord } from "../type-class/ord.js";

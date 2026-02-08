@@ -3,21 +3,67 @@
  *
  * ## Methods
  *
- * - ``
+ * Methods here can be categorized to map methods and set methods.
  *
- * ## Development note
+ * ### Map methods
  *
- * A B-tree (this custom) must maintain the following invariants:
+ * - Construct
+ *   - `newMap`
+ *   - `fromIterable`
+ * - Query
+ *   - `isEmpty`
+ *   - `get`
+ *   - `containsKey`
+ *   - `len`
+ *   - `toIterator`
+ *   - `toRevIterator`
+ *   - `toKeys`
+ *   - `toValues`
+ *   - `firstKeyValue`
+ *   - `lastKeyValue`
+ *   - `range`
+ * - Insert
+ *   - `insert`
+ * - Delete
+ *   - `remove`
+ *   - `popFirstKeyValue`
+ *   - `popLastKeyValue`
+ * - Fold
+ *   - `reduceR`
+ *   - `reduceL`
  *
- * 1. Leaf nodes are at the same depth.
- * 2. Keys of each node are stored in the ascending order by `Ord` instance for `K`.
- * 3. Intermediate nodes have at least 6 children.
- * 4. Every nodes except root have at least 5 keys.
- * 5. Root node has no children or at least 2 children.
- * 6. A non-leaf node with `k` keys contains `k + 1` children.
+ * ### Set methods
+ *
+ * - Construct
+ *   - `newSet`
+ *   - `setFromIterable`
+ * - Query
+ *   - `setToIterator`
+ *   - `setToRevIterator`
+ *   - `has`
+ *   - `first`
+ *   - `last`
+ *   - `isDisjoint`
+ *   - `isSuperset`
+ * - Insert
+ *   - `push`
+ * - Delete
+ *   - `pop`
+ *   - `popFirst`
+ *   - `popLast`
+ * - Set operate
+ *   - `union`
+ *   - `symmetricDifferenceP
+ *   - `difference`
+ *   - `intersection`
+ * - Fold
+ *   - `setReduceR`
+ *   - `setReduceL`
+ *
+ * Also most of map methods can be applied to `BTreeSet<T>`.
  *
  * @packageDocumentation
- * @module
+ * @module BTree
  */
 
 import { Option, Result } from "../mod.js";
