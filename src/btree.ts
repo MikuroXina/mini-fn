@@ -122,7 +122,7 @@ export const fromIterable =
     <V>(entries: Iterable<[K, V]>): BTreeMap<K, V> => {
         const items = [...entries];
         items.sort(([a], [b]) => ord.cmp(a, b));
-        return buildFromSorted(items);
+        return buildFromSorted(ord)(items);
     };
 
 /**
@@ -412,8 +412,12 @@ export const popLastKeyValue =
  */
 export const range =
     <K>(ord: PartialOrd<K>) =>
-    (bounds: RangeBounds<K>) =>
-        function* rangeGenerator<V>(map: BTreeMap<K, V>): Generator<[K, V]> {
+    (
+        bounds: RangeBounds<K>,
+    ): (<V>(map: BTreeMap<K, V>) => Generator<[K, V]>) => {
+        return function* rangeGenerator<V>(
+            map: BTreeMap<K, V>,
+        ): Generator<[K, V]> {
             if (Option.isNone(map)) {
                 return;
             }
@@ -427,16 +431,17 @@ export const range =
                     return;
                 }
             }
-            yield* range(ord)(bounds)(node.edges[i]!);
+            yield* rangeGenerator(node.edges[i]!);
             while (contains(ord)(node.keys[i]!)(bounds)) {
                 yield [node.keys[i]!, node.values[i]!];
                 ++i;
                 if (i >= node.keys.length) {
                     return;
                 }
-                yield* range(ord)(bounds)(node.edges[i]!);
+                yield* rangeGenerator(node.edges[i]!);
             }
         };
+    };
 
 /**
  * Higher kind type for `BTreeMap<_, _>`.
@@ -512,7 +517,7 @@ export const setFromIterable =
     (iterable: Iterable<T>): BTreeSet<T> => {
         const items = [...iterable];
         items.sort(ord.cmp);
-        return buildFromSorted<T, void>(
+        return buildFromSorted<T>(ord)(
             items.map((item) => [item, undefined]),
         ) as BTreeSet<T>;
     };
