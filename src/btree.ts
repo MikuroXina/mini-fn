@@ -39,11 +39,13 @@ import {
     splitChild,
     type Tree,
 } from "./btree/core.js";
+import type { Apply2Only, Hkt1, Hkt2 } from "./hkt.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
 import { contains, type RangeBounds } from "./range.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { Ord } from "./type-class/ord.js";
 import type { PartialOrd } from "./type-class/partial-ord.js";
+import type { Reduce } from "./type-class/reduce.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 //
@@ -232,7 +234,7 @@ export const len = <K, V>(map: BTreeMap<K, V>): number =>
     )(map);
 
 /**
- * Converts the B-tree map into a `Generator` of `[K, V]` sorted by its order.
+ * Converts the B-tree map into a `Generator` of `[K, V]` sorted by its ascending order.
  *
  * @param map - To convert.
  * @returns The iterator which generates `[K, V]` key-value entries.
@@ -248,6 +250,25 @@ export function* toIterator<K, V>(map: BTreeMap<K, V>): Generator<[K, V]> {
         yield [node.keys[i]!, node.values[i]!];
     }
     yield* toIterator(node.edges[node.keys.length]!);
+}
+
+/**
+ * Converts the B-tree map into a `Generator` of `[K, V]` sorted by its descending order.
+ *
+ * @param map - To convert.
+ * @returns The iterator which generates `[K, V]` key-value entries.
+ */
+export function* toRevIterator<K, V>(map: BTreeMap<K, V>): Generator<[K, V]> {
+    if (Option.isNone(map)) {
+        return;
+    }
+
+    const node = Option.unwrap(map);
+    for (let i = node.keys.length - 1; i >= 0; ++i) {
+        yield* toRevIterator(node.edges[i]!);
+        yield [node.keys[i]!, node.values[i]!];
+    }
+    yield* toRevIterator(node.edges[node.keys.length]!);
 }
 
 /**
@@ -366,6 +387,52 @@ export const range =
             }
         };
 
+/**
+ * Higher kind type for `BTreeMap<_, _>`.
+ */
+export interface BTreeMapHkt extends Hkt2 {
+    readonly type: BTreeMap<this["arg2"], this["arg1"]>;
+}
+
+/**
+ * Folds the map into a value in descending order.
+ *
+ * @param reducer - Function to fold `A` and `B`.
+ * @param map - To be folded.
+ * @param init - The initial value on folding.
+ * @returns The folded value.
+ */
+export const reduceR =
+    <K, A, B>(reducer: (a: A) => (b: B) => B) =>
+    (map: BTreeMap<K, A>) =>
+    (init: B): B =>
+        toRevIterator(map).reduce(
+            (prev, [, curr]) => reducer(curr)(prev),
+            init,
+        );
+
+/**
+ * Folds the map into a value in ascending order.
+ *
+ * @param reducer - Function to fold `B` and `A`.
+ * @param map - To be folded.
+ * @param init - The initial value on folding.
+ * @returns The folded value.
+ */
+export const reduceL =
+    <K, A, B>(reducer: (b: B) => (a: A) => B) =>
+    (init: B) =>
+    (map: BTreeMap<K, A>): B =>
+        toIterator(map).reduce((prev, [, curr]) => reducer(prev)(curr), init);
+
+/**
+ * The `Reduce` instance for `BTreeMap<K, _>`.
+ */
+export const reduce = <K>(): Reduce<Apply2Only<BTreeMapHkt, K>> => ({
+    reduceR,
+    reduceL,
+});
+
 //
 // BTreeSet methods
 //
@@ -400,13 +467,25 @@ export const setFromIterable =
     };
 
 /**
- * Converts the set into an iterator traversing contained items sorted by its order.
+ * Converts the set into an iterator traversing contained items sorted by its ascending order.
  *
  * @param set - To be traversed.
  * @returns The iterator of contained items.
  */
 export function* setToIterator<T>(set: BTreeSet<T>): Generator<T> {
     for (const [key] of toIterator(set)) {
+        yield key;
+    }
+}
+
+/**
+ * Converts the set into an iterator traversing contained items sorted by its descending order.
+ *
+ * @param set - To be traversed.
+ * @returns The iterator of contained items.
+ */
+export function* setToRevIterator<T>(set: BTreeSet<T>): Generator<T> {
+    for (const [key] of toRevIterator(set)) {
         yield key;
     }
 }
@@ -803,3 +882,46 @@ export const unionMonoid = <T>(ord: Ord<T>): Monoid<BTreeSet<T>> => ({
     combine: (l, r) => setFromIterable(ord)(union(ord)(r)(l)),
     [semiGroupSymbol]: true,
 });
+
+/**
+ * Higher kind type for `BTreeSet<_>`.
+ */
+export interface BTreeSetHkt extends Hkt1 {
+    readonly type: BTreeSet<this["arg1"]>;
+}
+
+/**
+ * Folds the set into a value in descending order.
+ *
+ * @param reducer - Function to fold `A` and `B`.
+ * @param set - To be folded.
+ * @param init - The initial value on folding.
+ * @returns The folded value.
+ */
+export const setReduceR =
+    <A, B>(reducer: (a: A) => (b: B) => B) =>
+    (set: BTreeSet<A>) =>
+    (init: B): B =>
+        setToRevIterator(set).reduce((prev, curr) => reducer(curr)(prev), init);
+
+/**
+ * Folds the set into a value in ascending order.
+ *
+ * @param reducer - Function to fold `A` and `B`.
+ * @param init - The initial value on folding.
+ * @param set - To be folded.
+ * @returns The folded value.
+ */
+export const setReduceL =
+    <A, B>(reducer: (b: B) => (a: A) => B) =>
+    (init: B) =>
+    (set: BTreeSet<A>): B =>
+        setToIterator(set).reduce((prev, curr) => reducer(prev)(curr), init);
+
+/**
+ * The `Reduce` instance for `BTreeSet<_>`.
+ */
+export const setReduce: Reduce<BTreeSetHkt> = {
+    reduceR: setReduceR,
+    reduceL: setReduceL,
+};
