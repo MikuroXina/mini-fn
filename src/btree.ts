@@ -216,7 +216,12 @@ export const remove =
         }
 
         const [newMap, opt] = removeNotThin(Option.unwrap(map), key, ord);
-        return [branch(newMap), Option.map(([, value]: [K, V]) => value)(opt)];
+        const removed = Option.map(([, value]: [K, V]) => value)(opt);
+        if (newMap.keys.length === 0) {
+            // removed all from root
+            return [empty(), removed];
+        }
+        return [branch(newMap), removed];
     };
 
 /**
