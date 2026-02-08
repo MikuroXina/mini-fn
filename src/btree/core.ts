@@ -653,6 +653,71 @@ export const removeNotThin = <K, V>(
 };
 
 /**
+ * Builds a new `Tree` from sorted values quickly.
+ *
+ * @param values - Key-value pairs sorted in `K`'s order.
+ * @returns The new tree.
+ */
+export const buildFromSorted = <K, V>(
+    entries: readonly [K, V][],
+): Tree<K, V> => {
+    if (entries.length === 0) {
+        return empty();
+    }
+    if (entries.length <= CAPACITY) {
+        return branch({
+            keys: entries.map(([key]) => key),
+            values: entries.map(([, value]) => value),
+            edges: new Array(entries.length + 1).fill(Option.none()),
+        });
+    }
+
+    // fill from rightmost recursively
+    let currentParent: Node<K, V> = {
+        keys: [],
+        values: [],
+        edges: [
+            branch({
+                keys: [],
+                values: [],
+                edges: [empty()],
+            }),
+        ],
+    };
+    for (const [key, value] of entries) {
+        const current = Option.unwrap(currentParent.edges.at(-1)!);
+        if (current.keys.length <= CAPACITY) {
+            current.keys.push(key);
+            current.values.push(value);
+            current.edges.push(empty());
+        } else if (currentParent.keys.length <= CAPACITY) {
+            currentParent.keys.push(key);
+            currentParent.values.push(value);
+            currentParent.edges.push(
+                branch({
+                    keys: [],
+                    values: [],
+                    edges: [empty()],
+                }),
+            );
+        } else {
+            currentParent = {
+                keys: [],
+                values: [],
+                edges: [
+                    branch({
+                        keys: [key],
+                        values: [value],
+                        edges: [branch(currentParent)],
+                    }),
+                ],
+            };
+        }
+    }
+    return branch(currentParent);
+};
+
+/**
  * Creates a generator which merges two generators in ascending order. It's useful to implement union and symmetric difference of two sets.
  *
  * @param genA - Used to the left side of tuple.

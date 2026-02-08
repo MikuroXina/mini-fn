@@ -23,6 +23,7 @@
 import { Option, Result } from "../mod.js";
 import {
     branch,
+    buildFromSorted,
     empty,
     findKeyIn,
     findMax,
@@ -60,6 +61,21 @@ export type BTreeMap<K, V> = Tree<K, V>;
  * @returns The new empty collection.
  */
 export const newMap: <K, V>() => BTreeMap<K, V> = empty;
+
+/**
+ * Creates a new `BTreeMap<K, V>` from the iterable object generating `[K, V]`.
+ *
+ * @param ord - The `Ord` instance for `K`.
+ * @param iterable - Entries source.
+ * @returns The new collection with entries from `iterable`.
+ */
+export const fromIterable =
+    <K>(ord: Ord<K>) =>
+    <V>(entries: Iterable<[K, V]>): BTreeMap<K, V> => {
+        const items = [...entries];
+        items.sort(([a], [b]) => ord.cmp(a, b));
+        return buildFromSorted(items);
+    };
 
 /**
  * Checks whether the tree `map` is empty.
@@ -378,8 +394,9 @@ export const setFromIterable =
     (iterable: Iterable<T>): BTreeSet<T> => {
         const items = [...iterable];
         items.sort(ord.cmp);
-        // TODO: bulk build btree from sorted items
-        throw new Error("todo");
+        return buildFromSorted<T, void>(
+            items.map((item) => [item, undefined]),
+        ) as BTreeSet<T>;
     };
 
 /**
