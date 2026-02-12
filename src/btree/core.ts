@@ -275,8 +275,9 @@ export const findKeyIn = <K, V>(
     ord: Ord<K>,
     key: K,
 ): Result.Result<number, number> => {
-    for (let i = 0; i < node.keys.length; ++i) {
-        switch (ord.cmp(key, node.keys[i]!)) {
+    let i = 0;
+    for (; i < node.keys.length; ++i) {
+        switch (ord.cmp(node.keys[i]!, key)) {
             case less:
                 return Result.err(i);
             case equal:
@@ -285,7 +286,7 @@ export const findKeyIn = <K, V>(
                 break;
         }
     }
-    return Result.err(node.keys.length);
+    return Result.err(i);
 };
 
 /**
