@@ -293,10 +293,16 @@ export function* toIterator<K, V>(map: Map<K, V>): Generator<[K, V]> {
         }
     } else {
         for (let i = 0; i < map.keys.length; ++i) {
-            yield* toIterator(map.edges[i]!);
+            const leftChild = map.edges?.[i];
+            if (leftChild != null) {
+                yield* toIterator(leftChild);
+            }
             yield [map.keys[i]!, map.values[i]!];
         }
-        yield* toIterator(map.edges[map.keys.length]!);
+        const rightChild = map.edges.at(-1);
+        if (rightChild != null) {
+            yield* toIterator(rightChild);
+        }
     }
 }
 
@@ -308,15 +314,21 @@ export function* toIterator<K, V>(map: Map<K, V>): Generator<[K, V]> {
  */
 export function* toRevIterator<K, V>(map: Map<K, V>): Generator<[K, V]> {
     if (isLeaf(map)) {
-        for (let i = map.keys.length - 1; i >= 0; ++i) {
+        for (let i = map.keys.length - 1; i >= 0; --i) {
             yield [map.keys[i]!, map.values[i]!];
         }
     } else {
-        for (let i = map.keys.length - 1; i >= 0; ++i) {
-            yield* toRevIterator(map.edges[i]!);
+        for (let i = map.keys.length - 1; i >= 0; --i) {
+            const rightChild = map.edges[i + 1];
+            if (rightChild != null) {
+                yield* toRevIterator(rightChild);
+            }
             yield [map.keys[i]!, map.values[i]!];
         }
-        yield* toRevIterator(map.edges[map.keys.length]!);
+        const leftChild = map.edges[0];
+        if (leftChild != null) {
+            yield* toRevIterator(leftChild);
+        }
     }
 }
 
