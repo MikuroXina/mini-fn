@@ -182,8 +182,8 @@ export const insertNotFull = <K, V>(
     if (isLeaf(node)) {
         return [
             {
-                keys: node.keys.toSpliced(-1, 0, key),
-                values: node.values.toSpliced(-1, 0, value),
+                keys: node.keys.toSpliced(node.keys.length, 0, key),
+                values: node.values.toSpliced(node.values.length, 0, value),
                 edges: null,
             },
             Option.none(),
@@ -277,7 +277,7 @@ export const findKeyIn = <K, V>(
 ): Result.Result<number, number> => {
     let i = 0;
     for (; i < node.keys.length; ++i) {
-        switch (ord.cmp(node.keys[i]!, key)) {
+        switch (ord.cmp(key, node.keys[i]!)) {
             case less:
                 return Result.err(i);
             case equal:
