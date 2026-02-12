@@ -60,7 +60,7 @@
  *   - `setReduceR`
  *   - `setReduceL`
  *
- * Also most of map methods can be applied to `BTreeSet<T>`.
+ * Also most of map methods can be applied to `Set<T>`.
  *
  * @packageDocumentation
  * @module BTree
@@ -68,7 +68,6 @@
 
 import { Option, Result } from "../mod.js";
 import {
-    branch,
     buildFromSorted,
     empty,
     findKeyIn,
@@ -83,11 +82,11 @@ import {
     popMin,
     removeNotThin,
     splitChild,
-    type Tree,
 } from "./btree/core.js";
 import type { Apply2Only, Hkt1, Hkt2 } from "./hkt.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
 import { contains, type RangeBounds } from "./range.js";
+import type { State } from "./state.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { Ord } from "./type-class/ord.js";
 import type { PartialOrd } from "./type-class/partial-ord.js";
@@ -95,23 +94,23 @@ import type { Reduce } from "./type-class/reduce.js";
 import { semiGroupSymbol } from "./type-class/semi-group.js";
 
 //
-// BTreeMap methods
+// Map methods
 //
 
 /**
  * Stores the values `V` associated to the keys `K` which is expected to implement `Ord` type class.
  */
-export type BTreeMap<K, V> = Tree<K, V>;
+export type Map<K, V> = Node<K, V>;
 
 /**
- * Creates a new `BTreeMap<K, V>`.
+ * Creates a new `Map<K, V>`.
  *
  * @returns The new empty collection.
  */
-export const newMap: <K, V>() => BTreeMap<K, V> = empty;
+export const newMap: <K, V>() => Map<K, V> = empty;
 
 /**
- * Creates a new `BTreeMap<K, V>` from the iterable object generating `[K, V]`.
+ * Creates a new `Map<K, V>` from the iterable object generating `[K, V]`.
  *
  * @param ord - The `Ord` instance for `K`.
  * @param iterable - Entries source.
@@ -119,10 +118,10 @@ export const newMap: <K, V>() => BTreeMap<K, V> = empty;
  */
 export const fromIterable =
     <K>(ord: Ord<K>) =>
-    <V>(entries: Iterable<[K, V]>): BTreeMap<K, V> => {
+    <V>(entries: Iterable<[K, V]>): Map<K, V> => {
         const items = [...entries];
         items.sort(([a], [b]) => ord.cmp(a, b));
-        return buildFromSorted(ord)(items);
+        return buildFromSorted(ord, items);
     };
 
 /**
@@ -131,8 +130,7 @@ export const fromIterable =
  * @param map - To check.
  * @returns Whether `map` is empty.
  */
-export const isEmpty = <K, V>(map: BTreeMap<K, V>): boolean =>
-    Option.isNone(map);
+export const isEmpty = <K, V>(map: Map<K, V>): boolean => map.keys.length === 0;
 
 /**
  * Inserts `item` to `map`. It takes `O(log N)`.
@@ -146,54 +144,60 @@ export const isEmpty = <K, V>(map: BTreeMap<K, V>): boolean =>
 export const insert =
     <K>(ord: Ord<K>) =>
     (key: K) =>
-    <V>(value: V) =>
-    (map: BTreeMap<K, V>): [tree: BTreeMap<K, V>, old: Option.Option<V>] => {
-        if (Option.isNone(map)) {
+    <V>(value: V): State<Map<K, V>, Option.Option<V>> =>
+    (map: Map<K, V>): [old: Option.Option<V>, tree: Map<K, V>] => {
+        if (isEmpty(map)) {
             return [
-                branch({
+                Option.none(),
+                {
                     keys: [key],
                     values: [value],
-                    edges: [empty(), empty()],
-                }),
-                Option.none(),
+                    edges: null,
+                },
             ];
         }
 
-        const node = Option.unwrap(map);
-        if (!isFull(node)) {
-            const [newNode, old] = insertNotFull(node, ord, key, value);
-            return [branch(newNode), old];
+        if (!isFull(map)) {
+            const [newNode, old] = insertNotFull(map, ord, key, value);
+            return [old, newNode];
         }
 
-        const [left, newNode, right] = splitChild(node, 0);
+        const [left, newNode, right] = splitChild(
+            {
+                keys: [],
+                values: [],
+                edges: [map],
+            },
+            0,
+        );
         switch (ord.cmp(key, newNode.keys[0]!)) {
             case less: {
                 const [newLeft, old] = insertNotFull(left, ord, key, value);
                 return [
-                    branch({
-                        ...newNode,
-                        edges: newNode.edges.with(0, branch(newLeft)),
-                    }),
                     old,
+                    {
+                        ...newNode,
+                        edges: newNode.edges.with(0, newLeft),
+                    },
                 ];
             }
             case equal: {
                 return [
-                    branch({
+                    Option.some(newNode.values[0]!),
+                    {
                         ...newNode,
                         values: newNode.values.with(0, value),
-                    }),
-                    Option.some(newNode.values[0]!),
+                    },
                 ];
             }
             case greater: {
                 const [newRight, old] = insertNotFull(right, ord, key, value);
                 return [
-                    branch({
-                        ...newNode,
-                        edges: newNode.edges.with(1, branch(newRight)),
-                    }),
                     old,
+                    {
+                        ...newNode,
+                        edges: newNode.edges.with(1, newRight),
+                    },
                 ];
             }
         }
@@ -210,18 +214,14 @@ export const insert =
 export const remove =
     <K>(ord: Ord<K>) =>
     (key: K) =>
-    <V>(map: BTreeMap<K, V>): [BTreeMap<K, V>, Option.Option<V>] => {
-        if (Option.isNone(map)) {
-            return [map, Option.none()];
+    <V>(map: Map<K, V>): [Option.Option<V>, Map<K, V>] => {
+        if (isEmpty(map)) {
+            return [Option.none(), map];
         }
 
-        const [newMap, opt] = removeNotThin(Option.unwrap(map), key, ord);
+        const [newMap, opt] = removeNotThin(map, key, ord);
         const removed = Option.map(([, value]: [K, V]) => value)(opt);
-        if (newMap.keys.length === 0) {
-            // removed all from root
-            return [empty(), removed];
-        }
-        return [branch(newMap), removed];
+        return [removed, newMap];
     };
 
 /**
@@ -235,25 +235,24 @@ export const remove =
 export const get =
     <K>(ord: Ord<K>) =>
     (key: K) =>
-    <V>(map: BTreeMap<K, V>): Option.Option<V> => {
+    <V>(map: Map<K, V>): Option.Option<V> => {
         while (true) {
-            if (Option.isNone(map)) {
+            if (isEmpty(map)) {
                 return Option.none();
             }
 
-            const node = Option.unwrap(map);
-            const posRes = findKeyIn(node, ord, key);
-            if (isLeaf(node)) {
-                return Option.map((index: number) => node.values[index]!)(
+            const posRes = findKeyIn(map, ord, key);
+            if (isLeaf(map)) {
+                return Option.map((index: number) => map.values[index]!)(
                     Result.optionOk(posRes),
                 );
             }
 
             const index = Result.mergeOkErr(posRes);
             if (Result.isOk(posRes)) {
-                return Option.some(node.values[index]!);
+                return Option.some(map.values[index]!);
             }
-            map = node.edges[index]!;
+            map = map.edges[index]!;
         }
     };
 
@@ -268,7 +267,7 @@ export const get =
 export const containsKey =
     <K>(ord: Ord<K>) =>
     (key: K) =>
-    <V>(map: BTreeMap<K, V>): boolean =>
+    <V>(map: Map<K, V>): boolean =>
         Option.isSome(get(ord)(key)(map));
 
 /**
@@ -277,12 +276,9 @@ export const containsKey =
  * @param map - To count.
  * @returns The size of the tree.
  */
-export const len = <K, V>(map: BTreeMap<K, V>): number =>
-    Option.mapOr(0)(
-        (node: Node<K, V>) =>
-            node.keys.length +
-            node.edges.reduce((prev, edge) => prev + len(edge), 0),
-    )(map);
+export const len = <K, V>(map: Map<K, V>): number =>
+    map.keys.length +
+    (map.edges?.reduce((prev, edge) => prev + len(edge), 0) ?? 0);
 
 /**
  * Converts the B-tree map into a `Generator` of `[K, V]` sorted by its ascending order.
@@ -290,17 +286,18 @@ export const len = <K, V>(map: BTreeMap<K, V>): number =>
  * @param map - To convert.
  * @returns The iterator which generates `[K, V]` key-value entries.
  */
-export function* toIterator<K, V>(map: BTreeMap<K, V>): Generator<[K, V]> {
-    if (Option.isNone(map)) {
-        return;
+export function* toIterator<K, V>(map: Map<K, V>): Generator<[K, V]> {
+    if (isLeaf(map)) {
+        for (let i = 0; i < map.keys.length; ++i) {
+            yield [map.keys[i]!, map.values[i]!];
+        }
+    } else {
+        for (let i = 0; i < map.keys.length; ++i) {
+            yield* toIterator(map.edges[i]!);
+            yield [map.keys[i]!, map.values[i]!];
+        }
+        yield* toIterator(map.edges[map.keys.length]!);
     }
-
-    const node = Option.unwrap(map);
-    for (let i = 0; i < node.keys.length; ++i) {
-        yield* toIterator(node.edges[i]!);
-        yield [node.keys[i]!, node.values[i]!];
-    }
-    yield* toIterator(node.edges[node.keys.length]!);
 }
 
 /**
@@ -309,17 +306,18 @@ export function* toIterator<K, V>(map: BTreeMap<K, V>): Generator<[K, V]> {
  * @param map - To convert.
  * @returns The iterator which generates `[K, V]` key-value entries.
  */
-export function* toRevIterator<K, V>(map: BTreeMap<K, V>): Generator<[K, V]> {
-    if (Option.isNone(map)) {
-        return;
+export function* toRevIterator<K, V>(map: Map<K, V>): Generator<[K, V]> {
+    if (isLeaf(map)) {
+        for (let i = map.keys.length - 1; i >= 0; ++i) {
+            yield [map.keys[i]!, map.values[i]!];
+        }
+    } else {
+        for (let i = map.keys.length - 1; i >= 0; ++i) {
+            yield* toRevIterator(map.edges[i]!);
+            yield [map.keys[i]!, map.values[i]!];
+        }
+        yield* toRevIterator(map.edges[map.keys.length]!);
     }
-
-    const node = Option.unwrap(map);
-    for (let i = node.keys.length - 1; i >= 0; ++i) {
-        yield* toRevIterator(node.edges[i]!);
-        yield [node.keys[i]!, node.values[i]!];
-    }
-    yield* toRevIterator(node.edges[node.keys.length]!);
 }
 
 /**
@@ -328,7 +326,7 @@ export function* toRevIterator<K, V>(map: BTreeMap<K, V>): Generator<[K, V]> {
  * @param map - To convert.
  * @returns The iterator which generates `K` keys.
  */
-export function* toKeys<K, V>(map: BTreeMap<K, V>): Generator<K> {
+export function* toKeys<K, V>(map: Map<K, V>): Generator<K> {
     for (const [key] of toIterator(map)) {
         yield key;
     }
@@ -340,7 +338,7 @@ export function* toKeys<K, V>(map: BTreeMap<K, V>): Generator<K> {
  * @param map - To convert.
  * @returns The iterator which generates `V` values.
  */
-export function* toValues<K, V>(map: BTreeMap<K, V>): Generator<V> {
+export function* toValues<K, V>(map: Map<K, V>): Generator<V> {
     for (const [, value] of toIterator(map)) {
         yield value;
     }
@@ -352,9 +350,8 @@ export function* toValues<K, V>(map: BTreeMap<K, V>): Generator<V> {
  * @param map - Query target.
  * @returns The minimum key-value entry.
  */
-export const firstKeyValue = <K, V>(
-    map: BTreeMap<K, V>,
-): Option.Option<[K, V]> => Option.map(findMin)(map);
+export const firstKeyValue = <K, V>(map: Map<K, V>): Option.Option<[K, V]> =>
+    isEmpty(map) ? Option.none() : Option.some(findMin(map));
 
 /**
  * Gets the last maximum key-value entry in `map`.
@@ -362,9 +359,8 @@ export const firstKeyValue = <K, V>(
  * @param map - Query target.
  * @returns The maximum key-value entry.
  */
-export const lastKeyValue = <K, V>(
-    map: BTreeMap<K, V>,
-): Option.Option<[K, V]> => Option.map(findMax)(map);
+export const lastKeyValue = <K, V>(map: Map<K, V>): Option.Option<[K, V]> =>
+    isEmpty(map) ? Option.none() : Option.some(findMax(map));
 
 /**
  * Removes the first minimum key-value entry in `map`.
@@ -375,13 +371,12 @@ export const lastKeyValue = <K, V>(
  */
 export const popFirstKeyValue =
     <K>(ord: Ord<K>) =>
-    <V>(map: BTreeMap<K, V>): [BTreeMap<K, V>, Option.Option<[K, V]>] => {
-        if (Option.isNone(map)) {
-            return [map, Option.none()];
+    <V>(map: Map<K, V>): [Option.Option<[K, V]>, Map<K, V>] => {
+        if (isEmpty(map)) {
+            return [Option.none(), map];
         }
-        const node = Option.unwrap(map);
-        const [newNode, popped] = popMin(node, ord);
-        return [branch(newNode), popped];
+        const [newMap, popped] = popMin(map, ord);
+        return [popped, newMap];
     };
 
 /**
@@ -393,13 +388,12 @@ export const popFirstKeyValue =
  */
 export const popLastKeyValue =
     <K>(ord: Ord<K>) =>
-    <V>(map: BTreeMap<K, V>): [BTreeMap<K, V>, Option.Option<[K, V]>] => {
-        if (Option.isNone(map)) {
-            return [map, Option.none()];
+    <V>(map: Map<K, V>): [Option.Option<[K, V]>, Map<K, V>] => {
+        if (isEmpty(map)) {
+            return [Option.none(), map];
         }
-        const node = Option.unwrap(map);
-        const [newNode, popped] = popMax(node, ord);
-        return [branch(newNode), popped];
+        const [newMap, popped] = popMax(map, ord);
+        return [popped, newMap];
     };
 
 /**
@@ -412,42 +406,41 @@ export const popLastKeyValue =
  */
 export const range =
     <K>(ord: PartialOrd<K>) =>
-    (
-        bounds: RangeBounds<K>,
-    ): (<V>(map: BTreeMap<K, V>) => Generator<[K, V]>) => {
-        return function* rangeGenerator<V>(
-            map: BTreeMap<K, V>,
-        ): Generator<[K, V]> {
-            if (Option.isNone(map)) {
+    (bounds: RangeBounds<K>): (<V>(map: Map<K, V>) => Generator<[K, V]>) => {
+        return function* rangeGenerator<V>(map: Map<K, V>): Generator<[K, V]> {
+            if (isEmpty(map)) {
                 return;
             }
 
-            const node = Option.unwrap(map);
             // skip to start
             let i = 0;
-            while (!contains(ord)(node.keys[i]!)(bounds)) {
+            while (!contains(ord)(map.keys[i]!)(bounds)) {
                 ++i;
-                if (i >= node.keys.length) {
+                if (i >= map.keys.length) {
                     return;
                 }
             }
-            yield* rangeGenerator(node.edges[i]!);
-            while (contains(ord)(node.keys[i]!)(bounds)) {
-                yield [node.keys[i]!, node.values[i]!];
+            if (!isLeaf(map)) {
+                yield* rangeGenerator(map.edges[i]!);
+            }
+            while (contains(ord)(map.keys[i]!)(bounds)) {
+                yield [map.keys[i]!, map.values[i]!];
                 ++i;
-                if (i >= node.keys.length) {
+                if (i >= map.keys.length) {
                     return;
                 }
-                yield* rangeGenerator(node.edges[i]!);
+                if (!isLeaf(map)) {
+                    yield* rangeGenerator(map.edges[i]!);
+                }
             }
         };
     };
 
 /**
- * Higher kind type for `BTreeMap<_, _>`.
+ * Higher kind type for `Map<_, _>`.
  */
-export interface BTreeMapHkt extends Hkt2 {
-    readonly type: BTreeMap<this["arg2"], this["arg1"]>;
+export interface MapHkt extends Hkt2 {
+    readonly type: Map<this["arg2"], this["arg1"]>;
 }
 
 /**
@@ -460,7 +453,7 @@ export interface BTreeMapHkt extends Hkt2 {
  */
 export const reduceR =
     <K, A, B>(reducer: (a: A) => (b: B) => B) =>
-    (map: BTreeMap<K, A>) =>
+    (map: Map<K, A>) =>
     (init: B): B =>
         toRevIterator(map).reduce(
             (prev, [, curr]) => reducer(curr)(prev),
@@ -478,35 +471,35 @@ export const reduceR =
 export const reduceL =
     <K, A, B>(reducer: (b: B) => (a: A) => B) =>
     (init: B) =>
-    (map: BTreeMap<K, A>): B =>
+    (map: Map<K, A>): B =>
         toIterator(map).reduce((prev, [, curr]) => reducer(prev)(curr), init);
 
 /**
- * The `Reduce` instance for `BTreeMap<K, _>`.
+ * The `Reduce` instance for `Map<K, _>`.
  */
-export const reduce = <K>(): Reduce<Apply2Only<BTreeMapHkt, K>> => ({
+export const reduce = <K>(): Reduce<Apply2Only<MapHkt, K>> => ({
     reduceR,
     reduceL,
 });
 
 //
-// BTreeSet methods
+// Set methods
 //
 
 /**
  * Stores the unique values `T` which is expected to implement `Ord` type class.
  */
-export type BTreeSet<T> = Tree<T, never[]>;
+export type Set<T> = Node<T, never[]>;
 
 /**
- * Creates a new `BTreeSet<T>`.
+ * Creates a new `Set<T>`.
  *
  * @returns The new empty collection.
  */
-export const newSet: <T>() => BTreeSet<T> = empty;
+export const newSet: <T>() => Set<T> = empty;
 
 /**
- * Creates a new `BTreeSet<T>` from the iterable object generating `T`.
+ * Creates a new `Set<T>` from the iterable object generating `T`.
  *
  * @param ord - The `Ord` instance for `T`.
  * @param iterable - Values source.
@@ -514,12 +507,13 @@ export const newSet: <T>() => BTreeSet<T> = empty;
  */
 export const setFromIterable =
     <T>(ord: Ord<T>) =>
-    (iterable: Iterable<T>): BTreeSet<T> => {
+    (iterable: Iterable<T>): Set<T> => {
         const items = [...iterable];
         items.sort(ord.cmp);
-        return buildFromSorted<T>(ord)(
-            items.map((item) => [item, undefined]),
-        ) as BTreeSet<T>;
+        return buildFromSorted<T, never[]>(
+            ord,
+            items.map((item) => [item, []]),
+        );
     };
 
 /**
@@ -528,7 +522,7 @@ export const setFromIterable =
  * @param set - To be traversed.
  * @returns The iterator of contained items.
  */
-export function* setToIterator<T>(set: BTreeSet<T>): Generator<T> {
+export function* setToIterator<T>(set: Set<T>): Generator<T> {
     for (const [key] of toIterator(set)) {
         yield key;
     }
@@ -540,7 +534,7 @@ export function* setToIterator<T>(set: BTreeSet<T>): Generator<T> {
  * @param set - To be traversed.
  * @returns The iterator of contained items.
  */
-export function* setToRevIterator<T>(set: BTreeSet<T>): Generator<T> {
+export function* setToRevIterator<T>(set: Set<T>): Generator<T> {
     for (const [key] of toRevIterator(set)) {
         yield key;
     }
@@ -556,7 +550,7 @@ export function* setToRevIterator<T>(set: BTreeSet<T>): Generator<T> {
 export const has =
     <T>(ord: Ord<T>) =>
     (needle: T) =>
-    (set: BTreeSet<T>): boolean =>
+    (set: Set<T>): boolean =>
         Option.isSome(get(ord)(needle)(set));
 
 /**
@@ -565,16 +559,16 @@ export const has =
  * @param map - Query target.
  * @returns The minimum item.
  */
-export const first = <T>(set: BTreeSet<T>): Option.Option<T> =>
-    Option.map((node: Node<T, never[]>) => findMin(node)[0])(set);
+export const first = <T>(set: Set<T>): Option.Option<T> =>
+    isEmpty(set) ? Option.none() : Option.some(findMin(set)[0]);
 /**
  * Gets the last maximum item in `set`.
  *
  * @param map - Query target.
  * @returns The maximum item.
  */
-export const last = <T>(set: BTreeSet<T>): Option.Option<T> =>
-    Option.map((node: Node<T, never[]>) => findMax(node)[0])(set);
+export const last = <T>(set: Set<T>): Option.Option<T> =>
+    isEmpty(set) ? Option.none() : Option.some(findMax(set)[0]);
 
 /**
  * Adds an `item` to the `set`. Duplicated keys will have no effect.
@@ -587,8 +581,8 @@ export const last = <T>(set: BTreeSet<T>): Option.Option<T> =>
 export const push =
     <T>(ord: Ord<T>) =>
     (item: T) =>
-    (set: BTreeSet<T>): BTreeSet<T> =>
-        insert(ord)(item)([])(set)[0];
+    (set: Set<T>): Set<T> =>
+        insert(ord)(item)([])(set)[1];
 /**
  * Removes an `item` from the `set`. Not found keys will have no effect.
  *
@@ -600,8 +594,8 @@ export const push =
 export const pop =
     <T>(ord: Ord<T>) =>
     (item: T) =>
-    (set: BTreeSet<T>): BTreeSet<T> =>
-        remove(ord)(item)(set)[0];
+    (set: Set<T>): Set<T> =>
+        remove(ord)(item)(set)[1];
 /**
  * Removes the minimum first item from the `set`.
  *
@@ -611,9 +605,9 @@ export const pop =
  */
 export const popFirst =
     <T>(ord: Ord<T>) =>
-    (set: BTreeSet<T>): [BTreeSet<T>, Option.Option<T>] => {
-        const [newSet, popped] = popFirstKeyValue(ord)(set);
-        return [newSet, Option.map(([item]: [T, never[]]) => item)(popped)];
+    (set: Set<T>): [Option.Option<T>, Set<T>] => {
+        const [popped, newSet] = popFirstKeyValue(ord)(set);
+        return [Option.map(([item]: [T, never[]]) => item)(popped), newSet];
     }; /**
  * Removes the maximum last item from the `set`.
  *
@@ -623,9 +617,9 @@ export const popFirst =
  */
 export const popLast =
     <T>(ord: Ord<T>) =>
-    (set: BTreeSet<T>): [BTreeSet<T>, Option.Option<T>] => {
-        const [newSet, popped] = popLastKeyValue(ord)(set);
-        return [newSet, Option.map(([item]: [T, never[]]) => item)(popped)];
+    (set: Set<T>): [Option.Option<T>, Set<T>] => {
+        const [popped, newSet] = popLastKeyValue(ord)(set);
+        return [Option.map(([item]: [T, never[]]) => item)(popped), newSet];
     };
 
 /**
@@ -638,8 +632,8 @@ export const popLast =
  */
 export const union =
     <T>(ord: Ord<T>) =>
-    (rhs: BTreeSet<T>) =>
-        function* unionIterator(lhs: BTreeSet<T>): Generator<T> {
+    (rhs: Set<T>) =>
+        function* unionIterator(lhs: Set<T>): Generator<T> {
             for (const [l, r] of mergeIterator(
                 setToIterator(lhs),
                 setToIterator(rhs),
@@ -659,8 +653,8 @@ export const union =
  */
 export const symmetricDifference =
     <T>(ord: Ord<T>) =>
-    (rhs: BTreeSet<T>) =>
-        function* symmetricDifferenceIterator(lhs: BTreeSet<T>): Generator<T> {
+    (rhs: Set<T>) =>
+        function* symmetricDifferenceIterator(lhs: Set<T>): Generator<T> {
             for (const [l, r] of mergeIterator(
                 setToIterator(lhs),
                 setToIterator(rhs),
@@ -685,8 +679,8 @@ const SMALL_SET_RATIO_THRESHOLD = 16;
  */
 export const difference =
     <T>(ord: Ord<T>) =>
-    (rhs: BTreeSet<T>) =>
-        function* differenceIterator(lhs: BTreeSet<T>): Generator<T> {
+    (rhs: Set<T>) =>
+        function* differenceIterator(lhs: Set<T>): Generator<T> {
             if (isEmpty(lhs)) {
                 return;
             }
@@ -706,11 +700,11 @@ export const difference =
                 return;
             }
             if (minLAndMaxR === equal) {
-                yield* setToIterator(popFirst(ord)(lhs)[0]);
+                yield* setToIterator(popFirst(ord)(lhs)[1]);
                 return;
             }
             if (maxLAndMinR === equal) {
-                yield* setToIterator(popLast(ord)(lhs)[0]);
+                yield* setToIterator(popLast(ord)(lhs)[1]);
                 return;
             }
             if (len(lhs) <= len(rhs) / SMALL_SET_RATIO_THRESHOLD) {
@@ -767,8 +761,8 @@ export const difference =
  */
 export const intersection =
     <T>(ord: Ord<T>) =>
-    (rhs: BTreeSet<T>) =>
-        function* intersectionIterator(lhs: BTreeSet<T>): Generator<T> {
+    (rhs: Set<T>) =>
+        function* intersectionIterator(lhs: Set<T>): Generator<T> {
             if (isEmpty(lhs) || isEmpty(rhs)) {
                 return;
             }
@@ -844,8 +838,8 @@ export const intersection =
  */
 export const isDisjoint =
     <T>(ord: Ord<T>) =>
-    (rhs: BTreeSet<T>) =>
-    (lhs: BTreeSet<T>): boolean =>
+    (rhs: Set<T>) =>
+    (lhs: Set<T>): boolean =>
         intersection(ord)(rhs)(lhs).next().done ?? false;
 /**
  * Checks whether the set `lhs` is a subset to the set `rhs`. Note that the order of arguments is reversed.
@@ -857,8 +851,8 @@ export const isDisjoint =
  */
 export const isSubset =
     <T>(ord: Ord<T>) =>
-    (rhs: BTreeSet<T>) =>
-    (lhs: BTreeSet<T>): boolean => {
+    (rhs: Set<T>) =>
+    (lhs: Set<T>): boolean => {
         const leftLen = len(lhs);
         const rightLen = len(rhs);
         if (leftLen > rightLen) {
@@ -923,27 +917,27 @@ export const isSubset =
  */
 export const isSuperset =
     <T>(ord: Ord<T>) =>
-    (rhs: BTreeSet<T>) =>
-    (lhs: BTreeSet<T>): boolean =>
+    (rhs: Set<T>) =>
+    (lhs: Set<T>): boolean =>
         isSubset(ord)(lhs)(rhs);
 
 /**
- * The `Monoid` instance about `BTreeSet`s and union operation.
+ * The `Monoid` instance about `Set`s and union operation.
  *
  * @param ord - The `Ord` instance for `T`.
- * @returns The `Monoid` of union operation to `BTreeSet`s.
+ * @returns The `Monoid` of union operation to `Set`s.
  */
-export const unionMonoid = <T>(ord: Ord<T>): Monoid<BTreeSet<T>> => ({
+export const unionMonoid = <T>(ord: Ord<T>): Monoid<Set<T>> => ({
     identity: empty(),
     combine: (l, r) => setFromIterable(ord)(union(ord)(r)(l)),
     [semiGroupSymbol]: true,
 });
 
 /**
- * Higher kind type for `BTreeSet<_>`.
+ * Higher kind type for `Set<_>`.
  */
-export interface BTreeSetHkt extends Hkt1 {
-    readonly type: BTreeSet<this["arg1"]>;
+export interface SetHkt extends Hkt1 {
+    readonly type: Set<this["arg1"]>;
 }
 
 /**
@@ -956,7 +950,7 @@ export interface BTreeSetHkt extends Hkt1 {
  */
 export const setReduceR =
     <A, B>(reducer: (a: A) => (b: B) => B) =>
-    (set: BTreeSet<A>) =>
+    (set: Set<A>) =>
     (init: B): B =>
         setToRevIterator(set).reduce((prev, curr) => reducer(curr)(prev), init);
 
@@ -971,13 +965,13 @@ export const setReduceR =
 export const setReduceL =
     <A, B>(reducer: (b: B) => (a: A) => B) =>
     (init: B) =>
-    (set: BTreeSet<A>): B =>
+    (set: Set<A>): B =>
         setToIterator(set).reduce((prev, curr) => reducer(prev)(curr), init);
 
 /**
- * The `Reduce` instance for `BTreeSet<_>`.
+ * The `Reduce` instance for `Set<_>`.
  */
-export const setReduce: Reduce<BTreeSetHkt> = {
+export const setReduce: Reduce<SetHkt> = {
     reduceR: setReduceR,
     reduceL: setReduceL,
 };
