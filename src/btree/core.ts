@@ -780,7 +780,7 @@ export const buildFromSorted = <K, V>(
             currentRightmost = openParentRightmost;
         }
     }
-    return fixRightBorderPlentiful(internalStack.at(-1)!);
+    return fixRightBorderPlentiful(internalStack.at(-1) ?? currentRightmost);
 };
 
 /**
