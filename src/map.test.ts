@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { ControlFlow, Result } from "../mod.js";
 import { cat } from "./cat.js";
+import * as ControlFlow from "./control-flow.js";
 import {
     fromIterable,
     type ListHkt,
@@ -20,6 +20,7 @@ import {
     unwrap,
 } from "./option.js";
 import { equal, greater, less } from "./ordering.js";
+import * as Result from "./result.js";
 import { decUtf8, encUtf8, runCode, runDecoder } from "./serial.js";
 import { ord, monoid as stringMonoid } from "./string.js";
 

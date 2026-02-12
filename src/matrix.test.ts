@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { Matrix } from "../mod.js";
+import * as Matrix from "./matrix.js";
 import { unwrap } from "./result.js";
 import { runCode, runDecoder } from "./serial.js";
 

@@ -1,7 +1,10 @@
 import { expect, test } from "vitest";
-import { Array, Compose, Identity, Result } from "../mod.js";
+import * as Array from "./array.js";
+import * as Compose from "./compose.js";
+import * as Identity from "./identity.js";
 import * as Option from "./option.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
+import * as Result from "./result.js";
 import { decU32Be, encU32Be, runCode, runDecoder } from "./serial.js";
 import { stringEq } from "./type-class/eq.js";
 import { stringOrd } from "./type-class/ord.js";

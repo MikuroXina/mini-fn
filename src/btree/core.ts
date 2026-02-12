@@ -9,8 +9,9 @@
  * 6. A non-leaf node with `k` keys contains `k + 1` children.
  */
 
-import { Option, Result } from "../../mod.js";
+import * as Option from "../option.js";
 import { equal, greater, less, type Ordering } from "../ordering.js";
+import * as Result from "../result.js";
 import type { Ord } from "../type-class/ord.js";
 
 /** node split anchor */
@@ -359,11 +360,12 @@ const removeInternalKey = <K, V>(
     ord: Ord<K>,
 ): [Node<K, V>, Option.Option<[K, V]>] => {
     const key = node.keys[keyIndex];
-    if (key == null) {
+    const left = node.edges[keyIndex];
+    if (key == null || left == null) {
+        console.dir(node);
         throw new Error("`keyIndex` out of range");
     }
 
-    const left = node.edges[keyIndex]!;
     if (!isThin(left)) {
         const [newLeft, leftMaxOpt] = popMax(left, ord);
         const leftMax = Option.unwrap(leftMaxOpt);

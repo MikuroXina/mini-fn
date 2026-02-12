@@ -66,7 +66,6 @@
  * @module BTree
  */
 
-import { Option, Result } from "../mod.js";
 import {
     buildFromSorted,
     empty,
@@ -84,8 +83,10 @@ import {
     splitChild,
 } from "./btree/core.js";
 import type { Apply2Only, Hkt1, Hkt2 } from "./hkt.js";
+import * as Option from "./option.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
 import { contains, type RangeBounds } from "./range.js";
+import * as Result from "./result.js";
 import type { State } from "./state.js";
 import type { Monoid } from "./type-class/monoid.js";
 import type { Ord } from "./type-class/ord.js";

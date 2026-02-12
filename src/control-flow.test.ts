@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import { Array, Compose } from "../mod.js";
+import * as Array from "./array.js";
+import * as Compose from "./compose.js";
 import {
     applicative,
     apply,

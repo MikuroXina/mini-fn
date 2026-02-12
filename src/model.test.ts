@@ -1,6 +1,8 @@
 import { expect, test } from "vitest";
-import { Option, Result, Serial } from "../mod.js";
 import * as Model from "./model.js";
+import * as Option from "./option.js";
+import * as Result from "./result.js";
+import * as Serial from "./serial.js";
 import { strict } from "./type-class/partial-eq.js";
 
 test("mahjong", () => {

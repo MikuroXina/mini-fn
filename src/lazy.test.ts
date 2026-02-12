@@ -1,6 +1,8 @@
 import { expect, test, vi } from "vitest";
-import { Array, Compose, Identity, Option } from "../mod.js";
+import * as Array from "./array.js";
+import * as Compose from "./compose.js";
 import { id } from "./func.js";
+import * as Identity from "./identity.js";
 import {
     applicative,
     dec,
@@ -13,6 +15,7 @@ import {
     partialEq,
     traversable,
 } from "./lazy.js";
+import * as Option from "./option.js";
 import { unwrap } from "./result.js";
 import { decU32Be, encU32Be, runCode, runDecoder } from "./serial.js";
 import { strict } from "./type-class/partial-eq.js";

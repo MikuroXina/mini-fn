@@ -1,7 +1,11 @@
 import { expect, test } from "vitest";
-import { Array, Cat, ControlFlow, Promise, Result } from "../mod.js";
+import * as Array from "./array.js";
+import * as Cat from "./cat.js";
+import * as ControlFlow from "./control-flow.js";
 import type { Apply2Only } from "./hkt.js";
+import * as Promise from "./promise.js";
 import type { ResultHkt } from "./result.js";
+import * as Result from "./result.js";
 import type { Apply } from "./type-class/apply.js";
 
 test("combine services", async () => {

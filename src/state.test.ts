@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
-import { Option, Result } from "../mod.js";
 import { cat, doT } from "./cat.js";
+import * as Option from "./option.js";
+import * as Result from "./result.js";
 import * as State from "./state.js";
 
 const xorShiftRng: State.State<number, number> = (

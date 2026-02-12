@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import { Option, Ordering } from "../../mod.js";
+import * as Option from "../option.js";
+import * as Ordering from "../ordering.js";
 import {
     type Apply,
     ap,
