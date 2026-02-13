@@ -814,6 +814,9 @@ export function* mergeIterator<I>(
             peeked[0] === "a" ? { done: false, value: peeked[1] } : genA.next();
         const nextB: IteratorResult<I> =
             peeked[0] === "b" ? { done: false, value: peeked[1] } : genB.next();
+        if (nextA.done && nextB.done) {
+            return;
+        }
         if (!nextA.done && !nextB.done) {
             switch (cmp(nextA.value, nextB.value)) {
                 case less:
@@ -825,13 +828,12 @@ export function* mergeIterator<I>(
                     peeked = ["a", nextA.value];
                     break;
             }
+        } else {
+            peeked = [""];
         }
         yield [
             nextA.done ? Option.none() : Option.some(nextA.value),
             nextB.done ? Option.none() : Option.some(nextB.value),
         ];
-        if (nextA.done && nextB.done) {
-            return;
-        }
     }
 }
