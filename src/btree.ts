@@ -467,11 +467,13 @@ export interface MapHkt extends Hkt2 {
 export const reduceR =
     <K, A, B>(reducer: (a: A) => (b: B) => B) =>
     (map: Map<K, A>) =>
-    (init: B): B =>
-        toRevIterator(map).reduce(
-            (prev, [, curr]) => reducer(curr)(prev),
-            init,
-        );
+    (init: B): B => {
+        let state = init;
+        for (const [, curr] of toRevIterator(map)) {
+            state = reducer(curr)(state);
+        }
+        return state;
+    };
 
 /**
  * Folds the map into a value in ascending order.
@@ -484,8 +486,13 @@ export const reduceR =
 export const reduceL =
     <K, A, B>(reducer: (b: B) => (a: A) => B) =>
     (init: B) =>
-    (map: Map<K, A>): B =>
-        toIterator(map).reduce((prev, [, curr]) => reducer(prev)(curr), init);
+    (map: Map<K, A>): B => {
+        let state = init;
+        for (const [, curr] of toIterator(map)) {
+            state = reducer(state)(curr);
+        }
+        return state;
+    };
 
 /**
  * The `Reduce` instance for `Map<K, _>`.
@@ -904,7 +911,12 @@ export const isSubset =
 
         if (leftLen <= rightLen / SMALL_SET_RATIO_THRESHOLD) {
             // for small `lhs`, checks each item of `lhs` is in `rhs`
-            return setToIterator(lhs).every((item) => has(ord)(item)(rhs));
+            for (const item of setToIterator(lhs)) {
+                if (!has(ord)(item)(rhs)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         // peeking items in `rhs` and comparing to `lhs'`s items
@@ -971,8 +983,13 @@ export interface SetHkt extends Hkt1 {
 export const setReduceR =
     <A, B>(reducer: (a: A) => (b: B) => B) =>
     (set: Set<A>) =>
-    (init: B): B =>
-        setToRevIterator(set).reduce((prev, curr) => reducer(curr)(prev), init);
+    (init: B): B => {
+        let state = init;
+        for (const item of setToRevIterator(set)) {
+            state = reducer(item)(state);
+        }
+        return state;
+    };
 
 /**
  * Folds the set into a value in ascending order.
@@ -985,8 +1002,13 @@ export const setReduceR =
 export const setReduceL =
     <A, B>(reducer: (b: B) => (a: A) => B) =>
     (init: B) =>
-    (set: Set<A>): B =>
-        setToIterator(set).reduce((prev, curr) => reducer(prev)(curr), init);
+    (set: Set<A>): B => {
+        let state = init;
+        for (const item of setToIterator(set)) {
+            state = reducer(state)(item);
+        }
+        return state;
+    };
 
 /**
  * The `Reduce` instance for `Set<_>`.
