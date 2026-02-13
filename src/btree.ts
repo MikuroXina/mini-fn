@@ -921,9 +921,9 @@ export const isSubset =
 
         // peeking items in `rhs` and comparing to `lhs'`s items
         const rightGen = setToIterator(rhs);
-        // biome-ignore lint/suspicious/useIterableCallbackReturn: incorrect lint error
-        return setToIterator(lhs).every((item) => {
-            while (true) {
+        for (const item of setToIterator(lhs)) {
+            let seek = true;
+            while (seek) {
                 const next = rightGen.next();
                 if (next.done) {
                     return false;
@@ -932,12 +932,14 @@ export const isSubset =
                     case less:
                         continue;
                     case equal:
-                        return true;
+                        seek = false;
+                        break;
                     case greater:
                         return false;
                 }
             }
-        });
+        }
+        return true;
     };
 /**
  * Checks whether the set `lhs` is a superset to the set `rhs`. Note that the order of arguments is reversed.
