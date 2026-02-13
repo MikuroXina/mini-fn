@@ -325,10 +325,84 @@ test("intersection", () => {
 
     expect([...combined]).toStrictEqual([1n, 2n]);
 });
-// test("isDisjoint", () => {});
-// test("isSubset", () => {});
-// test("isSuperset", () => {});
 
-// test("Monoid laws on unionMonoid", () => {});
-// test("setReduceR", () => {});
-// test("setReduceL", () => {});
+test("isDisjoint", () => {
+    const a = BTree.setFromIterable(bigintOrd)([1n, 2n, 3n]);
+
+    let b = BTree.newSet<bigint>();
+    expect(BTree.isDisjoint(bigintOrd)(b)(a)).toStrictEqual(true);
+
+    b = BTree.push(bigintOrd)(4n)(b);
+    expect(BTree.isDisjoint(bigintOrd)(b)(a)).toStrictEqual(true);
+
+    b = BTree.push(bigintOrd)(1n)(b);
+    expect(BTree.isDisjoint(bigintOrd)(b)(a)).toStrictEqual(false);
+});
+test("isSubset", () => {
+    const a = BTree.setFromIterable(bigintOrd)([1n, 2n, 3n]);
+
+    let b = BTree.newSet<bigint>();
+    expect(BTree.isSubset(bigintOrd)(a)(b)).toStrictEqual(true);
+
+    b = BTree.push(bigintOrd)(1n)(b);
+    expect(BTree.isSubset(bigintOrd)(a)(b)).toStrictEqual(true);
+
+    b = BTree.push(bigintOrd)(4n)(b);
+    expect(BTree.isSubset(bigintOrd)(a)(b)).toStrictEqual(false);
+});
+test("isSuperset", () => {
+    const a = BTree.setFromIterable(bigintOrd)([1n, 2n, 3n]);
+
+    let b = BTree.newSet<bigint>();
+    expect(BTree.isSuperset(bigintOrd)(b)(a)).toStrictEqual(true);
+
+    b = BTree.push(bigintOrd)(1n)(b);
+    expect(BTree.isSuperset(bigintOrd)(b)(a)).toStrictEqual(true);
+
+    b = BTree.push(bigintOrd)(4n)(b);
+    expect(BTree.isSuperset(bigintOrd)(b)(a)).toStrictEqual(false);
+});
+
+test("Monoid laws on unionMonoid", () => {
+    const m = BTree.unionMonoid(bigintOrd);
+
+    const x = BTree.setFromIterable(bigintOrd)([4n, 6n, 1n, 3n, 9n]);
+    const y = BTree.setFromIterable(bigintOrd)([2n, 2n, 2n]);
+    const z = BTree.setFromIterable(bigintOrd)([1n, 5n, 1n, 8n, 1n]);
+    // associative
+    expect([
+        ...BTree.setToIterator(m.combine(m.combine(x, y), z)),
+    ]).toStrictEqual([...BTree.setToIterator(m.combine(x, m.combine(y, z)))]);
+
+    // identity
+    for (const s of [x, y, z]) {
+        expect([
+            ...BTree.setToIterator(m.combine(s, m.identity)),
+        ]).toStrictEqual([...BTree.setToIterator(m.combine(m.identity, s))]);
+    }
+});
+
+test("setReduceR", () => {
+    expect(
+        BTree.setReduceR((a: bigint) => (b: string) => `${a}:${b}`)(oneToFive)(
+            "",
+        ),
+    ).toStrictEqual("1:2:3:4:5:");
+    expect(
+        BTree.reduceR((a: bigint) => (b: string) => `${a}:${b}`)(
+            BTree.newMap(),
+        )(""),
+    ).toStrictEqual("");
+});
+test("setReduceL", () => {
+    expect(
+        BTree.setReduceL((b: string) => (a: bigint) => `${b}:${a}`)("")(
+            oneToFive,
+        ),
+    ).toStrictEqual(":1:2:3:4:5");
+    expect(
+        BTree.reduceL((b: string) => (a: bigint) => `${b}:${a}`)("")(
+            BTree.newMap(),
+        ),
+    ).toStrictEqual("");
+});
