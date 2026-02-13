@@ -736,30 +736,38 @@ export const difference =
             let peekedOpt = genRFirst.done
                 ? Option.none()
                 : Option.some(genRFirst.value);
-            let next = genL.next();
             while (true) {
+                let next = genL.next();
                 if (next.done) {
                     return;
                 }
-                switch (
-                    Option.mapOr<Ordering>(less)((peeked: T) =>
-                        ord.cmp(next.value, peeked),
-                    )(peekedOpt)
-                ) {
-                    case less:
-                        yield next.value;
-                        break;
-                    case equal:
-                        next = genL.next();
-                        peekedOpt = genRFirst.done
-                            ? Option.none()
-                            : Option.some(genRFirst.value);
-                        break;
-                    case greater:
-                        peekedOpt = genRFirst.done
-                            ? Option.none()
-                            : Option.some(genRFirst.value);
-                        break;
+                let seekRight = true;
+                while (seekRight) {
+                    switch (
+                        Option.mapOr<Ordering>(less)((peeked: T) =>
+                            ord.cmp(next.value, peeked),
+                        )(peekedOpt)
+                    ) {
+                        case less:
+                            yield next.value;
+                            seekRight = false;
+                            break;
+                        case equal: {
+                            next = genL.next();
+                            const genRNext = genR.next();
+                            peekedOpt = genRNext.done
+                                ? Option.none()
+                                : Option.some(genRNext.value);
+                            break;
+                        }
+                        case greater: {
+                            const genRNext = genR.next();
+                            peekedOpt = genRNext.done
+                                ? Option.none()
+                                : Option.some(genRNext.value);
+                            break;
+                        }
+                    }
                 }
             }
         };

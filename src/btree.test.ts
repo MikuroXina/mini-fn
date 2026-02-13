@@ -309,7 +309,14 @@ test("symmetricDifference", () => {
 
     expect([...combined]).toStrictEqual([3n, 5n, 6n]);
 });
-// test("difference", () => {});
+test("difference", () => {
+    const left = BTree.setFromIterable(bigintOrd)([6n, 6n, 1n, 2n, 1n]);
+    const right = BTree.setFromIterable(bigintOrd)([1n, 3n, 5n, 2n]);
+
+    const combined = BTree.difference(bigintOrd)(right)(left);
+
+    expect([...combined]).toStrictEqual([6n]);
+});
 // test("intersection", () => {});
 // test("isDisjoint", () => {});
 // test("isSubset", () => {});
