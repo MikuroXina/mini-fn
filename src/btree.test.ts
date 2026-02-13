@@ -1,10 +1,11 @@
 import { expect, test } from "vitest";
-import { Option, State } from "../mod.js";
 import { ord as bigintOrd } from "./big-int.js";
 import * as BTree from "./btree.js";
 import { doT } from "./cat.js";
+import * as Option from "./option.js";
 import { none } from "./option.js";
 import { fromToInclusive, since, until } from "./range.js";
+import * as State from "./state.js";
 import { ord as stringOrd } from "./string.js";
 
 test("movie review example", () => {
@@ -50,168 +51,174 @@ test("movie review example", () => {
     ]);
 });
 
-// test("range", () => {
-//     const ord = bigintOrd;
-//     const add = BTree.insert(ord);
-//     const [map] = doT(State.monad<BTree.Map<bigint, string>>())
-//         .addM("_", add(3n)("a"))
-//         .addM("_", add(5n)("b"))
-//         .addM("_", add(8n)("c"))
-//         .addM("_", add(9n)("d"))
-//         .finishM(State.get<BTree.Map<bigint, string>>)(BTree.newMap());
+test("range", () => {
+    const ord = bigintOrd;
+    const add = BTree.insert(ord);
+    const [map] = doT(State.monad<BTree.Map<bigint, string>>())
+        .addM("_", add(3n)("a"))
+        .addM("_", add(5n)("b"))
+        .addM("_", add(8n)("c"))
+        .addM("_", add(9n)("d"))
+        .finishM(State.get<BTree.Map<bigint, string>>)(BTree.newMap());
 
-//     const actual = [...BTree.range(ord)(fromToInclusive(4n, 8n))(map)];
+    const actual = [...BTree.range(ord)(fromToInclusive(4n, 8n))(map)];
 
-//     expect(actual).toStrictEqual([
-//         [5n, "b"],
-//         [8n, "c"],
-//     ]);
-// });
+    expect(actual).toStrictEqual([
+        [5n, "b"],
+        [8n, "c"],
+    ]);
+});
 
-// test("fromIterable", () => {
-//     const map = BTree.fromIterable(stringOrd)([
-//         ["one", 1],
-//         ["one", 11],
-//         ["two", 22],
-//         ["two", 2],
-//         ["three", 3],
-//         ["for", 4],
-//     ]);
+test("fromIterable", () => {
+    const map = BTree.fromIterable(stringOrd)([
+        ["one", 1],
+        ["one", 11],
+        ["two", 22],
+        ["two", 2],
+        ["three", 3],
+        ["for", 4],
+    ]);
 
-//     expect([...BTree.toIterator(map)]).toStrictEqual([
-//         ["for", 4],
-//         ["one", 11],
-//         ["three", 3],
-//         ["two", 2],
-//     ]);
-// });
-// test("isEmpty", () => {
-//     expect(BTree.isEmpty(BTree.newMap())).toStrictEqual(true);
-//     expect(BTree.isEmpty(BTree.fromIterable(stringOrd)([]))).toStrictEqual(
-//         true,
-//     );
+    expect([...BTree.toIterator(map)]).toStrictEqual([
+        ["for", 4],
+        ["one", 11],
+        ["three", 3],
+        ["two", 2],
+    ]);
+});
+test("isEmpty", () => {
+    expect(BTree.isEmpty(BTree.newMap())).toStrictEqual(true);
+    expect(BTree.isEmpty(BTree.fromIterable(stringOrd)([]))).toStrictEqual(
+        true,
+    );
 
-//     const map = BTree.fromIterable(stringOrd)([["xyz", 123]]);
-//     expect(BTree.isEmpty(map)).toStrictEqual(false);
+    const map = BTree.fromIterable(stringOrd)([["xyz", 123]]);
+    expect(BTree.isEmpty(map)).toStrictEqual(false);
 
-//     const [, removed] = BTree.remove(stringOrd)("xyz")(map);
-//     expect(BTree.isEmpty(removed)).toStrictEqual(true);
-// });
-// test("insert and remove many items", () => {
-//     let map = BTree.newMap<string, number>();
-//     for (let i = 0; i < 200; ++i) {
-//         [, map] = BTree.insert(stringOrd)(`${i}`)(i)(map);
-//     }
+    const [, removed] = BTree.remove(stringOrd)("xyz")(map);
+    expect(BTree.isEmpty(removed)).toStrictEqual(true);
+});
+test("insert and remove many items", () => {
+    let map = BTree.newMap<string, number>();
+    for (let i = 0; i < 200; ++i) {
+        [, map] = BTree.insert(stringOrd)(`${i}`)(i)(map);
+    }
 
-//     expect(BTree.containsKey(stringOrd)("-1")(map)).toStrictEqual(false);
-//     for (let i = 0; i < 200; ++i) {
-//         expect(BTree.containsKey(stringOrd)(`${i}`)(map)).toStrictEqual(true);
-//     }
-//     expect(BTree.containsKey(stringOrd)("200")(map)).toStrictEqual(false);
+    expect(BTree.containsKey(stringOrd)("-1")(map)).toStrictEqual(false);
+    for (let i = 0; i < 200; ++i) {
+        expect(BTree.containsKey(stringOrd)(`${i}`)(map)).toStrictEqual(true);
+    }
+    expect(BTree.containsKey(stringOrd)("200")(map)).toStrictEqual(false);
 
-//     for (let i = 0; i < 200; ++i) {
-//         [, map] = BTree.remove(stringOrd)(`${i}`)(map);
-//     }
+    const verify = <V>(map: BTree.Map<string, V>) => {
+        const keys = [...BTree.toKeys(map)];
+        expect(keys).toStrictEqual(keys.toSorted(stringOrd.cmp));
+    };
 
-//     for (let i = 0; i < 200; ++i) {
-//         expect(BTree.containsKey(stringOrd)(`${i}`)(map)).toStrictEqual(false);
-//     }
-// });
-// test("remove to empty", () => {
-//     expect(BTree.remove(stringOrd)("foo")(BTree.newMap())).toStrictEqual([
-//         BTree.newMap(),
-//         none(),
-//     ]);
-// });
+    for (let i = 0; i < 200; ++i) {
+        [, map] = BTree.remove(stringOrd)(`${i}`)(map);
+        verify(map);
+    }
 
-// const abcMap = doT(State.monad<BTree.Map<string, number>>())
-//     .addM("_", BTree.insert(stringOrd)("a")(1))
-//     .addM("_", BTree.insert(stringOrd)("b")(2))
-//     .addM("_", BTree.insert(stringOrd)("c")(3))
-//     .finishM(State.get<BTree.Map<string, number>>)(BTree.newMap())[0];
+    for (let i = 0; i < 200; ++i) {
+        expect(BTree.containsKey(stringOrd)(`${i}`)(map)).toStrictEqual(false);
+    }
+});
+test("remove to empty", () => {
+    expect(BTree.remove(stringOrd)("foo")(BTree.newMap())).toStrictEqual([
+        none(),
+        BTree.newMap(),
+    ]);
+});
 
-// test("toRevIterator", () => {
-//     expect([...BTree.toRevIterator(abcMap)]).toStrictEqual([
-//         ["c", 3],
-//         ["b", 2],
-//         ["a", 1],
-//     ]);
-// });
-// test("toKeys", () => {
-//     expect([...BTree.toKeys(abcMap)]).toStrictEqual(["a", "b", "c"]);
-// });
-// test("toValues", () => {
-//     expect([...BTree.toValues(abcMap)]).toStrictEqual([1, 2, 3]);
-// });
-// test("firstKeyValue", () => {
-//     expect(BTree.firstKeyValue(abcMap)).toStrictEqual(Option.some(["a", 1]));
-//     expect(BTree.firstKeyValue(BTree.newMap())).toStrictEqual(Option.none());
-// });
-// test("lastKeyValue", () => {
-//     expect(BTree.lastKeyValue(abcMap)).toStrictEqual(Option.some(["c", 3]));
-//     expect(BTree.lastKeyValue(BTree.newMap())).toStrictEqual(Option.none());
-// });
-// test("popFirstKeyValue", () => {
-//     const [popped, after] = BTree.popFirstKeyValue(stringOrd)(abcMap);
+const abcMap = doT(State.monad<BTree.Map<string, number>>())
+    .addM("_", BTree.insert(stringOrd)("a")(1))
+    .addM("_", BTree.insert(stringOrd)("b")(2))
+    .addM("_", BTree.insert(stringOrd)("c")(3))
+    .finishM(State.get<BTree.Map<string, number>>)(BTree.newMap())[0];
 
-//     expect([...BTree.toIterator(after)]).toStrictEqual([
-//         ["b", 2],
-//         ["c", 3],
-//     ]);
-//     expect(popped).toStrictEqual(Option.some(["a", 1]));
+test("toRevIterator", () => {
+    expect([...BTree.toRevIterator(abcMap)]).toStrictEqual([
+        ["c", 3],
+        ["b", 2],
+        ["a", 1],
+    ]);
+});
+test("toKeys", () => {
+    expect([...BTree.toKeys(abcMap)]).toStrictEqual(["a", "b", "c"]);
+});
+test("toValues", () => {
+    expect([...BTree.toValues(abcMap)]).toStrictEqual([1, 2, 3]);
+});
+test("firstKeyValue", () => {
+    expect(BTree.firstKeyValue(abcMap)).toStrictEqual(Option.some(["a", 1]));
+    expect(BTree.firstKeyValue(BTree.newMap())).toStrictEqual(Option.none());
+});
+test("lastKeyValue", () => {
+    expect(BTree.lastKeyValue(abcMap)).toStrictEqual(Option.some(["c", 3]));
+    expect(BTree.lastKeyValue(BTree.newMap())).toStrictEqual(Option.none());
+});
+test("popFirstKeyValue", () => {
+    const [popped, after] = BTree.popFirstKeyValue(stringOrd)(abcMap);
 
-//     expect(BTree.popFirstKeyValue(stringOrd)(BTree.newMap())).toStrictEqual([
-//         BTree.newMap(),
-//         Option.none(),
-//     ]);
-// });
-// test("popLastKeyValue", () => {
-//     const [popped, after] = BTree.popLastKeyValue(stringOrd)(abcMap);
+    expect([...BTree.toIterator(after)]).toStrictEqual([
+        ["b", 2],
+        ["c", 3],
+    ]);
+    expect(popped).toStrictEqual(Option.some(["a", 1]));
 
-//     expect([...BTree.toIterator(after)]).toStrictEqual([
-//         ["a", 1],
-//         ["b", 2],
-//     ]);
-//     expect(popped).toStrictEqual(Option.some(["c", 3]));
+    expect(BTree.popFirstKeyValue(stringOrd)(BTree.newMap())).toStrictEqual([
+        Option.none(),
+        BTree.newMap(),
+    ]);
+});
+test("popLastKeyValue", () => {
+    const [popped, after] = BTree.popLastKeyValue(stringOrd)(abcMap);
 
-//     expect(BTree.popLastKeyValue(stringOrd)(BTree.newMap())).toStrictEqual([
-//         BTree.newMap(),
-//         Option.none(),
-//     ]);
-// });
-// test("range for more bounds cases", () => {
-//     expect([...BTree.range(stringOrd)(since("d"))(abcMap)]).toStrictEqual([]);
-//     expect([...BTree.range(stringOrd)(until("9"))(abcMap)]).toStrictEqual([]);
-// });
-// test("reduceR", () => {
-//     expect(
-//         BTree.reduceR((a: number) => (b: string) => `${a}:${b}`)(abcMap)(""),
-//     ).toStrictEqual("1:2:3:");
-//     expect(
-//         BTree.reduceR((a: number) => (b: string) => `${a}:${b}`)(
-//             BTree.newMap(),
-//         )(""),
-//     ).toStrictEqual("");
-// });
-// test("reduceL", () => {
-//     expect(
-//         BTree.reduceL((b: string) => (a: number) => `${b}:${a}`)("")(abcMap),
-//     ).toStrictEqual(":1:2:3");
-//     expect(
-//         BTree.reduceL((b: string) => (a: number) => `${b}:${a}`)("")(
-//             BTree.newMap(),
-//         ),
-//     ).toStrictEqual("");
-// });
+    expect([...BTree.toIterator(after)]).toStrictEqual([
+        ["a", 1],
+        ["b", 2],
+    ]);
+    expect(popped).toStrictEqual(Option.some(["c", 3]));
 
-// test("setFromIterable", () => {
-//     const set = BTree.setFromIterable(bigintOrd)([1n, 4n, 2n, 3n, 5n, 2n, 3n]);
+    expect(BTree.popLastKeyValue(stringOrd)(BTree.newMap())).toStrictEqual([
+        Option.none(),
+        BTree.newMap(),
+    ]);
+});
+test("range for more bounds cases", () => {
+    expect([...BTree.range(stringOrd)(since("d"))(abcMap)]).toStrictEqual([]);
+    expect([...BTree.range(stringOrd)(until("9"))(abcMap)]).toStrictEqual([]);
+});
+test("reduceR", () => {
+    expect(
+        BTree.reduceR((a: number) => (b: string) => `${a}:${b}`)(abcMap)(""),
+    ).toStrictEqual("1:2:3:");
+    expect(
+        BTree.reduceR((a: number) => (b: string) => `${a}:${b}`)(
+            BTree.newMap(),
+        )(""),
+    ).toStrictEqual("");
+});
+test("reduceL", () => {
+    expect(
+        BTree.reduceL((b: string) => (a: number) => `${b}:${a}`)("")(abcMap),
+    ).toStrictEqual(":1:2:3");
+    expect(
+        BTree.reduceL((b: string) => (a: number) => `${b}:${a}`)("")(
+            BTree.newMap(),
+        ),
+    ).toStrictEqual("");
+});
 
-//     expect([...BTree.setToIterator(set)]).toStrictEqual([1n, 2n, 3n, 4n, 5n]);
-// });
-// test("setToIterator", () => {
-//     expect([...BTree.setToIterator(BTree.newSet())]).toStrictEqual([]);
-// });
+test("setFromIterable", () => {
+    const set = BTree.setFromIterable(bigintOrd)([1n, 4n, 2n, 3n, 5n, 2n, 3n]);
+
+    expect([...BTree.setToIterator(set)]).toStrictEqual([1n, 2n, 3n, 4n, 5n]);
+});
+test("setToIterator", () => {
+    expect([...BTree.setToIterator(BTree.newSet())]).toStrictEqual([]);
+});
 // test("setToRevIterator", () => {});
 // test("has", () => {});
 // test("first", () => {});

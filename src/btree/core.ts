@@ -361,8 +361,8 @@ const removeInternalKey = <K, V>(
 ): [Node<K, V>, Option.Option<[K, V]>] => {
     const key = node.keys[keyIndex];
     const left = node.edges[keyIndex];
-    if (key == null || left == null) {
-        console.dir(node);
+    const right = node.edges[keyIndex + 1];
+    if (key == null || left == null || right == null) {
         throw new Error("`keyIndex` out of range");
     }
 
@@ -385,7 +385,6 @@ const removeInternalKey = <K, V>(
         ];
     }
 
-    const right = node.edges[keyIndex + 1]!;
     if (!isThin(right)) {
         const [newRight, rightMinOpt] = popMin(right, ord);
         const rightMin = Option.unwrap(rightMinOpt);
@@ -399,7 +398,7 @@ const removeInternalKey = <K, V>(
             {
                 keys: replacedK,
                 values: replacedV,
-                edges: node.edges.with(keyIndex, newRight),
+                edges: node.edges.with(keyIndex + 1, newRight),
             },
             Option.some([removedK, removedV]),
         ];
@@ -409,9 +408,18 @@ const removeInternalKey = <K, V>(
     const merged = {
         keys: [...left.keys, node.keys[keyIndex]!, ...right.keys],
         values: [...left.values, node.values[keyIndex]!, ...right.values],
-        edges: [...(left.edges ?? []), ...(right.edges ?? [])],
+        edges:
+            left.edges && right.edges ? [...left.edges, ...right.edges] : null,
     };
-    return removeNotThin(merged, key, ord);
+    const [newMerged, removed] = removeNotThin(merged, key, ord);
+    return [
+        {
+            keys: node.keys.toSpliced(keyIndex, 1),
+            values: node.values.toSpliced(keyIndex, 1),
+            edges: node.edges.toSpliced(keyIndex, 2, newMerged),
+        },
+        removed,
+    ];
 };
 
 /**
@@ -447,16 +455,15 @@ const rotateRightRemove = <K, V>(
     };
 
     const borrowedChild = {
-        keys: [borrowedK, ...child.keys],
-        values: [borrowedV, ...child.values],
-        edges: borrowedE
-            ? [borrowedE, ...(child.edges ?? [])]
-            : (child.edges ?? []),
+        keys: [node.keys[childIndex - 1]!, ...child.keys],
+        values: [node.values[childIndex - 1]!, ...child.values],
+        edges: borrowedE && child.edges ? [borrowedE, ...child.edges] : null,
     };
     const [newChild, removed] = removeNotThin(borrowedChild, key, ord);
     return [
         {
-            ...node,
+            keys: node.keys.with(childIndex - 1, borrowedK),
+            values: node.values.with(childIndex - 1, borrowedV),
             edges: node.edges.toSpliced(
                 childIndex - 1,
                 2,
@@ -501,16 +508,15 @@ const rotateLeftRemove = <K, V>(
     };
 
     const borrowedChild = {
-        keys: [...child.keys, borrowedK],
-        values: [...child.values, borrowedV],
-        edges: borrowedE
-            ? [...(child.edges ?? []), borrowedE]
-            : (child.edges ?? []),
+        keys: [...child.keys, node.keys[childIndex]!],
+        values: [...child.values, node.values[childIndex]!],
+        edges: borrowedE && child.edges ? [...child.edges, borrowedE] : null,
     };
     const [newChild, removed] = removeNotThin(borrowedChild, key, ord);
     return [
         {
-            ...node,
+            keys: node.keys.with(childIndex, borrowedK),
+            values: node.values.with(childIndex, borrowedV),
             edges: node.edges.toSpliced(childIndex, 2, newChild, newRightChild),
         },
         removed,
@@ -551,7 +557,10 @@ const mergeRemove = <K, V>(
             node.values[leftChildIndex]!,
             ...rightChild.values,
         ],
-        edges: [...(leftChild.edges ?? []), ...(rightChild.edges ?? [])],
+        edges:
+            leftChild.edges && rightChild.edges
+                ? [...leftChild.edges, ...rightChild.edges]
+                : null,
     };
     const [newChild, removed] = removeNotThin(merged, key, ord);
     return [
@@ -630,6 +639,7 @@ export const removeNotThin = <K, V>(
     key: K,
     ord: Ord<K>,
 ): [Node<K, V>, Option.Option<[K, V]>] => {
+    // the reason why there are no checks is that this accepts a root node too.
     const posRes = findKeyIn(node, ord, key);
     if (isLeaf(node)) {
         if (Result.isErr(posRes)) {
@@ -646,10 +656,10 @@ export const removeNotThin = <K, V>(
         ];
     }
 
+    const pos = Result.mergeOkErr(posRes);
     if (Result.isErr(posRes)) {
-        return removeInChild(node, node.edges.length - 1, key, ord);
+        return removeInChild(node, pos, key, ord);
     }
-    const pos = Result.unwrap(posRes);
     return removeInternalKey(node, pos, ord);
 };
 
