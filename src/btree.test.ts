@@ -4,7 +4,7 @@ import * as BTree from "./btree.js";
 import { doT } from "./cat.js";
 import * as Option from "./option.js";
 import { none } from "./option.js";
-import { fromToInclusive, since, until } from "./range.js";
+import { fromTo, fromToInclusive, since, until } from "./range.js";
 import * as State from "./state.js";
 import { ord as stringOrd } from "./string.js";
 
@@ -102,6 +102,7 @@ test("insert and remove many items", () => {
     let map = BTree.newMap<string, number>();
     for (let i = 0; i < 200; ++i) {
         [, map] = BTree.insert(stringOrd)(`${i}`)(i)(map);
+        [, map] = BTree.insert(stringOrd)(`${i}`)(i)(map);
     }
 
     expect(BTree.containsKey(stringOrd)("-1")(map)).toStrictEqual(false);
@@ -109,6 +110,27 @@ test("insert and remove many items", () => {
         expect(BTree.containsKey(stringOrd)(`${i}`)(map)).toStrictEqual(true);
     }
     expect(BTree.containsKey(stringOrd)("200")(map)).toStrictEqual(false);
+
+    expect([...BTree.toRevIterator(map)]).toStrictEqual(
+        [...new Array(200)]
+            .map((_, i) => 200 - 1 - i)
+            .toSorted((a, b) => stringOrd.cmp(`${b}`, `${a}`))
+            .map((i) => [`${i}`, i]),
+    );
+
+    expect([...BTree.range(stringOrd)(fromTo("13", "14"))(map)]).toStrictEqual([
+        ["13", 13],
+        ["130", 130],
+        ["131", 131],
+        ["132", 132],
+        ["133", 133],
+        ["134", 134],
+        ["135", 135],
+        ["136", 136],
+        ["137", 137],
+        ["138", 138],
+        ["139", 139],
+    ]);
 
     const verify = <V>(map: BTree.Map<string, V>) => {
         const keys = [...BTree.toKeys(map)];
@@ -189,6 +211,10 @@ test("popLastKeyValue", () => {
 test("range for more bounds cases", () => {
     expect([...BTree.range(stringOrd)(since("d"))(abcMap)]).toStrictEqual([]);
     expect([...BTree.range(stringOrd)(until("9"))(abcMap)]).toStrictEqual([]);
+
+    expect([
+        ...BTree.range(stringOrd)(fromTo("a", "z"))(BTree.newMap()),
+    ]).toStrictEqual([]);
 });
 test("reduceR", () => {
     expect(
@@ -305,17 +331,54 @@ test("symmetricDifference", () => {
     const left = BTree.setFromIterable(bigintOrd)([6n, 6n, 1n, 2n, 1n]);
     const right = BTree.setFromIterable(bigintOrd)([1n, 3n, 5n, 2n]);
 
-    const combined = BTree.symmetricDifference(bigintOrd)(right)(left);
-
-    expect([...combined]).toStrictEqual([3n, 5n, 6n]);
+    expect([
+        ...BTree.symmetricDifference(bigintOrd)(right)(left),
+    ]).toStrictEqual([3n, 5n, 6n]);
+    expect([
+        ...BTree.symmetricDifference(bigintOrd)(left)(right),
+    ]).toStrictEqual([3n, 5n, 6n]);
 });
 test("difference", () => {
-    const left = BTree.setFromIterable(bigintOrd)([6n, 6n, 1n, 2n, 1n]);
-    const right = BTree.setFromIterable(bigintOrd)([1n, 3n, 5n, 2n]);
+    const set126 = BTree.setFromIterable(bigintOrd)([6n, 6n, 1n, 2n, 1n]);
+    const set1235 = BTree.setFromIterable(bigintOrd)([1n, 3n, 5n, 2n]);
+    const set67 = BTree.setFromIterable(bigintOrd)([7n, 6n]);
+    const setLarge = BTree.setFromIterable(bigintOrd)(
+        [...new Array(80)].map((_, i) => BigInt(i) + 30n),
+    );
 
-    const combined = BTree.difference(bigintOrd)(right)(left);
+    expect([...BTree.difference(bigintOrd)(set1235)(set126)]).toStrictEqual([
+        6n,
+    ]);
+    expect([...BTree.difference(bigintOrd)(set126)(set1235)]).toStrictEqual([
+        3n,
+        5n,
+    ]);
+    expect([
+        ...BTree.difference(bigintOrd)(BTree.newSet())(set126),
+    ]).toStrictEqual([...BTree.setToIterator(set126)]);
+    expect([
+        ...BTree.difference(bigintOrd)(set1235)(BTree.newSet()),
+    ]).toStrictEqual([]);
 
-    expect([...combined]).toStrictEqual([6n]);
+    expect([...BTree.difference(bigintOrd)(set1235)(set67)]).toStrictEqual([
+        6n,
+        7n,
+    ]);
+    expect([...BTree.difference(bigintOrd)(set67)(set1235)]).toStrictEqual([
+        1n,
+        2n,
+        3n,
+        5n,
+    ]);
+    expect([...BTree.difference(bigintOrd)(set126)(set67)]).toStrictEqual([7n]);
+    expect([...BTree.difference(bigintOrd)(set67)(set126)]).toStrictEqual([
+        1n,
+        2n,
+    ]);
+    expect([...BTree.difference(bigintOrd)(setLarge)(set67)]).toStrictEqual([
+        6n,
+        7n,
+    ]);
 });
 test("intersection", () => {
     const left = BTree.setFromIterable(bigintOrd)([6n, 6n, 1n, 2n, 1n]);

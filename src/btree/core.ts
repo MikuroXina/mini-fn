@@ -742,57 +742,51 @@ export const buildFromSorted = <K, V>(
     }
 
     // fill rightmost node in bottom-up
-    let currentRightmost: Leaf<K, V> = {
-        keys: [],
-        values: [],
-        edges: null,
-    };
-    const internalStack: Internal<K, V>[] = [];
+    const treeStack: Node<K, V>[] = [empty()];
     for (let i = 0; i < entries.length; ++i) {
         const [key, value] = entries[i]!;
         if (i < entries.length - 1 && ord.eq(key, entries[i + 1]![0])) {
-            // skip duplicated key
+            // skip duplicates
             continue;
         }
-        if (currentRightmost.keys.length < CAPACITY) {
-            currentRightmost.keys.push(key);
-            currentRightmost.values.push(value);
-        } else {
-            let openParentIndex = internalStack.findIndex(
-                (node) => node.keys.length < CAPACITY,
-            );
-            if (openParentIndex < 0) {
-                let subtree: Node<K, V> = {
-                    keys: [],
-                    values: [],
-                    edges: null,
-                };
-                for (let i = 0; i < internalStack.length; ++i) {
-                    subtree = {
-                        keys: [],
-                        values: [],
-                        edges: [subtree],
-                    };
-                }
-                internalStack.push({
-                    keys: [],
-                    values: [],
-                    edges: [internalStack.at(-1) ?? currentRightmost, subtree],
-                });
-                openParentIndex = internalStack.length - 1;
-            }
-            const openParent = internalStack[openParentIndex]!;
-            openParent.keys.push(key);
-            openParent.values.push(value);
 
-            let openParentRightmost: Node<K, V> = openParent;
-            while (!isLeaf(openParentRightmost)) {
-                openParentRightmost = openParentRightmost.edges.at(-1)!;
+        const leaf = treeStack[0]!;
+        if (!isFull(leaf)) {
+            // fill leaf
+            leaf.keys.push(key);
+            leaf.values.push(value);
+            continue;
+        }
+
+        // find or create a parent
+        let level = 0;
+        while (true) {
+            const isReachedRoot = level + 1 >= treeStack.length;
+            if (isReachedRoot) {
+                treeStack.push({
+                    keys: [],
+                    values: [],
+                    edges: [treeStack.at(-1)!],
+                });
             }
-            currentRightmost = openParentRightmost;
+            const parent = treeStack[level + 1]!;
+            if (!isFull(parent)) {
+                parent.keys.push(key);
+                parent.values.push(value);
+                break;
+            }
+            ++level;
+        }
+
+        // add new right children
+        for (let j = level; j >= 0; --j) {
+            const newNode =
+                j === 0 ? empty<K, V>() : { keys: [], values: [], edges: [] };
+            treeStack[j + 1]?.edges?.push(newNode);
+            treeStack[j] = newNode;
         }
     }
-    return fixRightBorderPlentiful(internalStack.at(-1) ?? currentRightmost);
+    return fixRightBorderPlentiful(treeStack.at(-1)!);
 };
 
 /**
