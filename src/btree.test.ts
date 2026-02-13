@@ -211,29 +211,110 @@ test("reduceL", () => {
     ).toStrictEqual("");
 });
 
-test("setFromIterable", () => {
-    const set = BTree.setFromIterable(bigintOrd)([1n, 4n, 2n, 3n, 5n, 2n, 3n]);
-
-    expect([...BTree.setToIterator(set)]).toStrictEqual([1n, 2n, 3n, 4n, 5n]);
-});
+const oneToFive = BTree.setFromIterable(bigintOrd)([
+    1n,
+    4n,
+    2n,
+    3n,
+    5n,
+    2n,
+    3n,
+]);
 test("setToIterator", () => {
     expect([...BTree.setToIterator(BTree.newSet())]).toStrictEqual([]);
+    expect([...BTree.setToIterator(oneToFive)]).toStrictEqual([
+        1n,
+        2n,
+        3n,
+        4n,
+        5n,
+    ]);
 });
-// test("setToRevIterator", () => {});
-// test("has", () => {});
-// test("first", () => {});
-// test("last", () => {});
-// test("push", () => {});
-// test("pop", () => {});
-// test("popFirst", () => {});
-// test("popLast", () => {});
-// test("union", () => {});
-// test("symmetricDifference", () => {});
+test("setToRevIterator", () => {
+    expect([...BTree.setToRevIterator(BTree.newSet())]).toStrictEqual([]);
+    expect([...BTree.setToRevIterator(oneToFive)]).toStrictEqual([
+        5n,
+        4n,
+        3n,
+        2n,
+        1n,
+    ]);
+});
+test("has", () => {
+    for (let i = 1n; i <= 5n; ++i) {
+        expect(BTree.has(bigintOrd)(i)(oneToFive)).toStrictEqual(true);
+    }
+    expect(BTree.has(bigintOrd)(0n)(oneToFive)).toStrictEqual(false);
+    expect(BTree.has(bigintOrd)(6n)(oneToFive)).toStrictEqual(false);
+});
+test("first", () => {
+    expect(BTree.first(BTree.newSet())).toStrictEqual(Option.none());
+    expect(BTree.first(oneToFive)).toStrictEqual(Option.some(1n));
+});
+test("last", () => {
+    expect(BTree.last(BTree.newSet())).toStrictEqual(Option.none());
+    expect(BTree.last(oneToFive)).toStrictEqual(Option.some(5n));
+});
+test("push", () => {
+    let map = BTree.newSet<bigint>();
+    for (const x of [2n, 1n, 8n, 2n, 8n]) {
+        map = BTree.push(bigintOrd)(x)(map);
+    }
+
+    const items = [...BTree.setToIterator(map)];
+    expect(items).toStrictEqual(items.toSorted(bigintOrd.cmp));
+});
+test("pop", () => {
+    expect(BTree.pop(bigintOrd)(1n)(BTree.newSet())).toStrictEqual(
+        BTree.newSet(),
+    );
+
+    const modified = BTree.pop(bigintOrd)(1n)(oneToFive);
+    expect([...BTree.setToIterator(modified)]).toStrictEqual([2n, 3n, 4n, 5n]);
+});
+test("popFirst", () => {
+    expect(BTree.popFirst(bigintOrd)(BTree.newSet())).toStrictEqual([
+        Option.none(),
+        BTree.newSet(),
+    ]);
+
+    const [popped, modified] = BTree.popFirst(bigintOrd)(oneToFive);
+    expect(popped).toStrictEqual(Option.some(1n));
+    expect([...BTree.setToIterator(modified)]).toStrictEqual([2n, 3n, 4n, 5n]);
+});
+test("popLast", () => {
+    expect(BTree.popLast(bigintOrd)(BTree.newSet())).toStrictEqual([
+        Option.none(),
+        BTree.newSet(),
+    ]);
+
+    const [popped, modified] = BTree.popLast(bigintOrd)(oneToFive);
+    expect(popped).toStrictEqual(Option.some(5n));
+    expect([...BTree.setToIterator(modified)]).toStrictEqual([1n, 2n, 3n, 4n]);
+});
+
+test("union", () => {
+    const left = BTree.setFromIterable(bigintOrd)([6n, 6n, 1n, 2n, 1n]);
+    const right = BTree.setFromIterable(bigintOrd)([1n, 3n, 5n, 2n]);
+
+    const combined = BTree.union(bigintOrd)(right)(left);
+
+    expect([...combined]).toStrictEqual([1n, 2n, 3n, 5n, 6n]);
+});
+test("symmetricDifference", () => {
+    const left = BTree.setFromIterable(bigintOrd)([6n, 6n, 1n, 2n, 1n]);
+    const right = BTree.setFromIterable(bigintOrd)([1n, 3n, 5n, 2n]);
+
+    const combined = BTree.symmetricDifference(bigintOrd)(right)(left);
+
+    expect([...combined]).toStrictEqual([3n, 5n, 6n]);
+});
 // test("difference", () => {});
 // test("intersection", () => {});
 // test("isDisjoint", () => {});
 // test("isSubset", () => {});
 // test("isSuperset", () => {});
+
 // test("Monoid laws on unionMonoid", () => {});
 // test("setReduceR", () => {});
 // test("setReduceL", () => {});

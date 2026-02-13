@@ -810,10 +810,11 @@ export function* mergeIterator<I>(
 ): Generator<[Option.Option<I>, Option.Option<I>]> {
     let peeked: [""] | ["a", I] | ["b", I] = [""];
     while (true) {
-        const nextA: IteratorResult<I> =
-            peeked[0] === "a" ? { done: false, value: peeked[1] } : genA.next();
-        const nextB: IteratorResult<I> =
-            peeked[0] === "b" ? { done: false, value: peeked[1] } : genB.next();
+        let nextA: IteratorResult<I> =
+            peeked[0] === "a" ? { value: peeked[1], done: false } : genA.next();
+        let nextB: IteratorResult<I> =
+            peeked[0] === "b" ? { value: peeked[1], done: false } : genB.next();
+        peeked = [""];
         if (nextA.done && nextB.done) {
             return;
         }
@@ -821,15 +822,15 @@ export function* mergeIterator<I>(
             switch (cmp(nextA.value, nextB.value)) {
                 case less:
                     peeked = ["b", nextB.value];
+                    nextB = { value: undefined, done: true };
                     break;
                 case equal:
                     break;
                 case greater:
                     peeked = ["a", nextA.value];
+                    nextA = { value: undefined, done: true };
                     break;
             }
-        } else {
-            peeked = [""];
         }
         yield [
             nextA.done ? Option.none() : Option.some(nextA.value),

@@ -652,16 +652,7 @@ export const union =
                 setToIterator(rhs),
                 ord.cmp,
             )) {
-                if (Option.isNone(l)) {
-                    yield Option.unwrap(r);
-                    continue;
-                }
-                if (Option.isNone(r)) {
-                    yield Option.unwrap(l);
-                    continue;
-                }
-                const [left, right] = Option.unwrap(Option.zip(l)(r));
-                yield ord.cmp(left, right) === less ? left : right;
+                yield Option.unwrap(Option.or(l)(r));
             }
         };
 /**
