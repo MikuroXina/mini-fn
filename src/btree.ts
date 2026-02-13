@@ -839,10 +839,10 @@ export const intersection =
                     case equal:
                         yield nextL.value;
                         nextL = genL.next();
-                        nextR = genL.next();
+                        nextR = genR.next();
                         break;
                     case greater:
-                        nextR = genL.next();
+                        nextR = genR.next();
                         break;
                 }
             }

@@ -317,7 +317,14 @@ test("difference", () => {
 
     expect([...combined]).toStrictEqual([6n]);
 });
-// test("intersection", () => {});
+test("intersection", () => {
+    const left = BTree.setFromIterable(bigintOrd)([6n, 6n, 1n, 2n, 1n]);
+    const right = BTree.setFromIterable(bigintOrd)([1n, 3n, 5n, 2n]);
+
+    const combined = BTree.intersection(bigintOrd)(right)(left);
+
+    expect([...combined]).toStrictEqual([1n, 2n]);
+});
 // test("isDisjoint", () => {});
 // test("isSubset", () => {});
 // test("isSuperset", () => {});
