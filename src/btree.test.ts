@@ -469,3 +469,12 @@ test("setReduceL", () => {
         ),
     ).toStrictEqual("");
 });
+
+test("steal from left at fromIterable", () => {
+    const set = BTree.setFromIterable(stringOrd)(
+        [...new Array(11 * (6 + 1) + (6 + 1))].map((_, i) => `${i}`),
+    );
+
+    const actual = [...BTree.setToIterator(set)];
+    expect(actual).toStrictEqual(actual.toSorted(stringOrd.cmp));
+});
