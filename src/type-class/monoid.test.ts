@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { String } from "../../mod.js";
 import { fromIterable } from "../list.js";
+import * as String from "../string.js";
 import {
     addMonoid,
     append,

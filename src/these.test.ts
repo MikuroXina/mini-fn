@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import { List, Number, These, Tuple } from "../mod.js";
+import * as List from "./list.js";
+import * as Number from "./number.js";
 import { unwrap } from "./result.js";
 import {
     decI32Be,
@@ -10,6 +11,8 @@ import {
     runDecoder,
 } from "./serial.js";
 import { semiGroup } from "./string.js";
+import * as These from "./these.js";
+import * as Tuple from "./tuple.js";
 import { nonNanOrd, stringOrd } from "./type-class/ord.js";
 
 test("partial equality", () => {

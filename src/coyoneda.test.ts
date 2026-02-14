@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
-import { Array, Compose, Func, Identity, Option, Zipper } from "../mod.js";
+import * as Array from "./array.js";
+import * as Compose from "./compose.js";
 import {
     applicative,
     type Coyoneda,
@@ -16,8 +17,12 @@ import {
     traversable,
     unCoyoneda,
 } from "./coyoneda.js";
+import * as Func from "./func.js";
 import type { Apply2Only } from "./hkt.js";
+import * as Identity from "./identity.js";
+import * as Option from "./option.js";
 import { strict } from "./type-class/partial-eq.js";
+import * as Zipper from "./zipper.js";
 
 test("hoist", () => {
     const getFirst = <A>(arr: readonly A[]): Option.Option<A> =>

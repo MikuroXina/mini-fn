@@ -12,7 +12,7 @@
  * @packageDocumentation
  */
 
-import { BinaryHeap } from "../mod.js";
+import * as BinaryHeap from "./binary-heap.js";
 import { type CatT, doT } from "./cat.js";
 import type { Apply2Only, Hkt1 } from "./hkt.js";
 import {

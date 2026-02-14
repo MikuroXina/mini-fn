@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
-import { Compose, Seq } from "../mod.js";
 import { applicative as arrayApp } from "./array.js";
 import { doT } from "./cat.js";
+import * as Compose from "./compose.js";
 import { applicative as identityApp } from "./identity.js";
 import * as List from "./list.js";
 import {
@@ -14,6 +14,7 @@ import {
 } from "./option.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
 import { unwrap } from "./result.js";
+import * as Seq from "./seq.js";
 import { decU32Be, encU32Be, runCode, runDecoder } from "./serial.js";
 import { stringEq } from "./type-class/eq.js";
 import { nonNanHash } from "./type-class/hash.js";

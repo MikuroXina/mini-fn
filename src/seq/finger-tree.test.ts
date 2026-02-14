@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { Array } from "../../mod.js";
+import * as Array from "../array.js";
 import { cat } from "../cat.js";
 import {
     appendBetween,

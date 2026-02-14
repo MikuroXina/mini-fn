@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
-import { List } from "../mod.js";
 import { doT } from "./cat.js";
+import * as List from "./list.js";
 import { iota, range, takeWhile, traversable, zip } from "./list.js";
 import {
     applicative,

@@ -1,6 +1,8 @@
 export * as Array from "./src/array.js";
+export * as BigInt from "./src/big-int.js";
 export * as BinaryHeap from "./src/binary-heap.js";
 export * as Bool from "./src/bool.js";
+export * as BTree from "./src/btree.js";
 export * as Cat from "./src/cat.js";
 export * as ComonadCofree from "./src/cofree/comonad.js";
 export * as Cofree from "./src/cofree.js";
@@ -39,6 +41,7 @@ export * as Ordering from "./src/ordering.js";
 export * as Predicate from "./src/predicate.js";
 export * as MonadPromise from "./src/promise/monad.js";
 export * as Promise from "./src/promise.js";
+export * as Range from "./src/range.js";
 export * as RangeQ from "./src/range-q.js";
 export * as MonadReader from "./src/reader/monad.js";
 export * as Reader from "./src/reader.js";

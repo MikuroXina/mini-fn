@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { Array } from "../../mod.js";
+import * as Array from "../array.js";
 import { overCat } from "../optical.js";
 import { bitraversable, type Tuple } from "../tuple.js";
 import { both, traversed } from "./traversal.js";

@@ -1,6 +1,9 @@
 import { expect, test } from "vitest";
-import { Array, Lazy, Number, Option, Tuple } from "../mod.js";
+import * as Array from "./array.js";
 import { compose, id } from "./func.js";
+import * as Lazy from "./lazy.js";
+import * as Number from "./number.js";
+import * as Option from "./option.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
 import { unwrap } from "./result.js";
 import {
@@ -11,6 +14,7 @@ import {
     runCode,
     runDecoder,
 } from "./serial.js";
+import * as Tuple from "./tuple.js";
 import { stringEq } from "./type-class/eq.js";
 import { maxMonoid } from "./type-class/monoid.js";
 import { nonNanOrd, stringOrd } from "./type-class/ord.js";
