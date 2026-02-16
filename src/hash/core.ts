@@ -6,14 +6,15 @@ import {
     readMutRef,
 } from "../mut.js";
 import * as Option from "../option.js";
+import * as Result from "../result.js";
 import type { Hash, Hasher } from "../type-class/hash.js";
 
 const LOAD_FACTOR = 0.875;
 
-export const empty = 0 as const;
-export const sentinel = 1 as const;
-export const tombstone = 2 as const;
-export const full = 3 as const;
+export const empty = (1 << 0) as 1;
+export const sentinel = (1 << 1) as 2;
+export const tombstone = (1 << 2) as 4;
+export const full = (1 << 3) as 8;
 
 export type Control =
     | typeof sentinel
@@ -81,21 +82,22 @@ export const find = <K, V>(
     targetMask: Mask,
     hash: Hash<K>,
     table: Table<K, V>,
-): Option.Option<number> => {
+): Result.Result<number, number> => {
     const pos = keyToStartIndex(key, hash, table.hasher) % table.keys.length;
-    for (let i = 0; ; i += 4) {
+    for (let i = 0; i < table.keys.length; ++i) {
         // linear probing
         const probedPos = (pos + i) % table.keys.length;
         if (
             (table.controls[probedPos]! & targetMask) !== 0 &&
             hash.eq(key, table.keys[probedPos]!)
         ) {
-            return Option.some(probedPos);
+            return Result.ok(probedPos);
         }
         if (table.controls[probedPos]! === empty) {
-            return Option.none();
+            return Result.err(probedPos);
         }
     }
+    throw new Error("out of memory");
 };
 
 export function* findAll<K, V>(
@@ -120,13 +122,15 @@ const extend = <S, K, V>(
                 // return initial size
                 const INITIAL_CAPACITY = 8;
                 table.len = 0;
-                table.controls = new Uint8Array(INITIAL_CAPACITY);
+                table.controls = new Uint8Array(INITIAL_CAPACITY).fill(empty);
                 table.keys = new Array(INITIAL_CAPACITY);
                 table.values = new Array(INITIAL_CAPACITY);
                 return [];
             }
             // extends entries length
-            const controls = new Uint8Array(table.controls.length * 2);
+            const controls = new Uint8Array(table.controls.length * 2).fill(
+                empty,
+            );
             const keys: K[] = new Array(table.keys.length * 2);
             const values: V[] = new Array(table.values.length * 2);
             let len = 0;
@@ -162,17 +166,13 @@ export const write = <S, K, V>(
             }
         })
         .finish(({ table }): Option.Option<V> => {
-            const posOpt = find(
+            const posRes = find(
                 key,
                 controlsToMask(empty, tombstone, full),
                 hash,
                 table,
             );
-            if (Option.isNone(posOpt)) {
-                return Option.none();
-            }
-
-            const pos = Option.unwrap(posOpt);
+            const pos = Result.mergeOkErr(posRes);
             switch (table.controls[pos]!) {
                 case empty:
                 case tombstone:
@@ -203,12 +203,12 @@ export const erase = <S, K, V>(
                 return Option.none();
             }
 
-            const posOpt = find(key, controlsToMask(full), hash, table);
-            if (Option.isNone(posOpt)) {
+            const posRes = find(key, controlsToMask(full), hash, table);
+            if (Result.isErr(posRes)) {
                 return Option.none();
             }
 
-            const pos = Option.unwrap(posOpt);
+            const pos = Result.unwrap(posRes);
             table.len -= 1;
             table.controls[pos] = tombstone;
             return Option.some(table.values[pos]!);

@@ -1,4 +1,6 @@
 import { equal, greater, less, type Ordering } from "./ordering.js";
+import { encUtf8 } from "./serial.js";
+import { fromEncoder, type Hash } from "./type-class/hash.js";
 import type { Monoid } from "./type-class/monoid.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
 import { type SemiGroup, semiGroupSymbol } from "./type-class/semi-group.js";
@@ -29,3 +31,8 @@ export const monoid: Monoid<string> = {
     ...semiGroup,
     identity: "",
 };
+
+/**
+ * A `Hash` instance for `string`.
+ */
+export const hash: Hash<string> = fromEncoder(ord)(encUtf8);

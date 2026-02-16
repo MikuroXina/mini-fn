@@ -60,6 +60,7 @@ import {
 } from "./hash/core.js";
 import { type Mut, type MutRef, mapMut } from "./mut.js";
 import * as Option from "./option.js";
+import * as Result from "./result.js";
 import { defaultHasher, type Hash, type Hasher } from "./type-class/hash.js";
 
 export type { Hash };
@@ -113,8 +114,10 @@ export const get =
     <K>(hash: Hash<K>) =>
     (key: K) =>
     <V>(map: Map<K, V>): Option.Option<V> => {
-        const posOpt = find(key, controlsToMask(full), hash, map);
-        return Option.map((pos: number) => map.values[pos]!)(posOpt);
+        const posRes = find(key, controlsToMask(full), hash, map);
+        return Option.map((pos: number) => map.values[pos]!)(
+            Result.optionOk(posRes),
+        );
     };
 
 /**
