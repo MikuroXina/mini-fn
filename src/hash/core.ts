@@ -137,8 +137,11 @@ const extend = <S, K, V>(
             let len = 0;
             // and then rehash
             for (const [key, value] of findAll(controlsToMask(full), table)) {
-                const pos =
+                let pos =
                     keyToStartIndex(key, hash, table.hasher) % keys.length;
+                while (controls[pos] === full) {
+                    pos = (pos + 1) % keys.length;
+                }
                 controls[pos] = full;
                 keys[pos] = key;
                 values[pos] = value;
