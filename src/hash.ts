@@ -24,6 +24,9 @@
  * - Modify
  *   - `insert`
  *   - `remove`
+ * - Memory cleanup
+ *   - `shrinkTo`
+ *   - `shrinkToFit`
  *
  * ### Set methods
  *
@@ -52,6 +55,7 @@
  * @module Hash
  */
 
+import { doT } from "./cat.js";
 import {
     controlsToMask,
     erase,
@@ -59,6 +63,7 @@ import {
     findAll,
     full,
     newTable,
+    shrink,
     type Table,
     write,
 } from "./hash/core.js";
@@ -67,6 +72,7 @@ import {
     type Mut,
     type MutRef,
     mapMut,
+    monad as mutMonad,
     newMutRef,
     readMutRef,
 } from "./mut.js";
@@ -253,6 +259,31 @@ export const remove =
     (key: K) =>
     <V, S>(map: MutRef<S, Map<K, V>>): Mut<S, Option.Option<V>> =>
         erase(key, hash, map);
+
+/**
+ * Optimizes the allocated capacity with a lower limit `capacity`.
+ *
+ * If the current capacity is less than `capacity`, this will do nothing.
+ *
+ * @param capacity - Minimum capacity target.
+ * @returns Mutating operation that shrinks the capacity of the map.
+ */
+export const shrinkTo =
+    (capacity: number) =>
+    <S, K, V>(map: MutRef<S, Map<K, V>>): Mut<S, never[]> =>
+        shrink(capacity, map);
+
+/**
+ * Optimizes the allocated capacity as much as possible.
+ *
+ * @returns Mutating operation that shrinks the capacity of the map.
+ */
+export const shrinkToFit = <S, K, V>(
+    mapRef: MutRef<S, Map<K, V>>,
+): Mut<S, never[]> =>
+    doT(mutMonad<S>())
+        .addM("map", readMutRef(mapRef))
+        .finishM(({ map }) => shrinkTo(map.len)(mapRef));
 
 // Set methods
 

@@ -4,6 +4,7 @@ import {
     type MutRef,
     monad as mutMonad,
     readMutRef,
+    writeMutRef,
 } from "../mut.js";
 import * as Option from "../option.js";
 import * as Result from "../result.js";
@@ -212,4 +213,35 @@ export const erase = <S, K, V>(
             table.len -= 1;
             table.controls[pos] = tombstone;
             return Option.some(table.values[pos]!);
+        });
+
+export const shrink = <S, K, V>(
+    capacity: number,
+    tableRef: MutRef<S, Table<K, V>>,
+): Mut<S, never[]> =>
+    doT(mutMonad<S>())
+        .addM("table", readMutRef(tableRef))
+        .finishM(({ table }) => {
+            // replace new if it is empty
+            if (
+                table.controls.every(
+                    (control) => control === empty || control === tombstone,
+                )
+            ) {
+                return writeMutRef(tableRef)(newTable(table.hasher));
+            }
+
+            // otherwise truncate empty entries with maintaining the load factor
+            const border = Math.ceil(capacity / LOAD_FACTOR);
+            if (border >= table.controls.length) {
+                return mutMonad<S>().pure([]);
+            }
+            const lastFullIndex = table.controls.lastIndexOf(full);
+            if (lastFullIndex <= border) {
+                return mutMonad<S>().pure([]);
+            }
+            table.controls = table.controls.slice(border, Infinity);
+            table.keys.splice(border, Infinity);
+            table.values.splice(border, Infinity);
+            return mutMonad<S>().pure([]);
         });
