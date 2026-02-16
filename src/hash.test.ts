@@ -45,3 +45,9 @@ test("book reviews example", () => {
         ["The Adventures of Sherlock Holmes", "Eye lyked it alot."],
     ]);
 });
+
+test("fromIterable", () => {
+    const map = Hash.fromIterable(stringHash)([["xxx", 22]]);
+
+    expect(Hash.contains(stringHash)("xxx")(map)).toStrictEqual(true);
+});

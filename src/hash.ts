@@ -10,6 +10,8 @@
  * - Construct
  *   - `newMap`
  *   - `newMapWith`
+ *   - `fromIterable`
+ *   - `fromIterableWith`
  * - Query
  *   - `len`
  *   - `isEmpty`
@@ -28,6 +30,8 @@
  * - Construct
  *   - `newSet`
  *   - `newSetWith`
+ *   - `setFromIterable`
+ *   - `setFromIterableWith`
  * - Query
  *   - `items`
  *   - `isDisjoint`
@@ -58,7 +62,14 @@ import {
     type Table,
     write,
 } from "./hash/core.js";
-import { type Mut, type MutRef, mapMut } from "./mut.js";
+import {
+    doMut,
+    type Mut,
+    type MutRef,
+    mapMut,
+    newMutRef,
+    readMutRef,
+} from "./mut.js";
 import * as Option from "./option.js";
 import * as Result from "./result.js";
 import { defaultHasher, type Hash, type Hasher } from "./type-class/hash.js";
@@ -82,9 +93,46 @@ export const newMap = <K, V>(): Map<K, V> => newTable(defaultHasher());
 /**
  * Creates a new `Map<K, V>` with the provided hasher.
  *
+ * @param hasher - Custom `Hasher` instance.
  * @returns The new hash table dictionary.
  */
 export const newMapWith = <K, V>(hasher: Hasher): Map<K, V> => newTable(hasher);
+
+/**
+ * Creates a new `Map<K, V>` from the iterator of key-value entries.
+ *
+ * @param hash - The `Hash` instance for `K`.
+ * @param iterable - The source of entries.
+ * @returns The new hash table dictionary.
+ */
+export const fromIterable =
+    <K>(hash: Hash<K>) =>
+    <V>(iterable: Iterable<[K, V]>): Map<K, V> =>
+        fromIterableWith(hash)(defaultHasher())(iterable);
+
+/**
+ * Creates a new `Map<K, V>` from the iterator of key-value entries and the custom hasher.
+ *
+ * @param hash - The `Hash` instance for `K`.
+ * @param hasher - Custom `Hasher` instance.
+ * @param iterable - The source of entries.
+ * @returns The new hash table dictionary.
+ */
+export const fromIterableWith =
+    <K>(hash: Hash<K>) =>
+    (hasher: Hasher) =>
+    <V>(iterable: Iterable<[K, V]>): Map<K, V> => {
+        let map = newMapWith<K, V>(hasher);
+        for (const [key, value] of iterable) {
+            map = doMut((cat) =>
+                cat
+                    .addM("map", newMutRef(map))
+                    .addMWith("_", ({ map }) => write(key, value, hash, map))
+                    .finishM(({ map }) => readMutRef(map)),
+            );
+        }
+        return map;
+    };
 
 /**
  * Gets the counts of items in the hash table `map`.
@@ -223,9 +271,46 @@ export const newSet = <T>(): Set<T> => newTable(defaultHasher());
 /**
  * Creates a new `Set<T>` with the provided hasher.
  *
- * @returns The new hash table dictionary.
+ * @param hasher - Custom `Hasher` instance.
+ * @returns The new hash table set.
  */
 export const newSetWith = <T>(hasher: Hasher): Set<T> => newTable(hasher);
+
+/**
+ * Creates a new `Set<T>` from the iterator of items.
+ *
+ * @param hash - The `Hash` instance for `T`.
+ * @param iterable - The source of items.
+ * @returns The new has table set.
+ */
+export const setFromIterable =
+    <T>(hash: Hash<T>) =>
+    (iterable: Iterable<T>): Set<T> =>
+        setFromIterableWith(hash)(defaultHasher())(iterable);
+
+/**
+ * Creates a new `Set<T>` from the iterator of items and the custom hasher.
+ *
+ * @param hash - The `Hash` instance for `T`.
+ * @param hasher - Custom `Hasher` instance.
+ * @param iterable - The source of items.
+ * @returns The new has table set.
+ */
+export const setFromIterableWith =
+    <T>(hash: Hash<T>) =>
+    (hasher: Hasher) =>
+    (iterable: Iterable<T>): Set<T> => {
+        let map = newSetWith<T>(hasher);
+        for (const item of iterable) {
+            map = doMut((cat) =>
+                cat
+                    .addM("map", newMutRef(map))
+                    .addMWith("_", ({ map }) => write(item, [], hash, map))
+                    .finishM(({ map }) => readMutRef(map)),
+            );
+        }
+        return map;
+    };
 
 /**
  * Creates the iterator which generates items in the hash table set `set`.
