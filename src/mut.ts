@@ -33,6 +33,7 @@
 
 import { type CatT, doT } from "./cat.js";
 import type { Apply2Only, Hkt2 } from "./hkt.js";
+import type { Tuple } from "./tuple.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
@@ -179,6 +180,22 @@ export const flatMapMut =
     (thread) => {
         const a = mut(thread);
         return fn(unwrapVar(a))(thread);
+    };
+
+/**
+ * Makes a pair from `left` and `right`.
+ *
+ * @param left - Mutating operation which generates a first item of the tuple.
+ * @param right - Mutating operation which generates a second item of the tuple.
+ * @returns The mutating operation which results the tuple of `left` and `right`.
+ */
+export const productMut =
+    <S, A>(left: Mut<S, A>) =>
+    <B>(right: Mut<S, B>): Mut<S, Tuple<A, B>> =>
+    (thread): MutVar<Tuple<A, B>> => {
+        const l = left(thread);
+        const r = right(thread);
+        return wrapVar([unwrapVar(l), unwrapVar(r)]);
     };
 
 /**
