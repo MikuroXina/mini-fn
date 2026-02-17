@@ -2,6 +2,7 @@ import { doT } from "../cat.js";
 import {
     type Mut,
     type MutRef,
+    mapMut,
     monad as mutMonad,
     readMutRef,
     writeMutRef,
@@ -101,24 +102,61 @@ export const find = <K, V>(
     throw new Error("out of memory");
 };
 
-export function* findAll<K, V>(
-    targetMask: Mask,
-    table: Table<K, V>,
-): Generator<[K, V]> {
+export function* findAllFull<K, V>(table: Table<K, V>): Generator<[K, V]> {
+    let count = 0;
     for (let i = 0; i < table.controls.length; ++i) {
-        if ((table.controls[i]! & targetMask) !== 0) {
+        if (count > table.len) {
+            break;
+        }
+        if (table.controls[i]! === full) {
             yield [table.keys[i]!, table.values[i]!];
+            ++count;
         }
     }
 }
 
-const extend = <S, K, V>(
+export const extendTo = <S, K, V>(
+    capacity: number,
     hash: Hash<K>,
     table: MutRef<S, Table<K, V>>,
 ): Mut<S, never[]> =>
+    mapMut((table: Table<K, V>): never[] => {
+        const newLen = Math.max(capacity, table.controls.length);
+        if (newLen <= table.keys.length) {
+            return [];
+        }
+        const controls = new Uint8Array(newLen).fill(empty);
+        const keys: K[] = new Array(newLen);
+        const values: V[] = new Array(newLen);
+        let len = 0;
+
+        for (const [key, value] of findAllFull(table)) {
+            if (len > table.len) {
+                break;
+            }
+            let pos = keyToStartIndex(key, hash, table.hasher) % newLen;
+            while (controls[pos] === full) {
+                pos = (pos + 1) % newLen;
+            }
+            controls[pos] = full;
+            keys[pos] = key;
+            values[pos] = value;
+            ++len;
+        }
+        table.len = len;
+        table.controls = controls;
+        table.keys = keys;
+        table.values = values;
+        return [];
+    })(readMutRef(table));
+
+const extend = <S, K, V>(
+    hash: Hash<K>,
+    tableRef: MutRef<S, Table<K, V>>,
+): Mut<S, never[]> =>
     doT(mutMonad<S>())
-        .addM("table", readMutRef(table))
-        .finish(({ table }): never[] => {
+        .addM("table", readMutRef(tableRef))
+        .finishM(({ table }) => {
             if (table.keys.length === 0) {
                 // return initial size
                 const INITIAL_CAPACITY = 8;
@@ -126,32 +164,9 @@ const extend = <S, K, V>(
                 table.controls = new Uint8Array(INITIAL_CAPACITY).fill(empty);
                 table.keys = new Array(INITIAL_CAPACITY);
                 table.values = new Array(INITIAL_CAPACITY);
-                return [];
+                return mutMonad<S>().pure([]);
             }
-            // extends entries length
-            const controls = new Uint8Array(table.controls.length * 2).fill(
-                empty,
-            );
-            const keys: K[] = new Array(table.keys.length * 2);
-            const values: V[] = new Array(table.values.length * 2);
-            let len = 0;
-            // and then rehash
-            for (const [key, value] of findAll(controlsToMask(full), table)) {
-                let pos =
-                    keyToStartIndex(key, hash, table.hasher) % keys.length;
-                while (controls[pos] === full) {
-                    pos = (pos + 1) % keys.length;
-                }
-                controls[pos] = full;
-                keys[pos] = key;
-                values[pos] = value;
-                ++len;
-            }
-            table.len = len;
-            table.controls = controls;
-            table.keys = keys;
-            table.values = values;
-            return [];
+            return extendTo(table.controls.length * 2, hash, tableRef);
         });
 
 export const write = <S, K, V>(

@@ -61,7 +61,13 @@ test("book reviews example", () => {
 
 test("insert and remove many items", () => {
     let map = Hash.newMap<string, number>();
-    for (let i = 0; i < 20; ++i) {
+    map = doMut((cat) =>
+        cat
+            .addM("map", newMutRef(map))
+            .addMWith("_", ({ map }) => Hash.reserve(stringHash)(100)(map))
+            .finishM(({ map }) => readMutRef(map)),
+    );
+    for (let i = 0; i < 100; ++i) {
         map = doMut((cat) =>
             cat
                 .addM("map", newMutRef(map))
@@ -74,11 +80,11 @@ test("insert and remove many items", () => {
                 }),
         );
     }
-    for (let i = 0; i < 20; ++i) {
+    for (let i = 0; i < 100; ++i) {
         expect(Hash.contains(stringHash)(`${i}`)(map)).toStrictEqual(true);
     }
 
-    for (let i = 0; i < 20; ++i) {
+    for (let i = 0; i < 100; ++i) {
         map = doMut((cat) =>
             cat
                 .addM("map", newMutRef(map))
@@ -91,7 +97,7 @@ test("insert and remove many items", () => {
                 }),
         );
     }
-    for (let i = 0; i < 20; ++i) {
+    for (let i = 0; i < 100; ++i) {
         expect(Hash.contains(stringHash)(`${i}`)(map)).toStrictEqual(false);
     }
     expect(Hash.isEmpty(map)).toStrictEqual(true);
@@ -274,8 +280,14 @@ test("isSuperset", () => {
     expect(Hash.isSuperset(bigintHash)(b)(a)).toStrictEqual(false);
 });
 
-test("shrinkTo", () => {
+test("reserve and shrinkTo", () => {
     let map = Hash.newMap<string, number>();
+    map = doMut((cat) =>
+        cat
+            .addM("map", newMutRef(map))
+            .addMWith("_", ({ map }) => Hash.reserve(stringHash)(20)(map))
+            .finishM(({ map }) => readMutRef(map)),
+    );
     for (let i = 0; i < 20; ++i) {
         map = doMut((cat) =>
             cat

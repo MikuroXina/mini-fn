@@ -24,6 +24,7 @@
  * - Modify
  *   - `insert`
  *   - `remove`
+ *   - `reserve`
  * - Memory cleanup
  *   - `shrinkTo`
  *   - `shrinkToFit`
@@ -59,8 +60,9 @@ import { doT } from "./cat.js";
 import {
     controlsToMask,
     erase,
+    extendTo,
     find,
-    findAll,
+    findAllFull,
     full,
     newTable,
     shrink,
@@ -69,6 +71,7 @@ import {
 } from "./hash/core.js";
 import {
     doMut,
+    flatMapMut,
     type Mut,
     type MutRef,
     mapMut,
@@ -195,7 +198,7 @@ export const contains =
  * @returns The generator of key-value pairs in `map`.
  */
 export function* entries<K, V>(map: Map<K, V>): Generator<[K, V]> {
-    yield* findAll(controlsToMask(full), map);
+    yield* findAllFull(map);
 }
 
 /**
@@ -259,6 +262,24 @@ export const remove =
     (key: K) =>
     <V, S>(map: MutRef<S, Map<K, V>>): Mut<S, Option.Option<V>> =>
         erase(key, hash, map);
+
+/**
+ * Reserves the capacity for at least `additional` more elements to be inserted in the hash table dictionary. Does nothing if the capacity is already sufficient. After calling this, it will not occur reallocation to append `additional` items with {@link insert}.
+ *
+ * If you know the amount to insert before, you should use this to reduce reallocations.
+ *
+ * @param hash - The `Hash` instance for `K`.
+ * @param additional - Amount to allocate additionally.
+ * @param mapRef - To be modified.
+ * @returns Mutating computation which reserves the capacity.
+ */
+export const reserve =
+    <K>(hash: Hash<K>) =>
+    (additional: number) =>
+    <S, V>(mapRef: MutRef<S, Map<K, V>>): Mut<S, never[]> =>
+        flatMapMut((map: Map<K, V>) =>
+            extendTo(map.len + additional, hash, mapRef),
+        )(readMutRef(mapRef));
 
 /**
  * Optimizes the allocated capacity with a lower limit `capacity`.
