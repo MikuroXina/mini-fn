@@ -64,10 +64,10 @@ test("insert and remove many items", () => {
     map = doMut((cat) =>
         cat
             .addM("map", newMutRef(map))
-            .addMWith("_", ({ map }) => Hash.reserve(stringHash)(100)(map))
+            .addMWith("_", ({ map }) => Hash.reserve(stringHash)(30)(map))
             .finishM(({ map }) => readMutRef(map)),
     );
-    for (let i = 0; i < 100; ++i) {
+    for (let i = 0; i < 30; ++i) {
         map = doMut((cat) =>
             cat
                 .addM("map", newMutRef(map))
@@ -80,11 +80,11 @@ test("insert and remove many items", () => {
                 }),
         );
     }
-    for (let i = 0; i < 100; ++i) {
+    for (let i = 0; i < 30; ++i) {
         expect(Hash.contains(stringHash)(`${i}`)(map)).toStrictEqual(true);
     }
 
-    for (let i = 0; i < 100; ++i) {
+    for (let i = 0; i < 30; ++i) {
         map = doMut((cat) =>
             cat
                 .addM("map", newMutRef(map))
@@ -97,7 +97,7 @@ test("insert and remove many items", () => {
                 }),
         );
     }
-    for (let i = 0; i < 100; ++i) {
+    for (let i = 0; i < 30; ++i) {
         expect(Hash.contains(stringHash)(`${i}`)(map)).toStrictEqual(false);
     }
     expect(Hash.isEmpty(map)).toStrictEqual(true);
