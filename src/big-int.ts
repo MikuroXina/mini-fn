@@ -1,12 +1,14 @@
 import type { Generic, GenericRepHkt, Recurse0 } from "./generic.js";
 import { none, type Option, some } from "./option.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
+import { encU64Le } from "./serial.js";
 import {
     type AbelianGroup,
     type AbelianGroupExceptZero,
     abelSymbol,
 } from "./type-class/abelian-group.js";
 import type { Field } from "./type-class/field.js";
+import { fromEncoder, type Hash } from "./type-class/hash.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
 import type { PartialOrd } from "./type-class/partial-ord.js";
 import type { Ring } from "./type-class/ring.js";
@@ -25,6 +27,11 @@ export const ord: Ord<bigint> = fromCmp(() => cmp)();
 export const partialCmp = (lhs: bigint, rhs: bigint): Option<Ordering> =>
     some(cmp(lhs, rhs));
 export const partialOrd: PartialOrd<bigint> = ord;
+
+/**
+ * The `Encoder` instance for `bigint` of 64-bit width unsigned integer.
+ */
+export const hash: Hash<bigint> = fromEncoder(ord)(encU64Le);
 
 export const addAbelianGroup: AbelianGroup<bigint> = {
     combine: (l, r) => l + r,
