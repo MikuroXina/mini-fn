@@ -34,3 +34,6 @@ jobs:
 
             - name: Dry run publish
               run: pnpm publish --dry-run --no-git-checks
+
+            - name: Dry run publish to jsr
+              run: pnpx jsr publish --dry-run

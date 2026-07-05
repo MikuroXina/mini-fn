@@ -2,9 +2,15 @@ import type { MonadCont } from "./cont/monad.js";
 import { type ControlFlow, isContinue, newContinue } from "./control-flow.js";
 import { id } from "./func.js";
 import type { Apply2Only, Get1, Hkt1, Hkt2 } from "./hkt.js";
-import { traversableMonad as optionTraversableMonad } from "./option.js";
+import {
+    type OptionHkt,
+    traversableMonad as optionTraversableMonad,
+} from "./option.js";
 import type { MonadPromise } from "./promise/monad.js";
-import { traversableMonad as resultTraversableMonad } from "./result.js";
+import {
+    type ResultHkt,
+    traversableMonad as resultTraversableMonad,
+} from "./result.js";
 import type { Alternative } from "./type-class/alternative.js";
 import type { Applicative } from "./type-class/applicative.js";
 import type { Apply } from "./type-class/apply.js";
@@ -213,20 +219,27 @@ export const monadPlusT = <M>(
 /**
  * A `Monad` instance for `Promise<Option<_>>`.
  */
-export const optionMonad = () => monadT(optionTraversableMonad);
+export const optionMonad = (): Monad<Apply2Only<PromiseTHkt, OptionHkt>> =>
+    monadT(optionTraversableMonad);
 /**
  * A `MonadPlus` instance for `Promise<Option<_>>`.
  */
-export const optionMonadPlus = () => monadPlusT(optionTraversableMonad);
+export const optionMonadPlus = (): MonadPlus<
+    Apply2Only<PromiseTHkt, OptionHkt>
+> => monadPlusT(optionTraversableMonad);
 
 /**
  * A `Monad` instance for `Promise<Result<E, _>>`.
  */
-export const resultMonad = <E>() => monadT(resultTraversableMonad<E>());
+export const resultMonad = <E>(): Monad<
+    Apply2Only<PromiseTHkt, Apply2Only<ResultHkt, E>>
+> => monadT(resultTraversableMonad<E>());
 /**
  * A `MonadPlus` instance for `Promise<Result<E, _>>`.
  */
-export const resultMonadPlus = <E>() => monadPlusT(resultTraversableMonad<E>());
+export const resultMonadPlus = <E>(): MonadPlus<
+    Apply2Only<PromiseTHkt, Apply2Only<ResultHkt, E>>
+> => monadPlusT(resultTraversableMonad<E>());
 
 /**
  * Makes a new `Promise` that always fails over.
