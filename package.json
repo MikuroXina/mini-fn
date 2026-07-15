@@ -12,7 +12,7 @@
         "url": "https://github.com/MikuroXina/mini-fn/issues"
     },
     "scripts": {
-        "build": "tsup mod.ts --dts --format esm",
+        "build": "tsup",
         "prepublishOnly": "pnpm run build",
         "test": "vitest",
         "coverage": "vitest run --coverage --coverage.provider v8 --coverage.reporter cobertura",
@@ -29,12 +29,13 @@
     },
     "type": "module",
     "sideEffects": false,
-    "packageManager": "pnpm@10.28.0+sha512.05df71d1421f21399e053fde567cea34d446fa02c76571441bfc1c7956e98e363088982d940465fd34480d4d90a0668bc12362f8aa88000a64e83d0b0e47be48",
+    "packageManager": "pnpm@11.13.0+sha512.88d94724d8f2e6c186744a5584c6e59ecac869ec7ba15e9cb4cd628e8dc7066820b2481d8ee3b51ea8da323a7378068aa58c556a3720d32b7c20a051d088363a",
     "devDependencies": {
         "@biomejs/biome": "^2.3.11",
         "@vitest/coverage-v8": "4.0.17",
         "tsup": "^8.5.1",
         "typedoc": "^0.28.16",
+        "typescript": "^6.0.3",
         "vite-plugin-doctest": "^1.1.1",
         "vitest": "^4.0.17"
     }
