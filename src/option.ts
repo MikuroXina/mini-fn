@@ -36,6 +36,7 @@ import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { ErrorMonad } from "./type-class/error-monad.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
+import type { MonadFail } from "./type-class/monad-fail.js";
 import type { MonadPlus } from "./type-class/monad-plus.js";
 import type { Monoid } from "./type-class/monoid.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
@@ -898,6 +899,11 @@ export const monadPlus: MonadPlus<OptionHkt> = {
     ...alternative,
     ...monad,
 };
+
+/**
+ * The `MonadFail` instance for `Option`.
+ */
+export const monadFail: MonadFail<OptionHkt> = { ...monad, fail: none };
 
 export const ifSome = <T, U>(): Optic<Option<T>, Option<U>, T, U> =>
     newPrism<U, Option<U>>(some)(

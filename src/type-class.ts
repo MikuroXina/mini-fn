@@ -29,6 +29,7 @@ export * as Indexed from "./type-class/indexed.js";
 export * as Iso from "./type-class/iso.js";
 export * as Magma from "./type-class/magma.js";
 export * as Monad from "./type-class/monad.js";
+export * as MonadFail from "./type-class/monad-fail.js";
 export * as MonadPlus from "./type-class/monad-plus.js";
 export * as MonadRec from "./type-class/monad-rec.js";
 export * as Monoid from "./type-class/monoid.js";

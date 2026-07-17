@@ -18,6 +18,7 @@ import { type FlatMap, flatten } from "./type-class/flat-map.js";
 import type { Foldable } from "./type-class/foldable.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
+import type { MonadFail } from "./type-class/monad-fail.js";
 import type { MonadPlus } from "./type-class/monad-plus.js";
 import type { MonadRec } from "./type-class/monad-rec.js";
 import type { Pure } from "./type-class/pure.js";
@@ -459,3 +460,8 @@ export const monadPlus: MonadPlus<PromiseHkt> = {
     ...alternative,
     ...monad,
 };
+
+/**
+ * The `MonadFail` instance for `Promise`.
+ */
+export const monadFail: MonadFail<PromiseHkt> = { ...monad, fail };
