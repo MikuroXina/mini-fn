@@ -13,6 +13,7 @@ import {
     fromProjection as eqFromProjection,
 } from "./type-class/eq.js";
 import type { Monad } from "./type-class/monad.js";
+import type { MonadPlus } from "./type-class/monad-plus.js";
 import {
     type Ord,
     fromProjection as ordFromProjection,
@@ -300,6 +301,326 @@ export const withT =
     <M>(monad: Monad<M>) =>
     <CTX extends Record<PropertyKey, unknown>>(ctx: CTX): CatT<M, CTX> =>
         catT(monad)(monad.pure(ctx));
+
+/**
+ * A {@link Cat.CatPlusT | `CatPlusT`}'s sub-combinator which chains alternate branches with its method `or`.
+ *
+ * @typeParam M - HKT key applied to `MonadPlus`.
+ * @typeParam CTX - Passing context type.
+ * @typeParam K - Key literal type to store the result of branches.
+ * @typeParam T - Returning type of branches.
+ */
+export type CatPlusAltT<M, CTX, K extends PropertyKey, T> = {
+    /**
+     * Connects the computation in parallel.
+     *
+     * @param action - Function to make a computation from `CatPlusT`.
+     * @returns A new sub-combinator with the computation made from `action`.
+     */
+    readonly or: (
+        action: (cat: CatPlusT<M, CTX>) => Get1<M, T>,
+    ) => CatPlusAltT<M, CTX, K, T>;
+
+    /**
+     * Finishes branches chain and go back to the `CatPlusT`.
+     * @returns A joined combinator {@link Cat.CatPlusT | `CatPlusT`}.
+     */
+    readonly end: () => CatPlusT<M, Record<K, T> & CTX>;
+};
+
+const catPlusAltT =
+    <M>(monadPlus: MonadPlus<M>) =>
+    <CTX>(ctx: Get1<M, CTX>) =>
+    <K extends PropertyKey>(key: K) =>
+    <T>(combined: Get1<M, T>): CatPlusAltT<M, CTX, K, T> => ({
+        or: (action) =>
+            catPlusAltT(monadPlus)(ctx)(key)(
+                monadPlus.alt(combined)(action(catPlusT(monadPlus)(ctx))),
+            ),
+        end: () =>
+            catPlusT(monadPlus)(
+                monadPlus.flatMap((c: CTX) =>
+                    monadPlus.map(
+                        (res: T) =>
+                            ({ ...c, [key]: res }) as Record<K, T> & CTX,
+                    )(combined),
+                )(ctx),
+            ),
+    });
+
+/**
+ * A combinator which contains a `ctx` and can be transformed it into another one by its methods.
+ *
+ * @typeParam M - HKT key applied to `MonadPlus`.
+ * @typeParam CTX - Passing context type.
+ */
+export type CatPlusT<M, CTX> = {
+    /**
+     * Contained context. Altering an interior value must be abstained, or may occurs unsound behaviors.
+     */
+    readonly ctx: Get1<M, CTX>;
+
+    /**
+     * The `MonadPlus` instance for `M`.
+     */
+    readonly monadPlus: MonadPlus<M>;
+
+    /**
+     * Binds a new value wrapped by the monad.
+     *
+     * @param key - The new property key for context
+     * @param value - The wrapped value to bind.
+     * @returns A new `CatT` containing the value at the key.
+     */
+    readonly addM: <const K extends PropertyKey, A>(
+        key: K,
+        value: Get1<M, A>,
+    ) => CatPlusT<M, Record<K, A> & CTX>;
+
+    /**
+     * Appends a new value calculated from `ctx` by `fn`.
+     *
+     * @param key - The new property key for context
+     * @param fn - The calculation.
+     * @returns A new `CatT` containing the value at the key.
+     */
+    readonly addWith: <const K extends PropertyKey, A>(
+        key: K,
+        fn: (ctx: CTX) => A,
+    ) => CatPlusT<M, Record<K, A> & CTX>;
+
+    /**
+     * Runs the computation.
+     *
+     * @param computation - The computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly run: (computation: Get1<M, never[]>) => CatPlusT<M, CTX>;
+
+    /**
+     * Runs the computation with the context.
+     *
+     * @param computation - The computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly runWith: (
+        computation: (ctx: CTX) => Get1<M, never[]>,
+    ) => CatPlusT<M, CTX>;
+
+    /**
+     * Binds a new value wrapped by the monad, calculated from `ctx` by `fn`.
+     *
+     * @param key - The new property key for context
+     * @param fn - The calculation which returns the wrapped value.
+     * @returns A new `CatT` containing the value at the key.
+     */
+    readonly addMWith: <const K extends PropertyKey, A>(
+        key: K,
+        fn: (ctx: CTX) => Get1<M, A>,
+    ) => CatPlusT<M, Record<K, A> & CTX>;
+
+    /**
+     * Runs a computation if only `cond` is satisfied.
+     *
+     * @param cond - A condition function.
+     * @param computation - A monadic operation used only if `cond` returns `true`.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly when: (
+        cond: (ctx: CTX) => boolean,
+        computation: (ctx: CTX) => Get1<M, never[]>,
+    ) => CatPlusT<M, CTX>;
+
+    /**
+     * Runs a looping computation while it returns `Continue<S>`.
+     *
+     * @param initState - An initial state.
+     * @param body - A computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly loop: <S>(
+        initState: S,
+        body: (state: S, ctx: CTX) => Get1<M, ControlFlow<never[], S>>,
+    ) => CatPlusT<M, CTX>;
+
+    /**
+     * Runs a looping computation while `cond` returns `true`.
+     *
+     * @param cond - A function to decide to continue the loop.
+     * @param body - A computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly while: (
+        cond: (ctx: CTX) => Get1<M, boolean>,
+        body: (ctx: CTX) => Get1<M, never[]>,
+    ) => CatPlusT<M, CTX>;
+
+    /**
+     * Aborts the execution and return early.
+     *
+     * @returns The exiting computation.
+     */
+    readonly abort: () => CatPlusT<M, CTX>;
+
+    /**
+     * Asserts the condition is satisfied. Otherwise, the computation will exit.
+     *
+     * @param cond - The predicate which should be satisfied.
+     * @returns The exiting computation when `cond` returned `false`, or does nothing.
+     */
+    readonly assert: (cond: (ctx: CTX) => boolean) => CatPlusT<M, CTX>;
+
+    /**
+     * Starts an alternate branches combinator {@link Cat.CatPlusAltT | `CatPlusAltT`}.
+     *
+     * @returns A new alternate branches combinator.
+     */
+    readonly alt: <K extends PropertyKey, T>(
+        key: K,
+        action: (cat: CatPlusT<M, CTX>) => Get1<M, T>,
+    ) => CatPlusAltT<M, CTX, K, T>;
+
+    /**
+     * Reduces the context into a value by `fn`.
+     *
+     * @param fn - The finishing computation.
+     * @returns A reduced value.
+     */
+    readonly finish: <R>(fn: (ctx: CTX) => R) => Get1<M, R>;
+
+    /**
+     * Reduces the context into a value on `M` by `fn`.
+     *
+     * @param fn - The finishing computation.
+     * @returns A reduced value on `M`.
+     */
+    readonly finishM: <R>(fn: (ctx: CTX) => Get1<M, R>) => Get1<M, R>;
+};
+
+/**
+ * Creates a new `MonadPlusT` with context wrapped in HKT `M`.
+ *
+ * @param monadPlus - A `MonadPlus` instance for `M`.
+ * @returns A new computation combinator.
+ */
+export const catPlusT =
+    <M>(monadPlus: MonadPlus<M>) =>
+    <CTX>(ctx: Get1<M, CTX>): CatPlusT<M, CTX> => ({
+        ctx,
+        monadPlus,
+        addM: <const K extends PropertyKey, A>(key: K, value: Get1<M, A>) =>
+            catPlusT(monadPlus)(
+                monadPlus.flatMap((c: CTX) =>
+                    monadPlus.map(
+                        (v: A) => ({ ...c, [key]: v }) as Record<K, A> & CTX,
+                    )(value),
+                )(ctx),
+            ),
+        addWith: <const K extends PropertyKey, A>(
+            key: K,
+            fn: (ctx: CTX) => A,
+        ) =>
+            catPlusT(monadPlus)(
+                monadPlus.map(
+                    (c: CTX) =>
+                        ({
+                            ...c,
+                            [key]: fn(c),
+                        }) as Record<K, A> & CTX,
+                )(ctx),
+            ),
+        run: (computation) =>
+            catPlusT(monadPlus)(
+                monadPlus.flatMap((c: CTX) =>
+                    monadPlus.map(() => c)(computation),
+                )(ctx),
+            ),
+        runWith: (computation) =>
+            catPlusT(monadPlus)(
+                monadPlus.flatMap((c: CTX) =>
+                    monadPlus.map(() => c)(computation(c)),
+                )(ctx),
+            ),
+        addMWith: <const K extends PropertyKey, A>(
+            key: K,
+            fn: (ctx: CTX) => Get1<M, A>,
+        ) =>
+            catPlusT(monadPlus)(
+                monadPlus.flatMap((c: CTX) =>
+                    monadPlus.map(
+                        (v: A) => ({ ...c, [key]: v }) as Record<K, A> & CTX,
+                    )(fn(c)),
+                )(ctx),
+            ),
+        when: (cond, computation) =>
+            catPlusT(monadPlus)(
+                monadPlus.flatMap((c: CTX) =>
+                    monadPlus.map(() => c)(
+                        cond(c) ? computation(c) : monadPlus.pure([]),
+                    ),
+                )(ctx),
+            ),
+        loop: <S>(
+            initialState: S,
+            body: (state: S, ctx: CTX) => Get1<M, ControlFlow<never[], S>>,
+        ): CatPlusT<M, CTX> => {
+            const go = (state: S): Get1<M, CTX> =>
+                monadPlus.flatMap((c: CTX) =>
+                    monadPlus.flatMap(
+                        (flow: ControlFlow<never[], S>): Get1<M, CTX> =>
+                            isBreak(flow) ? monadPlus.pure(c) : go(flow[1]),
+                    )(body(state, c)),
+                )(ctx);
+            return catPlusT(monadPlus)(go(initialState));
+        },
+        while: (cond, body) => {
+            const go = (ctx: Get1<M, CTX>): Get1<M, CTX> =>
+                monadPlus.flatMap((c: CTX) =>
+                    monadPlus.flatMap((bool: boolean) =>
+                        bool
+                            ? monadPlus.flatMap(() => go(ctx))(body(c))
+                            : monadPlus.pure(c),
+                    )(cond(c)),
+                )(ctx);
+            return catPlusT(monadPlus)(go(ctx));
+        },
+        finish: <R>(fn: (ctx: CTX) => R) => monadPlus.map(fn)(ctx),
+        finishM: (fn) => monadPlus.flatMap(fn)(ctx),
+        abort: () => catPlusT(monadPlus)(monadPlus.empty()),
+        assert: (cond) =>
+            catPlusT(monadPlus)(
+                monadPlus.flatMap((c: CTX) =>
+                    monadPlus.map(() => c)(
+                        cond(c)
+                            ? monadPlus.pure([])
+                            : monadPlus.empty<never[]>(),
+                    ),
+                )(ctx),
+            ),
+        alt: (key, action) =>
+            catPlusAltT(monadPlus)(ctx)(key)(action(catPlusT(monadPlus)(ctx))),
+    });
+
+/**
+ * Creates a new `MonadPlusT` with context object.
+ *
+ * @param monadPlus - A `MonadPlus` instance for `M`.
+ * @returns A new computation combinator.
+ */
+export const withPlusT =
+    <M>(monadPlus: MonadPlus<M>) =>
+    <CTX>(context: CTX): CatPlusT<M, CTX> =>
+        catPlusT(monadPlus)(monadPlus.pure(context));
+
+/**
+ * Creates a new `MonadPlusT` with the empty context object.
+ *
+ * @param monadPlus - A `MonadPlus` instance for `M`.
+ * @returns A new computation combinator.
+ */
+export const doPlusT = <M>(
+    monadPlus: MonadPlus<M>,
+): CatPlusT<M, Record<string, never>> => withPlusT(monadPlus)({});
 
 export interface CatHkt extends Hkt1 {
     readonly type: Cat<this["arg1"]>;

@@ -295,7 +295,7 @@ export const flatMap: <T, U>(
 export const apply: <T, U>(
     fn: Promise<(t: T) => U>,
 ) => (t: Promise<T>) => Promise<U> = (f) => (t) =>
-    t.then((value) => f.then((func) => func(value)));
+    f.then((func) => t.then((value) => func(value)));
 
 /**
  * Transform the continuation-passing style into the promise. The parameter for `computation` is `continuation` error handle which aborts the computation.
@@ -383,8 +383,10 @@ export const resolve: <T>(value: T | PromiseLike<T>) => Promise<Awaited<T>> =
 /**
  * Picks the first successful computation. It will try `first` at first, but if `first` throws an error, it discards the error and uses `second`.
  *
- * @param first - The first attempt.
+ * Note that the arguments of `Promise`s are reversed for partial application with `Cat`s.
+ *
  * @param second - The second attempt.
+ * @param first - The first attempt.
  * @returns The first successful computation.
  */
 export const alt =

@@ -1,7 +1,9 @@
 import { expect, test, vi } from "vitest";
+import * as Array from "./array.js";
 import {
     apply,
     cat,
+    doPlusT,
     doT,
     flatMap,
     flatten,
@@ -12,7 +14,10 @@ import {
     withT,
 } from "./cat.js";
 import { newBreak, newContinue } from "./control-flow.js";
+import type { Get1 } from "./hkt.js";
+import * as Promise from "./promise.js";
 import { get as getState, monad, put, runState } from "./state.js";
+import type { MonadPlus } from "./type-class/monad-plus.js";
 
 const m = monad<number>();
 
@@ -129,4 +134,53 @@ test("flatMap", () => {
 
 test("apply", () => {
     expect(apply(cat((x: number) => x / 2))(cat(8)).value).toStrictEqual(4);
+});
+
+test("CatPlusT.assert", async () => {
+    const findMod2And3 =
+        <M>(mPlus: MonadPlus<M>) =>
+        (nums: Get1<M, number>): Get1<M, number> =>
+            doPlusT(mPlus)
+                .addM("num", nums)
+                .assert(({ num }) => num % 2 === 0)
+                .assert(({ num }) => num % 3 === 0)
+                .finish(({ num }) => num);
+
+    expect(
+        await findMod2And3(Promise.monadPlus)(Promise.pure(42)),
+    ).toStrictEqual(42);
+    await expect(
+        findMod2And3(Promise.monadPlus)(Promise.pure(8)),
+    ).rejects.toThrow();
+    expect(
+        findMod2And3(Array.monadPlus)([1, 4, 2, 3, 12, 34, 17, 8, 18, 9, 5, 6]),
+    ).toStrictEqual([12, 18, 6]);
+});
+
+test("CatPlusT.alt", async () => {
+    const div2Or3 =
+        <M>(mPlus: MonadPlus<M>) =>
+        (nums: Get1<M, number>): Get1<M, number> =>
+            doPlusT(mPlus)
+                .addM("num", nums)
+                .alt("twoThree", (cat) =>
+                    cat
+                        .assert(({ num }) => num % 2 === 0)
+                        .finish(({ num }) => num / 2),
+                )
+                .or((cat) =>
+                    cat
+                        .assert(({ num }) => num % 3 === 0)
+                        .finish(({ num }) => num / 3),
+                )
+                .end()
+                .finish(({ twoThree }) => twoThree);
+
+    expect(await div2Or3(Promise.monadPlus)(Promise.pure(42))).toStrictEqual(
+        21,
+    );
+    expect(await div2Or3(Promise.monadPlus)(Promise.pure(15))).toStrictEqual(5);
+    await expect(
+        div2Or3(Promise.monadPlus)(Promise.pure(41)),
+    ).rejects.toThrow();
 });

@@ -5,7 +5,10 @@ import type { Alternative } from "./alternative.js";
 import type { Monad } from "./monad.js";
 
 /**
- * A monad with monoid-ish combine operation.
+ * A monad with monoid-ish combine operation. An instance `m` of `MonadPlus` must satisfy the following laws:
+ *
+ * - Left identity: For all `f`; `m.flatMap(f)(m.empty())` equals to `m.empty()`,
+ * - Right identity: For all `v`; `m.flatMap(() => m.empty())(v)` equals to `m.empty()`.
  */
 export interface MonadPlus<M> extends Monad<M>, Alternative<M> {}
 

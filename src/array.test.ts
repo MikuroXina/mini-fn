@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import {
+    alternative,
     cmp,
     dec,
     enc,
@@ -7,6 +8,7 @@ import {
     foldR,
     fromReduce,
     monad,
+    monadPlus,
     partialCmp,
     partialEquality,
     reduceL,
@@ -152,6 +154,37 @@ test("applicative", () => {
     }
 });
 
+test("alternative", () => {
+    const a = alternative;
+
+    // associativity
+    const pi = [3, 1, 4];
+    const napier = [2, 1, 8];
+    const threeN = [3, 6, 9];
+    expect(a.alt(a.alt(pi)(napier))(threeN)).toStrictEqual(
+        a.alt(pi)(a.alt(napier)(threeN)),
+    );
+
+    // distributivity
+    const adds = [(x: number) => x + 1, (x: number) => x + 2];
+    const times = [(x: number) => x * 3, (x: number) => x * 4];
+    const passcode = [1, 4, 2, 3, 5, 2, 3];
+    expect(a.apply(a.alt(adds)(times))(passcode)).toStrictEqual(
+        a.alt(a.apply(adds)(passcode))(a.apply(times)(passcode)),
+    );
+
+    // left identity
+    expect(a.alt(a.empty<number>())(passcode)).toStrictEqual(passcode);
+
+    // right identity
+    expect(a.alt(passcode)(a.empty())).toStrictEqual(passcode);
+
+    // annihilation
+    expect(a.apply(a.empty<(x: number) => number>())(passcode)).toStrictEqual(
+        a.empty<(x: number) => number>(),
+    );
+});
+
 test("monad", () => {
     const data = [1, 4, 2, 3, 5, 2, 3];
     const add = (x: number) => [x + 1, x + 2, x + 3];
@@ -167,6 +200,19 @@ test("monad", () => {
     // associativity
     expect(monad.flatMap(add)(monad.flatMap(mul)(data))).toStrictEqual(
         monad.flatMap((x: number) => monad.flatMap(add)(mul(x)))(data),
+    );
+});
+
+test("monadPlus", () => {
+    const m = monadPlus;
+
+    // left identity
+    const addSub = (x: number) => [x + 1, x - 1];
+    expect(m.flatMap(addSub)(m.empty())).toStrictEqual(m.empty());
+
+    // right identity
+    expect(m.flatMap(() => m.empty())([3, 1, 4, 1, 5, 9, 2])).toStrictEqual(
+        m.empty(),
     );
 });
 
