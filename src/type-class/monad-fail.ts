@@ -1,4 +1,4 @@
-import type { Get1 } from "src/hkt.js";
+import type { Get1 } from "../hkt.js";
 import type { Monad } from "./monad.js";
 import type { MonadPlus } from "./monad-plus.js";
 
