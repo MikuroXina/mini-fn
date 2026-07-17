@@ -13,6 +13,7 @@ import {
     fromProjection as eqFromProjection,
 } from "./type-class/eq.js";
 import type { Monad } from "./type-class/monad.js";
+import type { MonadFail } from "./type-class/monad-fail.js";
 import type { MonadPlus } from "./type-class/monad-plus.js";
 import {
     type Ord,
@@ -329,18 +330,18 @@ export type CatPlusAltT<M, CTX, K extends PropertyKey, T> = {
 };
 
 const catPlusAltT =
-    <M>(monadPlus: MonadPlus<M>) =>
+    <M>(monadFail: MonadPlus<M>) =>
     <CTX>(ctx: Get1<M, CTX>) =>
     <K extends PropertyKey>(key: K) =>
     <T>(combined: Get1<M, T>): CatPlusAltT<M, CTX, K, T> => ({
         or: (action) =>
-            catPlusAltT(monadPlus)(ctx)(key)(
-                monadPlus.alt(combined)(action(catPlusT(monadPlus)(ctx))),
+            catPlusAltT(monadFail)(ctx)(key)(
+                monadFail.alt(combined)(action(catPlusT(monadFail)(ctx))),
             ),
         end: () =>
-            catPlusT(monadPlus)(
-                monadPlus.flatMap((c: CTX) =>
-                    monadPlus.map(
+            catPlusT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(
                         (res: T) =>
                             ({ ...c, [key]: res }) as Record<K, T> & CTX,
                     )(combined),
@@ -363,7 +364,7 @@ export type CatPlusT<M, CTX> = {
     /**
      * The `MonadPlus` instance for `M`.
      */
-    readonly monadPlus: MonadPlus<M>;
+    readonly monadFail: MonadPlus<M>;
 
     /**
      * Binds a new value wrapped by the monad.
@@ -500,18 +501,19 @@ export type CatPlusT<M, CTX> = {
 /**
  * Creates a new `MonadPlusT` with context wrapped in HKT `M`.
  *
- * @param monadPlus - A `MonadPlus` instance for `M`.
+ * @param monadFail - A `MonadPlus` instance for `M`.
+ * @param ctx - A new context dictionary wrapped in `M`.
  * @returns A new computation combinator.
  */
 export const catPlusT =
-    <M>(monadPlus: MonadPlus<M>) =>
+    <M>(monadFail: MonadPlus<M>) =>
     <CTX>(ctx: Get1<M, CTX>): CatPlusT<M, CTX> => ({
         ctx,
-        monadPlus,
+        monadFail,
         addM: <const K extends PropertyKey, A>(key: K, value: Get1<M, A>) =>
-            catPlusT(monadPlus)(
-                monadPlus.flatMap((c: CTX) =>
-                    monadPlus.map(
+            catPlusT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(
                         (v: A) => ({ ...c, [key]: v }) as Record<K, A> & CTX,
                     )(value),
                 )(ctx),
@@ -520,8 +522,8 @@ export const catPlusT =
             key: K,
             fn: (ctx: CTX) => A,
         ) =>
-            catPlusT(monadPlus)(
-                monadPlus.map(
+            catPlusT(monadFail)(
+                monadFail.map(
                     (c: CTX) =>
                         ({
                             ...c,
@@ -530,33 +532,33 @@ export const catPlusT =
                 )(ctx),
             ),
         run: (computation) =>
-            catPlusT(monadPlus)(
-                monadPlus.flatMap((c: CTX) =>
-                    monadPlus.map(() => c)(computation),
+            catPlusT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(() => c)(computation),
                 )(ctx),
             ),
         runWith: (computation) =>
-            catPlusT(monadPlus)(
-                monadPlus.flatMap((c: CTX) =>
-                    monadPlus.map(() => c)(computation(c)),
+            catPlusT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(() => c)(computation(c)),
                 )(ctx),
             ),
         addMWith: <const K extends PropertyKey, A>(
             key: K,
             fn: (ctx: CTX) => Get1<M, A>,
         ) =>
-            catPlusT(monadPlus)(
-                monadPlus.flatMap((c: CTX) =>
-                    monadPlus.map(
+            catPlusT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(
                         (v: A) => ({ ...c, [key]: v }) as Record<K, A> & CTX,
                     )(fn(c)),
                 )(ctx),
             ),
         when: (cond, computation) =>
-            catPlusT(monadPlus)(
-                monadPlus.flatMap((c: CTX) =>
-                    monadPlus.map(() => c)(
-                        cond(c) ? computation(c) : monadPlus.pure([]),
+            catPlusT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(() => c)(
+                        cond(c) ? computation(c) : monadFail.pure([]),
                     ),
                 )(ctx),
             ),
@@ -565,63 +567,334 @@ export const catPlusT =
             body: (state: S, ctx: CTX) => Get1<M, ControlFlow<never[], S>>,
         ): CatPlusT<M, CTX> => {
             const go = (state: S): Get1<M, CTX> =>
-                monadPlus.flatMap((c: CTX) =>
-                    monadPlus.flatMap(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.flatMap(
                         (flow: ControlFlow<never[], S>): Get1<M, CTX> =>
-                            isBreak(flow) ? monadPlus.pure(c) : go(flow[1]),
+                            isBreak(flow) ? monadFail.pure(c) : go(flow[1]),
                     )(body(state, c)),
                 )(ctx);
-            return catPlusT(monadPlus)(go(initialState));
+            return catPlusT(monadFail)(go(initialState));
         },
         while: (cond, body) => {
             const go = (ctx: Get1<M, CTX>): Get1<M, CTX> =>
-                monadPlus.flatMap((c: CTX) =>
-                    monadPlus.flatMap((bool: boolean) =>
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.flatMap((bool: boolean) =>
                         bool
-                            ? monadPlus.flatMap(() => go(ctx))(body(c))
-                            : monadPlus.pure(c),
+                            ? monadFail.flatMap(() => go(ctx))(body(c))
+                            : monadFail.pure(c),
                     )(cond(c)),
                 )(ctx);
-            return catPlusT(monadPlus)(go(ctx));
+            return catPlusT(monadFail)(go(ctx));
         },
-        finish: <R>(fn: (ctx: CTX) => R) => monadPlus.map(fn)(ctx),
-        finishM: (fn) => monadPlus.flatMap(fn)(ctx),
-        abort: () => catPlusT(monadPlus)(monadPlus.empty()),
+        finish: <R>(fn: (ctx: CTX) => R) => monadFail.map(fn)(ctx),
+        finishM: (fn) => monadFail.flatMap(fn)(ctx),
+        abort: () => catPlusT(monadFail)(monadFail.empty()),
         assert: (cond) =>
-            catPlusT(monadPlus)(
-                monadPlus.flatMap((c: CTX) =>
-                    monadPlus.map(() => c)(
+            catPlusT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(() => c)(
                         cond(c)
-                            ? monadPlus.pure([])
-                            : monadPlus.empty<never[]>(),
+                            ? monadFail.pure([])
+                            : monadFail.empty<never[]>(),
                     ),
                 )(ctx),
             ),
         alt: (key, action) =>
-            catPlusAltT(monadPlus)(ctx)(key)(action(catPlusT(monadPlus)(ctx))),
+            catPlusAltT(monadFail)(ctx)(key)(action(catPlusT(monadFail)(ctx))),
     });
 
 /**
  * Creates a new `MonadPlusT` with context object.
  *
- * @param monadPlus - A `MonadPlus` instance for `M`.
+ * @param monadFail - A `MonadPlus` instance for `M`.
+ * @param context - A new context dictionary.
  * @returns A new computation combinator.
  */
 export const withPlusT =
-    <M>(monadPlus: MonadPlus<M>) =>
+    <M>(monadFail: MonadPlus<M>) =>
     <CTX>(context: CTX): CatPlusT<M, CTX> =>
-        catPlusT(monadPlus)(monadPlus.pure(context));
+        catPlusT(monadFail)(monadFail.pure(context));
 
 /**
  * Creates a new `MonadPlusT` with the empty context object.
  *
- * @param monadPlus - A `MonadPlus` instance for `M`.
+ * @param monadFail - A `MonadPlus` instance for `M`.
  * @returns A new computation combinator.
  */
 export const doPlusT = <M>(
-    monadPlus: MonadPlus<M>,
-): CatPlusT<M, Record<string, never>> => withPlusT(monadPlus)({});
+    monadFail: MonadPlus<M>,
+): CatPlusT<M, Record<string, never>> => withPlusT(monadFail)({});
 
+/**
+ * A combinator which contains a `ctx` and can be transformed it into another one by its methods.
+ *
+ * @typeParam M - HKT key applied to `MonadFail`.
+ * @typeParam CTX - Passing context type.
+ */
+export type CatFailT<M, CTX> = {
+    /**
+     * Contained context. Altering an interior value must be abstained, or may occurs unsound behaviors.
+     */
+    readonly ctx: Get1<M, CTX>;
+
+    /**
+     * The `MonadFail` instance for `M`.
+     */
+    readonly monadFail: MonadFail<M>;
+
+    /**
+     * Binds a new value wrapped by the monad.
+     *
+     * @param key - The new property key for context
+     * @param value - The wrapped value to bind.
+     * @returns A new `CatT` containing the value at the key.
+     */
+    readonly addM: <const K extends PropertyKey, A>(
+        key: K,
+        value: Get1<M, A>,
+    ) => CatFailT<M, Record<K, A> & CTX>;
+
+    /**
+     * Appends a new value calculated from `ctx` by `fn`.
+     *
+     * @param key - The new property key for context
+     * @param fn - The calculation.
+     * @returns A new `CatT` containing the value at the key.
+     */
+    readonly addWith: <const K extends PropertyKey, A>(
+        key: K,
+        fn: (ctx: CTX) => A,
+    ) => CatFailT<M, Record<K, A> & CTX>;
+
+    /**
+     * Runs the computation.
+     *
+     * @param computation - The computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly run: (computation: Get1<M, never[]>) => CatFailT<M, CTX>;
+
+    /**
+     * Runs the computation with the context.
+     *
+     * @param computation - The computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly runWith: (
+        computation: (ctx: CTX) => Get1<M, never[]>,
+    ) => CatFailT<M, CTX>;
+
+    /**
+     * Binds a new value wrapped by the monad, calculated from `ctx` by `fn`.
+     *
+     * @param key - The new property key for context
+     * @param fn - The calculation which returns the wrapped value.
+     * @returns A new `CatT` containing the value at the key.
+     */
+    readonly addMWith: <const K extends PropertyKey, A>(
+        key: K,
+        fn: (ctx: CTX) => Get1<M, A>,
+    ) => CatFailT<M, Record<K, A> & CTX>;
+
+    /**
+     * Runs a computation if only `cond` is satisfied.
+     *
+     * @param cond - A condition function.
+     * @param computation - A monadic operation used only if `cond` returns `true`.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly when: (
+        cond: (ctx: CTX) => boolean,
+        computation: (ctx: CTX) => Get1<M, never[]>,
+    ) => CatFailT<M, CTX>;
+
+    /**
+     * Runs a looping computation while it returns `Continue<S>`.
+     *
+     * @param initState - An initial state.
+     * @param body - A computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly loop: <S>(
+        initState: S,
+        body: (state: S, ctx: CTX) => Get1<M, ControlFlow<never[], S>>,
+    ) => CatFailT<M, CTX>;
+
+    /**
+     * Runs a looping computation while `cond` returns `true`.
+     *
+     * @param cond - A function to decide to continue the loop.
+     * @param body - A computation to run.
+     * @returns A new `CatT` with modified environment.
+     */
+    readonly while: (
+        cond: (ctx: CTX) => Get1<M, boolean>,
+        body: (ctx: CTX) => Get1<M, never[]>,
+    ) => CatFailT<M, CTX>;
+
+    /**
+     * Aborts the execution and return early with the error message.
+     *
+     * @returns The exiting computation.
+     */
+    readonly fail: (message: string) => CatFailT<M, CTX>;
+
+    /**
+     * Asserts the predicate or return early with the error message.
+     *
+     * @returns The exiting computation.
+     */
+    readonly assert: (
+        cond: (ctx: CTX) => boolean,
+        message: string,
+    ) => CatFailT<M, CTX>;
+
+    /**
+     * Reduces the context into a value by `fn`.
+     *
+     * @param fn - The finishing computation.
+     * @returns A reduced value.
+     */
+    readonly finish: <R>(fn: (ctx: CTX) => R) => Get1<M, R>;
+
+    /**
+     * Reduces the context into a value on `M` by `fn`.
+     *
+     * @param fn - The finishing computation.
+     * @returns A reduced value on `M`.
+     */
+    readonly finishM: <R>(fn: (ctx: CTX) => Get1<M, R>) => Get1<M, R>;
+};
+
+/**
+ * Creates a new `MonadFailT` with context wrapped in HKT `M`.
+ *
+ * @param monadFail - A `MonadFail` instance for `M`.
+ * @param ctx - A new context dictionary wrapped in `M`.
+ * @returns A new computation combinator.
+ */
+export const catFailT =
+    <M>(monadFail: MonadFail<M>) =>
+    <CTX>(ctx: Get1<M, CTX>): CatFailT<M, CTX> => ({
+        ctx,
+        monadFail,
+        addM: <const K extends PropertyKey, A>(key: K, value: Get1<M, A>) =>
+            catFailT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(
+                        (v: A) => ({ ...c, [key]: v }) as Record<K, A> & CTX,
+                    )(value),
+                )(ctx),
+            ),
+        addWith: <const K extends PropertyKey, A>(
+            key: K,
+            fn: (ctx: CTX) => A,
+        ) =>
+            catFailT(monadFail)(
+                monadFail.map(
+                    (c: CTX) =>
+                        ({
+                            ...c,
+                            [key]: fn(c),
+                        }) as Record<K, A> & CTX,
+                )(ctx),
+            ),
+        run: (computation) =>
+            catFailT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(() => c)(computation),
+                )(ctx),
+            ),
+        runWith: (computation) =>
+            catFailT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(() => c)(computation(c)),
+                )(ctx),
+            ),
+        addMWith: <const K extends PropertyKey, A>(
+            key: K,
+            fn: (ctx: CTX) => Get1<M, A>,
+        ) =>
+            catFailT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(
+                        (v: A) => ({ ...c, [key]: v }) as Record<K, A> & CTX,
+                    )(fn(c)),
+                )(ctx),
+            ),
+        when: (cond, computation) =>
+            catFailT(monadFail)(
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.map(() => c)(
+                        cond(c) ? computation(c) : monadFail.pure([]),
+                    ),
+                )(ctx),
+            ),
+        loop: <S>(
+            initialState: S,
+            body: (state: S, ctx: CTX) => Get1<M, ControlFlow<never[], S>>,
+        ): CatFailT<M, CTX> => {
+            const go = (state: S): Get1<M, CTX> =>
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.flatMap(
+                        (flow: ControlFlow<never[], S>): Get1<M, CTX> =>
+                            isBreak(flow) ? monadFail.pure(c) : go(flow[1]),
+                    )(body(state, c)),
+                )(ctx);
+            return catFailT(monadFail)(go(initialState));
+        },
+        while: (cond, body) => {
+            const go = (ctx: Get1<M, CTX>): Get1<M, CTX> =>
+                monadFail.flatMap((c: CTX) =>
+                    monadFail.flatMap((bool: boolean) =>
+                        bool
+                            ? monadFail.flatMap(() => go(ctx))(body(c))
+                            : monadFail.pure(c),
+                    )(cond(c)),
+                )(ctx);
+            return catFailT(monadFail)(go(ctx));
+        },
+        finish: <R>(fn: (ctx: CTX) => R) => monadFail.map(fn)(ctx),
+        finishM: (fn) => monadFail.flatMap(fn)(ctx),
+        fail: (message) => catFailT(monadFail)(monadFail.fail(message)),
+        assert: (cond, message) =>
+            catFailT(monadFail)(
+                monadFail.flatMap(
+                    (c: CTX): Get1<M, CTX> =>
+                        monadFail.map(() => c)(
+                            cond(c)
+                                ? monadFail.pure([])
+                                : monadFail.fail(message),
+                        ),
+                )(ctx),
+            ),
+    });
+
+/**
+ * Creates a new `MonadFailT` with a context.
+ *
+ * @param monadFail - A `MonadFail` instance for `M`.
+ * @param ctx - A new context dictionary.
+ * @returns A new computation combinator.
+ */
+export const withFailT =
+    <M>(monadFail: MonadFail<M>) =>
+    <CTX>(context: CTX): CatFailT<M, CTX> =>
+        catFailT(monadFail)(monadFail.pure(context));
+
+/**
+ * Creates a new `MonadFailT` with the empty context.
+ *
+ * @param monadFail - A `MonadFail` instance for `M`.
+ * @returns A new computation combinator.
+ */
+export const doFailT = <M>(
+    monadFail: MonadFail<M>,
+): CatFailT<M, Record<string, never>> => withFailT(monadFail)({});
+
+/**
+ * Hkt dictionary key for `Cat<_>`.
+ */
 export interface CatHkt extends Hkt1 {
     readonly type: Cat<this["arg1"]>;
 }

@@ -243,9 +243,11 @@ export const resultMonadPlus = <E>(): MonadPlus<
 > => monadPlusT(resultTraversableMonad<E>());
 
 /**
- * Makes a new `Promise` that always fails over.
+ * Makes a new `Promise` that always rejects with the message.
  */
-export const fail = <A>(): Promise<A> => Promise.reject(new Error("fail over"));
+export const fail = async <A>(message: string): Promise<A> => {
+    throw new Error(message);
+};
 
 /**
  * Wraps the value into `Promise`. This is the alias of `Promise.resolve`.
@@ -449,7 +451,7 @@ export const monadRec: MonadRec<PromiseHkt> = { ...monad, tailRecM };
  */
 export const alternative: Alternative<PromiseHkt> = {
     ...applicative,
-    empty: fail,
+    empty: () => fail("fail over"),
     alt,
 };
 

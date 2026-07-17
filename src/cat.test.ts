@@ -3,6 +3,7 @@ import * as Array from "./array.js";
 import {
     apply,
     cat,
+    doFailT,
     doPlusT,
     doT,
     flatMap,
@@ -17,6 +18,7 @@ import { newBreak, newContinue } from "./control-flow.js";
 import type { Get1 } from "./hkt.js";
 import * as Promise from "./promise.js";
 import { get as getState, monad, put, runState } from "./state.js";
+import type { MonadFail } from "./type-class/monad-fail.js";
 import type { MonadPlus } from "./type-class/monad-plus.js";
 
 const m = monad<number>();
@@ -183,4 +185,34 @@ test("CatPlusT.alt", async () => {
     await expect(
         div2Or3(Promise.monadPlus)(Promise.pure(41)),
     ).rejects.toThrow();
+});
+
+test("CatFailT.fail", async () => {
+    const findMod2And3 =
+        <M>(mFail: MonadFail<M>) =>
+        (nums: Get1<M, number>): Get1<M, number> =>
+            doFailT(mFail)
+                .addM("num", nums)
+                .assert(
+                    ({ num }) => num % 2 === 0,
+                    "expected num to be mod of 2",
+                )
+                .assert(
+                    ({ num }) => num % 3 === 0,
+                    "expected num to be mod of 3",
+                )
+                .finish(({ num }) => num);
+
+    expect(
+        await findMod2And3(Promise.monadFail)(Promise.pure(42)),
+    ).toStrictEqual(42);
+    await expect(
+        findMod2And3(Promise.monadFail)(Promise.pure(8)),
+    ).rejects.toThrow("expected num to be mod of 3");
+    await expect(
+        findMod2And3(Promise.monadFail)(Promise.pure(3)),
+    ).rejects.toThrow("expected num to be mod of 2");
+    expect(
+        findMod2And3(Array.monadFail)([1, 4, 2, 3, 12, 34, 17, 8, 18, 9, 5, 6]),
+    ).toStrictEqual([12, 18, 6]);
 });
