@@ -18,6 +18,7 @@ import { type FlatMap, flatten } from "./type-class/flat-map.js";
 import type { Foldable } from "./type-class/foldable.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
+import type { MonadFail } from "./type-class/monad-fail.js";
 import type { MonadPlus } from "./type-class/monad-plus.js";
 import type { MonadRec } from "./type-class/monad-rec.js";
 import type { Pure } from "./type-class/pure.js";
@@ -242,9 +243,11 @@ export const resultMonadPlus = <E>(): MonadPlus<
 > => monadPlusT(resultTraversableMonad<E>());
 
 /**
- * Makes a new `Promise` that always fails over.
+ * Makes a new `Promise` that always rejects with the message.
  */
-export const fail = <A>(): Promise<A> => Promise.reject(new Error("fail over"));
+export const fail = async <A>(message: string): Promise<A> => {
+    throw new Error(message);
+};
 
 /**
  * Wraps the value into `Promise`. This is the alias of `Promise.resolve`.
@@ -295,7 +298,7 @@ export const flatMap: <T, U>(
 export const apply: <T, U>(
     fn: Promise<(t: T) => U>,
 ) => (t: Promise<T>) => Promise<U> = (f) => (t) =>
-    t.then((value) => f.then((func) => func(value)));
+    f.then((func) => t.then((value) => func(value)));
 
 /**
  * Transform the continuation-passing style into the promise. The parameter for `computation` is `continuation` error handle which aborts the computation.
@@ -383,8 +386,10 @@ export const resolve: <T>(value: T | PromiseLike<T>) => Promise<Awaited<T>> =
 /**
  * Picks the first successful computation. It will try `first` at first, but if `first` throws an error, it discards the error and uses `second`.
  *
- * @param first - The first attempt.
+ * Note that the arguments of `Promise`s are reversed for partial application with `Cat`s.
+ *
  * @param second - The second attempt.
+ * @param first - The first attempt.
  * @returns The first successful computation.
  */
 export const alt =
@@ -446,7 +451,7 @@ export const monadRec: MonadRec<PromiseHkt> = { ...monad, tailRecM };
  */
 export const alternative: Alternative<PromiseHkt> = {
     ...applicative,
-    empty: fail,
+    empty: () => fail("fail over"),
     alt,
 };
 
@@ -457,3 +462,8 @@ export const monadPlus: MonadPlus<PromiseHkt> = {
     ...alternative,
     ...monad,
 };
+
+/**
+ * The `MonadFail` instance for `Promise`.
+ */
+export const monadFail: MonadFail<PromiseHkt> = { ...monad, fail };

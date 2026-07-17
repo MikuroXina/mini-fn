@@ -145,6 +145,7 @@ import type { Foldable } from "./type-class/foldable.js";
 import type { Functor } from "./type-class/functor.js";
 import * as Hash from "./type-class/hash.js";
 import type { Monad } from "./type-class/monad.js";
+import type { MonadFail } from "./type-class/monad-fail.js";
 import type { MonadPlus } from "./type-class/monad-plus.js";
 import type { Monoid } from "./type-class/monoid.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
@@ -2283,6 +2284,11 @@ export const monadPlus: MonadPlus<ListHkt> = {
     ...alternative,
     ...monad,
 };
+
+/**
+ * The `MonadFail` instance for `List`.
+ */
+export const monadFail: MonadFail<ListHkt> = { ...monad, fail: empty };
 
 export const enc = <T>(encT: Encoder<T>): Encoder<List<T>> =>
     encFoldable(foldable)(encT);

@@ -15,6 +15,7 @@ import { type Eq, fromEquality } from "./type-class/eq.js";
 import type { Foldable } from "./type-class/foldable.js";
 import type { Functor } from "./type-class/functor.js";
 import type { Monad } from "./type-class/monad.js";
+import type { MonadFail } from "./type-class/monad-fail.js";
 import type { MonadPlus } from "./type-class/monad-plus.js";
 import { fromCmp, type Ord } from "./type-class/ord.js";
 import {
@@ -264,6 +265,11 @@ export const alternative: Alternative<ArrayHkt> = {
  * The `MonadPlus` instance for `Array`.
  */
 export const monadPlus: MonadPlus<ArrayHkt> = { ...alternative, ...monad };
+
+/**
+ * The `MonadFail` instance for `Array`.
+ */
+export const monadFail: MonadFail<ArrayHkt> = { ...monad, fail: empty };
 
 /**
  * Crates a new array from elements in `fa`.
