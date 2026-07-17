@@ -1,5 +1,17 @@
 # Changelog
 
+## [7.4.0](https://github.com/MikuroXina/mini-fn/compare/mini-fn-v7.3.0...mini-fn-v7.4.0) (2026-07-17)
+
+
+### Features
+
+* Add CatPlusT and CatFailT ([#326](https://github.com/MikuroXina/mini-fn/issues/326)) ([ed2e19d](https://github.com/MikuroXina/mini-fn/commit/ed2e19dc64108e763d1df692b817f41923ab1497))
+
+
+### Bug Fixes
+
+* Fix explicit return type ([#322](https://github.com/MikuroXina/mini-fn/issues/322)) ([d38c840](https://github.com/MikuroXina/mini-fn/commit/d38c840caac59cca8bd0a34fea9b666a58cda6e0))
+
 ## [7.3.0](https://github.com/MikuroXina/mini-fn/compare/mini-fn-v7.2.0...mini-fn-v7.3.0) (2026-07-05)
 
 
