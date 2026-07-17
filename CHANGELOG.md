@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.4.1](https://github.com/MikuroXina/mini-fn/compare/mini-fn-v7.4.0...mini-fn-v7.4.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* Hotfix import path ([#327](https://github.com/MikuroXina/mini-fn/issues/327)) ([6ce8ca8](https://github.com/MikuroXina/mini-fn/commit/6ce8ca8927c189287315ed5fb01a1ce35e79d7f7))
+
 ## [7.4.0](https://github.com/MikuroXina/mini-fn/compare/mini-fn-v7.3.0...mini-fn-v7.4.0) (2026-07-17)
 
 
