@@ -1,5 +1,13 @@
 # Changelog
 
+## [7.4.1](https://github.com/MikuroXina/mini-fn/compare/mini-fn-v7.4.0...mini-fn-v7.4.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* Fix bugs of removal and range query in BTree ([#331](https://github.com/MikuroXina/mini-fn/issues/331)) ([637fb86](https://github.com/MikuroXina/mini-fn/commit/637fb865c4c376d4c139a9639ee0e49f72039bf0))
+* Hotfix import path ([#327](https://github.com/MikuroXina/mini-fn/issues/327)) ([6ce8ca8](https://github.com/MikuroXina/mini-fn/commit/6ce8ca8927c189287315ed5fb01a1ce35e79d7f7))
+
 ## [7.4.0](https://github.com/MikuroXina/mini-fn/compare/mini-fn-v7.3.0...mini-fn-v7.4.0) (2026-07-17)
 
 
