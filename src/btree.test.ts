@@ -513,5 +513,9 @@ test("range must not skip subtrees", () => {
     expect(inRange(Range.fromTo(0, 12))).toStrictEqual([
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
     ]);
-    expect(inRange(Range.fromTo(7, 9))).toStrictEqual([7, 8]);
+    expect(inRange(Range.fromTo(0, 1))).toStrictEqual([0]);
+    for (let i = 0; i < 11; ++i) {
+        expect(inRange(Range.fromTo(i, i + 2))).toStrictEqual([i, i + 1]);
+    }
+    expect(inRange(Range.fromTo(11, 13))).toStrictEqual([11]);
 });
