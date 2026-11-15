@@ -85,7 +85,7 @@ import {
 import type { Apply2Only, Hkt1, Hkt2 } from "./hkt.js";
 import * as Option from "./option.js";
 import { equal, greater, less, type Ordering } from "./ordering.js";
-import { contains, type RangeBounds } from "./range.js";
+import { contains, precedes, type RangeBounds } from "./range.js";
 import * as Result from "./result.js";
 import type { State } from "./state.js";
 import type { Monoid } from "./type-class/monoid.js";
@@ -427,11 +427,11 @@ export const range =
 
             // skip to start
             let i = 0;
-            while (!contains(ord)(map.keys[i]!)(bounds)) {
-                ++i;
-                if (i >= map.keys.length) {
-                    return;
+            while (precedes(ord)(map.keys[i]!)(bounds)) {
+                if (i + 1 > map.keys.length) {
+                    break;
                 }
+                ++i;
             }
             if (!isLeaf(map)) {
                 yield* rangeGenerator(map.edges[i]!);
@@ -439,11 +439,11 @@ export const range =
             while (contains(ord)(map.keys[i]!)(bounds)) {
                 yield [map.keys[i]!, map.values[i]!];
                 ++i;
-                if (i >= map.keys.length) {
-                    return;
-                }
                 if (!isLeaf(map)) {
                     yield* rangeGenerator(map.edges[i]!);
+                }
+                if (i >= map.keys.length) {
+                    break;
                 }
             }
         };

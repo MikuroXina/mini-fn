@@ -657,10 +657,17 @@ export const removeNotThin = <K, V>(
     }
 
     const pos = Result.mergeOkErr(posRes);
-    if (Result.isErr(posRes)) {
-        return removeInChild(node, pos, key, ord);
+    const [mergedNode, removed] = Result.isOk(posRes)
+        ? removeInternalKey(node, pos, ord)
+        : removeInChild(node, pos, key, ord);
+    if (mergedNode.keys.length === 0) {
+        const single = mergedNode.edges?.[0];
+        if (single == null) {
+            throw new Error("removeInternalKey returned invalid edges");
+        }
+        return [single, removed];
     }
-    return removeInternalKey(node, pos, ord);
+    return [mergedNode, removed];
 };
 
 const stealLeft = <K, V>(
