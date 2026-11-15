@@ -4,9 +4,17 @@ import * as BTree from "./btree.js";
 import { doT } from "./cat.js";
 import * as Option from "./option.js";
 import { none } from "./option.js";
-import { fromTo, fromToInclusive, since, until } from "./range.js";
+import * as Range from "./range.js";
+import {
+    fromTo,
+    fromToInclusive,
+    type RangeBounds,
+    since,
+    until,
+} from "./range.js";
 import * as State from "./state.js";
 import { ord as stringOrd } from "./string.js";
+import { nonNanOrd } from "./type-class/ord.js";
 
 test("movie review example", () => {
     const ord = stringOrd;
@@ -479,4 +487,31 @@ test("steal from left at fromIterable", () => {
 
     const actual = [...BTree.setToIterator(set)];
     expect(actual).toStrictEqual(actual.toSorted(stringOrd.cmp));
+});
+
+test("merging must not collapse (#330)", () => {
+    let map = BTree.fromIterable(nonNanOrd)(
+        [...new Array(12)].map((_, i) => [i, `v${i}`]),
+    );
+    [, map] = BTree.remove(nonNanOrd)(0)(map);
+    [, map] = BTree.remove(nonNanOrd)(1)(map);
+    expect(BTree.isEmpty(map)).toStrictEqual(false);
+    expect(BTree.len(map)).toStrictEqual(10);
+    expect(BTree.get(nonNanOrd)(4)(map)).toStrictEqual(Option.some("v4"));
+    expect([...BTree.toKeys(map)]).toStrictEqual([
+        2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+    ]);
+});
+
+test("range must not skip subtrees", () => {
+    const map = BTree.fromIterable(nonNanOrd)(
+        [...new Array(12)].map((_, i) => [i, `v${i}`]),
+    );
+    const inRange = (r: RangeBounds<number>) =>
+        [...BTree.range(nonNanOrd)(r)(map)].flatMap(([k]) => k);
+    expect(inRange(Range.fromTo(0, 3))).toStrictEqual([0, 1, 2]);
+    expect(inRange(Range.fromTo(0, 12))).toStrictEqual([
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+    ]);
+    expect(inRange(Range.fromTo(7, 9))).toStrictEqual([7, 8]);
 });
