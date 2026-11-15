@@ -148,6 +148,42 @@ export const start = <T>({ start }: RangeBounds<T>): Bound<T> => start;
 export const end = <T>({ end }: RangeBounds<T>): Bound<T> => end;
 
 /**
+ * Determines whether `item` precedes `range`.
+ *
+ * @param ord - The `PartialOrd` instance for `T`.
+ * @param item - To be checked.
+ * @param range - To check.
+ * @returns Whether `item` precedes `range`.
+ */
+export const precedes =
+    <T>(ord: PartialOrd<T>) =>
+    (item: T) =>
+    (range: RangeBounds<T>): boolean =>
+        range.start[0] === includedNominal
+            ? isLt(ord)(item, range.start[1])
+            : range.start[0] === excludedNominal
+              ? isLe(ord)(item, range.start[1])
+              : false;
+
+/**
+ * Determine whether `item` succeeds `range`.
+ *
+ * @param ord - The `PartialOrd` instance for `T`.
+ * @param item - To be checked.
+ * @param range - To check.
+ * @returns Whether `item` succeeds `range`.
+ */
+export const succeeds =
+    <T>(ord: PartialOrd<T>) =>
+    (item: T) =>
+    (range: RangeBounds<T>): boolean =>
+        range.end[0] === includedNominal
+            ? isLt(ord)(range.end[1], item)
+            : range.end[0] === excludedNominal
+              ? isLe(ord)(range.end[1], item)
+              : false;
+
+/**
  * Determines whether the range contains the item.
  *
  * @param ord - The `PartialOrd` instance for `T`.
